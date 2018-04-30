@@ -1,0 +1,22 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.pdb
+*.DS_Store
+
+#folders
+Intermediate
+Binaries/Win64/UE4Editor.modules
+Binaries/Win64/UE4Editor-LeapMotion.dll
+Binaries/Win64/UE4Editor*.dll
+Binaries/Android/UE4-LeapMotion-Android-Shipping-armv7-es2.a
+Binaries/Android/UE4-LeapMotion-armv7-es2.a
+*.a
+Binaries/Win64/UE4-LeapMotionC.lib
+Binaries/Win64/UE4-BodyState.lib
+Binaries/Win64/UE4-LeapMotion.lib
+Binaries/Win64/UE4Editor-Win64-DebugGame.modules
+Binaries/Win64/LeapWork-LeapMotion.lib
+Binaries/Win64/LeapWork-BodyState.lib
