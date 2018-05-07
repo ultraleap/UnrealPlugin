@@ -1,5 +1,5 @@
 /******************************************************************************\
-* Copyright (C) 2012-2016 Leap Motion, Inc. All rights reserved.               *
+* Copyright (C) 2012-2017 Leap Motion, Inc. All rights reserved.               *
 * Leap Motion proprietary and confidential. Not for distribution.              *
 * Use subject to the terms of the Leap Motion SDK Agreement available at       *
 * https://developer.leapmotion.com/sdk_agreement, or another agreement         *
@@ -28,8 +28,6 @@
 #  define LEAP_STATIC_ASSERT(x, y)
 #endif
 
-#pragma pack(1)
-
 // Define integer types for Visual Studio 2008 and earlier
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
 typedef __int32 int32_t;
@@ -41,6 +39,8 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #include <stdbool.h>
+
+#pragma pack(1)
 
 #ifdef __cplusplus
 extern "C" {
@@ -190,7 +190,7 @@ typedef enum _eLeapRS {
   eLeapRS_NotStreaming                  = 0xE7010004,
 
   /**
-   * The specified device could not be opened.  It is possible that the device identifier
+   * The specified device could not be opened. It is possible that the device identifier
    * is invalid, or that the device has been disconnected since being enumerated.
    * @since 3.0.0
    */
@@ -259,11 +259,11 @@ typedef struct _LEAP_CONNECTION_CONFIG {
   uint32_t flags;
 
   /*
-   * Specifies the server namespace to be used.  Leave NULL to use the default namespace.
+   * Specifies the server namespace to be used. Leave NULL to use the default namespace.
    *
    * It is possible to launch the service with a different IPC connection namespace
-   * (using internal service functions).  Clients
-   * wishing to connect to a different server namespace may specify that namespace here.
+   * (using internal service functions). Clients wishing to connect to a different
+   * server namespace may specify that namespace here.
    *
    * The default connection namespace is "Leap Service".
    */
@@ -271,10 +271,69 @@ typedef struct _LEAP_CONNECTION_CONFIG {
   const char* server_namespace;
 } LEAP_CONNECTION_CONFIG;
 
+/** \ingroup Enum
+ * Defines the various types of data that may be allocated using the allocator.
+ * @since 4.0.0
+ */
+typedef enum _eLeapAllocatorType {
+  /** Signed 8-bit integer (char) @since 4.0.0 */
+  eLeapAllocatorType_Int8 = 0,
+  /** Unsigned 8-bit integer (byte) @since 4.0.0 */
+  eLeapAllocatorType_Uint8 = 1,
+  /** Signed 16-bit integer @since 4.0.0 */
+  eLeapAllocatorType_Int16 = 2,
+  /** Unsigned 16-bit integer @since 4.0.0 */
+  eLeapAllocatorType_UInt16 = 3,
+  /** Signed 32-bit integer @since 4.0.0 */
+  eLeapAllocatorType_Int32 = 4,
+  /** Unsigned 32-bit integer @since 4.0.0 */
+  eLeapAllocatorType_UInt32 = 5,
+  /** Single-precision 32-bit floating-point @since 4.0.0 */
+  eLeapAllocatorType_Float = 6,
+  /** Signed 64-bit integer @since 4.0.0 */
+  eLeapAllocatorType_Int64 = 8,
+  /** Unsigned 64-bit integer @since 4.0.0 */
+  eLeapAllocatorType_UInt64 = 9,
+  /** Double-precision 64-bit floating-point @since 4.0.0 */
+  eLeapAllocatorType_Double = 10,
+} eLeapAllocatorType;
+
+/** \ingroup Structs
+ * Specifies the allocator/deallocator functions to be used when the library
+ * needs to dynamically manage memory.
+ * @since 4.0.0
+ */
+typedef struct LEAP_ALLOCATOR {
+  /**
+   * Function pointer to an allocator function that is expected to return a
+   * pointer to memory of at least the specified size in bytes. This will be
+   * called when the library needs a block of memory that will be provided
+   * back to the client in a subsequent event or response. A type hint is
+   * provided in the case where the underlying buffer type needs to be known
+   * at allocation time.
+   */
+  void* (*allocate)(uint32_t size, eLeapAllocatorType typeHint, void* state);
+
+  /**
+   * Function pointer to a deallocator function. The function receives the
+   * address of a previously allocated block of memory from the ``allocate``
+   * function pointer. The caller is not required to deallocate the memory,
+   * but rather this call is used by the library to indicate to the client
+   * that it will no longer reference the memory at this address, and that
+   * the callee _may_ deallocate the memory when it is ready to do so.
+   */
+  void (*deallocate)(void* ptr, void* state);
+
+  /**
+   * Pointer to state to be passed to the allocate and deallocate functions.
+   */
+  void* state;
+} LEAP_ALLOCATOR;
+
 /** \ingroup Functions
  * Samples the universal clock used by the system to timestamp image and tracking frames.
  *
- * The returned counter value is given in microseconds since an epoch time.  The clock used for the
+ * The returned counter value is given in microseconds since an epoch time. The clock used for the
  * counter itself is implementation-defined, but generally speaking, it is global, monotonic, and
  * makes use of the most accurate high-performance counter available on the system.
  * @returns microseconds since an unspecified epoch.
@@ -300,7 +359,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapCreateConnection(const LEAP_CONNECTION_CONFIG*
 /** \ingroup Functions
  * Opens a connection to the service.
  *
- * This routine will not block.  A connection to the service will not be established until the first
+ * This routine will not block. A connection to the service will not be established until the first
  * invocation of LeapPollConnection.
  *
  * @param hConnection A handle to the connection object, created by LeapCreateConnection().
@@ -417,6 +476,19 @@ typedef struct _LEAP_CONNECTION_INFO {
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetConnectionInfo(LEAP_CONNECTION hConnection, LEAP_CONNECTION_INFO* pInfo);
+
+/** \ingroup Fucntions
+ * Sets the allocator functions to use for a particular connection.
+ *
+ * If user-supplied allocator functions are not supplied, the functions that require
+ * dynamic memory allocation will not be available.
+ *
+ * @param hConnection A handle to the connection object, created by LeapCreateConnection().
+ * @param allocator A pointer to a structure containing the allocator functions to be called
+ * as needed by the library.
+ * @since 4.0.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetAllocator(const LEAP_CONNECTION hConnection, const LEAP_ALLOCATOR* allocator);
 
 /**  \ingroup Enum
 * Identifies the operative data type of a LEAP_VARIANT struct instance.
@@ -581,6 +653,9 @@ typedef enum _eLeapDevicePID {
   /** Internal research product codename "Nightcrawler". @since 3.0.0 */
   eLeapDevicePID_Nightcrawler    = 0x1201,
 
+  /** Research product codename "Rigel". @since 4.0.0 */
+  eLeapDevicePID_Rigel           = 0x1202,
+
   /** An invalid device type value. @since 3.1.3 */
   eLeapDevicePID_Invalid = 0xFFFFFFFF
 } eLeapDevicePID;
@@ -608,7 +683,7 @@ typedef struct _LEAP_DEVICE_INFO {
    * The device baseline, in micrometers.
    *
    * The baseline is defined as the distance between the center axis of each lens in a stereo camera
-   * system.  For other camera systems, this value is set to zero.
+   * system. For other camera systems, this value is set to zero.
    * @since 3.0.0
    */
   uint32_t baseline;
@@ -653,11 +728,17 @@ typedef enum _eLeapPolicyFlag {
   /** The policy allowing an application to receive frames in the background. @since 3.0.0 */
   eLeapPolicyFlag_BackgroundFrames = 0x00000001,
 
+  /** The policy specifying whether to automatically stream images from the device. @since 4.0.0 */
+  eLeapPolicyFlag_Images           = 0x00000002,
+
   /** The policy specifying whether to optimize tracking for head-mounted device. @since 3.0.0 */
   eLeapPolicyFlag_OptimizeHMD      = 0x00000004,
 
   /** The policy allowing an application to pause or resume service tracking. @since 3.0.0 */
   eLeapPolicyFlag_AllowPauseResume = 0x00000008,
+
+  /** The policy allowing an application to receive per-frame map points. @since 4.0.0 */
+  eLeapPolicyFlag_MapPoints        = 0x00000080,
 } eLeapPolicyFlag;
 
 /** \ingroup Structs
@@ -706,7 +787,7 @@ typedef enum _eLeapDeviceFlag {
    * Flag set if the device is presently streaming frames
    *
    * This flag is updated when the user pauses or resumes tracking on the device from the Leap control
-   * panel.  Modification of this flag will fail if the AllowPauseResume policy is not set on this device
+   * panel. Modification of this flag will fail if the AllowPauseResume policy is not set on this device
    * object.
    */
   eLeapDeviceFlag_Stream                = 0x00000001
@@ -746,7 +827,7 @@ typedef struct _LEAP_DEVICE_EVENT {
   /** The handle reference of to the newly attached device. @since 3.0.0 */
   LEAP_DEVICE_REF device;
 
-  /** The status of the connected device.  A combination of flags from the eLeapDeviceStatus collection. */
+  /** The status of the connected device. A combination of flags from the eLeapDeviceStatus collection. */
   uint32_t status;
 } LEAP_DEVICE_EVENT;
 
@@ -762,13 +843,16 @@ typedef enum _eLeapDeviceStatus {
   eLeapDeviceStatus_Paused         = 0x00000002,
 
   /**
-   * There are known sources of infrared interference.  Device has transitioned to
+   * There are known sources of infrared interference. Device has transitioned to
    * robust mode in order to compensate.  @since 3.1.3
    */
-  eLeapDeviceStatus_Robust  =        0x00000004,
+  eLeapDeviceStatus_Robust         = 0x00000004,
 
   /** The device's window is smudged, tracking may be degraded.  @since 3.1.3 */
   eLeapDeviceStatus_Smudged        = 0x00000008,
+
+  /** The device has entered low-resource mode. @since 4.0.0 */
+  eLeapDeviceStatus_LowResource    = 0x00000010,
 
   /** The device has failed, but the failure reason is not known. @since 3.0.0 */
   eLeapDeviceStatus_UnknownFailure = 0xE8010000,
@@ -817,7 +901,7 @@ typedef struct _LEAP_FRAME_HEADER {
   /**
    * A unique identifier for this frame
    *
-   * All frames carrying this frame ID are part of the same unit of processing.  This counter
+   * All frames carrying this frame ID are part of the same unit of processing. This counter
    * is generally an increasing counter, but may reset to another value if the user stops and
    * restarts streaming.
    *
@@ -937,79 +1021,6 @@ typedef struct _LEAP_DISTORTION_MATRIX {
 } LEAP_DISTORTION_MATRIX;
 
 /** \ingroup Structs
- * Opaque struct that identifies an image request.
- * You can correlate the call to LeapRequestImage() and the asynchronous
- * LEAP_IMAGE_COMPLETE_EVENT or LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT messages
- * produced by LeapPollConnection() by comparing the token provided by the
- * original request with that provided by the event message.
- *
- * You can also cancel a pending image request using the token.
- * @since 3.0.0
- */
-typedef struct _LEAP_IMAGE_FRAME_REQUEST_TOKEN {
-  /**
-   * The ID of the request that was sent up to the service.  This ID is not
-   * reused and should be treated as an opaque value.
-   * @since 3.0.0
-   */
-  uint32_t requestID;
-} LEAP_IMAGE_FRAME_REQUEST_TOKEN;
-
-/** \ingroup Structs
- * The properties of a requested Image.
- *
- * LeapPollConnection() produces this message when a requested image is available.
- * The struct contains image properties, the distortion grid, and a pointer to
- * the buffer containing the image data -- which is the same pointer that you
- * passed to LeapC in the image request.
- * @since 3.0.0
- */
-typedef struct _LEAP_IMAGE_COMPLETE_EVENT {
-  /**
-   * A token which identifies the corresponding image request. @since 3.0.0
-   */
-  LEAP_IMAGE_FRAME_REQUEST_TOKEN token;
-
-  /** The information header identifying the images tracking frame. @since 3.0.0 */
-  LEAP_FRAME_HEADER info;
-
-  /** A pointer to the properties of the received image. @since 3.0.0 */
-  const LEAP_IMAGE_PROPERTIES* properties;
-
-  /**
-   * A version number for the distortion matrix.  When the distortion matrix
-   * changes, this number is updated.  This number is guaranteed not to repeat
-   * for the lifetime of the connection. This version number is also guaranteed
-   * to be distinct for each perspective of an image.
-   *
-   * This value is guaranteed to be nonzero if it is valid.
-   *
-   * The distortion matrix only changes when the streaming device changes or when the
-   * device orientation flips -- inverting the image and the distortion grid.
-   * Since building a matrix to undistort an image can be a time-consuming task,
-   * you can optimize the process by only rebuilding this matrix (or whatever
-   * data type you use to correct image distortion) when the grid actually changes.
-   */
-  uint64_t matrix_version;
-
-  /** For internal use only. @since 3.0.0 */
-  LEAP_CALIBRATION calib;
-
-  /** Pointers to the left and right distortion matrix. @since 3.0.0 */
-  LEAP_DISTORTION_MATRIX* distortion_matrix[2];
-
-  /**
-   * The buffer you specified when calling LeapRequestImages(). @since 3.0.0
-   */
-  void* pfnData;
-
-  /**
-   * The number of bytes written to the buffer pointed to by pfnData. @since 3.0.0
-   */
-  uint64_t data_written;
-} LEAP_IMAGE_COMPLETE_EVENT;
-
-/** \ingroup Structs
  * Describes the image to request.
  * Pass this struct to the LeapImageRequest() function.
  * @since 3.0.0
@@ -1038,143 +1049,6 @@ typedef struct _LEAP_IMAGE_FRAME_DESCRIPTION {
    */
   void* pBuffer;
 } LEAP_IMAGE_FRAME_DESCRIPTION;
-
-/**  \ingroup Enum
- * Error codes describing failed image requests. @since 3.0.0
- */
-typedef enum _eLeapImageRequestError {
-  /** An unknown error has occurred. @since 3.0.0 */
-  eLeapImageRequestError_Unknown,
-
-  /**
-   * Images are turned off. (The config value with key 'image_mode' is set to 0.)
-   * @since 3.0.0
-   */
-  eLeapImageRequestError_ImagesDisabled,
-
-  /**
-   * The requested images are not available.
-   * This could occur if LeapC processed the requests after the images were discarded
-   * or if the requested format is not available from the attached hardware device.
-   * @since 3.0.0
-   */
-  eLeapImageRequestError_Unavailable,
-
-  /**
-   * The provided buffer is not large enough for the requested images.
-   * @since 3.0.0
-   */
-  eLeapImageRequestError_InsufficientBuffer,
-} eLeapImageRequestError;
-
-/** \ingroup Structs
- * The error struct received from LeapPollConnection() when an image request
- * goes wrong.
- * @since 3.0.0
- */
-typedef struct _LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT {
-  /**
-   * A token which identifies the corresponding request. @since 3.0.0
-   */
-  LEAP_IMAGE_FRAME_REQUEST_TOKEN token;
-
-  /** The error code of the failure. @since 3.0.0 **/
-  eLeapImageRequestError error;
-
-  /**
-   * If the error is eLeapImageRequestError_InsufficientBuffer,
-   * the minimum buffer size required for the requested image data.
-   * @since 3.0.0
-   */
-  uint64_t required_buffer_len;
-
-  /**
-   * A copy of the image frame description supplied in the request.
-   * @since 3.0.0
-   */
-  LEAP_IMAGE_FRAME_DESCRIPTION description;
-} LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT;
-
-/** \ingroup Functions
- * Requests an image from the service.
- *
- * This function must be called for every image desired.
- *
- * The LEAP_IMAGE_DESCRIPTION struct passed to this function identifies which image
- * to return and must include a pointer to a buffer allocated with enough memory
- * to hold the image frame. Each image frame contains both left and right stereo
- * images, stacked sequentially in the buffer.
- *
- * Image requests must be made in a timely manner; only a few images are buffered by
- * LeapC. You should make the request as soon as possible after the corresponding
- * tracking frame message is received from LeapPollConnection().
- *
- * Image requests are satisfied asynchronously. When the image becomes available,
- * LeapPollConnection() will provide a LEAP_IMAGE_COMPLETE_EVENT struct. If the
- * request cannot be satisfied, LeapPollConnection() provides a
- * LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT struct instead. You can
- * use the LEAP_IMAGE_FRAME_REQUEST_TOKEN object to correlate the response with
- * the request.
- *
- * Before deallocating the supplied image buffers, you must cancel any pending
- * requests (or let them complete). Otherwise, LeapC may write to memory no longer
- * designated for this purpose.
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param pdescription A pointer to a LEAP_IMAGE_DESCRIPTION struct which
- * describes which images to request and which contains the pointer to your image buffer.
- * @param pToken A pointer to a frame request token which may be used later to cancel or request information
- *        about the request.
- * @returns The operation result code, a member of the eLeapRS enumeration.
- * @since 3.0.0
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapRequestImages(LEAP_CONNECTION hConnection, const LEAP_IMAGE_FRAME_DESCRIPTION* pdescription, LEAP_IMAGE_FRAME_REQUEST_TOKEN* pToken);
-
-/** \ingroup Enum
- * Enumerates the codes for image request status.
- * Use the LeapGetImageRequestStatus() function to check on the status of a request
- * that is not complete.
- * @since 3.0.0
- */
-typedef enum _eLeapImageFrameRequestStatus {
-  /** The request is still being serviced by the service. @3.0.0 */
-  eLeapImageFrameRequestStatus_Waiting,
-
-  /** The request is currently being received by the application. @3.0.0 */
-  eLeapImageFrameRequestStatus_Underway,
-
-  /** The request is being cancelled by the user. @3.0.0 */
-  eLeapImageFrameRequestStatus_Cancelling
-} eLeapImageFrameRequestStatus;
-
-/**
- * Retrieves status information about a currently in-flight image request.
- *
- * After a request for images has finished or failed, this function will not return a
- * valid status.
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param token A token previously returned by LeapRequestImages().
- * @param pStatus Receives current status of the request.
- * @returns The operation result code, a member of the eLeapRS enumeration.
- * @since 3.0.0
- **/
-LEAP_EXPORT eLeapRS LEAP_CALL LeapGetImageRequestStatus(LEAP_CONNECTION hConnection, LEAP_IMAGE_FRAME_REQUEST_TOKEN token, eLeapImageFrameRequestStatus* pStatus);
-
-/** \ingroup Functions
- * Cancels a images request identified by the token returned by a prior
- * call to LeapRequestImages();
- *
- * You must always cancel pending image requests before freeing the memory allocated
- * for the request, including at application shutdown. Otherwise, LeapC may still
- * write to the freed memory location.
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param token A token returned by a prior call to LeapRequestImages().
- * @returns The operation result code, a member of the eLeapRS enumeration.
- * @since 3.0.0
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapCancelImageFrameRequest(LEAP_CONNECTION hConnection, LEAP_IMAGE_FRAME_REQUEST_TOKEN token);
 
 /** \ingroup Structs
  * A three element, floating-point vector.
@@ -1228,7 +1102,7 @@ typedef struct _LEAP_QUATERNION {
  * @since 3.0.0
  */
 typedef struct _LEAP_BONE {
-  /** The base of the bone, closer to the heart.  The bones origin. @since 3.0.0 */
+  /** The base of the bone, closer to the heart. The bones origin. @since 3.0.0 */
   LEAP_VECTOR prev_joint;
 
   /** The end of the bone, further from the heart. @since 3.0.0 */
@@ -1279,12 +1153,6 @@ typedef struct _LEAP_DIGIT {
       LEAP_BONE distal;
     };
   };
-
-  /** The instantaneous speed at the finger tip in millimeters per second. @since 3.0.0 */
-  LEAP_VECTOR tip_velocity;
-
-  /** A time-filtered and stabilized position of the finger tip. @since 3.0.0 */
-  LEAP_VECTOR stabilized_tip_position;
 
   /** Reports whether the finger is more or less straight. @since 3.0.0 */
   uint32_t is_extended;
@@ -1458,7 +1326,7 @@ typedef struct _LEAP_TRACKING_EVENT {
   LEAP_FRAME_HEADER info;
 
   /**
-   * An identifier for this tracking frame.  This identifier is meant to be monotonically
+   * An identifier for this tracking frame. This identifier is meant to be monotonically
    * increasing, but values may be skipped if the client application does not poll for messages
    * fast enough. This number also generally increases at the same rate as info.frame_id, but
    * if the server cannot process every image received from the device cameras, the info.frame_id
@@ -1466,19 +1334,6 @@ typedef struct _LEAP_TRACKING_EVENT {
    * @since 3.0.0
    */
   int64_t tracking_frame_id;
-
-  /**
-   * The height, width, and depth of the interaction box.
-   * The interaction box is rectangular prism that is guaranteed to be completely
-   * inside the field-of-view and range of the device cameras. The box dimensions
-   * can change as the user's hands move closer or further from the device.
-   * (This can be disabled by setting the interaction_box_auto config setting to false.)
-   * @since 3.0.0
-   */
-  LEAP_VECTOR interaction_box_size;
-
-  /** Center point of the interaction box. @since 3.0.0 */
-  LEAP_VECTOR interaction_box_center;
 
   /** The number of hands tracked in this frame, i.e. the number of elements in
    * the pHands array.
@@ -1496,12 +1351,12 @@ typedef struct _LEAP_TRACKING_EVENT {
    * Current tracking frame rate in hertz.
    *
    * This frame rate is distinct from the image frame rate, which is the rate that images are
-   * being read from the device.  Depending on host CPU limitations, the tracking frame rate
+   * being read from the device. Depending on host CPU limitations, the tracking frame rate
    * may be substantially less than the device frame rate.
    *
    * This number is generally equal to or less than the device frame rate, but there is one
    * case where this number may be _higher_ than the device frame rate:  When the device rate
-   * drops.  In this case, the device frame rate will fall sooner than the tracking frame rate.
+   * drops. In this case, the device frame rate will fall sooner than the tracking frame rate.
    *
    * This number is equal to zero if there are not enough frames to estimate frame rate.
    *
@@ -1529,24 +1384,36 @@ typedef enum _eLeapLogSeverity {
  * A system log message. @since 3.0.0
  */
 typedef struct _LEAP_LOG_EVENT {
-  /** The type of message. @since 3.0.0 */
-  eLeapLogSeverity Severity;
+  /** The type of message. @since 4.0.0 */
+  eLeapLogSeverity severity;
   /**
    * The timestamp of the message in microseconds.
    * Compare with the current values of LeapGetNow() and the system clock to
    * calculate the absolute time of the message.
-   * @since 3.0.0
+   * @since 4.0.0
    */
-  int64_t Timestamp;
+  int64_t timestamp;
   /**
    * A pointer to a null-terminated string containing the current log message.
-   * @since 3.0.0
+   * @since 4.0.0
    */
-  const char* Message;
+  const char* message;
 } LEAP_LOG_EVENT;
 
+typedef struct _LEAP_LOG_EVENTS {
+  /** The number of log events being pointed to by the events field.
+   * @since 4.0.0
+   */
+  uint32_t nEvents;
+
+  /** An array of ``nEvent`` LEAP_LOG_EVENT structures.
+   * @since 4.0.0
+   */
+  LEAP_LOG_EVENT* events;
+} LEAP_LOG_EVENTS;
+
 /** \ingroup Structs
- * A notification that a device's status has changed.  One of these messages is received by the client
+ * A notification that a device's status has changed. One of these messages is received by the client
  * as soon as the service is connected, or when a new device is attached.
  * @since 3.1.3
  */
@@ -1554,10 +1421,10 @@ typedef struct _LEAP_DEVICE_STATUS_CHANGE_EVENT {
   /** A reference to the device whose status has changed */
   LEAP_DEVICE_REF device;
 
-  /** The last known status of the device.  This is a combination of eLeapDeviceStatus flags. @since 3.1.3*/
+  /** The last known status of the device. This is a combination of eLeapDeviceStatus flags. @since 3.1.3*/
   uint32_t last_status;
 
-  /** The current status of the device.  This is a combination of eLeapDeviceStatus flags. @since 3.1.3*/
+  /** The current status of the device. This is a combination of eLeapDeviceStatus flags. @since 3.1.3*/
   uint32_t status;
 } LEAP_DEVICE_STATUS_CHANGE_EVENT;
 
@@ -1571,6 +1438,103 @@ typedef struct _LEAP_DROPPED_FRAME_EVENT {
   int64_t frame_id;
   eLeapDroppedFrameType type;
 } LEAP_DROPPED_FRAME_EVENT;
+
+typedef struct _LEAP_IMAGE {
+  /** The properties of the received image. */
+  LEAP_IMAGE_PROPERTIES properties;
+
+  /**
+   * A version number for the distortion matrix. When the distortion matrix
+   * changes, this number is updated. This number is guaranteed not to repeat
+   * for the lifetime of the connection. This version number is also guaranteed
+   * to be distinct for each perspective of an image.
+   *
+   * This value is guaranteed to be nonzero if it is valid.
+   *
+   * The distortion matrix only changes when the streaming device changes or when the
+   * device orientation flips -- inverting the image and the distortion grid.
+   * Since building a matrix to undistort an image can be a time-consuming task,
+   * you can optimize the process by only rebuilding this matrix (or whatever
+   * data type you use to correct image distortion) when the grid actually changes.
+   */
+  uint64_t matrix_version;
+
+  /** Pointers to the camera's distortion matrix. */
+  LEAP_DISTORTION_MATRIX* distortion_matrix;
+
+  /** A pointer to the image data. */
+  void* data;
+
+  /** Offset, in bytes, from the beginning of the data ptr to the actual beginning of the image data */
+  uint32_t offset;
+
+} LEAP_IMAGE;
+
+/** \ingroup Structs
+ * A notification that a device's point mapping has changed.
+ * @since 4.0.0
+ */
+typedef struct _LEAP_POINT_MAPPING_CHANGE_EVENT {
+  /** The ID of the frame corresponding to the source of the currently tracked points. @since 4.0.0 */
+  int64_t frame_id;
+  /** The timestamp of the frame, in microseconds, referenced against LeapGetNow(). @since 4.0.0 */
+  int64_t timestamp;
+  /** The number of points being tracked. @since 4.0.0 */
+  uint32_t nPoints;
+} LEAP_POINT_MAPPING_CHANGE_EVENT;
+
+/** \ingroup Structs
+ * A notification that a device's point mapping has changed.  It contains
+ * the entire set of points being mapped.
+ * @since 4.0.0
+ */
+typedef struct _LEAP_POINT_MAPPING {
+  /** The ID of the frame corresponding to the source of the currently tracked points. @since 4.0.0 */
+  int64_t frame_id;
+  /** The timestamp of the frame, in microseconds, referenced against LeapGetNow(). @since 4.0.0 */
+  int64_t timestamp;
+  /** The number of points being tracked. @since 4.0.0 */
+  uint32_t nPoints;
+  /** The 3D points being mapped. @since 4.0.0 */
+  LEAP_VECTOR* pPoints;
+  /** The IDs of the 3D points being mapped. @since 4.0.0 */
+  uint32_t* pIDs;
+} LEAP_POINT_MAPPING;
+
+typedef struct _LEAP_HEAD_POSE_EVENT {
+  /**
+  * The timestamp for this image, in microseconds, referenced against LeapGetNow().
+  * @since 3.2.1
+  */
+  int64_t timestamp;
+  /**
+  * The position and orientation of the user's head. Positional tracking must be enabled.
+  * @since 3.2.1
+  */
+  LEAP_VECTOR head_position;
+  LEAP_QUATERNION head_orientation;
+} LEAP_HEAD_POSE_EVENT;
+
+/** \ingroup Structs
+ * Streaming stereo image pairs from the device.
+ *
+ * LeapPollConnection() produces this message when an image is available.
+ * The struct contains image properties, the distortion grid, and a pointer to
+ * the buffer containing the image data -- which was allocated using the allocator
+ * function passed to LeapC using the LeapSetAllocator.
+ * @since 4.0.0
+ */
+typedef struct _LEAP_IMAGE_EVENT {
+  /** The information header identifying the images tracking frame. */
+  LEAP_FRAME_HEADER info;
+
+  /** The left and right images. */
+  LEAP_IMAGE image[2];
+
+  /** For internal use only. */
+  LEAP_CALIBRATION calib;
+
+} LEAP_IMAGE_EVENT;
 
 /** \ingroup Enum
  * The types of event messages resulting from calling LeapPollConnection().
@@ -1616,7 +1580,7 @@ typedef enum _eLeapEventType {
   /**
    * A policy change has occurred.
    * This can be due to setting a policy with LeapSetPolicyFlags() or due to changing
-   * or policy-related config settings, including as images_mode and background_app_mode.
+   * or policy-related config settings, including images_mode.
    * (A user can also change these policies using the Leap Motion Control Panel.)
    * @since 3.0.0
    */
@@ -1653,9 +1617,9 @@ typedef enum _eLeapEventType {
    * The device connection has been lost.
    *
    * This event is generally asserted when the device has been detached from the system, when the
-   * connection to the service has been lost, or if the device is closed while streaming.  Generally,
+   * connection to the service has been lost, or if the device is closed while streaming. Generally,
    * any event where the system can conclude no further frames will be received will result in this
-   * message.
+   * message. The DeviceEvent field will be filled with the id of the formerly attached device.
    * @since 3.0.0
    */
   eLeapEventType_DeviceLost,
@@ -1681,6 +1645,26 @@ typedef enum _eLeapEventType {
    */
   eLeapEventType_DeviceStatusChange,
   eLeapEventType_DroppedFrame,
+
+  /**
+   * Notification that an unrequested stereo image pair is available
+   *
+   * @since 4.0.0
+   */
+  eLeapEventType_Image,
+
+  /**
+   * Notification that point mapping has changed
+   *
+   * @since 4.0.0
+   */
+  eLeapEventType_PointMappingChange,
+
+  /**
+   * An array of system messages. @since 4.0.0
+   */
+  eLeapEventType_LogEvents,
+  eLeapEventType_HeadPose
 } eLeapEventType;
 
 /** \ingroup Structs
@@ -1719,24 +1703,27 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
     const LEAP_DEVICE_FAILURE_EVENT* device_failure_event;
     /** A tracking message. @since 3.0.0 */
     const LEAP_TRACKING_EVENT* tracking_event;
-    /** An image request error message. @since 3.0.0 */
-    const LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT* image_request_error_event;
-    /** An image request complete message. @since 3.0.0 */
-    const LEAP_IMAGE_COMPLETE_EVENT* image_complete_event;
     /** A log message. @since 3.0.0 */
     const LEAP_LOG_EVENT* log_event;
+    /** A log messages. @since 4.0.0 */
+    const LEAP_LOG_EVENTS* log_events;
     /** A get config value message. @since 3.0.0 */
     const LEAP_CONFIG_RESPONSE_EVENT* config_response_event;
     /** A set config value message. @since 3.0.0 */
     const LEAP_CONFIG_CHANGE_EVENT* config_change_event;
     const LEAP_DROPPED_FRAME_EVENT* dropped_frame_event;
+    /** A streaming image message. @since 4.0.0 */
+    const LEAP_IMAGE_EVENT* image_event;
+    /** A point mapping message. @since 4.0.0 */
+    const LEAP_POINT_MAPPING_CHANGE_EVENT* point_mapping_change_event;
+    const LEAP_HEAD_POSE_EVENT* head_pose_event;
   };
 } LEAP_CONNECTION_MESSAGE;
 
 /** \ingroup Functions
  * Polls the connection for a new event.
  *
- * The specific types of events that may be received are not configurable in this entrypoint.  Configure
+ * The specific types of events that may be received are not configurable in this entrypoint. Configure
  * the device or connection object directly to change what events will be received.
  *
  * Pointers in the retrieved event message structure will be valid until the associated connection or device is
@@ -1745,12 +1732,12 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
  * Calling this method concurrently will return eLeapRS_ConcurrentCall.
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
- * @param timeout The maximum amount of time to wait, in milliseconds.  If this value is zero,
+ * @param timeout The maximum amount of time to wait, in milliseconds. If this value is zero,
  * the evt pointer references the next queued message, if there is one, and returns immediately.
- * @param evt A pointer to a structure that is filled with event information.  This structure will be valid
+ * @param evt A pointer to a structure that is filled with event information. This structure will be valid
  * as long as the LEAP_CONNECTION object is valid.
  *
- * @returns An appropriate error code.  If the operation times out, this method will return
+ * @returns An appropriate error code. If the operation times out, this method will return
  * eLeapRS_Timeout. The evt pointer will reference a message of type eLeapEventType_None.
  * @since 3.0.0
  */
@@ -1790,6 +1777,47 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetFrameSize(LEAP_CONNECTION hConnection, int6
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrame(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
 
 /** \ingroup Functions
+* Constructs a frame at the specified timestamp by interpolating between a frame near the timestamp
+* and a frame near the sourceTimestamp.
+*
+* Caller is responsible for allocating a buffer large enough to hold the data of the frame.
+* Use LeapGetFrameSize() to calculate the minimum size of this buffer.
+*
+* Use LeapCreateClockRebaser(), LeapUpdateRebase(), and LeapRebaseClock() to
+* synchronize time measurements in the application with time measurements in
+* the Leap Motion service. This process is required to achieve accurate, smooth
+* interpolation.
+* @param hConnection The connection handle created by LeapCreateConnection().
+* @param timestamp The timestamp to which to interpolate the frame data.
+* @param sourceTimestamp The timestamp of the beginning frame from which to interpolate the frame data.
+* @param pEvent A pointer to a flat buffer which is filled with an interpolated frame.
+* @param ncbEvent The number of bytes pointed to by pEvent.
+* @returns The operation result code, a member of the eLeapRS enumeration.
+* @since 3.1.1
+*/
+LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameFromTime(LEAP_CONNECTION hConnection, int64_t timestamp, int64_t sourceTimestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
+
+/** \ingroup Functions
+* Gets the head tracking pose at the specified timestamp by interpolating between measured
+* frames.
+*
+* Caller is responsible for allocating a buffer large enough to hold the data of the frame.
+* Use LeapGetFrameSize() to calculate the minimum size of this buffer.
+*
+* Use LeapCreateClockRebaser(), LeapUpdateRebase(), and LeapRebaseClock() to
+* synchronize time measurements in the application with time measurements in
+* the Leap Motion service. This process is required to achieve accurate, smooth
+* interpolation.
+* @param hConnection The connection handle created by LeapCreateConnection().
+* @param timestamp The timestamp at which to interpolate the frame data.
+* @param pEvent A pointer to a flat buffer which is filled with an interpolated frame.
+* @param ncbEvent The number of bytes pointed to by pEvent.
+* @returns The operation result code, a member of the eLeapRS enumeration.
+* @since 3.1.1
+*/
+LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateHeadPose(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_HEAD_POSE_EVENT* pEvent);
+
+/** \ingroup Functions
  * Closes a device handle previously opened with LeapOpenDevice.
  *
  * @param hDevice The device handle to close.
@@ -1800,10 +1828,24 @@ LEAP_EXPORT void LEAP_CALL LeapCloseDevice(LEAP_DEVICE hDevice);
 /** \ingroup Functions
  * Closes a previously opened connection.
  *
+ * This method closes the specified connection object if it is opened
+ *
+ * This method never fails.
+ *
+ * @param hConnection A handle to the connection object to be closed.
+ * @since 4.0.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapCloseConnection(LEAP_CONNECTION hConnection);
+
+/** \ingroup Functions
+ * Destroys a previously opened connection.
+ *
  * This method closes the specified connection object if it is opened, destroys the underlying
  * object, and releases all resources associated with it.
  *
  * This method never fails.
+ *
+ * Be sure that no other functions are accessing the connection when this function is called.
  *
  * @param hConnection A handle to the connection object to be destroyed.
  * @since 3.0.0
@@ -1836,7 +1878,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapCreateClockRebaser(LEAP_CLOCK_REBASER* phClock
  * actual point of rendering as possible.
  *
  * The relationship between the application clock and the Leap Motion clock is
- * neither fixed nor stable.  Simulation restarts can cause user clock values to change
+ * neither fixed nor stable. Simulation restarts can cause user clock values to change
  * instantaneously. Certain systems simulate slow motion, or respond to heavy load, by reducing the tick rate
  * of the user clock. As a result, the LeapUpdateRebase() function must be called for every rendered frame.
  *
@@ -1917,6 +1959,23 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinear(LEAP_CONNECTION hConnec
 LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, LEAP_VECTOR rectilinear);
 
 /** \ingroup Functions
+ * Returns an OpenCV-compatible camera matrix
+ * @param dest A pointer to a single-precision float array of size 9
+ * @since 3.2.1
+ */
+LEAP_EXPORT void LEAP_CALL LeapCameraMatrix(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
+
+/** \ingroup Functions
+ * Returns an OpenCV-compatible lens distortion using the 8-parameter rational model
+ *
+ * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
+ *
+ * @param xy A pointer to a single-precision float array of size 8.
+ * @since 3.2.1
+ */
+LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffs(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
+
+/** \ingroup Functions
  * Provides the human-readable canonical name of the specified device model.
  *
  * This method is guaranteed to never return null for the LEAP_DEVICE_INFO.pid field
@@ -1928,9 +1987,12 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnec
  */
 LEAP_EXPORT const char* LEAP_CALL LeapDevicePIDToString(eLeapDevicePID pid);
 
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetPointMappingSize(LEAP_CONNECTION hConnection, uint64_t* pSize);
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetPointMapping(LEAP_CONNECTION hConnection, LEAP_POINT_MAPPING* pointMapping, uint64_t* pSize);
+
 /** \ingroup Enum
   * Defines the recording mode provided to the LeapRecordingOpen()
-  * function.  Also used in members of LEAP_RECORDING_PARAMETERS and LEAP_RECORDING_STATUS.
+  * function. Also used in members of LEAP_RECORDING_PARAMETERS and LEAP_RECORDING_STATUS.
   * @since 3.2.0
   */
 typedef enum _eLeapRecordingFlags {
@@ -1974,7 +2036,7 @@ typedef struct _LEAP_RECORDING_STATUS {
   * which is the SD card on Android.
   *
   * @param pRecording The recording being opened.
-  * @param filePath The file path.  This will be passed directly to the OS without modification. An ".lmt" suffix is suggested.
+  * @param filePath The file path. This will be passed directly to the OS without modification. An ".lmt" suffix is suggested.
   * @param params The LEAP_RECORDING_PARAMETERS describing what operations are requested.
   * @returns eLeapRS The operation result code.
   * @since 3.2.0
@@ -2039,6 +2101,20 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingRead(LEAP_RECORDING pRecording, LEAP_
   * @since 3.2.0
   */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingWrite(LEAP_RECORDING pRecording, LEAP_TRACKING_EVENT* pEvent, uint64_t* pnBytesWritten);
+
+typedef struct _LEAP_TELEMETRY_DATA {
+  uint32_t thread_id;
+  uint64_t start_time;
+  uint64_t end_time;
+  uint32_t zone_depth;
+  const char* file_name;
+  uint32_t line_number;
+  const char* zone_name;
+} LEAP_TELEMETRY_DATA;
+
+LEAP_EXPORT eLeapRS LEAP_CALL LeapTelemetryProfiling(LEAP_CONNECTION hConnection, const LEAP_TELEMETRY_DATA* telemetryData);
+
+LEAP_EXPORT uint64_t LEAP_CALL LeapTelemetryGetNow();
 
 #ifdef __cplusplus
 }

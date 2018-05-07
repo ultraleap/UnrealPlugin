@@ -1,5 +1,5 @@
 /******************************************************************************\
-* Copyright (C) 2012-2016 Leap Motion, Inc. All rights reserved.               *
+* Copyright (C) 2012-2018 Leap Motion, Inc. All rights reserved.               *
 * Leap Motion proprietary and confidential. Not for distribution.              *
 * Use subject to the terms of the Leap Motion SDK Agreement available at       *
 * https://developer.leapmotion.com/sdk_agreement, or another agreement         *
@@ -73,6 +73,15 @@ struct Vector {
    */
   Vector(float _x, float _y, float _z) :
     x(_x), y(_y), z(_z) {}
+
+  /**
+   * Creates a new Vector with the specified component values.
+   *
+   * \include Vector_Constructor_1.txt
+   * @since 1.0
+   */
+  Vector(const float _xyz[]) :
+    x(_xyz[0]), y(_xyz[1]), z(_xyz[2]) {}
 
   /**
    * Copies the specified Vector.
@@ -376,12 +385,12 @@ struct Vector {
    * @since 1.0
    */
   Vector normalized() const {
-    float denom = this->magnitudeSquared();
+    double denom = this->magnitudeSquared();
     if (denom <= EPSILON) {
       return zero();
     }
-    denom = 1.0f / std::sqrt(denom);
-    return Vector(x * denom, y * denom, z * denom);
+    denom = 1.0 / std::sqrt(denom);
+    return Vector(static_cast<float>(x * denom), static_cast<float>(y * denom), static_cast<float>(z * denom));
   }
 
   /**
@@ -607,6 +616,29 @@ struct Vector {
   float z;
 };
 
+struct Quaternion {
+  Quaternion() :
+    x(0), y(0), z(0), w(0) {}
+
+  Quaternion(float _x, float _y, float _z, float _w) :
+    x(_x), y(_y), z(_z), w(_w) {}
+
+  Quaternion(const float _xyzw[]) :
+    x(_xyzw[0]), y(_xyzw[1]), z(_xyzw[2]), w(_xyzw[3]) {}
+
+  Quaternion(const Quaternion& quaternion) :
+    x(quaternion.x), y(quaternion.y), z(quaternion.z), w(quaternion.w) {}
+
+  static const Quaternion& zero() {
+    static Quaternion s_zero(0, 0, 0, 0);
+    return s_zero;
+  }
+
+  float x;
+  float y;
+  float z;
+  float w;
+};
 
 /**
  * The FloatArray struct is used to allow the returning of native float arrays
@@ -763,6 +795,34 @@ struct Matrix
   static const Matrix& identity() {
     static Matrix s_identity;
     return s_identity;
+  }
+
+  /**
+   * Constructs the basis vectors from a quaternion
+   */
+  Matrix(float x, float y, float z, float w) :
+    origin(0, 0, 0) {
+    const float tx = 2.0f*x;
+    const float ty = 2.0f*y;
+    const float tz = 2.0f*z;
+    const float twx = tx*w;
+    const float twy = ty*w;
+    const float twz = tz*w;
+    const float txx = tx*x;
+    const float txy = ty*x;
+    const float txz = tz*x;
+    const float tyy = ty*y;
+    const float tyz = tz*y;
+    const float tzz = tz*z;
+    xBasis.x = 1.0f - (tyy+tzz);
+    xBasis.y = txy+twz;
+    xBasis.z = txz-twy;
+    yBasis.x = txy-twz;
+    yBasis.y = 1.0f - (txx+tzz);
+    yBasis.z = tyz+twx;
+    zBasis.x = txz+twy;
+    zBasis.y = tyz-twx;
+    zBasis.z = 1.0f - (txx+tyy);
   }
 
   /**
