@@ -92,49 +92,49 @@ FLeapEventSignature OnLeapConnected;
 
 #### On Leap Tracking Data
 
-Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```. See See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L331).
+Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```. See See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L331).
 ```c++
 FLeapFrameSignature OnLeapTrackingData;
 ```
 
 #### On Hand Grabbed
 
-Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandGrabbed;
 ```
 
 #### On Hand Released
 
-Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandReleased;
 ```
 
 #### On Hand Pinched
 
-Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandPinched;
 ```
 
 #### On Hand Unpinched
 
-Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandUnpinched;
 ```
 
 #### On Hand Begin Tracking
 
-Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandBeginTracking;
 ```
 
 #### On Hand End Tracking
 
-Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandEndTracking;
 ```  
@@ -155,7 +155,7 @@ FLeapVisibilityBoolSignature OnRightHandVisibilityChanged;
 
 #### On Leap Policies Updated
 
-Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L29)
+Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L29)
 
 ```c++
 FLeapPolicySignature OnLeapPoliciesUpdated;
@@ -174,7 +174,7 @@ void AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible);
 
 #### Get Latest Frame Data
 
-Polling function to get latest data. See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L331).
+Polling function to get latest data. See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L331).
 ```c++
 void GetLatestFrameData(FLeapFrameData& OutData);
 ```
@@ -197,14 +197,14 @@ Note that these blueprint nodes are global and available everywhere; a good plac
 
 #### Set Leap Mode
 
-Set basic global leap tracking options. Useful for switching tracking fidelity or desktop/vr tracking mode. See [ELeapMode](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L13) and [ELeapTrackingFidelity](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L20)
+Set basic global leap tracking options. Useful for switching tracking fidelity or desktop/vr tracking mode. See [ELeapMode](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L13) and [ELeapTrackingFidelity](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L20)
 ```c++
 static void SetLeapMode(ELeapMode Mode, ELeapTrackingFidelity Fidelity = ELeapTrackingFidelity::LEAP_NORMAL);
 ```
 
 #### Set Leap Options
 
-Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L108).
+Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L108).
 ```c++
 static void SetLeapOptions(const FLeapOptions& Options);
 ```
@@ -212,7 +212,7 @@ If tracking fidelity is set to custom, passed in ```TimewarpOffset```, ```Timewa
 
 #### Get Leap Options
 
-Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L108).
+Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L108).
 
 ```c++
 static void GetLeapOptions(FLeapOptions& OutOptions);
@@ -220,7 +220,7 @@ static void GetLeapOptions(FLeapOptions& OutOptions);
 
 #### Get Leap Stats
 
-Gets Leap read only stats such as api version, frame lookup and device information. See [FLeapStats](https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/Public/LeapMotionData.h#L92)
+Gets Leap read only stats such as api version, frame lookup and device information. See [FLeapStats](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L92)
 
 ```c++
 static void GetLeapStats(FLeapStats& OutStats);
@@ -343,7 +343,7 @@ Currently known good settings:
 
 ![Daydream SDK](http://i.imgur.com/1OLST4t.png)
 
-NB: if you pick armv7, ensure you swap to https://github.com/leapmotion/LeapUnreal/blob/android-leapC/Source/LeapMotion/LeapMotion.Build.cs#L152 to use armeabi-v7a (comment 153, uncomment 152)
+NB: if you pick armv7, ensure you swap to https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/LeapMotion.Build.cs#L152 to use armeabi-v7a (comment 153, uncomment 152)
 
 
 #### Example Packaging - Cardboard
