@@ -34,9 +34,6 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 
 	TimeStamp = frame->info.timestamp;
 
-	InteractionBoxCenter = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(frame->interaction_box_center);
-	InteractionBoxSize = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(frame->interaction_box_size);
-
 	//Copy hand data
 	if (Hands.Num() != NumberOfHandsVisible)	//always clear the hand data if number of hands changed
 	{
@@ -94,9 +91,6 @@ void FLeapFrameData::SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_
 
 void FLeapFrameData::ScaleFrame(float InScale)
 {
-	InteractionBoxCenter *= InScale;
-	InteractionBoxSize *= InScale;
-
 	for (auto& Hand : Hands)
 	{
 		Hand.ScaleHand(InScale);
@@ -105,8 +99,6 @@ void FLeapFrameData::ScaleFrame(float InScale)
 
 void FLeapFrameData::RotateFrame(const FRotator& InRotation)
 {
-	InteractionBoxCenter = InRotation.RotateVector(InteractionBoxCenter);
-
 	for (auto& Hand : Hands)
 	{
 		Hand.RotateHand(InRotation);
@@ -115,8 +107,6 @@ void FLeapFrameData::RotateFrame(const FRotator& InRotation)
 
 void FLeapFrameData::TranslateFrame(const FVector& InTranslation)
 {
-	InteractionBoxCenter += InTranslation;
-
 	for (auto& Hand : Hands)
 	{
 		Hand.TranslateHand(InTranslation);
@@ -260,8 +250,6 @@ void FLeapDigitData::SetFromLeapDigit(struct _LEAP_DIGIT* digit)
 	
 	FingerId = digit->finger_id;
 	IsExtended = digit->is_extended == 1;
-	StabilizedTipPosition = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(digit->stabilized_tip_position);
-	TipVelocity = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(digit->tip_velocity);
 }
 
 void FLeapDigitData::ScaleDigit(float InScale)
@@ -275,9 +263,6 @@ void FLeapDigitData::ScaleDigit(float InScale)
 	Intermediate.ScaleBone(InScale);
 	Metacarpal.ScaleBone(InScale);
 	Proximal.ScaleBone(InScale);
-
-	StabilizedTipPosition *= InScale;
-	TipVelocity *= InScale;
 }
 
 void FLeapDigitData::RotateDigit(const FRotator& InRotation)
@@ -291,9 +276,6 @@ void FLeapDigitData::RotateDigit(const FRotator& InRotation)
 	Intermediate.RotateBone(InRotation);
 	Metacarpal.RotateBone(InRotation);
 	Proximal.RotateBone(InRotation);
-
-	StabilizedTipPosition = InRotation.RotateVector(StabilizedTipPosition);
-	TipVelocity = InRotation.RotateVector(StabilizedTipPosition);
 }
 
 void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
@@ -302,9 +284,6 @@ void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
 	Intermediate.TranslateBone(InTranslation);
 	Metacarpal.TranslateBone(InTranslation);
 	Proximal.TranslateBone(InTranslation);
-
-	StabilizedTipPosition += InTranslation;
-	//TipVelocity += InTranslation;
 }
 
 void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)

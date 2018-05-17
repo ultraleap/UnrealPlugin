@@ -148,7 +148,7 @@ private:
 		const eLeapDeviceStatus failure_code,
 		const LEAP_DEVICE failed_device) override;
 	virtual void OnFrame(const LEAP_TRACKING_EVENT *frame) override;
-	//virtual void OnImage(const LEAP_IMAGE_EVENT *image_event) override;
+	virtual void OnImage(const LEAP_IMAGE_EVENT *image_event) override;
 	virtual void OnPolicy(const uint32_t current_policies) override;
 	virtual void OnLog(
 		const eLeapLogSeverity severity,
