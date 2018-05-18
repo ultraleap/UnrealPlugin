@@ -182,10 +182,10 @@ void FLeapMotionInputDevice::OnFrame(const LEAP_TRACKING_EVENT *frame)
 }
 
 
-/*void FLeapMotionInputDevice::OnImage(const LEAP_IMAGE_EVENT *image_event)
+void FLeapMotionInputDevice::OnImage(const LEAP_IMAGE_EVENT *image_event)
 {
 	//todo: handle image pairs
-}*/
+}
 
 void FLeapMotionInputDevice::OnPolicy(const uint32_t current_policies)
 {

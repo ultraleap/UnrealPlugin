@@ -350,8 +350,8 @@ LEAP_EXPORT int64_t LEAP_CALL LeapGetNow(void);
  *
  * @param pConfig The configuration to be used with the newly created connection.
  * If pConfig is null, a connection is created with a default configuration.
- * @param phConnection Receives a pointer to the connection object
- * @returns eLeapRS The operation result code.
+ * @param[out] phConnection Receives a pointer to the connection object
+ * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapCreateConnection(const LEAP_CONNECTION_CONFIG* pConfig, LEAP_CONNECTION* phConnection);
@@ -468,7 +468,7 @@ typedef struct _LEAP_CONNECTION_INFO {
  * this function to check the connection status.
  *
  * @param hConnection The handle of the connection of interest. Created by LeapCreateConnection.
- * @param pInfo A pointer to a buffer that receives additional connection information. One input,
+ * @param[out] pInfo A pointer to a buffer that receives additional connection information. One input,
  *   the size field of pInfo is the size of the buffer(i.e. the size of a LEAP_CONNECTION_INFO
  *   struct); On output, the size field of pInfo receives the size necessary to hold
  *   the entire information block.
@@ -476,6 +476,79 @@ typedef struct _LEAP_CONNECTION_INFO {
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetConnectionInfo(LEAP_CONNECTION hConnection, LEAP_CONNECTION_INFO* pInfo);
+
+
+/**  \ingroup Enum
+ * Enumerates flags for the service policies.
+ */
+typedef enum _eLeapPolicyFlag {
+  /** The policy allowing an application to receive frames in the background. @since 3.0.0 */
+  eLeapPolicyFlag_BackgroundFrames = 0x00000001,
+
+  /** The policy specifying whether to automatically stream images from the device. @since 4.0.0 */
+  eLeapPolicyFlag_Images           = 0x00000002,
+
+  /** The policy specifying whether to optimize tracking for head-mounted device. @since 3.0.0 */
+  eLeapPolicyFlag_OptimizeHMD      = 0x00000004,
+
+  /** The policy allowing an application to pause or resume service tracking. @since 3.0.0 */
+  eLeapPolicyFlag_AllowPauseResume = 0x00000008,
+
+  /** The policy allowing an application to receive per-frame map points. @since 4.0.0 */
+  eLeapPolicyFlag_MapPoints        = 0x00000080,
+} eLeapPolicyFlag;
+
+/** \ingroup Structs
+ * The response from a request to get or set a policy.
+ * LeapPollConnection() creates this struct when the response becomes available.
+ * @since 3.0.0
+ */
+typedef struct _LEAP_POLICY_EVENT {
+  /** Reserved for future use. @since 3.0.0 */
+  uint32_t reserved;
+
+  /**
+  * A bitfield containing the policies effective at the
+  * time the policy event was processed. @since 3.0.0
+  */
+  uint32_t current_policy;
+} LEAP_POLICY_EVENT;
+
+/** \ingroup Functions
+ * Sets or clears one or more policy flags.
+ *
+ * Changing policies is asynchronous. After you call this function, a subsequent
+ * call to LeapPollConnection provides a LEAP_POLICY_EVENT containing the current
+ * policies, reflecting any changes.
+ *
+ * To get the current policies without changes, specify zero for both the set
+ * and clear parameters. When ready, LeapPollConnection() provides the
+ * a LEAP_POLICY_EVENT containing the current settings.
+ *
+ * The eLeapPolicyFlag enumeration defines the policy flags.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param set A bitwise combination of flags to be set. Set to 0 if not setting any flags.
+ * @param clear A bitwise combination of flags to be cleared. Set to 0 to if not clearing any flags.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 3.0.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetPolicyFlags(LEAP_CONNECTION hConnection, uint64_t set, uint64_t clear);
+
+/** \ingroup Functions
+ * Pauses the service
+ *
+ * Attempts to pause or unpause the service depending on the argument.
+ * This is treated as a 'user pause', as though a user had requested a pause through the
+ * Leap Control Panel. The connection must have the AllowPauseResume policy set
+ * or it will fail with eLeapRS_InvalidArgument.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param pause Set to 'true' to pause, or 'false' to unpause
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 4.0.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetPause(LEAP_CONNECTION hConnection, bool pause);
 
 /** \ingroup Fucntions
  * Sets the allocator functions to use for a particular connection.
@@ -488,7 +561,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetConnectionInfo(LEAP_CONNECTION hConnection,
  * as needed by the library.
  * @since 4.0.0
  */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapSetAllocator(const LEAP_CONNECTION hConnection, const LEAP_ALLOCATOR* allocator);
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetAllocator(LEAP_CONNECTION hConnection, const LEAP_ALLOCATOR* allocator);
 
 /**  \ingroup Enum
 * Identifies the operative data type of a LEAP_VARIANT struct instance.
@@ -576,7 +649,7 @@ typedef struct _LEAP_CONFIG_CHANGE_EVENT {
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param key The key of the configuration to commit.
  * @param value The value of the configuration to commit.
- * @param pRequestID A pointer to a memory location to which the id for this request is written, or nullptr if this value is not needed.
+ * @param[out] pRequestID A pointer to a memory location to which the id for this request is written, or nullptr if this value is not needed.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
  */
@@ -590,7 +663,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapSaveConfigValue(LEAP_CONNECTION hConnection, c
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param key The key of the configuration to request
- * @param pRequestID A pointer to a memory location to which the id for this request is written.
+ * @param[out] pRequestID A pointer to a memory location to which the id for this request is written.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
  */
@@ -607,8 +680,8 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRequestConfigValue(LEAP_CONNECTION hConnection
  * LeapOpenDevice() before device properties can be queried.
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
- * @param pArray A pointer to an array that LeapC fills with the device list.
- * @param pnArray On input, set to the number of elements in pArray; on output,
+ * @param[out] pArray A pointer to an array that LeapC fills with the device list.
+ * @param[in,out] pnArray On input, set to the number of elements in pArray; on output,
  * LeapC sets this to the number of valid device handles.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
@@ -623,7 +696,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceList(LEAP_CONNECTION hConnection, LEA
  * or cannot stream.
  *
  * @param rDevice A device reference.
- * @param phDevice A pointer that receives the opened device handle.
+ * @param[out] phDevice A pointer that receives the opened device handle.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
  */
@@ -688,7 +761,7 @@ typedef struct _LEAP_DEVICE_INFO {
    */
   uint32_t baseline;
 
-  /** The required length of the serial number char buffer. @since 3.0.0 */
+  /** The required length of the serial number char buffer including the null character. @since 3.0.0 */
   uint32_t serial_length;
 
   /** A pointer to the null-terminated device serial number string. @since 3.0.0 */
@@ -715,102 +788,11 @@ typedef struct _LEAP_DEVICE_INFO {
  * set the serial field, and call this function again.
  *
  * @param hDevice A handle to the device to be queried.
- * @param info The struct to receive the device property data.
+ * @param[out] info The struct to receive the device property data.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceInfo(LEAP_DEVICE hDevice, LEAP_DEVICE_INFO* info);
-
-/**  \ingroup Enum
- * Enumerates flags for the service policies.
- */
-typedef enum _eLeapPolicyFlag {
-  /** The policy allowing an application to receive frames in the background. @since 3.0.0 */
-  eLeapPolicyFlag_BackgroundFrames = 0x00000001,
-
-  /** The policy specifying whether to automatically stream images from the device. @since 4.0.0 */
-  eLeapPolicyFlag_Images           = 0x00000002,
-
-  /** The policy specifying whether to optimize tracking for head-mounted device. @since 3.0.0 */
-  eLeapPolicyFlag_OptimizeHMD      = 0x00000004,
-
-  /** The policy allowing an application to pause or resume service tracking. @since 3.0.0 */
-  eLeapPolicyFlag_AllowPauseResume = 0x00000008,
-
-  /** The policy allowing an application to receive per-frame map points. @since 4.0.0 */
-  eLeapPolicyFlag_MapPoints        = 0x00000080,
-} eLeapPolicyFlag;
-
-/** \ingroup Structs
- * The response from a request to get or set a policy.
- * LeapPollConnection() creates this struct when the response becomes available.
- * @since 3.0.0
- */
-typedef struct _LEAP_POLICY_EVENT {
-  /** Reserved for future use. @since 3.0.0 */
-  uint32_t reserved;
-
-  /**
-  * A bitfield containing the policies effective at the
-  * time the policy event was processed. @since 3.0.0
-  */
-  uint32_t current_policy;
-} LEAP_POLICY_EVENT;
-
-/** \ingroup Functions
- * Sets or clears one or more policy flags.
- *
- * Changing policies is asynchronous. After you call this function, a subsequent
- * call to LeapPollConnection provides a LEAP_POLICY_EVENT containing the current
- * policies, reflecting any changes.
- *
- * To get the current policies without changes, specify zero for both the set
- * and clear parameters. When ready, LeapPollConnection() provides the
- * a LEAP_POLICY_EVENT containing the current settings.
- *
- * The eLeapPolicyFlag enumeration defines the policy flags.
- *
- * @param hConnection The connection handle created by LeapCreateConnection().
- * @param set A bitwise combination of flags to be set. Set to 0 if not setting any flags.
- * @param clear A bitwise combination of flags to be cleared. Set to 0 to if not clearing any flags.
- * @returns The operation result code, a member of the eLeapRS enumeration.
- * @since 3.0.0
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapSetPolicyFlags(LEAP_CONNECTION hConnection, uint64_t set, uint64_t clear);
-
-/** \ingroup Enum
- * Defines the Device flags.
- * Currently there is only one device flag. Use with the LeapSetDeviceFlags() function and the
- */
-typedef enum _eLeapDeviceFlag {
-  /**
-   * Flag set if the device is presently streaming frames
-   *
-   * This flag is updated when the user pauses or resumes tracking on the device from the Leap control
-   * panel. Modification of this flag will fail if the AllowPauseResume policy is not set on this device
-   * object.
-   */
-  eLeapDeviceFlag_Stream                = 0x00000001
-} eLeapDeviceFlag;
-
-/** \ingroup Functions
- * Sets flags associated with the specified device
- *
- * If zero is specified for both the set and clear parameters, this method will
- * not change any flags. This allows you to get the currently assigned flags
- * from the prior parameter (if prior is non-null).
- *
- * The eLeapDeviceFlag enumeration defines the device flags. (There is currently only on flag defined.)
- *
- * @param hDevice The handle for an open device.
- * @param set A bitwise combination of flags to be set.
- * @param clear A bitwise combination of flags to be cleared.
- * @param prior An optional pointer to an integer that receives the device flags
- * set before this function call.
- * @returns The operation result code, a member of the eLeapRS enumeration.
- * @since 3.0.0
- */
-LEAP_EXPORT eLeapRS LEAP_CALL LeapSetDeviceFlags(LEAP_DEVICE hDevice, uint64_t set, uint64_t clear, uint64_t* prior);
 
 /** \ingroup Structs
  * Device event information.
@@ -1734,11 +1716,12 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param timeout The maximum amount of time to wait, in milliseconds. If this value is zero,
  * the evt pointer references the next queued message, if there is one, and returns immediately.
- * @param evt A pointer to a structure that is filled with event information. This structure will be valid
+ * @param[out] evt A pointer to a structure that is filled with event information. This structure will be valid
  * as long as the LEAP_CONNECTION object is valid.
  *
- * @returns An appropriate error code. If the operation times out, this method will return
- * eLeapRS_Timeout. The evt pointer will reference a message of type eLeapEventType_None.
+ * @returns The operation result code, a member of the eLeapRS enumeration. If the operation
+ * times out, this method will return eLeapRS_Timeout. The evt pointer will reference a
+ * message of type eLeapEventType_None.
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapPollConnection(LEAP_CONNECTION hConnection, uint32_t timeout, LEAP_CONNECTION_MESSAGE* evt);
@@ -1750,7 +1733,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapPollConnection(LEAP_CONNECTION hConnection, ui
  * LeapInterpolateFrame().
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param timestamp The timestamp of the frame whose size is to be queried.
- * @param pncbEvent A pointer that receives the number of bytes required to store the specified frame.
+ * @param[out] pncbEvent A pointer that receives the number of bytes required to store the specified frame.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.1.1
  */
@@ -1769,7 +1752,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetFrameSize(LEAP_CONNECTION hConnection, int6
  * interpolation.
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param timestamp The timestamp at which to interpolate the frame data.
- * @param pEvent A pointer to a flat buffer which is filled with an interpolated frame.
+ * @param[out] pEvent A pointer to a flat buffer which is filled with an interpolated frame.
  * @param ncbEvent The number of bytes pointed to by pEvent.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.1.1
@@ -1790,7 +1773,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrame(LEAP_CONNECTION hConnection, 
 * @param hConnection The connection handle created by LeapCreateConnection().
 * @param timestamp The timestamp to which to interpolate the frame data.
 * @param sourceTimestamp The timestamp of the beginning frame from which to interpolate the frame data.
-* @param pEvent A pointer to a flat buffer which is filled with an interpolated frame.
+* @param[out] pEvent A pointer to a flat buffer which is filled with an interpolated frame.
 * @param ncbEvent The number of bytes pointed to by pEvent.
 * @returns The operation result code, a member of the eLeapRS enumeration.
 * @since 3.1.1
@@ -1810,8 +1793,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameFromTime(LEAP_CONNECTION hConn
 * interpolation.
 * @param hConnection The connection handle created by LeapCreateConnection().
 * @param timestamp The timestamp at which to interpolate the frame data.
-* @param pEvent A pointer to a flat buffer which is filled with an interpolated frame.
-* @param ncbEvent The number of bytes pointed to by pEvent.
+* @param[out] pEvent A pointer to a flat buffer which is filled with an interpolated frame.
 * @returns The operation result code, a member of the eLeapRS enumeration.
 * @since 3.1.1
 */
@@ -1864,7 +1846,7 @@ typedef struct _LEAP_CLOCK_REBASER *LEAP_CLOCK_REBASER;
  * Pass the filled-in LEAP_CLOCK_REBASER object to calls to LeapUpdateRebase(),
  * LeapRebaseClock(), and LeapDestroyClockRebaser().
  *
- * @param phClockRebaser The pointer to the clock-rebaser object to be initialized.
+ * @param[out] phClockRebaser The pointer to the clock-rebaser object to be initialized.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.1.2
  */
@@ -1899,7 +1881,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapUpdateRebase(LEAP_CLOCK_REBASER hClockRebaser,
  *
  * @param hClockRebaser The handle to a rebaser object created by LeapCreateClockRebaser().
  * @param userClock The clock in microseconds referenced to the application clock.
- * @param pLeapClock The corresponding Leap Motion clock value.
+ * @param[out] pLeapClock The corresponding Leap Motion clock value.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.1.2
  */
@@ -1928,7 +1910,9 @@ LEAP_EXPORT void LEAP_CALL LeapDestroyClockRebaser(LEAP_CLOCK_REBASER hClockReba
  * the y-axis parallels the shorter (vertical) dimension. The camera coordinate
  * system does not correlate to the 3D Leap Motion coordinate system.
  *
- * @param uv A Vector containing the position of a pixel in the image.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param pixel A Vector containing the position of a pixel in the image.
  * @returns A Vector containing the ray direction (the z-component of the vector is always 1).
  * @since 3.1.3
  */
@@ -1952,7 +1936,9 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinear(LEAP_CONNECTION hConnec
  * ``LeapRectilinearToPixel()`` is typically not fast enough for realtime distortion correction.
  * For better performance, use a shader program executed on a GPU.
  *
- * @param xy A Vector containing the ray direction.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param rectilinear A Vector containing the ray direction.
  * @returns A Vector containing the pixel coordinates [x, y, 1] (with z always 1).
  * @since 3.1.3
  */
@@ -1960,7 +1946,9 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnec
 
 /** \ingroup Functions
  * Returns an OpenCV-compatible camera matrix
- * @param dest A pointer to a single-precision float array of size 9
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param[out] dest A pointer to a single-precision float array of size 9
  * @since 3.2.1
  */
 LEAP_EXPORT void LEAP_CALL LeapCameraMatrix(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
@@ -1970,7 +1958,9 @@ LEAP_EXPORT void LEAP_CALL LeapCameraMatrix(LEAP_CONNECTION hConnection, eLeapPe
  *
  * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
  *
- * @param xy A pointer to a single-precision float array of size 8.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param[out] dest A pointer to a single-precision float array of size 8.
  * @since 3.2.1
  */
 LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffs(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
@@ -2035,10 +2025,10 @@ typedef struct _LEAP_RECORDING_STATUS {
   * or writing to a recording. The recording path is relative to the "user path"
   * which is the SD card on Android.
   *
-  * @param pRecording The recording being opened.
+  * @param ppRecording The recording being opened.
   * @param filePath The file path. This will be passed directly to the OS without modification. An ".lmt" suffix is suggested.
   * @param params The LEAP_RECORDING_PARAMETERS describing what operations are requested.
-  * @returns eLeapRS The operation result code.
+  * @returns The operation result code, a member of the eLeapRS enumeration.
   * @since 3.2.0
   */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingOpen(LEAP_RECORDING* ppRecording, const char* filePath, LEAP_RECORDING_PARAMETERS params);
@@ -2046,8 +2036,8 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingOpen(LEAP_RECORDING* ppRecording, con
 /** \ingroup Functions
   * Closes a LEAP_RECORDING.
   *
-  * @param pRecording The recording being closed. Will modify pRecording to be null.
-  * @returns eLeapRS The operation result code.
+  * @param[out] ppRecording The recording being closed. Will modify *ppRecording to be null.
+  * @returns The operation result code, a member of the eLeapRS enumeration.
   * @since 3.2.0
   */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingClose(LEAP_RECORDING* ppRecording);
@@ -2057,8 +2047,8 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingClose(LEAP_RECORDING* ppRecording);
   * This struct provides the applicable eLeapRecordingFlags.
   *
   * @param pRecording The open recording.
-  * @param pstatus A LEAP_RECORDING_STATUS struct to receive the recording status.
-  * @returns eLeapRS The operation result code.
+  * @param[out] pstatus A LEAP_RECORDING_STATUS struct to receive the recording status.
+  * @returns The operation result code, a member of the eLeapRS enumeration.
   * @since 3.2.0
   */
 
@@ -2071,7 +2061,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingGetStatus(LEAP_RECORDING pRecording, 
  * LeapRecordingRead().
  *
  * @param pRecording The recording being read from.
- * @param pncbEvent A pointer that receives the number of bytes required to store the next frame.
+ * @param[out] pncbEvent A pointer that receives the number of bytes required to store the next frame.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.2.0
  */
@@ -2084,7 +2074,7 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingReadSize(LEAP_RECORDING pRecording, u
  * Use LeapGetFrameSize() to calculate the minimum size of this buffer.
  *
  * @param pRecording The recording being read from.
- * @param pEvent A pointer to a flat buffer which is filled with the next recorded frame.
+ * @param[out] pEvent A pointer to a flat buffer which is filled with the next recorded frame.
  * @param ncbEvent The number of bytes pointed to by pEvent.
  * @returns The operation result code, a member of the eLeapRS enumeration.
  * @since 3.2.0
@@ -2095,9 +2085,9 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingRead(LEAP_RECORDING pRecording, LEAP_
   * Writes a tracking frame to a LEAP_RECORDING file.
   *
   * @param pRecording The recording being written to.
-  * @param pEvent The recording being written to.
+  * @param[out] pEvent A pointer to a flat buffer which is filled with an interpolated frame.
   * @param pnBytesWritten If non-null the number of bytes written.
-  * @returns eLeapRS The operation result code.
+  * @returns The operation result code, a member of the eLeapRS enumeration.
   * @since 3.2.0
   */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapRecordingWrite(LEAP_RECORDING pRecording, LEAP_TRACKING_EVENT* pEvent, uint64_t* pnBytesWritten);

@@ -246,12 +246,6 @@ struct LEAPMOTION_API FLeapDigitData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
 	FLeapBoneData Proximal;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
-	FVector StabilizedTipPosition;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
-	FVector TipVelocity;
-
 	void SetFromLeapDigit(struct _LEAP_DIGIT* digit);
 	void ScaleDigit(float Scale);
 	void RotateDigit(const FRotator& InRotation);
@@ -337,12 +331,6 @@ struct LEAPMOTION_API FLeapFrameData
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
 	int32 FrameRate;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
-	FVector InteractionBoxCenter;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
-	FVector InteractionBoxSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
 	TArray<FLeapHandData> Hands;

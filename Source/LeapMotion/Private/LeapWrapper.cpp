@@ -373,31 +373,16 @@ void FLeapWrapper::handleTrackingEvent(const LEAP_TRACKING_EVENT *tracking_event
 	}
 }
 
-/** Called by serviceMessageLoop() when an image pair is available */
-void FLeapWrapper::handleImageCompleteEvent(const LEAP_IMAGE_COMPLETE_EVENT *image_complete_event)
+void FLeapWrapper::handleImageEvent(const LEAP_IMAGE_EVENT *image_event)
 {
+	//Todo: handle allocation /etc such that we just have the data ready to push to the end user.
 	if (CallbackDelegate)
 	{
-		TaskRefImageComplete = FLeapLambdaRunnable::RunShortLambdaOnGameThread([image_complete_event, this]
+		TaskRefImageComplete = FLeapLambdaRunnable::RunShortLambdaOnGameThread([image_event, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnImage(image_complete_event);
-			}
-		});
-	}
-}
-
-/** Called by serviceMessageLoop() when an image reuest error event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleImageRequestErrorEvent(const LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT *image_request_error_event)
-{
-	if (CallbackDelegate)
-	{
-		TaskRefImageError = FLeapLambdaRunnable::RunShortLambdaOnGameThread([image_request_error_event, this]
-		{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnImageError(image_request_error_event);
+				CallbackDelegate->OnImage(image_event);
 			}
 		});
 	}
@@ -412,8 +397,7 @@ void FLeapWrapper::handleLogEvent(const LEAP_LOG_EVENT *log_event)
 		{
 			if (CallbackDelegate)
 			{
-				//Doesn't work in 3.0
-				//CallbackDelegate->OnLog(log_event->severity, log_event->timestamp, log_event->message);
+				CallbackDelegate->OnLog(log_event->severity, log_event->timestamp, log_event->message);
 			}
 		});
 	}
@@ -510,12 +494,8 @@ void FLeapWrapper::serviceMessageLoop(void * unused)
 			case eLeapEventType_Tracking:
 				handleTrackingEvent(msg.tracking_event);
 				break;
-			case eLeapEventType_ImageComplete:
-				handleImageCompleteEvent(msg.image_complete_event);
-				break;
-			case eLeapEventType_ImageRequestError:
-				handleImageRequestErrorEvent(msg.image_request_error_event);
-				break;
+			case eLeapEventType_Image:
+				handleImageEvent(msg.image_event);
 			case eLeapEventType_LogEvent:
 				handleLogEvent(msg.log_event);
 				break;

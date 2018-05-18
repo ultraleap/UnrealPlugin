@@ -13,8 +13,7 @@ public:
 		const LEAP_DEVICE failed_device) {};
 	virtual void OnPolicy(const uint32_t current_policies) {};
 	virtual void OnFrame(const LEAP_TRACKING_EVENT *tracking_event) {};
-	virtual void OnImage(const LEAP_IMAGE_COMPLETE_EVENT *image_complete_event) {};
-	virtual void OnImageError(const LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT *image_error_event) {};
+	virtual void OnImage(const LEAP_IMAGE_EVENT *image_event) {};
 	virtual void OnLog(
 		const eLeapLogSeverity severity,
 		const int64_t timestamp,
@@ -107,8 +106,7 @@ private:
 	void handleDeviceLostEvent(const LEAP_DEVICE_EVENT *device_event);
 	void handleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *device_failure_event);
 	void handleTrackingEvent(const LEAP_TRACKING_EVENT *tracking_event);
-	void handleImageCompleteEvent(const LEAP_IMAGE_COMPLETE_EVENT *image_complete_event);
-	void handleImageRequestErrorEvent(const LEAP_IMAGE_FRAME_REQUEST_ERROR_EVENT *image_request_error_event);
+	void handleImageEvent(const LEAP_IMAGE_EVENT *image_event);
 	void handleLogEvent(const LEAP_LOG_EVENT *log_event);
 	void handlePolicyEvent(const LEAP_POLICY_EVENT *policy_event);
 	void handleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *config_change_event);
