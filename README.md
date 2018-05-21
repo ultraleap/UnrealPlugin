@@ -52,7 +52,7 @@ If you add input mapping to a non-input chain actor, ensure you override the def
 
 Common use cases and examples will be found here:
 
-https://github.com/getnamo/leap-ue4-modules
+https://github.com/leapmotion/LeapUnrealModules
 
 e.g. basic interaction with physics actors
 
