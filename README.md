@@ -10,10 +10,11 @@ See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-
 
 # Setup
 
-1. Create new or open a project. 
-2. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link)
-3. Drag and drop Plugins into your project root folder
-4. The plugin should be enabled and ready to use, if not enable it.
+1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started)
+2. Create new or open a project. 
+3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link)
+4. Drag and drop Plugins into your project root folder
+5. The plugin should be enabled and ready to use, if not enable it.
 
 #### Quick setup video, get up and running in 41 seconds!
 [![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/z4HIqr-5kWQ)
