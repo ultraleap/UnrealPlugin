@@ -14,7 +14,6 @@ See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-
 2. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link)
 3. Drag and drop Plugins into your project root folder
 4. The plugin should be enabled and ready to use, if not enable it.
-5. (preview only) you may want to disable the engine plugin while testing the preview plugin
 
 #### Quick setup video, get up and running in 41 seconds!
 [![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/z4HIqr-5kWQ)
