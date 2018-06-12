@@ -325,7 +325,7 @@ Below is a link to an example video for packaging for windows. The user here had
 
 
 
-### Android
+### Android (you will need access to a private runtime)
 Ensure you've completed https://docs.unrealengine.com/latest/INT/Platforms/Android/GettingStarted/1/index.html at least once per engine release first, then package for you build type
 
 #### Cardboard
@@ -352,4 +352,4 @@ Below is a link to an example video of packaging for Cardboard after having NDK 
 
 ## Contact
 
-During preview stages please post issues and feature requests to this [github repository issues section](https://github.com/leapmotion/LeapUnreal/issues)
+Please post issues and feature requests to this [github repository issues section](https://github.com/leapmotion/LeapUnreal/issues)
