@@ -8,6 +8,7 @@
 #include "LeapMotionData.h"
 #include "LeapUtility.h"
 #include "SlateBasics.h"
+#include "IBodyState.h"
 
 DECLARE_STATS_GROUP(TEXT("LeapMotion"), STATGROUP_LeapMotion, STATCAT_Advanced);
 DECLARE_CYCLE_STAT(TEXT("Leap Game Input and Events"), STAT_LeapInputTick, STATGROUP_LeapMotion);
@@ -284,12 +285,20 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
+
+	//LiveLink startup
+	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
+	LiveLink->Startup();
+	LiveLink->SyncSubjectToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
 }
 
 #undef LOCTEXT_NAMESPACE
 
 FLeapMotionInputDevice::~FLeapMotionInputDevice()
 {
+	//LiveLink cleanup
+	LiveLink->ShutDown();
+
 	ShutdownLeap();
 }
 
@@ -710,11 +719,16 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 		}
 	}
 
+	//if the number or type of bones that are tracked changed
+	bool bTrackedBonesChanged = false;
+
 	UBodyStateArm* Arm = Skeleton->LeftArm();
 
 	//Did left hand tracking state change? propagate it
 	if (bLeftIsTracking != Arm->LowerArm->IsTracked())
 	{
+		bTrackedBonesChanged = true;
+
 		if (bLeftIsTracking)
 		{
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
@@ -733,6 +747,8 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 	//Did right hand tracking state change? propagate it
 	if (bRightIsTracking != Arm->LowerArm->IsTracked())
 	{
+		bTrackedBonesChanged = true;
+
 		if (bRightIsTracking)
 		{
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
@@ -744,6 +760,15 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 			Arm->LowerArm->SetTrackingConfidenceRecursively(0.f);
 			Arm->LowerArm->Meta.ParentDistinctMeta = false;
 		}
+	}
+
+	if (LiveLink->HasConnection())
+	{
+		if (bTrackedBonesChanged)
+		{
+			LiveLink->SyncSubjectToSkeleton(Skeleton);
+		}
+		LiveLink->UpdateFromBodyState(Skeleton);
 	}
 }
 

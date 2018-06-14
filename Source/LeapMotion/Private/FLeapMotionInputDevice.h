@@ -11,6 +11,7 @@
 #include "SceneViewExtension.h"
 #include "LeapC.h"
 #include "LeapWrapper.h"
+#include "LeapLiveLink.h"
 
 
 /**
@@ -158,6 +159,9 @@ private:
 	//Bodystate link
 	int32 BodyStateDeviceId;
 	FBodyStateDeviceConfig Config;
+
+	//LiveLink
+	TSharedPtr<FLeapLiveLinkProducer> LiveLink;
 
 	//Convenience Converters - Todo: wrap into separate class?
 	void SetBSFingerFromLeapDigit(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit);
