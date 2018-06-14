@@ -755,7 +755,10 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 		}
 	}
 
-	LiveLink->UpdateFromBodyState(Skeleton);
+	if (LiveLink->HasConnection())
+	{
+		LiveLink->UpdateFromBodyState(Skeleton);
+	}
 }
 
 void FLeapMotionInputDevice::OnDeviceDetach()

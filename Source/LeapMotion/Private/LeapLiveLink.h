@@ -12,8 +12,14 @@ public:
 	void Startup();
 	void ShutDown();
 
+	//Linkup initial information of the skeleton
 	void LinkToSkeleton(const UBodyStateSkeleton* Skeleton);
+
+	//Update transforms from bodystate skeleton data
 	void UpdateFromBodyState(const UBodyStateSkeleton* Skeleton);
+
+	//Whether it's connected as a live link source, use this to determine if we should pay the live link data cost
+	bool HasConnection();
 
 protected:
 	FDelegateHandle ConnectionStatusChangedHandle;

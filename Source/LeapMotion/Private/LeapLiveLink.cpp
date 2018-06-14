@@ -2,11 +2,6 @@
 #include "CoreMinimal.h"
 #include "LiveLinkProvider.h"
 
-void OnConnectionStatusChanged()
-{
-	//refresh?
-}
-
 FLeapLiveLinkProducer::FLeapLiveLinkProducer()
 {
 
@@ -15,7 +10,19 @@ FLeapLiveLinkProducer::FLeapLiveLinkProducer()
 void FLeapLiveLinkProducer::Startup()
 {
 	LiveLinkProvider = ILiveLinkProvider::CreateLiveLinkProvider(TEXT("Leap Motion Live Link"));
-	ConnectionStatusChangedHandle = LiveLinkProvider->RegisterConnStatusChangedHandle(FLiveLinkProviderConnectionStatusChanged::FDelegate::CreateStatic(&OnConnectionStatusChanged));
+
+	TFunction<void()> StatusChangeLambda = [this]
+	{
+		if (LiveLinkProvider->HasConnection())
+		{
+			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Connected."));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Disconnected."));
+		}
+	};
+	ConnectionStatusChangedHandle = LiveLinkProvider->RegisterConnStatusChangedHandle(FLiveLinkProviderConnectionStatusChanged::FDelegate::CreateLambda(StatusChangeLambda));
 
 	SubjectName = TEXT("Leap Motion BodyState");
 }
@@ -59,4 +66,9 @@ void FLeapLiveLinkProducer::UpdateFromBodyState(const UBodyStateSkeleton* Skelet
 	}
 
 	LiveLinkProvider->UpdateSubjectFrame(SubjectName, SubjectBoneTransforms, SubjectCurves, FApp::GetCurrentTime());
+}
+
+bool FLeapLiveLinkProducer::HasConnection()
+{
+	return LiveLinkProvider->HasConnection();
 }
