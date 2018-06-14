@@ -22,12 +22,13 @@ public:
 
 protected:
 
-	TFunction<void(UBodyStateSkeleton*)> MergingFunction;
+	/** Override this function inside your initialize component and it will get called correctly in the merging chain */
+	TFunction<void(UBodyStateSkeleton*, float)> MergingFunction;
 	int32 MergingFunctionId;
 
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 
 private:
-	TFunction<void(UBodyStateSkeleton*)> WrapperMergingFunction;
+	TFunction<void(UBodyStateSkeleton*, float)> WrapperMergingFunction;
 };

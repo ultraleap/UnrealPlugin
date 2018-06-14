@@ -20,11 +20,11 @@ void UBodyStateEstimatorComponent::InitializeComponent()
 	}
 	
 	//Wrapper function which calls the broadcast function
-	WrapperMergingFunction = [&](UBodyStateSkeleton* SkeletonToUpdate)
+	WrapperMergingFunction = [&](UBodyStateSkeleton* SkeletonToUpdate, float DeltaTime)
 	{
 		if (MergingFunction != nullptr)
 		{
-			MergingFunction(SkeletonToUpdate);
+			MergingFunction(SkeletonToUpdate, DeltaTime);
 		}
 		OnUpdateSkeletonEstimation.Broadcast(SkeletonToUpdate);
 	};

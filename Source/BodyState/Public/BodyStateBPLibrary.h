@@ -47,5 +47,5 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 	//Define mixing and update interfaces - this isn't ready yet, should it be called per skeleton or per bone?
 
 	//BodyState Merging algorithm
-	static bool AttachMergeAlgorithm(TFunction< void(UBodyStateSkeleton*)> InFunction);
+	static bool AttachMergeAlgorithm(TFunction< void(UBodyStateSkeleton*, float)> InFunction);
 };

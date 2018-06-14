@@ -26,7 +26,7 @@ public:
 
 	virtual UBodyStateSkeleton* SkeletonForDevice(int32 DeviceID) override;
 
-	virtual int32 AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*)> InFunction, int32 SkeletonId = 0) override;
+	virtual int32 AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId = 0) override;
 	virtual bool RemoveMergingFunction(int32 MergingFunctionId) override;
 
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener) override;

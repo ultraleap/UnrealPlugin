@@ -121,6 +121,9 @@ UBodyStateSkeleton* FBodyStateSkeletonStorage::MergedSkeleton()
 
 void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 {
+	double Now = FApp::GetCurrentTime();
+	DeltaTime = (LastFrameTime - Now);
+
 	//Basic merge of skeleton data
 	MergedSkeleton();
 
@@ -136,6 +139,8 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 
 	//Dispatch estimator function lambdas which give merge skeleton and expect further updated values
 	CallMergingFunctions();
+
+	LastFrameTime = Now;
 }
 
 void FBodyStateSkeletonStorage::CallMergingFunctions()
@@ -144,11 +149,11 @@ void FBodyStateSkeletonStorage::CallMergingFunctions()
 	for (auto& Pair : MergingFunctions)
 	{
 
-		Pair.Value(PrivateMergedSkeleton);
+		Pair.Value(PrivateMergedSkeleton, DeltaTime);
 	}
 }
 
-int32 FBodyStateSkeletonStorage::AddMergingFunction(TFunction<void(UBodyStateSkeleton*)> InFunction)
+int32 FBodyStateSkeletonStorage::AddMergingFunction(TFunction<void(UBodyStateSkeleton*, float)> InFunction)
 {
 	MergingFunctions.Add(MergingFunctionIndexCount, InFunction);
 	MergingFunctionIndexCount++;

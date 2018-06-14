@@ -58,7 +58,7 @@ UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContext
 	}
 }
 
-bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction< void(UBodyStateSkeleton*)> InFunction)
+bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction< void(UBodyStateSkeleton*, float)> InFunction)
 {
 	IBodyState::Get().AttachMergingFunctionForSkeleton(InFunction);
 	return true;

@@ -51,7 +51,7 @@ public:
 	* A skeleton id of 0 specifies the merged device skeleton.
 	* @returns function ID. use this ID to remove the merging function 
 	*/
-	virtual int32 AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*)> InFunction, int32 SkeletonId = 0) { return -1; }
+	virtual int32 AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId = 0) { return -1; }
 	virtual bool RemoveMergingFunction(int32 MergingFunctionId) { return false; };
 
 	//Copying movement

@@ -40,7 +40,7 @@ public:
 	void CallMergingFunctions();
 	
 	//Merging functions add/remove
-	int32 AddMergingFunction(TFunction<void(UBodyStateSkeleton*)> InFunction);
+	int32 AddMergingFunction(TFunction<void(UBodyStateSkeleton*, float)> InFunction);
 	bool RemoveMergingFunction(int32 MergingFunctionId);
 	void ClearMergingFunctions();
 
@@ -55,8 +55,10 @@ private:
 	TMap<IBodyStateInputRawInterface*, FBodyStateDevice> Devices;
 	TMap<int32, IBodyStateInputRawInterface*> DeviceKeyMap;
 	int32 DeviceIndex;
+	double LastFrameTime;
+	float DeltaTime;
 
 	//Merging functions attached to skeletons
-	TMap < int32, TFunction<void(UBodyStateSkeleton*)> > MergingFunctions;
+	TMap < int32, TFunction<void(UBodyStateSkeleton*, float)> > MergingFunctions;
 	int32 MergingFunctionIndexCount;
 };

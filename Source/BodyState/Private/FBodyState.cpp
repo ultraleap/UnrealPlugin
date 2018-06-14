@@ -66,7 +66,7 @@ UBodyStateSkeleton* FBodyState::SkeletonForDevice(int32 DeviceID)
 	return SkeletonStorage->SkeletonForDevice(DeviceID);
 }
 
-int32 FBodyState::AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*)> InFunction, int32 SkeletonId /*= 0*/)
+int32 FBodyState::AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId /*= 0*/)
 {
 	//NB: skeleton id is ignored for now, skeleton is always the merged one atm
 	return SkeletonStorage->AddMergingFunction(InFunction);
