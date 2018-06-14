@@ -29,10 +29,15 @@ void FLeapLiveLinkProducer::LinkToSkeleton(const UBodyStateSkeleton* Skeleton)
 {
 	TArray<UBodyStateBone*>& Bones = ((UBodyStateSkeleton*)Skeleton)->Bones;
 
+	SubjectBoneTransforms.Empty();
+	SubjectBoneNames.Empty();
+	SubjectBoneParents.Empty();
+
 	for (UBodyStateBone* Bone : Bones)
 	{
 		SubjectBoneNames.Add(FName(*Bone->Name));
 		SubjectBoneParents.Add(Bones.IndexOfByKey(Bone->Parent));
+		SubjectBoneTransforms.Add(Bone->Transform());
 	}
 
 	//Initialize the subject
@@ -41,22 +46,17 @@ void FLeapLiveLinkProducer::LinkToSkeleton(const UBodyStateSkeleton* Skeleton)
 
 void FLeapLiveLinkProducer::UpdateFromBodyState(const UBodyStateSkeleton* Skeleton)
 {
-	SubjectBoneTransforms.Empty();
-	SubjectBoneNames.Empty();
-	SubjectBoneParents.Empty();
-
 	TArray<UBodyStateBone*>& Bones = ((UBodyStateSkeleton*)Skeleton)->Bones;
 
-	for (UBodyStateBone* Bone : Bones)
+	//older iterator for efficiency
+	for (int i=0; i < Bones.Num(); i++)
 	{
+		UBodyStateBone* Bone = Bones[i];
 		if (Bone->IsTracked())
 		{
-			SubjectBoneNames.Add(FName(*Bone->Name));
-			SubjectBoneParents.Add(Bones.IndexOfByKey(Bone->Parent));
-			SubjectBoneTransforms.Add(Bone->Transform());
+			SubjectBoneTransforms[i] = Bone->Transform();
 		}
 	}
 
-	LiveLinkProvider->UpdateSubject(SubjectName, SubjectBoneNames, SubjectBoneParents);
 	LiveLinkProvider->UpdateSubjectFrame(SubjectName, SubjectBoneTransforms, SubjectCurves, FApp::GetCurrentTime());
 }
