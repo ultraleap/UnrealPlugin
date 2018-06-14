@@ -13,7 +13,7 @@ public:
 	void ShutDown();
 
 	//Linkup initial information of the skeleton
-	void LinkToSkeleton(const UBodyStateSkeleton* Skeleton);
+	void SyncSubjectToSkeleton(const UBodyStateSkeleton* Skeleton);
 
 	//Update transforms from bodystate skeleton data
 	void UpdateFromBodyState(const UBodyStateSkeleton* Skeleton);
@@ -29,4 +29,5 @@ protected:
 	TArray<int32> SubjectBoneParents;
 	TArray<FTransform> SubjectBoneTransforms;
 	TArray<FLiveLinkCurveElement> SubjectCurves;
+	TArray<UBodyStateBone*> TrackedBones;
 };

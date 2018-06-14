@@ -24,7 +24,7 @@ void FLeapLiveLinkProducer::Startup()
 	};
 	ConnectionStatusChangedHandle = LiveLinkProvider->RegisterConnStatusChangedHandle(FLiveLinkProviderConnectionStatusChanged::FDelegate::CreateLambda(StatusChangeLambda));
 
-	SubjectName = TEXT("Leap Motion BodyState");
+	SubjectName = TEXT("Leap Motion");
 }
 
 void FLeapLiveLinkProducer::ShutDown()
@@ -32,19 +32,32 @@ void FLeapLiveLinkProducer::ShutDown()
 	LiveLinkProvider->UnregisterConnStatusChangedHandle(ConnectionStatusChangedHandle);
 }
 
-void FLeapLiveLinkProducer::LinkToSkeleton(const UBodyStateSkeleton* Skeleton)
+void FLeapLiveLinkProducer::SyncSubjectToSkeleton(const UBodyStateSkeleton* Skeleton)
 {
 	TArray<UBodyStateBone*>& Bones = ((UBodyStateSkeleton*)Skeleton)->Bones;
 
 	SubjectBoneTransforms.Empty();
 	SubjectBoneNames.Empty();
 	SubjectBoneParents.Empty();
+	TrackedBones.Empty();
+	
+	TArray<FName> ParentsNames;
 
 	for (UBodyStateBone* Bone : Bones)
 	{
-		SubjectBoneNames.Add(FName(*Bone->Name));
-		SubjectBoneParents.Add(Bones.IndexOfByKey(Bone->Parent));
-		SubjectBoneTransforms.Add(Bone->Transform());
+		if (Bone->IsTracked())
+		{
+			SubjectBoneNames.Add(FName(*Bone->Name));
+			ParentsNames.Add(FName(*Bone->Parent->Name));
+			SubjectBoneTransforms.Add(Bone->Transform());
+			TrackedBones.Add(Bone);
+		}
+	}
+
+	//Correct the parent index to the current live list
+	for (int i=0; i<ParentsNames.Num(); i++)
+	{
+		SubjectBoneParents.Add(SubjectBoneNames.IndexOfByKey(ParentsNames[i]));
 	}
 
 	//Initialize the subject
@@ -53,12 +66,12 @@ void FLeapLiveLinkProducer::LinkToSkeleton(const UBodyStateSkeleton* Skeleton)
 
 void FLeapLiveLinkProducer::UpdateFromBodyState(const UBodyStateSkeleton* Skeleton)
 {
-	TArray<UBodyStateBone*>& Bones = ((UBodyStateSkeleton*)Skeleton)->Bones;
+	//TArray<UBodyStateBone*>& Bones = ((UBodyStateSkeleton*)Skeleton)->Bones;
 
 	//older iterator for efficiency
-	for (int i=0; i < Bones.Num(); i++)
+	for (int i=0; i < TrackedBones.Num(); i++)
 	{
-		UBodyStateBone* Bone = Bones[i];
+		UBodyStateBone* Bone = TrackedBones[i];
 		if (Bone->IsTracked())
 		{
 			SubjectBoneTransforms[i] = Bone->Transform();

@@ -289,7 +289,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	//LiveLink startup
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
 	LiveLink->Startup();
-	LiveLink->LinkToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
+	LiveLink->SyncSubjectToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -719,11 +719,16 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 		}
 	}
 
+	//if the number or type of bones that are tracked changed
+	bool bTrackedBonesChanged = false;
+
 	UBodyStateArm* Arm = Skeleton->LeftArm();
 
 	//Did left hand tracking state change? propagate it
 	if (bLeftIsTracking != Arm->LowerArm->IsTracked())
 	{
+		bTrackedBonesChanged = true;
+
 		if (bLeftIsTracking)
 		{
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
@@ -742,6 +747,8 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 	//Did right hand tracking state change? propagate it
 	if (bRightIsTracking != Arm->LowerArm->IsTracked())
 	{
+		bTrackedBonesChanged = true;
+
 		if (bRightIsTracking)
 		{
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
@@ -757,6 +764,10 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 
 	if (LiveLink->HasConnection())
 	{
+		if (bTrackedBonesChanged)
+		{
+			LiveLink->SyncSubjectToSkeleton(Skeleton);
+		}
 		LiveLink->UpdateFromBodyState(Skeleton);
 	}
 }
