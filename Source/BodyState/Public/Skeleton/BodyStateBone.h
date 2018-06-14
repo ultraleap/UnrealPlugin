@@ -24,6 +24,10 @@ struct BODYSTATE_API FBodyStateBoneMeta
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone Data")
 	float Confidence;
 
+	/** Time when this value was sampled */
+	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone Data")
+	float TimeStamp;
+
 
 	FBodyStateBoneMeta()
 	{
@@ -31,6 +35,7 @@ struct BODYSTATE_API FBodyStateBoneMeta
 		TrackingType = FString(TEXT("Unknown"));
 		Accuracy = 0.f;
 		Confidence = 0.f;
+		TimeStamp = 0.f;
 	}
 };
 
