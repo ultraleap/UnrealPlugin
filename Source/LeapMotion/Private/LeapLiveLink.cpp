@@ -42,12 +42,21 @@ void FLeapLiveLinkProducer::LinkToSkeleton(const UBodyStateSkeleton* Skeleton)
 void FLeapLiveLinkProducer::UpdateFromBodyState(const UBodyStateSkeleton* Skeleton)
 {
 	SubjectBoneTransforms.Empty();
+	SubjectBoneNames.Empty();
+	SubjectBoneParents.Empty();
+
 	TArray<UBodyStateBone*>& Bones = ((UBodyStateSkeleton*)Skeleton)->Bones;
 
 	for (UBodyStateBone* Bone : Bones)
 	{
-		SubjectBoneTransforms.Add(Bone->Transform());
+		if (Bone->IsTracked())
+		{
+			SubjectBoneNames.Add(FName(*Bone->Name));
+			SubjectBoneParents.Add(Bones.IndexOfByKey(Bone->Parent));
+			SubjectBoneTransforms.Add(Bone->Transform());
+		}
 	}
 
+	LiveLinkProvider->UpdateSubject(SubjectName, SubjectBoneNames, SubjectBoneParents);
 	LiveLinkProvider->UpdateSubjectFrame(SubjectName, SubjectBoneTransforms, SubjectCurves, FApp::GetCurrentTime());
 }
