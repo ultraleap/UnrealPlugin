@@ -8,6 +8,7 @@
 class FLeapLiveLinkProducer
 {
 public:
+	FLeapLiveLinkProducer();
 	void Startup();
 	void ShutDown();
 
