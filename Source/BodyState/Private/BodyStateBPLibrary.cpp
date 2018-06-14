@@ -58,6 +58,21 @@ UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContext
 	}
 }
 
+FTransform UBodyStateBPLibrary::TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance)
+{
+	USkeletalMeshComponent* SkeletalMesh = Instance->GetSkelMeshComponent();
+	int32 BoneIndex = SkeletalMesh->GetBoneIndex(Bone);
+
+	if (BoneIndex != INDEX_NONE)
+	{
+		return SkeletalMesh->GetBoneTransform(BoneIndex);
+	}
+	else
+	{
+		return FTransform();
+	}
+}
+
 bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction< void(UBodyStateSkeleton*, float)> InFunction)
 {
 	IBodyState::Get().AttachMergingFunctionForSkeleton(InFunction);

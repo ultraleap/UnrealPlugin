@@ -44,6 +44,10 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = "Body State Input")
 	static UBodyStateSkeleton* SkeletonForDevice(UObject* WorldContextObject, int32 DeviceID = 0);
 
+	/** Convenience function for rigging*/
+	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = "Body State Input")
+	static FTransform TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance);
+
 	//Define mixing and update interfaces - this isn't ready yet, should it be called per skeleton or per bone?
 
 	//BodyState Merging algorithm

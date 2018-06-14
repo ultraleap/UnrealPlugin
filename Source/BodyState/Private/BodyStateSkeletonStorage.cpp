@@ -1,3 +1,4 @@
+#include "BodyStateSkeleton.h"
 #include "BodyStateSkeletonStorage.h"
 
 FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()
@@ -122,7 +123,7 @@ UBodyStateSkeleton* FBodyStateSkeletonStorage::MergedSkeleton()
 void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 {
 	double Now = FApp::GetCurrentTime();
-	DeltaTime = (LastFrameTime - Now);
+	DeltaTime = (Now - LastFrameTime);
 
 	//Basic merge of skeleton data
 	MergedSkeleton();
