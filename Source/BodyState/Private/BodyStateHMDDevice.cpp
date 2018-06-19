@@ -11,6 +11,8 @@ FBodyStateHMDDevice::FBodyStateHMDDevice()
 	Config.DeviceName = TEXT("HMD");
 	Config.InputType = EBodyStateDeviceInputType::EXTERNAL_REFERENCE_INPUT_TYPE;
 	bShouldTrackMotionControllers = true;
+	MotionControllerInertialConfidence = 0.1f;
+	MotionControllerTrackedConfidence = 0.8f;
 }
 
 FBodyStateHMDDevice::~FBodyStateHMDDevice()
@@ -43,13 +45,13 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 			
 			if (!LeftHand->IsTracked())
 			{
-				LeftHand->Meta.Confidence = 0.9f;
+				LeftHand->Meta.Confidence = 0.f;
 				LeftHand->Meta.ParentDistinctMeta = true;
 				LeftHand->Meta.TrackingType = Config.DeviceName;
 			}
 			if (!RightHand->IsTracked())
 			{
-				RightHand->Meta.Confidence = 0.9f;
+				RightHand->Meta.Confidence = 0.f;
 				RightHand->Meta.ParentDistinctMeta = true;
 				RightHand->Meta.TrackingType = Config.DeviceName;
 			}
@@ -58,19 +60,51 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 			TArray<IMotionController*> MotionControllers = IModularFeatures::Get().GetModularFeatureImplementations<IMotionController>(IMotionController::GetModularFeatureName());
 
 			FRotator OrientationRot;
+			FTransform HandTransform;
+			LeftHand->Meta.Confidence = 0.f;
+			RightHand->Meta.Confidence = 0.f;
 			
 			for(IMotionController* Controller : MotionControllers)
 			{
-				TArray<FMotionControllerSource> Sources;
-				Controller->EnumerateSources(Sources);
+				//Left Hand
+				UBodyStateBone* Hand = LeftHand;
+				FName TrackingSource = FXRMotionControllerBase::LeftHandSourceId;
 
-				Controller->GetControllerOrientationAndPosition(0, FXRMotionControllerBase::LeftHandSourceId, OrientationRot, Position, 100.f);
-				FTransform HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
-				LeftHand->BoneData.SetFromTransform(HandTransform);
+				ETrackingStatus TrackingStatus = Controller->GetControllerTrackingStatus(0, TrackingSource);
+				if (TrackingStatus != ETrackingStatus::NotTracked)
+				{
+					if (TrackingStatus == ETrackingStatus::Tracked)
+					{
+						Hand->Meta.Confidence = MotionControllerTrackedConfidence;
+					}
+					else
+					{
+						Hand->Meta.Confidence = MotionControllerInertialConfidence;
+					}
+					Controller->GetControllerOrientationAndPosition(0, TrackingSource, OrientationRot, Position, 100.f);
+					HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
+					Hand->BoneData.SetFromTransform(HandTransform);
+				}
 
-				Controller->GetControllerOrientationAndPosition(0, FXRMotionControllerBase::RightHandSourceId, OrientationRot, Position, 100.f);
-				HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
-				LeftHand->BoneData.SetFromTransform(HandTransform);
+				//Right Hand
+				Hand = RightHand;
+				TrackingSource = FXRMotionControllerBase::RightHandSourceId;
+				
+				TrackingStatus = Controller->GetControllerTrackingStatus(0, TrackingSource);
+				if (TrackingStatus != ETrackingStatus::NotTracked)
+				{
+					if (TrackingStatus == ETrackingStatus::Tracked)
+					{
+						Hand->Meta.Confidence = MotionControllerTrackedConfidence;
+					}
+					else
+					{
+						Hand->Meta.Confidence = MotionControllerInertialConfidence;
+					}
+					Controller->GetControllerOrientationAndPosition(0, TrackingSource, OrientationRot, Position, 100.f);
+					HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
+					Hand->BoneData.SetFromTransform(HandTransform);
+				}
 			}
 		}
 	}
