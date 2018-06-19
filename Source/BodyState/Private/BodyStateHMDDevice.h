@@ -10,6 +10,8 @@ public:
 	FBodyStateHMDDevice();
 	virtual ~FBodyStateHMDDevice();
 	int32 HMDDeviceIndex;
+	bool bShouldTrackMotionControllers;
+
 	FBodyStateDeviceConfig Config;
 
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;
