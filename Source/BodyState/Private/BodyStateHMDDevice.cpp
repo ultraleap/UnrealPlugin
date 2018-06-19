@@ -64,21 +64,13 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 				TArray<FMotionControllerSource> Sources;
 				Controller->EnumerateSources(Sources);
 
-				for (auto& Source : Sources)
-				{
-					if (Source.SourceName.IsEqual(FXRMotionControllerBase::LeftHandSourceId))
-					{
-						Controller->GetControllerOrientationAndPosition(0, Source.SourceName, OrientationRot, Position, 100.f);
-						FTransform HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
-						LeftHand->BoneData.SetFromTransform(HandTransform);
-					}
-					else if (Source.SourceName.IsEqual(FXRMotionControllerBase::RightHandSourceId))
-					{
-						Controller->GetControllerOrientationAndPosition(0, Source.SourceName, OrientationRot, Position, 100.f);
-						FTransform HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
-						LeftHand->BoneData.SetFromTransform(HandTransform);
-					}
-				}
+				Controller->GetControllerOrientationAndPosition(0, FXRMotionControllerBase::LeftHandSourceId, OrientationRot, Position, 100.f);
+				FTransform HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
+				LeftHand->BoneData.SetFromTransform(HandTransform);
+
+				Controller->GetControllerOrientationAndPosition(0, FXRMotionControllerBase::RightHandSourceId, OrientationRot, Position, 100.f);
+				HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
+				LeftHand->BoneData.SetFromTransform(HandTransform);
 			}
 		}
 	}
