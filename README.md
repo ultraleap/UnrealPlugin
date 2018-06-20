@@ -10,7 +10,7 @@ See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-
 
 # Setup
 
-1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started)
+1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started). This plugin requires v4 SDK tracking or newer.
 2. Create new or open a project. 
 3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link)
 4. Drag and drop Plugins into your project root folder
