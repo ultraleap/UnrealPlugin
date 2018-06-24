@@ -284,12 +284,12 @@ void FLeapMotionInputDevice::UpdateTextureRegions(UTexture2D* Texture, int32 Mip
 						);
 					}
 				}
-		if (bFreeData)
-		{
-			FMemory::Free(RegionData->Regions);
-			FMemory::Free(RegionData->SrcData);
-		}
-		delete RegionData;
+			if (bFreeData)
+			{
+				FMemory::Free(RegionData->Regions);
+				FMemory::Free(RegionData->SrcData);
+			}
+			delete RegionData;
 			});
 	}
 }
@@ -318,13 +318,18 @@ void FLeapMotionInputDevice::OnImage(const LEAP_IMAGE_EVENT *ImageEvent)
 	if (LeftImageTexture)
 	{
 		//Schedule the texture copy
-		uint8* MipData = static_cast<uint8*>(LeftImageTexture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
+		UpdateTextureRegions(LeftImageTexture, 0, 1, &UpdateTextureRegion, LeftLeapImage.properties.width, LeftLeapImage.properties.bpp, (uint8*)LeftLeapImage.data, false);
+		FPlatformProcess::Sleep(0.5);
 
-		int32 UpdateLength = UpdateTextureRegion.Width * UpdateTextureRegion.Height * LeftLeapImage.properties.bpp;
-		memcpy(MipData, LeftLeapImage.data, UpdateLength);
+		//uint8* MipData = static_cast<uint8*>(LeftImageTexture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
 
-		LeftImageTexture->PlatformData->Mips[0].BulkData.Unlock();
-		LeftImageTexture->UpdateResource();
+		//int32 UpdateLength = UpdateTextureRegion.Width * UpdateTextureRegion.Height * LeftLeapImage.properties.bpp;
+		//memcpy(MipData, LeftLeapImage.data, UpdateLength);
+
+		//LeftImageTexture->PlatformData->Mips[0].BulkData.Unlock();
+		//LeftImageTexture->UpdateResource();
+
+		
 
 		//Call image events on game threads
 		CallFunctionOnComponents([&](ULeapComponent* Component)
