@@ -113,11 +113,6 @@ void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 	LeapInputDevice->SetLeapPolicy(Flag, Enable);
 }
 
-bool FLeapMotionPlugin::EnableImageStreaming(bool Enable)
-{
-	return LeapInputDevice->EnableImageStreaming(Enable);
-}
-
 void FLeapMotionPlugin::ShutdownLeap()
 {
 	UE_LOG(LeapMotionLog, Log, TEXT("Shutting down leap from command."));

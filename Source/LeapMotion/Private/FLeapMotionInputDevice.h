@@ -65,7 +65,6 @@ public:
 	void LatestFrame(FLeapFrameData& OutFrame);
 
 	//Policy and toggles
-	bool EnableImageStreaming(bool Enable);
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
 	//BodyState
@@ -134,6 +133,15 @@ private:
 	//Time warp support
 	BSHMDSnapshotHandler SnapshotHandler;
 
+	//Image data
+	UTexture2D* LeftImageTexture;
+	UTexture2D* RightImageTexture;
+	FUpdateTextureRegion2D UpdateTextureRegion;
+
+	bool HasSameTextureFormat(UTexture2D* TexturePointer, const LEAP_IMAGE& Image);
+	UTexture2D* CreateTextureIfNeeded(UTexture2D* TexturePointer, const LEAP_IMAGE& Image);
+	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
+	void CleanupImageData();
 
 	//SVE
 	bool bSceneViewExtensionSet;

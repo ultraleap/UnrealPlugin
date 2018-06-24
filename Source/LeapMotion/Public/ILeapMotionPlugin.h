@@ -59,13 +59,10 @@ public:
 	/** Polling method for latest frame data*/
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
 
-	/** Enable raw image streaming if supported for platform*/
-	virtual bool EnableImageStreaming(bool Enable) { return false; };
-
-	/** Set a Leap Policy*/
+	/** Set a Leap Policy, such as image streaming or optimization type*/
 	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) = 0;
 
-	//temp function: remove after debug
+	/** Force shutdown leap, do not call unless you have a very specfic need*/
 	virtual void ShutdownLeap() = 0;
 };
 

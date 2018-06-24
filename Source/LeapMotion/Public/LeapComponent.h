@@ -10,6 +10,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapVisibilityBoolSignature, bool, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrameSignature, const FLeapFrameData&, Frame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHandSignature, const FLeapHandData&, Hand);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapPolicySignature, TArray<TEnumAsByte<ELeapPolicyFlag>>, Flags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapImageEventSignature, UTexture2D*, Texture, ELeapImageType, ImageType);
 
 UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
@@ -65,6 +66,10 @@ public:
 	/** Event called when leap policies have changed */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapPolicySignature OnLeapPoliciesUpdated;
+
+	/** Event called when a device image is ready. Requires setting image policy first*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapImageEventSignature OnImageEvent;
 
 	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")

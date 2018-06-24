@@ -23,7 +23,6 @@ public:
 	virtual FLeapOptions GetOptions() override;
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
-	virtual bool EnableImageStreaming(bool Enable) override;
 	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) override;
 
 	virtual void ShutdownLeap() override;

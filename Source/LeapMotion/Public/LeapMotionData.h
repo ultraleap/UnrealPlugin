@@ -17,6 +17,13 @@ enum ELeapMode
 };
 
 UENUM(BlueprintType)
+enum class ELeapImageType :uint8
+{
+	LEAP_IMAGE_LEFT,
+	LEAP_IMAGE_RIGHT
+};
+
+UENUM(BlueprintType)
 enum ELeapTrackingFidelity
 {
 	LEAP_LOW_LATENCY,
