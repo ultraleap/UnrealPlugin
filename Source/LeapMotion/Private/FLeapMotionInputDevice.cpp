@@ -1,7 +1,7 @@
 
 #include "FLeapMotionInputDevice.h"
 #include "IHeadMountedDisplay.h"
-#include "LeapLambdaRunnable.h"
+#include "LeapAsync.h"
 #include "LeapComponent.h"
 #include "BodyStateSkeleton.h"
 #include "BodyStateBPLibrary.h"
@@ -33,7 +33,7 @@ void FLeapMotionInputDevice::CallFunctionOnComponents(TFunction< void(ULeapCompo
 	}
 	else
 	{
-		FLeapLambdaRunnable::RunShortLambdaOnGameThread([this, InFunction]
+		FLeapAsync::RunShortLambdaOnGameThread([this, InFunction]
 		{
 			for (ULeapComponent* EventDelegate : EventDelegates)
 			{
@@ -329,7 +329,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
 
 	//Did a device connect?
-	if (!Leap.bIsConnected || !Leap.lastDevice)
+	if (!Leap.bIsConnected || !Leap.LastDevice)
 	{
 		return;
 	}

@@ -10,7 +10,7 @@
 
 #include "LeapWrapper.h"
 #include "LeapC.h"
-#include "LeapLambdaRunnable.h"
+#include "LeapAsync.h"
 
 #pragma region LeapC Wrapper
 
@@ -21,10 +21,9 @@ FLeapWrapper::FLeapWrapper():
 	bIsConnected(false),
 	bIsRunning(false)
 {
-	ProducerLambdaThread = nullptr;
 	CallbackDelegate = nullptr;
-	interpolatedFrame = nullptr;
-	interpolatedFrameSize = 0;
+	InterpolatedFrame = nullptr;
+	InterpolatedFrameSize = 0;
 }
 
 FLeapWrapper::~FLeapWrapper()
@@ -64,7 +63,7 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 			bIsRunning = true;
 
 			LEAP_CONNECTION* Handle = &ConnectionHandle;
-			ProducerLambdaThread = FLeapLambdaRunnable::RunLambdaOnBackGroundThread([&, Handle]
+			ProducerLambdaFuture = FLeapAsync::RunLambdaOnBackGroundThread([&, Handle]
 			{
 				UE_LOG(LeapMotionLog, Log, TEXT("ServiceMessageLoop started."));
 				ServiceMessageLoop();
@@ -90,7 +89,7 @@ void FLeapWrapper::CloseConnection()
 	CleanupLastDevice();
 
 	//Wait for thread to exit - Blocking call, but it should be very quick.
-	ProducerLambdaThread->WaitForCompletion();
+	ProducerLambdaFuture.Wait();
 	
 	//Nullify the callback delegate. Any outstanding task graphs will not run if the delegate is nullified.
 	CallbackDelegate = nullptr;
@@ -127,9 +126,9 @@ void FLeapWrapper::CloseConnectionHandle(LEAP_CONNECTION* InConnectionHandle)
 LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
 {
 	LEAP_TRACKING_EVENT *currentFrame;
-	dataLock.Lock();
+	DataLock.Lock();
 	currentFrame = LastFrame;
-	dataLock.Unlock();
+	DataLock.Unlock();
 	return currentFrame;
 }
 
@@ -142,30 +141,30 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 	if (FrameSize > 0 )
 	{
 		//Different frame? 
-		if (FrameSize != interpolatedFrameSize)
+		if (FrameSize != InterpolatedFrameSize)
 		{
 			//If we already have an allocated frame, free it
-			if (interpolatedFrame)
+			if (InterpolatedFrame)
 			{
-				free(interpolatedFrame);
+				free(InterpolatedFrame);
 			}
-			interpolatedFrame = (LEAP_TRACKING_EVENT *)malloc(FrameSize);
+			InterpolatedFrame = (LEAP_TRACKING_EVENT *)malloc(FrameSize);
 		}
-		interpolatedFrameSize = FrameSize;
+		InterpolatedFrameSize = FrameSize;
 
 		//Grab the new frame
-		LeapInterpolateFrame(ConnectionHandle, TimeStamp, interpolatedFrame, interpolatedFrameSize);
+		LeapInterpolateFrame(ConnectionHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
 	}
 
-	return interpolatedFrame;
+	return InterpolatedFrame;
 }
 
 LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
 {
 	LEAP_DEVICE_INFO *currentDevice;
-	dataLock.Lock();
-	currentDevice = lastDevice;
-	dataLock.Unlock();
+	DataLock.Lock();
+	currentDevice = LastDevice;
+	DataLock.Unlock();
 	return currentDevice;
 }
 
@@ -206,10 +205,10 @@ void FLeapWrapper::EnableImageStream(bool bEnable)
 		ImageDescription->pBuffer = NULL;
 	}
 
-	int oldLength = ImageDescription->buffer_len;
+	int OldLength = ImageDescription->buffer_len;
 
 	//if the size is different realloc the buffer
-	if (ImageDescription->buffer_len != oldLength)
+	if (ImageDescription->buffer_len != OldLength)
 	{
 		if (ImageDescription->pBuffer != NULL)
 		{
@@ -225,38 +224,38 @@ void FLeapWrapper::Millisleep(int milliseconds)
 	FPlatformProcess::Sleep(((float)milliseconds) / 1000.f);
 }
 
-void FLeapWrapper::SetDevice(const LEAP_DEVICE_INFO *deviceProps)
+void FLeapWrapper::SetDevice(const LEAP_DEVICE_INFO *DeviceProps)
 {
-	dataLock.Lock();
-	if (lastDevice)
+	DataLock.Lock();
+	if (LastDevice)
 	{
-		free(lastDevice->serial);
+		free(LastDevice->serial);
 	}
 	else 
 	{
-		lastDevice = (LEAP_DEVICE_INFO*) malloc(sizeof(*deviceProps));
+		LastDevice = (LEAP_DEVICE_INFO*) malloc(sizeof(*DeviceProps));
 	}
-	*lastDevice = *deviceProps;
-	lastDevice->serial = (char*)malloc(deviceProps->serial_length);
-	memcpy(lastDevice->serial, deviceProps->serial, deviceProps->serial_length);
-	dataLock.Unlock();
+	*LastDevice = *DeviceProps;
+	LastDevice->serial = (char*)malloc(DeviceProps->serial_length);
+	memcpy(LastDevice->serial, DeviceProps->serial, DeviceProps->serial_length);
+	DataLock.Unlock();
 }
 
 void FLeapWrapper::CleanupLastDevice()
 {
-	if (lastDevice)
+	if (LastDevice)
 	{
-		free(lastDevice->serial);
+		free(LastDevice->serial);
 	}
-	lastDevice = nullptr;
+	LastDevice = nullptr;
 }
 
 void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame)
 {
-	dataLock.Lock();
+	DataLock.Lock();
 	if (!LastFrame) LastFrame = (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame));
 	*LastFrame = *Frame;
-	dataLock.Unlock();
+	DataLock.Unlock();
 }
 
 
@@ -284,7 +283,6 @@ void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *C
 
 /**
 * Called by ServiceMessageLoop() when a device event is returned by LeapPollConnection()
-* Demonstrates how to access device properties.
 */
 void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 {
@@ -321,7 +319,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 	SetDevice(&DeviceProperties);
 	if (CallbackDelegate) 
 	{
-		TaskRefDeviceFound = FLeapLambdaRunnable::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this]
+		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -338,11 +336,11 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent) {
 	if (CallbackDelegate)
 	{
-		TaskRefDeviceLost = FLeapLambdaRunnable::RunShortLambdaOnGameThread([DeviceEvent, this]
+		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceLost(lastDevice->serial);
+				CallbackDelegate->OnDeviceLost(LastDevice->serial);
 			}
 		});
 	}
@@ -353,7 +351,7 @@ void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *Dev
 {
 	if (CallbackDelegate) 
 	{
-		TaskRefDeviceFailure = FLeapLambdaRunnable::RunShortLambdaOnGameThread([DeviceFailureEvent, this]
+		TaskRefDeviceFailure = FLeapAsync::RunShortLambdaOnGameThread([DeviceFailureEvent, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -382,7 +380,7 @@ void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent)
 	//Todo: handle allocation /etc such that we just have the data ready to push to the end user.
 	if (CallbackDelegate)
 	{
-		TaskRefImageComplete = FLeapLambdaRunnable::RunShortLambdaOnGameThread([ImageEvent, this]
+		TaskRefImageComplete = FLeapAsync::RunShortLambdaOnGameThread([ImageEvent, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -397,7 +395,7 @@ void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent)
 {
 	if (CallbackDelegate)
 	{
-		TaskRefLog = FLeapLambdaRunnable::RunShortLambdaOnGameThread([LogEvent, this]
+		TaskRefLog = FLeapAsync::RunShortLambdaOnGameThread([LogEvent, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -412,7 +410,7 @@ void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent)
 {
 	if (CallbackDelegate)
 	{
-		TaskRefPolicy = FLeapLambdaRunnable::RunShortLambdaOnGameThread([PolicyEvent, this]
+		TaskRefPolicy = FLeapAsync::RunShortLambdaOnGameThread([PolicyEvent, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -427,7 +425,7 @@ void FLeapWrapper::HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *Confi
 {
 	if (CallbackDelegate)
 	{
-		TaskRefConfigChange = FLeapLambdaRunnable::RunShortLambdaOnGameThread([ConfigChangeEvent, this]
+		TaskRefConfigChange = FLeapAsync::RunShortLambdaOnGameThread([ConfigChangeEvent, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -442,7 +440,7 @@ void FLeapWrapper::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *C
 {
 	if (CallbackDelegate)
 	{
-		TaskRefConfigResponse = FLeapLambdaRunnable::RunShortLambdaOnGameThread([ConfigResponseEvent, this]
+		TaskRefConfigResponse = FLeapAsync::RunShortLambdaOnGameThread([ConfigResponseEvent, this]
 		{
 			if (CallbackDelegate) 
 			{

@@ -6,20 +6,20 @@ class LeapWrapperCallbackInterface
 public:
 	virtual void OnConnect() {};
 	virtual void OnConnectionLost() {};
-	virtual void OnDeviceFound(const LEAP_DEVICE_INFO *device) {};
-	virtual void OnDeviceLost(const char* serial) {};
+	virtual void OnDeviceFound(const LEAP_DEVICE_INFO *Device) {};
+	virtual void OnDeviceLost(const char* Serial) {};
 	virtual void OnDeviceFailure(
-		const eLeapDeviceStatus failure_code,
-		const LEAP_DEVICE failed_device) {};
-	virtual void OnPolicy(const uint32_t current_policies) {};
-	virtual void OnFrame(const LEAP_TRACKING_EVENT *tracking_event) {};
-	virtual void OnImage(const LEAP_IMAGE_EVENT *image_event) {};
+		const eLeapDeviceStatus FailureCode,
+		const LEAP_DEVICE FailedDevice) {};
+	virtual void OnPolicy(const uint32_t CurrentPolicies) {};
+	virtual void OnFrame(const LEAP_TRACKING_EVENT *TrackingEvent) {};
+	virtual void OnImage(const LEAP_IMAGE_EVENT *ImageEvent) {};
 	virtual void OnLog(
-		const eLeapLogSeverity severity,
-		const int64_t timestamp,
-		const char* message) {};
-	virtual void OnConfigChange(const uint32_t requestID, const bool success) {};
-	virtual void OnConfigResponse(const uint32_t requestID, LEAP_VARIANT value) {};
+		const eLeapLogSeverity Severity,
+		const int64_t Timestamp,
+		const char* Message) {};
+	virtual void OnConfigChange(const uint32_t RequestID, const bool Success) {};
+	virtual void OnConfigResponse(const uint32_t RequestID, LEAP_VARIANT Value) {};
 };
 
 /** Wraps LeapC API into a threaded and event driven delegate callback format */
@@ -34,7 +34,7 @@ public:
 	LEAP_TRACKING_EVENT *LastFrame = NULL;
 	LEAP_IMAGE_FRAME_DESCRIPTION *ImageDescription = NULL;
 	void* ImageBuffer = NULL;
-	LEAP_DEVICE_INFO *lastDevice = NULL;
+	LEAP_DEVICE_INFO *LastDevice = NULL;
 	
 	FLeapWrapper();
 	~FLeapWrapper();
@@ -67,16 +67,16 @@ public:
 	void EnableImageStream(bool bEnable);
 
 private:
-	void CloseConnectionHandle(LEAP_CONNECTION* connectionHandle);
-	void Millisleep(int milliseconds);
+	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
+	void Millisleep(int Milliseconds);
 
 	//Threading variables
-	FCriticalSection dataLock;
-	class FLeapLambdaRunnable* ProducerLambdaThread;
+	FCriticalSection DataLock;
+	TFuture<void> ProducerLambdaFuture;
 	static LeapWrapperCallbackInterface* CallbackDelegate;
 
-	LEAP_TRACKING_EVENT* interpolatedFrame;
-	uint64 interpolatedFrameSize;
+	LEAP_TRACKING_EVENT* InterpolatedFrame;
+	uint64 InterpolatedFrameSize;
 
 	//TaskGraph event references are only stored to help with threading debug for now.
 	FGraphEventRef TaskRefConnection;
