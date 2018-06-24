@@ -1,35 +1,51 @@
 {
-	"FileVersion" : 3,
-	"Version" : 1,
-	"VersionName" : "2.18.5",
-	"FriendlyName" : "Leap Motion Plugin",
-	"Description" : "Support for the Leap Motion input device",
-	"Category" : "Input Devices",
-	"CreatedBy" : "Getnamo",
-	"CreatedByURL" : "https://www.leapmotion.com/",
-	"DocsURL" : "https://github.com/getnamo/leap-ue4-preview",
-	"EnabledByDefault" : true,
-	"IsBetaVersion" : false,
-	"CanContainContent" : true,
-	"Modules" :
-	[
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "2.18.6",
+	"FriendlyName": "Leap Motion Plugin",
+	"Description": "Support for the Leap Motion input device.",
+	"Category": "Input Devices",
+	"CreatedBy": "Getnamo",
+	"CreatedByURL": "https://www.leapmotion.com/",
+	"DocsURL": "https://github.com/leapmotion/leapunreal",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
 		{
 			"Name": "LeapMotion",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [ "Win64", "Win32", "Android" ]
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Android"
+			]
 		},
 		{
 			"Name": "LeapMotionEditor",
 			"Type": "Editor",
 			"LoadingPhase": "PreDefault",
-			"WhitelistPlatforms": [ "Win64", "Win32" ]
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
 		},
 		{
-			"Name" : "BodyState",
-			"Type" : "Runtime",
+			"Name": "BodyState",
+			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
-			"WhitelistPlatforms": [ "Win64", "Win32", "Android", "Mac", "IOS", "HTML5" ]
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Android",
+				"Mac",
+				"IOS",
+				"HTML5"
+			]
 		}
 	]
 }
