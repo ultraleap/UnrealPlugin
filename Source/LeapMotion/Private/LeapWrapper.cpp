@@ -66,9 +66,9 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 			LEAP_CONNECTION* Handle = &ConnectionHandle;
 			ProducerLambdaThread = FLeapLambdaRunnable::RunLambdaOnBackGroundThread([&, Handle]
 			{
-				UE_LOG(LeapMotionLog, Log, TEXT("serviceMessageLoop started."));
+				UE_LOG(LeapMotionLog, Log, TEXT("ServiceMessageLoop started."));
 				ServiceMessageLoop();
-				UE_LOG(LeapMotionLog, Log, TEXT("serviceMessageLoop stopped."));
+				UE_LOG(LeapMotionLog, Log, TEXT("ServiceMessageLoop stopped."));
 
 				CloseConnectionHandle(Handle);
 			});
@@ -260,7 +260,7 @@ void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame)
 }
 
 
-/** Called by serviceMessageLoop() when a connection event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a connection event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT *ConnectionEvent)
 {
 	bIsConnected = true;
@@ -270,7 +270,7 @@ void FLeapWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT *Connection
 	}
 }
 
-/** Called by serviceMessageLoop() when a connection lost event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a connection lost event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *ConnectionLostEvent)
 {
 	bIsConnected = false;
@@ -283,7 +283,7 @@ void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *C
 }
 
 /**
-* Called by serviceMessageLoop() when a device event is returned by LeapPollConnection()
+* Called by ServiceMessageLoop() when a device event is returned by LeapPollConnection()
 * Demonstrates how to access device properties.
 */
 void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
@@ -334,7 +334,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 	LeapCloseDevice(DeviceHandle);
 }
 
-/** Called by serviceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent) {
 	if (CallbackDelegate)
 	{
@@ -348,7 +348,7 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent) {
 	}
 }
 
-/** Called by serviceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent) 
 {
 	if (CallbackDelegate) 
@@ -363,7 +363,7 @@ void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *Dev
 	}
 }
 
-/** Called by serviceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent) {
 	SetFrame(TrackingEvent); //support polling tracking data from different thread
 
@@ -392,7 +392,7 @@ void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent)
 	}
 }
 
-/** Called by serviceMessageLoop() when a log event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a log event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent) 
 {
 	if (CallbackDelegate)
@@ -407,7 +407,7 @@ void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent)
 	}
 }
 
-/** Called by serviceMessageLoop() when a policy event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a policy event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent)
 {
 	if (CallbackDelegate)
@@ -422,7 +422,7 @@ void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent)
 	}
 }
 
-/** Called by serviceMessageLoop() when a config change event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a config change event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *ConfigChangeEvent)
 {
 	if (CallbackDelegate)
@@ -437,7 +437,7 @@ void FLeapWrapper::HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *Confi
 	}
 }
 
-/** Called by serviceMessageLoop() when a config response event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a config response event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *ConfigResponseEvent)
 {
 	if (CallbackDelegate)
