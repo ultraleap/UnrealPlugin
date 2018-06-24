@@ -31,20 +31,20 @@ FLeapWrapper::~FLeapWrapper()
 {
 	bIsRunning = false;
 	CallbackDelegate = nullptr;
-	lastFrame = nullptr;
-	connectionHandle = nullptr;
+	LastFrame = nullptr;
+	ConnectionHandle = nullptr;
 
 	if (bIsConnected) 
 	{
 		CloseConnection();
 	}
-	if (imageDescription != NULL)
+	if (ImageDescription != NULL)
 	{
-		if(imageDescription->pBuffer != NULL)
+		if(ImageDescription->pBuffer != NULL)
 		{
-			free(imageDescription->pBuffer);
+			free(ImageDescription->pBuffer);
 		}
-		delete imageDescription;
+		delete ImageDescription;
 	}
 }
 
@@ -57,24 +57,24 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 {
 	SetCallbackDelegate(InCallbackDelegate);
 
-	eLeapRS result = LeapCreateConnection(NULL, &connectionHandle);
+	eLeapRS result = LeapCreateConnection(NULL, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
-		result = LeapOpenConnection(connectionHandle);
+		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success) {
 			bIsRunning = true;
 
-			LEAP_CONNECTION* Handle = &connectionHandle;
+			LEAP_CONNECTION* Handle = &ConnectionHandle;
 			ProducerLambdaThread = FLeapLambdaRunnable::RunLambdaOnBackGroundThread([&, Handle]
 			{
 				UE_LOG(LeapMotionLog, Log, TEXT("serviceMessageLoop started."));
-				serviceMessageLoop();
+				ServiceMessageLoop();
 				UE_LOG(LeapMotionLog, Log, TEXT("serviceMessageLoop stopped."));
 
 				CloseConnectionHandle(Handle);
 			});
 		}
 	}
-	return &connectionHandle;
+	return &ConnectionHandle;
 }
 
 void FLeapWrapper::CloseConnection() 
@@ -87,7 +87,7 @@ void FLeapWrapper::CloseConnection()
 	}
 	bIsConnected = false;
 	bIsRunning = false;
-	cleanupLastDevice();
+	CleanupLastDevice();
 
 	//Wait for thread to exit - Blocking call, but it should be very quick.
 	ProducerLambdaThread->WaitForCompletion();
@@ -101,7 +101,7 @@ void FLeapWrapper::CloseConnection()
 
 void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {
-	LeapSetPolicyFlags(connectionHandle, Flags, ClearFlags);
+	LeapSetPolicyFlags(ConnectionHandle, Flags, ClearFlags);
 }
 
 void FLeapWrapper::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
@@ -128,7 +128,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
 {
 	LEAP_TRACKING_EVENT *currentFrame;
 	dataLock.Lock();
-	currentFrame = lastFrame;
+	currentFrame = LastFrame;
 	dataLock.Unlock();
 	return currentFrame;
 }
@@ -136,7 +136,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
 LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
 	uint64_t FrameSize = 0;
-	LeapGetFrameSize(connectionHandle, TimeStamp, &FrameSize);
+	LeapGetFrameSize(ConnectionHandle, TimeStamp, &FrameSize);
 
 	//Check validity of frame size
 	if (FrameSize > 0 )
@@ -154,7 +154,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 		interpolatedFrameSize = FrameSize;
 
 		//Grab the new frame
-		LeapInterpolateFrame(connectionHandle, TimeStamp, interpolatedFrame, interpolatedFrameSize);
+		LeapInterpolateFrame(ConnectionHandle, TimeStamp, interpolatedFrame, interpolatedFrameSize);
 	}
 
 	return interpolatedFrame;
@@ -169,9 +169,9 @@ LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
 	return currentDevice;
 }
 
-const char* FLeapWrapper::ResultString(eLeapRS r)
+const char* FLeapWrapper::ResultString(eLeapRS Result)
 {
-	switch (r) {
+	switch (Result) {
 	case eLeapRS_Success:                  return "eLeapRS_Success";
 	case eLeapRS_UnknownError:             return "eLeapRS_UnknownError";
 	case eLeapRS_InvalidArgument:          return "eLeapRS_InvalidArgument";
@@ -200,32 +200,32 @@ void FLeapWrapper::EnableImageStream(bool bEnable)
 {
 	//TODO: test the image/buffer stream code
 
-	if (imageDescription == NULL)
+	if (ImageDescription == NULL)
 	{
-		imageDescription = new LEAP_IMAGE_FRAME_DESCRIPTION;
-		imageDescription->pBuffer = NULL;
+		ImageDescription = new LEAP_IMAGE_FRAME_DESCRIPTION;
+		ImageDescription->pBuffer = NULL;
 	}
 
-	int oldLength = imageDescription->buffer_len;
+	int oldLength = ImageDescription->buffer_len;
 
 	//if the size is different realloc the buffer
-	if (imageDescription->buffer_len != oldLength)
+	if (ImageDescription->buffer_len != oldLength)
 	{
-		if (imageDescription->pBuffer != NULL)
+		if (ImageDescription->pBuffer != NULL)
 		{
-			free(imageDescription->pBuffer);
+			free(ImageDescription->pBuffer);
 		}
-		imageDescription->pBuffer = (void*)malloc(imageDescription->buffer_len);
+		ImageDescription->pBuffer = (void*)malloc(ImageDescription->buffer_len);
 	}
 }
 
 
-void FLeapWrapper::millisleep(int milliseconds)
+void FLeapWrapper::Millisleep(int milliseconds)
 {
 	FPlatformProcess::Sleep(((float)milliseconds) / 1000.f);
 }
 
-void FLeapWrapper::setDevice(const LEAP_DEVICE_INFO *deviceProps)
+void FLeapWrapper::SetDevice(const LEAP_DEVICE_INFO *deviceProps)
 {
 	dataLock.Lock();
 	if (lastDevice)
@@ -242,7 +242,7 @@ void FLeapWrapper::setDevice(const LEAP_DEVICE_INFO *deviceProps)
 	dataLock.Unlock();
 }
 
-void FLeapWrapper::cleanupLastDevice()
+void FLeapWrapper::CleanupLastDevice()
 {
 	if (lastDevice)
 	{
@@ -251,17 +251,17 @@ void FLeapWrapper::cleanupLastDevice()
 	lastDevice = nullptr;
 }
 
-void FLeapWrapper::setFrame(const LEAP_TRACKING_EVENT *frame)
+void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame)
 {
 	dataLock.Lock();
-	if (!lastFrame) lastFrame = (LEAP_TRACKING_EVENT *)malloc(sizeof(*frame));
-	*lastFrame = *frame;
+	if (!LastFrame) LastFrame = (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame));
+	*LastFrame = *Frame;
 	dataLock.Unlock();
 }
 
 
 /** Called by serviceMessageLoop() when a connection event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleConnectionEvent(const LEAP_CONNECTION_EVENT *connection_event)
+void FLeapWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT *ConnectionEvent)
 {
 	bIsConnected = true;
 	if (CallbackDelegate) 
@@ -271,10 +271,10 @@ void FLeapWrapper::handleConnectionEvent(const LEAP_CONNECTION_EVENT *connection
 }
 
 /** Called by serviceMessageLoop() when a connection lost event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *connection_lost_event)
+void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *ConnectionLostEvent)
 {
 	bIsConnected = false;
-	cleanupLastDevice();
+	CleanupLastDevice();
 
 	if (CallbackDelegate) 
 	{
@@ -286,59 +286,59 @@ void FLeapWrapper::handleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *c
 * Called by serviceMessageLoop() when a device event is returned by LeapPollConnection()
 * Demonstrates how to access device properties.
 */
-void FLeapWrapper::handleDeviceEvent(const LEAP_DEVICE_EVENT *device_event)
+void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 {
-	LEAP_DEVICE deviceHandle;
+	LEAP_DEVICE DeviceHandle;
 	//Open device using LEAP_DEVICE_REF from event struct.
-	eLeapRS result = LeapOpenDevice(device_event->device, &deviceHandle);
-	if (result != eLeapRS_Success)
+	eLeapRS Result = LeapOpenDevice(DeviceEvent->device, &DeviceHandle);
+	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("Could not open device %s.\n"), ResultString(result));
+		UE_LOG(LeapMotionLog, Log, TEXT("Could not open device %s.\n"), ResultString(Result));
 		return;
 	}
 
 	//Create a struct to hold the device properties, we have to provide a buffer for the serial string
-	LEAP_DEVICE_INFO deviceProperties = { sizeof(deviceProperties) };
+	LEAP_DEVICE_INFO DeviceProperties = { sizeof(DeviceProperties) };
 	// Start with a length of 1 (pretending we don't know a priori what the length is).
 	// Currently device serial numbers are all the same length, but that could change in the future
-	deviceProperties.serial_length = 1;
-	deviceProperties.serial = (char*)malloc(deviceProperties.serial_length);
+	DeviceProperties.serial_length = 1;
+	DeviceProperties.serial = (char*)malloc(DeviceProperties.serial_length);
 	//This will fail since the serial buffer is only 1 character long
 	// But deviceProperties is updated to contain the required buffer length
-	result = LeapGetDeviceInfo(deviceHandle, &deviceProperties);
-	if (result == eLeapRS_InsufficientBuffer) 
+	Result = LeapGetDeviceInfo(DeviceHandle, &DeviceProperties);
+	if (Result == eLeapRS_InsufficientBuffer) 
 	{
 		//try again with correct buffer size
-		free(deviceProperties.serial);
-		deviceProperties.serial = (char*)malloc(deviceProperties.serial_length);
-		result = LeapGetDeviceInfo(deviceHandle, &deviceProperties);
-		if (result != eLeapRS_Success) {
-			printf("Failed to get device info %s.\n", ResultString(result));
-			free(deviceProperties.serial);
+		free(DeviceProperties.serial);
+		DeviceProperties.serial = (char*)malloc(DeviceProperties.serial_length);
+		Result = LeapGetDeviceInfo(DeviceHandle, &DeviceProperties);
+		if (Result != eLeapRS_Success) {
+			printf("Failed to get device info %s.\n", ResultString(Result));
+			free(DeviceProperties.serial);
 			return;
 		}
 	}
-	setDevice(&deviceProperties);
+	SetDevice(&DeviceProperties);
 	if (CallbackDelegate) 
 	{
-		TaskRefDeviceFound = FLeapLambdaRunnable::RunShortLambdaOnGameThread([device_event, deviceProperties, this]
+		TaskRefDeviceFound = FLeapLambdaRunnable::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceFound(&deviceProperties);
+				CallbackDelegate->OnDeviceFound(&DeviceProperties);
 			}
 		});
 	}
 
-	free(deviceProperties.serial);
-	LeapCloseDevice(deviceHandle);
+	free(DeviceProperties.serial);
+	LeapCloseDevice(DeviceHandle);
 }
 
 /** Called by serviceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleDeviceLostEvent(const LEAP_DEVICE_EVENT *device_event) {
+void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent) {
 	if (CallbackDelegate)
 	{
-		TaskRefDeviceLost = FLeapLambdaRunnable::RunShortLambdaOnGameThread([device_event, this]
+		TaskRefDeviceLost = FLeapLambdaRunnable::RunShortLambdaOnGameThread([DeviceEvent, this]
 		{
 			if (CallbackDelegate)
 			{
@@ -349,23 +349,23 @@ void FLeapWrapper::handleDeviceLostEvent(const LEAP_DEVICE_EVENT *device_event) 
 }
 
 /** Called by serviceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *device_failure_event) 
+void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent) 
 {
 	if (CallbackDelegate) 
 	{
-		TaskRefDeviceFailure = FLeapLambdaRunnable::RunShortLambdaOnGameThread([device_failure_event, this]
+		TaskRefDeviceFailure = FLeapLambdaRunnable::RunShortLambdaOnGameThread([DeviceFailureEvent, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceFailure(device_failure_event->status, device_failure_event->hDevice);
+				CallbackDelegate->OnDeviceFailure(DeviceFailureEvent->status, DeviceFailureEvent->hDevice);
 			}
 		});
 	}
 }
 
 /** Called by serviceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleTrackingEvent(const LEAP_TRACKING_EVENT *tracking_event) {
-	setFrame(tracking_event); //support polling tracking data from different thread
+void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent) {
+	SetFrame(TrackingEvent); //support polling tracking data from different thread
 
 	//Callback delegate is checked twice since the second call happens on the second thread and may be invalidated!
 	if (CallbackDelegate) 
@@ -373,80 +373,80 @@ void FLeapWrapper::handleTrackingEvent(const LEAP_TRACKING_EVENT *tracking_event
 		LeapWrapperCallbackInterface* SafeDelegate = CallbackDelegate;
 
 		//Run this on bg thread still
-		CallbackDelegate->OnFrame(tracking_event);
+		CallbackDelegate->OnFrame(TrackingEvent);
 	}
 }
 
-void FLeapWrapper::handleImageEvent(const LEAP_IMAGE_EVENT *image_event)
+void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent)
 {
 	//Todo: handle allocation /etc such that we just have the data ready to push to the end user.
 	if (CallbackDelegate)
 	{
-		TaskRefImageComplete = FLeapLambdaRunnable::RunShortLambdaOnGameThread([image_event, this]
+		TaskRefImageComplete = FLeapLambdaRunnable::RunShortLambdaOnGameThread([ImageEvent, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnImage(image_event);
+				CallbackDelegate->OnImage(ImageEvent);
 			}
 		});
 	}
 }
 
 /** Called by serviceMessageLoop() when a log event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleLogEvent(const LEAP_LOG_EVENT *log_event) 
+void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent) 
 {
 	if (CallbackDelegate)
 	{
-		TaskRefLog = FLeapLambdaRunnable::RunShortLambdaOnGameThread([log_event, this]
+		TaskRefLog = FLeapLambdaRunnable::RunShortLambdaOnGameThread([LogEvent, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnLog(log_event->severity, log_event->timestamp, log_event->message);
+				CallbackDelegate->OnLog(LogEvent->severity, LogEvent->timestamp, LogEvent->message);
 			}
 		});
 	}
 }
 
 /** Called by serviceMessageLoop() when a policy event is returned by LeapPollConnection(). */
-void FLeapWrapper::handlePolicyEvent(const LEAP_POLICY_EVENT *policy_event)
+void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent)
 {
 	if (CallbackDelegate)
 	{
-		TaskRefPolicy = FLeapLambdaRunnable::RunShortLambdaOnGameThread([policy_event, this]
+		TaskRefPolicy = FLeapLambdaRunnable::RunShortLambdaOnGameThread([PolicyEvent, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnPolicy(policy_event->current_policy);
+				CallbackDelegate->OnPolicy(PolicyEvent->current_policy);
 			}
 		});
 	}
 }
 
 /** Called by serviceMessageLoop() when a config change event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *config_change_event)
+void FLeapWrapper::HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *ConfigChangeEvent)
 {
 	if (CallbackDelegate)
 	{
-		TaskRefConfigChange = FLeapLambdaRunnable::RunShortLambdaOnGameThread([config_change_event, this]
+		TaskRefConfigChange = FLeapLambdaRunnable::RunShortLambdaOnGameThread([ConfigChangeEvent, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnConfigChange(config_change_event->requestID, config_change_event->status);
+				CallbackDelegate->OnConfigChange(ConfigChangeEvent->requestID, ConfigChangeEvent->status);
 			}
 		});
 	}
 }
 
 /** Called by serviceMessageLoop() when a config response event is returned by LeapPollConnection(). */
-void FLeapWrapper::handleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *config_response_event)
+void FLeapWrapper::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *ConfigResponseEvent)
 {
 	if (CallbackDelegate)
 	{
-		TaskRefConfigResponse = FLeapLambdaRunnable::RunShortLambdaOnGameThread([config_response_event, this]
+		TaskRefConfigResponse = FLeapLambdaRunnable::RunShortLambdaOnGameThread([ConfigResponseEvent, this]
 		{
 			if (CallbackDelegate) 
 			{
-				CallbackDelegate->OnConfigResponse(config_response_event->requestID, config_response_event->value);
+				CallbackDelegate->OnConfigResponse(ConfigResponseEvent->requestID, ConfigResponseEvent->value);
 			}
 		});
 	}
@@ -456,16 +456,16 @@ void FLeapWrapper::handleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *c
 * Services the LeapC message pump by calling LeapPollConnection().
 * The average polling time is determined by the framerate of the Leap Motion service.
 */
-void FLeapWrapper::serviceMessageLoop(void * unused)
+void FLeapWrapper::ServiceMessageLoop(void * Unused)
 {
-	eLeapRS result;
-	LEAP_CONNECTION_MESSAGE msg;
-	LEAP_CONNECTION handle = connectionHandle; //copy handle so it doesn't get released from under us on game thread
+	eLeapRS Result;
+	LEAP_CONNECTION_MESSAGE Msg;
+	LEAP_CONNECTION Handle = ConnectionHandle; //copy handle so it doesn't get released from under us on game thread
 
-	unsigned int timeout = 1000;
+	unsigned int Timeout = 1000;
 	while (bIsRunning)
 	{
-		result = LeapPollConnection(handle, timeout, &msg);
+		Result = LeapPollConnection(Handle, Timeout, &Msg);
 
 		//Polling may have taken some time, re-check exit condition
 		if (!bIsRunning)
@@ -473,7 +473,7 @@ void FLeapWrapper::serviceMessageLoop(void * unused)
 			break;
 		}
 
-		if (result != eLeapRS_Success)
+		if (Result != eLeapRS_Success)
 		{
 			//UE_LOG(LeapMotionLog, Log, TEXT("LeapC PollConnection unsuccessful result %s.\n"), UTF8_TO_TCHAR(ResultString(result)));
 			if (!bIsConnected)
@@ -487,39 +487,39 @@ void FLeapWrapper::serviceMessageLoop(void * unused)
 			}
 		}
 
-		switch (msg.type)
+		switch (Msg.type)
 		{
 			case eLeapEventType_Connection:
-				handleConnectionEvent(msg.connection_event);
+				HandleConnectionEvent(Msg.connection_event);
 				break;
 			case eLeapEventType_ConnectionLost:
-				handleConnectionLostEvent(msg.connection_lost_event);
+				HandleConnectionLostEvent(Msg.connection_lost_event);
 				break;
 			case eLeapEventType_Device:
-				handleDeviceEvent(msg.device_event);
+				HandleDeviceEvent(Msg.device_event);
 				break;
 			case eLeapEventType_DeviceLost:
-				handleDeviceLostEvent(msg.device_event);
+				HandleDeviceLostEvent(Msg.device_event);
 				break;
 			case eLeapEventType_DeviceFailure:
-				handleDeviceFailureEvent(msg.device_failure_event);
+				HandleDeviceFailureEvent(Msg.device_failure_event);
 				break;
 			case eLeapEventType_Tracking:
-				handleTrackingEvent(msg.tracking_event);
+				HandleTrackingEvent(Msg.tracking_event);
 				break;
 			case eLeapEventType_Image:
-				handleImageEvent(msg.image_event);
+				HandleImageEvent(Msg.image_event);
 			case eLeapEventType_LogEvent:
-				handleLogEvent(msg.log_event);
+				HandleLogEvent(Msg.log_event);
 				break;
 			case eLeapEventType_Policy:
-				handlePolicyEvent(msg.policy_event);
+				HandlePolicyEvent(Msg.policy_event);
 				break;
 			case eLeapEventType_ConfigChange:
-				handleConfigChangeEvent(msg.config_change_event);
+				HandleConfigChangeEvent(Msg.config_change_event);
 				break;
 			case eLeapEventType_ConfigResponse:
-				handleConfigResponseEvent(msg.config_response_event);
+				HandleConfigResponseEvent(Msg.config_response_event);
 				break;
 			default:
 				//discard unknown message types

@@ -30,10 +30,10 @@ public:
 	FThreadSafeBool bIsRunning;
 	FThreadSafeBool bHasFinished;
 	bool bIsConnected;
-	LEAP_CONNECTION connectionHandle;
-	LEAP_TRACKING_EVENT *lastFrame = NULL;
-	LEAP_IMAGE_FRAME_DESCRIPTION *imageDescription = NULL;
-	void* imageBuffer = NULL;
+	LEAP_CONNECTION ConnectionHandle;
+	LEAP_TRACKING_EVENT *LastFrame = NULL;
+	LEAP_IMAGE_FRAME_DESCRIPTION *ImageDescription = NULL;
+	void* ImageBuffer = NULL;
 	LEAP_DEVICE_INFO *lastDevice = NULL;
 	
 	FLeapWrapper();
@@ -62,13 +62,13 @@ public:
 	LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp);
 
 	LEAP_DEVICE_INFO* GetDeviceProperties(); //Used in polling example
-	const char* ResultString(eLeapRS r);
+	const char* ResultString(eLeapRS Result);
 
 	void EnableImageStream(bool bEnable);
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* connectionHandle);
-	void millisleep(int milliseconds);
+	void Millisleep(int milliseconds);
 
 	//Threading variables
 	FCriticalSection dataLock;
@@ -93,22 +93,22 @@ private:
 	FGraphEventRef TaskRefConfigResponse;
 
 	//void setImage();
-	void setFrame(const LEAP_TRACKING_EVENT *frame);
-	void setDevice(const LEAP_DEVICE_INFO *deviceProps);
-	void cleanupLastDevice();
+	void SetFrame(const LEAP_TRACKING_EVENT *Frame);
+	void SetDevice(const LEAP_DEVICE_INFO *DeviceProps);
+	void CleanupLastDevice();
 
-	void serviceMessageLoop(void * unused = nullptr);
+	void ServiceMessageLoop(void * unused = nullptr);
 
 	//Received LeapC callbacks converted into game thread events
-	void handleConnectionEvent(const LEAP_CONNECTION_EVENT *connection_event);
-	void handleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *connection_lost_event);
-	void handleDeviceEvent(const LEAP_DEVICE_EVENT *device_event);
-	void handleDeviceLostEvent(const LEAP_DEVICE_EVENT *device_event);
-	void handleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *device_failure_event);
-	void handleTrackingEvent(const LEAP_TRACKING_EVENT *tracking_event);
-	void handleImageEvent(const LEAP_IMAGE_EVENT *image_event);
-	void handleLogEvent(const LEAP_LOG_EVENT *log_event);
-	void handlePolicyEvent(const LEAP_POLICY_EVENT *policy_event);
-	void handleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *config_change_event);
-	void handleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *config_response_event);
+	void HandleConnectionEvent(const LEAP_CONNECTION_EVENT *ConnectionEvent);
+	void HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *ConnectionLostEvent);
+	void HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent);
+	void HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent);
+	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent);
+	void HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent);
+	void HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent);
+	void HandleLogEvent(const LEAP_LOG_EVENT *LogEvent);
+	void HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent);
+	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *ConfigChangeEvent);
+	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *ConfigResponseEvent);
 };
