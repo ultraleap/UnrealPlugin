@@ -129,18 +129,18 @@ void FLeapMotionInputDevice::OnConnectionLost()
 
 	CallFunctionOnComponents([&](ULeapComponent* Component)
 	{
-		Component->OnLeapServiceConnected.Broadcast();
+		Component->OnLeapServiceDisconnected.Broadcast();
 	});
 }
 
 void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 {
+	SetOptions(Options);
+	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
+	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
+
 	FLeapAsync::RunShortLambdaOnGameThread([&]
 	{
-		SetOptions(Options);
-		Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
-		UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
-
 		AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
 
 		CallFunctionOnComponents([&](ULeapComponent* Component)
@@ -152,9 +152,10 @@ void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 
 void FLeapMotionInputDevice::OnDeviceLost(const char* Serial)
 {
-	FLeapAsync::RunShortLambdaOnGameThread([&] 
+	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
+
+	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString] 
 	{
-		FString SerialString = FString(ANSI_TO_TCHAR(Serial));
 		UE_LOG(LeapMotionLog, Warning, TEXT("OnDeviceLost %s."), *SerialString);
 
 		AttachedDevices.Remove(SerialString);
