@@ -305,6 +305,8 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	//Attach to bodystate
 	Config.DeviceName = "Leap Motion";
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
+	Config.TrackingTags.Add("Hands");
+	Config.TrackingTags.Add("Fingers");
 	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
 	//Add IM keys
@@ -763,11 +765,13 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
 			Arm->LowerArm->Meta.ParentDistinctMeta = true;
 			Arm->LowerArm->SetTrackingConfidenceRecursively(1.f);
+			Arm->LowerArm->Meta.TrackingTags = Config.TrackingTags;
 		}
 		else
 		{
 			Arm->LowerArm->SetTrackingConfidenceRecursively(0.f);
 			Arm->LowerArm->Meta.ParentDistinctMeta = false;
+			Arm->LowerArm->Meta.TrackingTags.Empty();
 		}
 	}
 
@@ -783,11 +787,13 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
 			Arm->LowerArm->Meta.ParentDistinctMeta = true;
 			Arm->LowerArm->SetTrackingConfidenceRecursively(1.f);
+			Arm->LowerArm->Meta.TrackingTags = Config.TrackingTags;
 		}
 		else
 		{
 			Arm->LowerArm->SetTrackingConfidenceRecursively(0.f);
 			Arm->LowerArm->Meta.ParentDistinctMeta = false;
+			Arm->LowerArm->Meta.TrackingTags.Empty();
 		}
 	}
 

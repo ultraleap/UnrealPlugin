@@ -580,6 +580,26 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 	UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
 }
 
+bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
+{
+	//Early exit optimization
+	if (TrackingTagLimit.Num() == 0)
+	{
+		return true;
+	}
+
+	FBodyStateBoneMeta UniqueMeta = ((UBodyStateBone*)QueryBone)->UniqueMeta();
+
+	for (FString& LimitTag : TrackingTagLimit)
+	{
+		if (!UniqueMeta.TrackingTags.Contains(LimitTag))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 {
 	TArray<int32> ResultArray;

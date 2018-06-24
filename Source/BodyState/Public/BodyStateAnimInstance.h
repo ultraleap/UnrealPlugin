@@ -73,6 +73,10 @@ struct FMappedBoneAnimData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
 	bool bShouldDeformMesh;
 
+	/** List of tags required by the tracking solution for this animation to use that data */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
+	TArray<FString> TrackingTagLimit;
+
 	/** Offset rotation base applied before given rotation (will rotate input) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	FRotator PreBaseRotation;
@@ -97,9 +101,12 @@ struct FMappedBoneAnimData
 		bShouldDeformMesh = true;
 		OffsetTransform.SetScale3D(FVector(1.f));
 		PreBaseRotation = FRotator(ForceInitToZero);
+		TrackingTagLimit.Empty();
 	}
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
+
+	bool BoneHasValidTags(const UBodyStateBone* QueryBone);
 };
 
 USTRUCT(BlueprintType)

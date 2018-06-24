@@ -10,9 +10,11 @@ FBodyStateHMDDevice::FBodyStateHMDDevice()
 	//Default config
 	Config.DeviceName = TEXT("HMD");
 	Config.InputType = EBodyStateDeviceInputType::EXTERNAL_REFERENCE_INPUT_TYPE;
+	Config.TrackingTags.Add("Hands");
+	Config.TrackingTags.Add("Head");
 	bShouldTrackMotionControllers = true;
 	MotionControllerInertialConfidence = 0.1f;
-	MotionControllerTrackedConfidence = 0.8f;
+	MotionControllerTrackedConfidence = 0.8f;	//it's not 1.0 to allow leap motion to override it if both are tracked at same time
 }
 
 FBodyStateHMDDevice::~FBodyStateHMDDevice()
@@ -33,6 +35,7 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 			Head->Meta.Confidence = 1.f;
 			Head->Meta.ParentDistinctMeta = true;
 			Head->Meta.TrackingType = Config.DeviceName;
+			Head->Meta.TrackingTags = Config.TrackingTags;
 		}
 
 		FTransform HMDTransform = FTransform(Orientation, Position, FVector(1.f));
@@ -48,12 +51,14 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 				LeftHand->Meta.Confidence = 0.f;
 				LeftHand->Meta.ParentDistinctMeta = true;
 				LeftHand->Meta.TrackingType = Config.DeviceName;
+				LeftHand->Meta.TrackingTags = Config.TrackingTags;
 			}
 			if (!RightHand->IsTracked())
 			{
 				RightHand->Meta.Confidence = 0.f;
 				RightHand->Meta.ParentDistinctMeta = true;
 				RightHand->Meta.TrackingType = Config.DeviceName;
+				RightHand->Meta.TrackingTags = Config.TrackingTags;
 			}
 
 			//enum motion controllers
@@ -81,6 +86,11 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 					{
 						Hand->Meta.Confidence = MotionControllerInertialConfidence;
 					}
+					if (Hand->Meta.ParentDistinctMeta == false)
+					{
+						Hand->Meta.ParentDistinctMeta = true;
+						Hand->Meta.TrackingTags = Config.TrackingTags;
+					}
 					Controller->GetControllerOrientationAndPosition(0, TrackingSource, OrientationRot, Position, 100.f);
 					HandTransform = FTransform(OrientationRot, Position, FVector(1.f));
 					Hand->BoneData.SetFromTransform(HandTransform);
@@ -100,6 +110,11 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 					else
 					{
 						Hand->Meta.Confidence = MotionControllerInertialConfidence;
+					}
+					if (Hand->Meta.ParentDistinctMeta == false)
+					{
+						Hand->Meta.ParentDistinctMeta = true;
+						Hand->Meta.TrackingTags = Config.TrackingTags;
 					}
 					Controller->GetControllerOrientationAndPosition(0, TrackingSource, OrientationRot, Position, 100.f);
 					HandTransform = FTransform(OrientationRot, Position, FVector(1.f));

@@ -104,17 +104,12 @@ TSharedPtr< class IInputDevice > FBodyState::CreateInputDevice(const TSharedRef<
 	
 	//HMD tracker
 	FBodyStateDevice HMDDevice;
-	HMDDevice.Config.DeviceName = TEXT("HMD");
-	HMDDevice.Config.InputType = EBodyStateDeviceInputType::EXTERNAL_REFERENCE_INPUT_TYPE;
 	
 	BSHMDDevice = MakeShareable(new FBodyStateHMDDevice());
-	BSHMDDevice->Config = HMDDevice.Config;
-
+	HMDDevice.Config = BSHMDDevice->Config;
 	HMDDevice.InputCallbackDelegate = BSHMDDevice.Get();
 
 	BSHMDDevice->HMDDeviceIndex = SkeletonStorage->AddDevice(HMDDevice);
-
-	//Todo: add motion controllers with toggle for merging/etc
 
 	return TSharedPtr< class IInputDevice >(BodyStateInputDevice);
 }

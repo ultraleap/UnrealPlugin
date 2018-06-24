@@ -28,6 +28,13 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FCo
 			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(), CachedBone.MeshBone.BoneIndex);
 			continue;
 		}
+
+		//Tag limitation, only applies if tagged in the mappedboneanim
+		if (!MappedBoneAnimData.BoneHasValidTags(CachedBone.BSBone))
+		{
+			continue;
+		}
+
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 		FTransform ComponentTransform = Output.AnimInstanceProxy->GetComponentTransform();

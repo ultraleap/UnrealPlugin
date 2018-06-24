@@ -16,6 +16,10 @@ struct BODYSTATE_API FBodyStateBoneMeta
 	UPROPERTY()
 	FString TrackingType;
 
+	/** Additional tags used to distinguish characteristics of tracked data, e.g. tracks fingers, hands, etc*/
+	UPROPERTY()
+	TArray<FString> TrackingTags;
+
 	/** Accuracy in cm of tracking data if distinct */
 	UPROPERTY()
 	float Accuracy;
