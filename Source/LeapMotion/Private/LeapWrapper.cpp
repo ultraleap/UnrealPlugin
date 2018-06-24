@@ -30,6 +30,8 @@ FLeapWrapper::~FLeapWrapper()
 	bIsRunning = false;
 	CallbackDelegate = nullptr;
 	lastFrame = nullptr;
+	connectionHandle = nullptr;
+
 	if (bIsConnected) 
 	{
 		CloseConnection();
@@ -456,10 +458,18 @@ void FLeapWrapper::serviceMessageLoop(void * unused)
 {
 	eLeapRS result;
 	LEAP_CONNECTION_MESSAGE msg;
+	LEAP_CONNECTION handle = connectionHandle; //copy handle so it doesn't get released from under us on game thread
+
 	unsigned int timeout = 1000;
-	while (bIsRunning) 
+	while (bIsRunning)
 	{
-		result = LeapPollConnection(connectionHandle, timeout, &msg);
+		result = LeapPollConnection(handle, timeout, &msg);
+
+		//Polling may have taken some time, re-check exit condition
+		if (!bIsRunning)
+		{
+			break;
+		}
 
 		if (result != eLeapRS_Success)
 		{
@@ -467,6 +477,7 @@ void FLeapWrapper::serviceMessageLoop(void * unused)
 			if (!bIsConnected)
 			{
 				FPlatformProcess::Sleep(5.f);
+				continue;
 			}
 			else
 			{
