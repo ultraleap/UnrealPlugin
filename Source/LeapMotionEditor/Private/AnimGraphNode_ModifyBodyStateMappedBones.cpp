@@ -27,6 +27,5 @@ FText UAnimGraphNode_ModifyBodyStateMappedBones::GetControllerDescription() cons
 FText UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	FText Result = GetControllerDescription();
-	//FString Result += (TitleType == ENodeTitleType::ListView) ? TEXT("") : TEXT("\n");
 	return Result;
 }

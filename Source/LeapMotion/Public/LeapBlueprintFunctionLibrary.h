@@ -1,4 +1,4 @@
-// Copyright 1998-2013 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -35,6 +35,5 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
 	//Debug functions, remove completely when no longer needed
-	//UFUNCTION(BlueprintCallable, Category = "Leap Motion Functions")
 	static void ShutdownLeap();
 };

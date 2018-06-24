@@ -4,9 +4,6 @@
 #include "Runtime/Engine/Classes/Components/ActorComponent.h"
 #include "LeapComponent.generated.h"
 
-//TODO: remove
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapDebugSignature, FVector, DebugVector, FRotator, DebugRotator);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapVisibilityBoolSignature, bool, bIsVisible);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrameSignature, const FLeapFrameData&, Frame);
@@ -63,10 +60,6 @@ public:
 	/** Event called when leap policies have changed */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapPolicySignature OnLeapPoliciesUpdated;
-
-	//TODO: remove
-	//UPROPERTY(BlueprintAssignable, Category = "Leap Events")
-	//FLeapDebugSignature OnDebugValue;
 
 	/** Tracking mode optimization */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Properties")

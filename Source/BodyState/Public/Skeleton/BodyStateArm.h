@@ -1,4 +1,3 @@
-// MIT
 
 #pragma once
 #include "BodyStateBone.h"
