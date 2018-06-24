@@ -269,7 +269,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	FrameTimeInMicros = 0;	//default
 
 	//Set static stats
-	Stats.LeapAPIVersion = FString(TEXT("3.2.0"));
+	Stats.LeapAPIVersion = FString(TEXT("4.0.0"));
 
 	Leap.OpenConnection(this);							//pass in the this as callback delegate
 
