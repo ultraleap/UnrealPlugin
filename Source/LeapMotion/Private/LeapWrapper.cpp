@@ -507,6 +507,7 @@ void FLeapWrapper::ServiceMessageLoop(void * Unused)
 				break;
 			case eLeapEventType_Image:
 				HandleImageEvent(Msg.image_event);
+				break;
 			case eLeapEventType_LogEvent:
 				HandleLogEvent(Msg.log_event);
 				break;
