@@ -5,6 +5,7 @@
 #include "LeapComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapDeviceSignature, FString, DeviceName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapVisibilityBoolSignature, bool, bIsVisible);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrameSignature, const FLeapFrameData&, Frame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHandSignature, const FLeapHandData&, Hand);
@@ -20,6 +21,14 @@ public:
 	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapEventSignature OnLeapConnected;
+
+	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapDeviceSignature OnLeapDeviceAttached;
+
+	/** Called when a device disconnects from the leap service*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapDeviceSignature OnLeapDeviceDetatched;
 
 	/** Event called when new tracking data is available, typically every game tick. */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")

@@ -133,11 +133,21 @@ void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *props)
 	SetOptions(Options);
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)props);
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
+
+	CallFunctionOnComponents([&](ULeapComponent* Component)
+	{
+		Component->OnLeapDeviceAttached.Broadcast(Stats.DeviceInfo.Serial);
+	});
 }
 
 void FLeapMotionInputDevice::OnDeviceLost(const char* serial)
 {
 	UE_LOG(LeapMotionLog, Warning, TEXT("OnDeviceLost %s."), ANSI_TO_TCHAR(serial));
+
+	CallFunctionOnComponents([serial](ULeapComponent* Component)
+	{
+		Component->OnLeapDeviceDetatched.Broadcast(FString(ANSI_TO_TCHAR(serial)));
+	});
 }
 
 void FLeapMotionInputDevice::OnDeviceFailure(const eLeapDeviceStatus failure_code, const LEAP_DEVICE failed_device)
