@@ -28,9 +28,11 @@ enum ELeapTrackingFidelity
 UENUM(BlueprintType)
 enum ELeapPolicyFlag
 {
-	LEAP_POLICY_BACKGROUND_FRAMES,
-	LEAP_POLICY_OPTIMIZE_HMD,
-	LEAP_POLICY_ALLOW_PAUSE_RESUME
+	LEAP_POLICY_BACKGROUND_FRAMES,	//The policy allowing an application to receive frames in the background.
+	LEAP_POLICY_IMAGES,				//The policy specifying whether to automatically stream images from the device.
+	LEAP_POLICY_OPTIMIZE_HMD,		//The policy specifying whether to optimize tracking for head-mounted device.
+	LEAP_POLICY_ALLOW_PAUSE_RESUME, //The policy allowing an application to pause or resume service tracking
+	LEAP_POLICY_MAP_POINTS			//The policy allowing an application to receive per-frame map points
 };
 
 UENUM(BlueprintType)

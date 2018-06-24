@@ -684,25 +684,24 @@ void FLeapMotionInputDevice::LatestFrame(FLeapFrameData& OutFrame)
 }
 
 //Policies
-bool FLeapMotionInputDevice::EnableImageStreaming(bool Enable)
-{
-	//not yet implemented
-	return false;
-}
-
 void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
 	switch (Flag)
 	{
-	case LEAP_POLICY_ALLOW_PAUSE_RESUME:
-		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
-		break;
 	case LEAP_POLICY_BACKGROUND_FRAMES:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
+		break;
+	case LEAP_POLICY_IMAGES:
+		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
 		break;
 	case LEAP_POLICY_OPTIMIZE_HMD:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
 		break;
+	case LEAP_POLICY_ALLOW_PAUSE_RESUME:
+		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
+		break;
+	case LEAP_POLICY_MAP_POINTS:
+		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
 	default:
 		break;
 	}
