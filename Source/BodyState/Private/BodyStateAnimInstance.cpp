@@ -600,6 +600,11 @@ bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
 	return true;
 }
 
+bool FMappedBoneAnimData::SkeletonHasValidTags()
+{
+	return BodyStateSkeleton->HasValidTrackingTags(TrackingTagLimit);
+}
+
 TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 {
 	TArray<int32> ResultArray;

@@ -107,6 +107,7 @@ struct FMappedBoneAnimData
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
 
 	bool BoneHasValidTags(const UBodyStateBone* QueryBone);
+	bool SkeletonHasValidTags();
 };
 
 USTRUCT(BlueprintType)
@@ -160,6 +161,9 @@ public:
 	/** Strings used to identify left or right hand in your rig. Customize if autorig is failing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	FSearchStrings SearchStrings;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> TrackingLimitTags;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	int32 DefaultBodyStateIndex;

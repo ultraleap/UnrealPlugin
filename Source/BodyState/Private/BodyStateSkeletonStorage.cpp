@@ -31,6 +31,7 @@ int32 FBodyStateSkeletonStorage::AddDevice(const FBodyStateDevice& InDevice)
 	Device.Skeleton = NewObject<UBodyStateSkeleton>();
 	Device.Skeleton->Name = Device.Config.DeviceName;
 	Device.Skeleton->SkeletonId = Device.DeviceId;
+	Device.Skeleton->TrackingTags = Device.Config.TrackingTags;
 	Device.Skeleton->AddToRoot();
 
 	Devices.Add(Device.InputCallbackDelegate, Device);
@@ -131,6 +132,7 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 
 	//Reset our confidence
 	PrivateMergedSkeleton->ClearConfidence();
+	PrivateMergedSkeleton->TrackingTags.Empty();
 
 	//Merges all skeleton data
 	for (auto& Elem : Devices)

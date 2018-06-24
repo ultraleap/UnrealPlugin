@@ -20,18 +20,18 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FCo
 
 	TArray<FBoneTransform> TempTransform;
 
+	//Tag limit by skeleton
+	if (!MappedBoneAnimData.SkeletonHasValidTags())
+	{
+		return;
+	}
+
 	//SN: there should be an array re-ordered by hierarchy (parents -> children order)
 	for (auto CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
 		if (CachedBone.MeshBone.BoneIndex == -1)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(), CachedBone.MeshBone.BoneIndex);
-			continue;
-		}
-
-		//Tag limitation, only applies if tagged in the mappedboneanim
-		if (!MappedBoneAnimData.BoneHasValidTags(CachedBone.BSBone))
-		{
 			continue;
 		}
 

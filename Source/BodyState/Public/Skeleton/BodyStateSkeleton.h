@@ -83,6 +83,10 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	//internal lookup for the bones
 	TMap<EBodyStateBasicBoneType, UBodyStateBone*> BoneMap;
 
+	/** Tracking Tags that this skeleton has currently inherited. */
+	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
+	TArray<FString> TrackingTags;
+
 	//Used for reference point calibration e.g. hydra base origin
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	FTransform RootOffset;
@@ -147,6 +151,12 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	UFUNCTION(BlueprintCallable, Category = "BodyState Skeleton Setting")
 	void MergeFromOtherSkeleton(UBodyStateSkeleton* Other);
 
+	/** Check if the skeleton meets requires tracking tags e.g. hands, fingers, head etc*/
+	bool HasValidTrackingTags(TArray<FString>& LimitTags);
+
+	/** Check if any bone is being tracked */
+	bool IsTrackingAnyBone();
+
 	void ClearConfidence();
 
 	//Replication
@@ -161,6 +171,7 @@ protected:
 	TArray<FKeyedTransform> TrackedBasicBones();
 	TArray<FNamedBoneData> TrackedAdvancedBones();
 	TArray<FNamedBoneMeta> UniqueBoneMetas();
+
 
 private:
 	UPROPERTY()
