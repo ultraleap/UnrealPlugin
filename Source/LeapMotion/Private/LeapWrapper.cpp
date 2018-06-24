@@ -317,6 +317,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 		}
 	}
 	SetDevice(&DeviceProperties);
+
 	if (CallbackDelegate) 
 	{
 		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this]

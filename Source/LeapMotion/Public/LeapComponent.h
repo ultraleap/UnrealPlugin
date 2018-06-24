@@ -18,10 +18,6 @@ class LEAPMOTION_API ULeapComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 public:
 
-	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
-	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
-	FLeapEventSignature OnLeapConnected;
-
 	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceAttached;
@@ -69,6 +65,14 @@ public:
 	/** Event called when leap policies have changed */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapPolicySignature OnLeapPoliciesUpdated;
+
+	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapEventSignature OnLeapServiceConnected;
+
+	/** Event called if leap service connection gets lost. Track won't work if this event gets called.*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapEventSignature OnLeapServiceDisconnected;
 
 	/** Tracking mode optimization */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Properties")

@@ -127,6 +127,7 @@ private:
 	FLeapFrameData CurrentFrame;
 	FLeapFrameData PastFrame;
 	
+	TArray<FString> AttachedDevices;
 	TArray<int32> VisibleHands;
 	TArray<int32> PastVisibleHands;
 
