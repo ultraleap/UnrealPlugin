@@ -10,11 +10,11 @@ struct BODYSTATE_API FAnimNode_ModifyBodyStateMappedBones : public FAnimNode_Ske
 {
 	GENERATED_USTRUCT_BODY()
 
+public:
+
 	/** All combined settings required for this node to process mapped bones */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BodyState, meta = (PinShownByDefault))
 	FMappedBoneAnimData MappedBoneAnimData;
-
-public:
 
 	// FAnimNode_SkeletalControlBase interface
 	//virtual void UpdateInternal(const FAnimationUpdateContext& Context) override;

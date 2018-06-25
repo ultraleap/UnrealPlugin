@@ -1,5 +1,6 @@
 #include "BodyStateSkeletonStorage.h"
 #include "BodyStateSkeleton.h"
+#include "CoreMinimal.h"
 
 
 FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()
@@ -135,10 +136,14 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 	PrivateMergedSkeleton->TrackingTags.Empty();
 
 	//Merges all skeleton data
-	for (auto& Elem : Devices)
 	{
-		UBodyStateSkeleton* Skeleton = Elem.Value.Skeleton;
-		PrivateMergedSkeleton->MergeFromOtherSkeleton(Skeleton);
+		FScopeLock ScopeLock(&PrivateMergedSkeleton->BoneDataLock);
+		for (auto& Elem : Devices)
+		{
+
+			UBodyStateSkeleton* Skeleton = Elem.Value.Skeleton;
+			PrivateMergedSkeleton->MergeFromOtherSkeleton(Skeleton);
+		}
 	}
 
 	//Dispatch estimator function lambdas which give merge skeleton and expect further updated values

@@ -14,17 +14,19 @@ FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones()
 
 void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms)
 {
+	//Tag limit by skeleton
+	if (!MappedBoneAnimData.SkeletonHasValidTags())
+	{
+		return;
+	}
+
 	//If we don't have data driving us, ignore this evaluation
 	const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
 	const float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
 	TArray<FBoneTransform> TempTransform;
 
-	//Tag limit by skeleton
-	if (!MappedBoneAnimData.SkeletonHasValidTags())
-	{
-		return;
-	}
+	
 
 	//SN: there should be an array re-ordered by hierarchy (parents -> children order)
 	for (auto CachedBone : MappedBoneAnimData.CachedBoneList)
@@ -34,10 +36,16 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FCo
 			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(), CachedBone.MeshBone.BoneIndex);
 			continue;
 		}
-
+	
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
-		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
-		FTransform ComponentTransform = Output.AnimInstanceProxy->GetComponentTransform();
+		FTransform NewBoneTM;
+		FTransform ComponentTransform;
+
+		{
+			FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
+			NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+			ComponentTransform = Output.AnimInstanceProxy->GetComponentTransform();
+		}
 
 		//Scale
 		//Ignored
@@ -47,6 +55,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FCo
 		//Bone Space
 		FAnimationRuntime::ConvertCSTransformToBoneSpace(ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
 		FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
+		
 
 		//Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())

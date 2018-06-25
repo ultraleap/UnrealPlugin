@@ -739,7 +739,7 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 	bool bRightIsTracking = false;
 
 	{
-		//FScopeLock ScopeLock(&Skeleton->BoneDataLock);
+		FScopeLock ScopeLock(&Skeleton->BoneDataLock);
 
 		//Update our skeleton with new data
 		for (auto LeapHand : CurrentFrame.Hands)

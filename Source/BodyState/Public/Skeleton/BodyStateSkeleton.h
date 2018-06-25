@@ -166,6 +166,8 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multi_UpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
 
+	FCriticalSection BoneDataLock;
+
 protected:
 	TArray<FNamedBoneData> TrackedBoneData();
 	TArray<FKeyedTransform> TrackedBasicBones();
