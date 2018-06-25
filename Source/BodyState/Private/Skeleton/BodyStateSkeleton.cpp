@@ -502,4 +502,5 @@ void UBodyStateSkeleton::ServerUpdateBodyState_Implementation(const FNamedSkelet
 void UBodyStateSkeleton::Multi_UpdateBodyState_Implementation(const FNamedSkeletonData InBodyStateSkeleton)
 {
 	SetFromNamedSkeletonData(InBodyStateSkeleton);
+	Name = TEXT("Network");
 }
