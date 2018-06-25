@@ -377,22 +377,12 @@ void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent)
 }
 
 void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent)
-{
-	//Todo: handle allocation /etc such that we just have the data ready to push to the end user.
-	
+{	
 	//Callback with data
 	if (CallbackDelegate)
 	{
-		//Do image handling on background thread
+		//Do image handling on background thread for performance
 		CallbackDelegate->OnImage(ImageEvent);
-
-		/*TaskRefImageComplete = FLeapAsync::RunShortLambdaOnGameThread([ImageEvent, this]
-		{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnImage(ImageEvent);
-			}
-		});*/
 	}
 }
 

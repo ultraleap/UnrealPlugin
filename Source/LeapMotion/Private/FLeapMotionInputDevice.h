@@ -12,6 +12,7 @@
 #include "LeapC.h"
 #include "LeapWrapper.h"
 #include "LeapLiveLink.h"
+#include "LeapImage.h"
 
 
 /**
@@ -133,15 +134,9 @@ private:
 	//Time warp support
 	BSHMDSnapshotHandler SnapshotHandler;
 
-	//Image data
-	UTexture2D* LeftImageTexture;
-	UTexture2D* RightImageTexture;
-	FUpdateTextureRegion2D UpdateTextureRegion;
-
-	bool HasSameTextureFormat(UTexture2D* TexturePointer, const LEAP_IMAGE& Image);
-	UTexture2D* CreateTextureIfNeeded(UTexture2D* TexturePointer, const LEAP_IMAGE& Image);
-	void UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData);
-	void CleanupImageData();
+	//Image handling
+	TSharedPtr<FLeapImage> LeapImageHandler;
+	void OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture);
 
 	//SVE
 	bool bSceneViewExtensionSet;

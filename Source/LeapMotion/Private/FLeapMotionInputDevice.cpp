@@ -96,6 +96,7 @@ int64 FLeapMotionInputDevice::GetInterpolatedNow()
 	return LeapGetNow() + HandInterpolationTimeOffset;
 }
 
+
 void FLeapMotionInputDevice::OnConnect()
 {
 	UE_LOG(LeapMotionLog, Log, TEXT("LeapService: OnConnect."));
@@ -137,6 +138,8 @@ void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 {
 	SetOptions(Options);
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
+	LeapImageHandler->Reset();
+
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
 
 	FLeapAsync::RunShortLambdaOnGameThread([&]
@@ -209,140 +212,21 @@ void FLeapMotionInputDevice::OnFrame(const LEAP_TRACKING_EVENT *Frame)
 	//Not used. Polled on separate thread for lower latency.
 }
 
-bool FLeapMotionInputDevice::HasSameTextureFormat(UTexture2D* TexturePointer, const LEAP_IMAGE& Image)
-{
-	if (TexturePointer == nullptr)
-	{
-		return false;
-	}
-	return  (TexturePointer->IsValidLowLevelFast() &&
-		TexturePointer->PlatformData->SizeX == Image.properties.width &&
-		TexturePointer->PlatformData->SizeY == Image.properties.height);
-}
-
-UTexture2D* FLeapMotionInputDevice::CreateTextureIfNeeded(UTexture2D* TexturePointer, const LEAP_IMAGE& Image)
-{
-	if (!HasSameTextureFormat(TexturePointer, Image))
-	{
-		EPixelFormat PixelFormat = PF_G8;
-		if (TexturePointer->IsValidLowLevelFast())
-		{
-			TexturePointer->RemoveFromRoot();
-		}
-		TexturePointer = UTexture2D::CreateTransient(Image.properties.width, Image.properties.height, PixelFormat);
-		TexturePointer->UpdateResource();
-		TexturePointer->AddToRoot();
-		UpdateTextureRegion = FUpdateTextureRegion2D(0, 0, 0, 0, Image.properties.width, Image.properties.height);
-		return TexturePointer;
-	}
-	return TexturePointer;
-}
-
-void FLeapMotionInputDevice::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions, uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)
-{
-	if (Texture->Resource)
-	{
-		struct FUpdateTextureRegionsData
-		{
-			FTexture2DResource* Texture2DResource;
-			int32 MipIndex;
-			uint32 NumRegions;
-			FUpdateTextureRegion2D* Regions;
-			uint32 SrcPitch;
-			uint32 SrcBpp;
-			uint8* SrcData;
-		};
-
-		FUpdateTextureRegionsData* RegionData = new FUpdateTextureRegionsData;
-
-		RegionData->Texture2DResource = (FTexture2DResource*)Texture->Resource;
-		RegionData->MipIndex = MipIndex;
-		RegionData->NumRegions = NumRegions;
-		RegionData->Regions = Regions;
-		RegionData->SrcPitch = SrcPitch;
-		RegionData->SrcBpp = SrcBpp;
-		RegionData->SrcData = SrcData;
-
-		ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-			UpdateTextureRegionsData,
-			FUpdateTextureRegionsData*, RegionData, RegionData,
-			bool, bFreeData, bFreeData,
-			{
-				for (uint32 RegionIndex = 0; RegionIndex < RegionData->NumRegions; ++RegionIndex)
-				{
-					int32 CurrentFirstMip = RegionData->Texture2DResource->GetCurrentFirstMip();
-					if (RegionData->MipIndex >= CurrentFirstMip)
-					{
-						RHIUpdateTexture2D(
-							RegionData->Texture2DResource->GetTexture2DRHI(),
-							RegionData->MipIndex - CurrentFirstMip,
-							RegionData->Regions[RegionIndex],
-							RegionData->SrcPitch,
-							RegionData->SrcData
-							+ RegionData->Regions[RegionIndex].SrcY * RegionData->SrcPitch
-							+ RegionData->Regions[RegionIndex].SrcX * RegionData->SrcBpp
-						);
-					}
-				}
-			if (bFreeData)
-			{
-				FMemory::Free(RegionData->Regions);
-				FMemory::Free(RegionData->SrcData);
-			}
-			delete RegionData;
-			});
-	}
-}
-
-void FLeapMotionInputDevice::CleanupImageData()
-{
-	if (LeftImageTexture->IsValidLowLevelFast())
-	{
-		LeftImageTexture->RemoveFromRoot();
-		RightImageTexture = nullptr;
-	}
-	if (RightImageTexture->IsValidLowLevelFast())
-	{
-		RightImageTexture->RemoveFromRoot();
-		RightImageTexture = nullptr;
-	}
-}
 
 void FLeapMotionInputDevice::OnImage(const LEAP_IMAGE_EVENT *ImageEvent)
 {
-	const LEAP_IMAGE& LeftLeapImage = ImageEvent->image[0];
-	const LEAP_IMAGE& RightLeapImage = ImageEvent->image[1];
+	//Forward it to the handler
+	LeapImageHandler->OnImage(ImageEvent);
+}
 
-	//Texture allocation
-	LeftImageTexture = CreateTextureIfNeeded(LeftImageTexture, LeftLeapImage);
-	if (LeftImageTexture)
+void FLeapMotionInputDevice::OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture)
+{
+	//Handler has returned with batched easy-to-parse results, forward callback on game thread
+	CallFunctionOnComponents([LeftCapturedTexture, RightCapturedTexture](ULeapComponent* Component)
 	{
-		//Schedule the texture copy
-		UpdateTextureRegions(LeftImageTexture, 0, 1, &UpdateTextureRegion, LeftLeapImage.properties.width, LeftLeapImage.properties.bpp, (uint8*)LeftLeapImage.data, false);
-		FPlatformProcess::Sleep(0.5);
-
-		//uint8* MipData = static_cast<uint8*>(LeftImageTexture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
-		//int32 UpdateLength = UpdateTextureRegion.Width * UpdateTextureRegion.Height * LeftLeapImage.properties.bpp;
-		//memcpy(MipData, LeftLeapImage.data, UpdateLength);
-
-		//LeftImageTexture->PlatformData->Mips[0].BulkData.Unlock();
-		//LeftImageTexture->UpdateResource();
-
-		
-
-		//Call image events on game threads
-		CallFunctionOnComponents([&](ULeapComponent* Component)
-		{
-			Component->OnImageEvent.Broadcast(LeftImageTexture, ELeapImageType::LEAP_IMAGE_LEFT);
-		});
-	}
-
-	RightImageTexture = CreateTextureIfNeeded(RightImageTexture, RightLeapImage);
-	if (RightImageTexture)
-	{
-
-	}
+		Component->OnImageEvent.Broadcast(LeftCapturedTexture, ELeapImageType::LEAP_IMAGE_LEFT);
+		Component->OnImageEvent.Broadcast(RightCapturedTexture, ELeapImageType::LEAP_IMAGE_RIGHT);
+	});
 }
 
 void FLeapMotionInputDevice::OnPolicy(const uint32_t CurrentPolicies)
@@ -449,6 +333,10 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
 	LiveLink->Startup();
 	LiveLink->SyncSubjectToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
+
+	//Image support
+	LeapImageHandler = MakeShareable(new FLeapImage);
+	LeapImageHandler->OnImageCallback.AddRaw(this, &FLeapMotionInputDevice::OnImageCallback);
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -801,7 +689,7 @@ void FLeapMotionInputDevice::ShutdownLeap()
 	//This will kill the leap thread
 	Leap.CloseConnection();
 
-	CleanupImageData();
+	LeapImageHandler->CleanupImageData();
 }
 
 void FLeapMotionInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
@@ -850,34 +738,38 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 	bool bLeftIsTracking = false;
 	bool bRightIsTracking = false;
 
-	//Update our skeleton with new data
-	for (auto LeapHand : CurrentFrame.Hands)
 	{
-		if (LeapHand.HandType == EHandType::LEAP_HAND_LEFT)
+		//FScopeLock ScopeLock(&Skeleton->BoneDataLock);
+
+		//Update our skeleton with new data
+		for (auto LeapHand : CurrentFrame.Hands)
 		{
-			UBodyStateArm* LeftArm = Skeleton->LeftArm();
+			if (LeapHand.HandType == EHandType::LEAP_HAND_LEFT)
+			{
+				UBodyStateArm* LeftArm = Skeleton->LeftArm();
 
-			LeftArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-			LeftArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
+				LeftArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
+				LeftArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
 
-			//Set hand data
-			SetBSHandFromLeapHand(LeftArm->Hand, LeapHand);
+				//Set hand data
+				SetBSHandFromLeapHand(LeftArm->Hand, LeapHand);
 
-			//We're tracking that hand, show it. If we haven't updated tracking, update it.
-			bLeftIsTracking = true;
-		}
-		else if (LeapHand.HandType == EHandType::LEAP_HAND_RIGHT)
-		{
-			UBodyStateArm* RightArm = Skeleton->RightArm();
+				//We're tracking that hand, show it. If we haven't updated tracking, update it.
+				bLeftIsTracking = true;
+			}
+			else if (LeapHand.HandType == EHandType::LEAP_HAND_RIGHT)
+			{
+				UBodyStateArm* RightArm = Skeleton->RightArm();
 
-			RightArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-			RightArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
+				RightArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
+				RightArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
 
-			//Set hand data
-			SetBSHandFromLeapHand(RightArm->Hand, LeapHand);
+				//Set hand data
+				SetBSHandFromLeapHand(RightArm->Hand, LeapHand);
 
-			//We're tracking that hand, show it. If we haven't updated tracking, update it.
-			bRightIsTracking = true;
+				//We're tracking that hand, show it. If we haven't updated tracking, update it.
+				bRightIsTracking = true;
+			}
 		}
 	}
 
