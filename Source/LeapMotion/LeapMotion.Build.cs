@@ -8,7 +8,7 @@ namespace UnrealBuildTool.Rules
 	{
 		private bool IsEnginePlugin()
 		{
-			return Path.GetFullPath(ModuleDirectory).EndsWith("UnrealEngine\\Engine\\Plugins\\Runtime\\LeapMotion\\Source\\LeapMotion");
+			return Path.GetFullPath(ModuleDirectory).EndsWith("Engine\\Plugins\\Runtime\\LeapMotion\\Source\\LeapMotion");
 		}
 
 		private string ModulePath
