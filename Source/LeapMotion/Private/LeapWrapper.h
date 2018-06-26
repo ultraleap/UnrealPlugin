@@ -1,3 +1,5 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 /** Interface for the passed callback delegate receiving game thread LeapC callbacks */

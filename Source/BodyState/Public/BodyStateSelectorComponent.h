@@ -1,3 +1,4 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -5,8 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "BodyStateSelectorComponent.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+//Disable this component in bp until v3.1 when the multi-player selection and replication functionality gets implemented
+UCLASS( ClassGroup=(Custom)) //, meta=(BlueprintSpawnableComponent) 
 class BODYSTATE_API UBodyStateSelectorComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -22,7 +23,4 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
-	
 };

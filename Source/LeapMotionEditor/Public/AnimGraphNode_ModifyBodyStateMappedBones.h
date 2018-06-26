@@ -5,6 +5,8 @@
 #include "Editor/AnimGraph/Classes/AnimGraphNode_SkeletalControlBase.h"
 
 #include "AnimNode_ModifyBodyStateMappedBones.h"
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "AnimGraphNode_ModifyBodyStateMappedBones.generated.h"
 
 UCLASS(MinimalAPI)
@@ -23,6 +25,10 @@ public:
 	// End of UEdGraphNode interface
 
 protected:
+
+	// UAnimGraphNode_SkeletalControlBase protected interface
 	virtual FText GetControllerDescription() const;
+	virtual const FAnimNode_SkeletalControlBase* GetNode() const override { return &Node; }
+	// End of UAnimGraphNode_SkeletalControlBase protected interface
 
 };

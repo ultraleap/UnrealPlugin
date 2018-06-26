@@ -1,4 +1,7 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
+
 #include "LeapC.h"
 #include "Runtime/Engine/Classes/Engine/Texture2D.h"
 #include "Runtime/RHI/Public/RHI.h"

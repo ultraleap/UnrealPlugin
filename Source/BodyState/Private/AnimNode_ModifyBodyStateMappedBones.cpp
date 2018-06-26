@@ -1,9 +1,9 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "AnimNode_ModifyBodyStateMappedBones.h"
 #include "AnimationRuntime.h"
 #include "Runtime/Engine/Public/Animation/AnimInstanceProxy.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
-
-
 
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones()
 	: FAnimNode_SkeletalControlBase()

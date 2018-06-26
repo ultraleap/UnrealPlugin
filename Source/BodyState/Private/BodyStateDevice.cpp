@@ -2,4 +2,4 @@
 
 #include "BodyStateDevice.h"
 #include "BodyStateDeviceConfig.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"

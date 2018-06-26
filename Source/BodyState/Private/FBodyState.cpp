@@ -3,6 +3,7 @@
 #include "FBodyState.h"
 #include "BodyStateSkeletonStorage.h"
 #include "BodyStateBoneComponent.h"
+#include "FBodyStateInputDevice.h"
 #include "BodyStateHMDDevice.h"
 
 #undef LOCTEXT_NAMESPACE

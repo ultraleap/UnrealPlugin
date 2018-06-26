@@ -1,3 +1,5 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "BodyStateHMDDevice.h"
 #include "IHeadMountedDisplay.h"
 #include "Runtime/HeadMountedDisplay/Public/XRMotionControllerBase.h"

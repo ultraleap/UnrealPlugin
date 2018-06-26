@@ -1,6 +1,8 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "FBodyStateInputDevice.h"
 #include "IHeadMountedDisplay.h"
-#include "SlateBasics.h"
+#include "Runtime/Slate/Public/Framework/Application/SlateApplication.h"
 #include "BodyStateInputInterface.h"
 #include "BodyStateBoneComponent.h"
 #include "BodyStateHMDSnapshot.h"

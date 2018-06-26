@@ -1,4 +1,4 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 using System.IO;
 
@@ -16,19 +16,25 @@ namespace UnrealBuildTool.Rules
 			get { return ModuleDirectory; }
 		}
 
-		private string EngineDirectory
-		{
-			get { return Path.GetFullPath("../"); }
-		}
-
 		private string ThirdPartyPath
 		{
-			get { return Path.GetFullPath(Path.Combine(ModulePath, "../ThirdParty/")); }
+			get
+			{
+				if (IsEnginePlugin())
+				{
+					return Path.GetFullPath(Path.Combine(EngineDirectory, "Source/ThirdParty"));
+				}
+				else
+				{
+					return Path.GetFullPath(Path.Combine(ModulePath, "../ThirdParty/"));
+				}
+			}
 		}
 
 		private string BinariesPath
 		{
-			get {
+			get
+			{
 				if (IsEnginePlugin())
 				{
 					return Path.GetFullPath(Path.Combine(EngineDirectory, "Binaries/ThirdParty/LeapMotion"));
@@ -42,14 +48,30 @@ namespace UnrealBuildTool.Rules
 
 		private string LibraryPath
 		{
-			get {
+			get
+			{
 				if (IsEnginePlugin())
 				{
-					return Path.GetFullPath(Path.Combine(EngineDirectory, "Source/ThirdParty/Leap/Lib"));
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Leap/Lib"));
 				}
 				else
 				{
-					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK", "Lib"));
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK/Lib"));
+				}
+			}
+		}
+
+		private string IncludePath
+		{
+			get
+			{
+				if (IsEnginePlugin())
+				{
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Leap/Include"));
+				}
+				else
+				{
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK/Include"));
 				}
 			}
 		}
@@ -60,7 +82,6 @@ namespace UnrealBuildTool.Rules
 
 			PublicIncludePaths.AddRange(
 				new string[] {
-					"LeapMotion/Public",
 					// ... add public include paths required here ...
 				}
 				);
@@ -68,7 +89,7 @@ namespace UnrealBuildTool.Rules
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"LeapMotion/Private",
-					Path.Combine(ThirdPartyPath, "LeapSDK", "Include"),
+					IncludePath,
 					// ... add other private include paths required here ...
 				}
 				);
@@ -179,7 +200,7 @@ namespace UnrealBuildTool.Rules
 				{
 					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
 
-					System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
+					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
 
 					PublicDelayLoadDLLs.Add("LeapC.dll");
 					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/LeapMotion/" + PlatformString + "/LeapC.dll");

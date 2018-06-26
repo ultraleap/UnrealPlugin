@@ -1,9 +1,10 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "BodyStateEnums.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateAnimInstance.generated.h"
 
 USTRUCT(BlueprintType)

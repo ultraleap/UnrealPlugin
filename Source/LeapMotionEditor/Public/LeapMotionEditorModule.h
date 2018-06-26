@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ModuleInterface.h"
+#include "Runtime/Core/Public/Modules/ModuleInterface.h"
 
 class FLeapMotionEditorModule : public IModuleInterface
 {

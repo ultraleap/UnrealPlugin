@@ -1,6 +1,6 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateUtility.h"
 
 UBodyStateSkeleton::UBodyStateSkeleton(const FObjectInitializer& ObjectInitializer)

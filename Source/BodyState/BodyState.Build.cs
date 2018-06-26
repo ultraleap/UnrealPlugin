@@ -1,4 +1,4 @@
-// Some copyright should be here...
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -10,7 +10,6 @@ public class BodyState : ModuleRules
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"BodyState/Public"
 			}
 			);
 				

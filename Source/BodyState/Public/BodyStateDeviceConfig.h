@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "Core.h"
-#include "Engine.h"
+#include "CoreMinimal.h"
 #include "BodyStateDeviceConfig.generated.h"
 
 UENUM(BlueprintType)

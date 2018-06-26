@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "BodyStateBone.h"
-#include "BodyStateArm.h"
+#include "Skeleton/BodyStateBone.h"
+#include "Skeleton/BodyStateArm.h"
 #include "BodyStateEnums.h"
 #include "BodyStateSkeleton.generated.h"
 

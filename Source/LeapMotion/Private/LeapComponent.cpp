@@ -1,7 +1,7 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "LeapComponent.h"
 #include "ILeapMotionPlugin.h"
-#include "Engine.h"
-
 
 ULeapComponent::ULeapComponent(const FObjectInitializer &init) : UActorComponent(init)
 {

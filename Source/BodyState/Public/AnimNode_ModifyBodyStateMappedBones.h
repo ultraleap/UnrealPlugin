@@ -1,7 +1,10 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
+
 #include "CoreMinimal.h"
 #include "Runtime/AnimGraphRuntime/Public/BoneControllers/AnimNode_SkeletalControlBase.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateAnimInstance.h"
 #include "AnimNode_ModifyBodyStateMappedBones.generated.h"
 
@@ -23,8 +26,6 @@ public:
 	// End of FAnimNode_SkeletalControlBase interface
 
 	// Constructor 
-public:
-
 	FAnimNode_ModifyBodyStateMappedBones();
 
 protected:

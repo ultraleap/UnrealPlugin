@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "Engine.h"
+#include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "BodyStateInputInterface.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateDeviceConfig.h"
 #include "BodyStateBPLibrary.generated.h"
 

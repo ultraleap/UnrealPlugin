@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "Runtime/Core/Public/Modules/ModuleInterface.h"
 #include "BodyStateDeviceConfig.h"
 #include "BodyStateInputInterface.h"
 #include "IInputDeviceModule.h"
