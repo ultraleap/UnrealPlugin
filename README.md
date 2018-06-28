@@ -326,7 +326,7 @@ Below is a link to an example video for packaging for windows. The user here had
 
 
 
-### Android (you will need access to a private runtime)
+### Android (Public peripheral not supported, you will need access to a private runtime)
 Ensure you've completed https://docs.unrealengine.com/latest/INT/Platforms/Android/GettingStarted/1/index.html at least once per engine release first, then package for you build type
 
 #### Cardboard
