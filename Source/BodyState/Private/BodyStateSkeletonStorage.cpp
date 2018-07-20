@@ -1,5 +1,8 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "BodyStateSkeletonStorage.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
+#include "CoreMinimal.h"
 
 
 FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()
@@ -31,6 +34,7 @@ int32 FBodyStateSkeletonStorage::AddDevice(const FBodyStateDevice& InDevice)
 	Device.Skeleton = NewObject<UBodyStateSkeleton>();
 	Device.Skeleton->Name = Device.Config.DeviceName;
 	Device.Skeleton->SkeletonId = Device.DeviceId;
+	Device.Skeleton->TrackingTags = Device.Config.TrackingTags;
 	Device.Skeleton->AddToRoot();
 
 	Devices.Add(Device.InputCallbackDelegate, Device);
@@ -131,12 +135,17 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 
 	//Reset our confidence
 	PrivateMergedSkeleton->ClearConfidence();
+	PrivateMergedSkeleton->TrackingTags.Empty();
 
 	//Merges all skeleton data
-	for (auto& Elem : Devices)
 	{
-		UBodyStateSkeleton* Skeleton = Elem.Value.Skeleton;
-		PrivateMergedSkeleton->MergeFromOtherSkeleton(Skeleton);
+		FScopeLock ScopeLock(&PrivateMergedSkeleton->BoneDataLock);
+		for (auto& Elem : Devices)
+		{
+
+			UBodyStateSkeleton* Skeleton = Elem.Value.Skeleton;
+			PrivateMergedSkeleton->MergeFromOtherSkeleton(Skeleton);
+		}
 	}
 
 	//Dispatch estimator function lambdas which give merge skeleton and expect further updated values

@@ -1,7 +1,9 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 #include "Runtime/Engine/Classes/Components/ActorComponent.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateEstimatorComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBodyStateSkeletonSignature, UBodyStateSkeleton*, Skeleton);

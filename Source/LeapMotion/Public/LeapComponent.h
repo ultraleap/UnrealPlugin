@@ -1,17 +1,18 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 #include "LeapMotionData.h"
 #include "Runtime/Engine/Classes/Components/ActorComponent.h"
 #include "LeapComponent.generated.h"
 
-//TODO: remove
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapDebugSignature, FVector, DebugVector, FRotator, DebugRotator);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapDeviceSignature, FString, DeviceName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapVisibilityBoolSignature, bool, bIsVisible);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrameSignature, const FLeapFrameData&, Frame);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHandSignature, const FLeapHandData&, Hand);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapPolicySignature, TArray<TEnumAsByte<ELeapPolicyFlag>>, Flags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapImageEventSignature, UTexture2D*, Texture, ELeapImageType, ImageType);
 
 UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
@@ -20,9 +21,13 @@ class LEAPMOTION_API ULeapComponent : public UActorComponent
 	GENERATED_UCLASS_BODY()
 public:
 
-	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
+	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
-	FLeapEventSignature OnLeapConnected;
+	FLeapDeviceSignature OnLeapDeviceAttached;
+
+	/** Called when a device disconnects from the leap service*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapDeviceSignature OnLeapDeviceDetatched;
 
 	/** Event called when new tracking data is available, typically every game tick. */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
@@ -64,9 +69,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapPolicySignature OnLeapPoliciesUpdated;
 
-	//TODO: remove
-	//UPROPERTY(BlueprintAssignable, Category = "Leap Events")
-	//FLeapDebugSignature OnDebugValue;
+	/** Event called when a device image is ready. Requires setting image policy first*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapImageEventSignature OnImageEvent;
+
+	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapEventSignature OnLeapServiceConnected;
+
+	/** Event called if leap service connection gets lost. Track won't work if this event gets called.*/
+	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
+	FLeapEventSignature OnLeapServiceDisconnected;
 
 	/** Tracking mode optimization */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Properties")

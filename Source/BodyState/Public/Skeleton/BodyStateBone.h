@@ -1,3 +1,5 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 #include "BodyStateBone.generated.h"
@@ -15,6 +17,10 @@ struct BODYSTATE_API FBodyStateBoneMeta
 	/** Name of tracking type*/
 	UPROPERTY()
 	FString TrackingType;
+
+	/** Additional tags used to distinguish characteristics of tracked data, e.g. tracks fingers, hands, etc*/
+	UPROPERTY()
+	TArray<FString> TrackingTags;
 
 	/** Accuracy in cm of tracking data if distinct */
 	UPROPERTY()

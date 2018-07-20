@@ -1,6 +1,7 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
-#include "BodyStatePrivatePCH.h"
 #include "IInputDevice.h"
 #include "BodyStateDevice.h"
 
@@ -33,7 +34,7 @@ public:
 
 	virtual ~FBodyStateInputDevice();
 
-	TSharedRef< FGenericApplicationMessageHandler > MessageHandler;
+	TSharedRef<FGenericApplicationMessageHandler> MessageHandler;
 	TSharedPtr<FBodyStateSkeletonStorage> SkeletonStorage;
 
 	//Define mixing and update interfaces - maybe change () to (USkeletons) so the algorithm can loop through the skeletons for merging

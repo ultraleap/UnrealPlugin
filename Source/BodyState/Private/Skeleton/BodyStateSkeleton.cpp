@@ -1,6 +1,6 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateUtility.h"
 
 UBodyStateSkeleton::UBodyStateSkeleton(const FObjectInitializer& ObjectInitializer)
@@ -431,6 +431,11 @@ void UBodyStateSkeleton::SetFromOtherSkeleton(UBodyStateSkeleton* Other)
 
 void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 {
+	if (!Other->IsTrackingAnyBone())
+	{
+		return;
+	}
+
 	for (int i = 0; i < Bones.Num(); i++)
 	{
 		UBodyStateBone* OtherBone = Other->Bones[i];
@@ -445,6 +450,36 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 			Bone->Meta = OtherBone->Meta;
 		}
 	}
+
+	//merge tags, add unique tags of other skeleton
+	for (FString& Tag : Other->TrackingTags)
+	{
+		TrackingTags.AddUnique(Tag);
+	}
+}
+
+bool UBodyStateSkeleton::HasValidTrackingTags(TArray<FString>& LimitTags)
+{
+	for (FString& Tag : LimitTags)
+	{
+		if (!TrackingTags.Contains(Tag))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool UBodyStateSkeleton::IsTrackingAnyBone()
+{
+	for (UBodyStateBone* Bone : Bones)
+	{
+		if (Bone->IsTracked())
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void UBodyStateSkeleton::ClearConfidence()
@@ -467,4 +502,5 @@ void UBodyStateSkeleton::ServerUpdateBodyState_Implementation(const FNamedSkelet
 void UBodyStateSkeleton::Multi_UpdateBodyState_Implementation(const FNamedSkeletonData InBodyStateSkeleton)
 {
 	SetFromNamedSkeletonData(InBodyStateSkeleton);
+	Name = TEXT("Network");
 }

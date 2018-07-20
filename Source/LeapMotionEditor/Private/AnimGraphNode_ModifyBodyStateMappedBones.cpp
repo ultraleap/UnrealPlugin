@@ -1,3 +1,5 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "AnimGraphNode_ModifyBodyStateMappedBones.h"
 
 /////////////////////////////////////////////////////
@@ -27,6 +29,5 @@ FText UAnimGraphNode_ModifyBodyStateMappedBones::GetControllerDescription() cons
 FText UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
 	FText Result = GetControllerDescription();
-	//FString Result += (TitleType == ENodeTitleType::ListView) ? TEXT("") : TEXT("\n");
 	return Result;
 }

@@ -1,4 +1,4 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 using System.IO;
 
@@ -13,7 +13,6 @@ namespace UnrealBuildTool.Rules
 
 			PublicIncludePaths.AddRange(
 				new string[] {
-					"LeapMotionEditor/Public",
 					// ... add public include paths required here ...
 				}
 				);

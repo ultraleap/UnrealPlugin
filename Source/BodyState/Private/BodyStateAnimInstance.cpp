@@ -1,3 +1,5 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "BodyStateAnimInstance.h"
 #include "BodyStateUtility.h"
 #include "BodyStateBPLibrary.h"
@@ -578,6 +580,31 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 	});
 
 	UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
+}
+
+bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
+{
+	//Early exit optimization
+	if (TrackingTagLimit.Num() == 0)
+	{
+		return true;
+	}
+
+	FBodyStateBoneMeta UniqueMeta = ((UBodyStateBone*)QueryBone)->UniqueMeta();
+
+	for (FString& LimitTag : TrackingTagLimit)
+	{
+		if (!UniqueMeta.TrackingTags.Contains(LimitTag))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool FMappedBoneAnimData::SkeletonHasValidTags()
+{
+	return BodyStateSkeleton->HasValidTrackingTags(TrackingTagLimit);
 }
 
 TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)

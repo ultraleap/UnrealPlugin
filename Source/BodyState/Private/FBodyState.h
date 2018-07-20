@@ -1,8 +1,9 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
-#include "BodyStatePrivatePCH.h"
 #include "IBodyState.h"
-class FBodyStateSkeletonStorage;
+#include "BodyStateSkeletonStorage.h"
 class FBodyStateHMDDevice;
 
 class FBodyState : public IBodyState

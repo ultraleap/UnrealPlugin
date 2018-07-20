@@ -1,3 +1,5 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 #include "Runtime/HeadMountedDisplay/Public/IXRTrackingSystem.h"
@@ -12,6 +14,7 @@
 #include "LeapC.h"
 #include "LeapWrapper.h"
 #include "LeapLiveLink.h"
+#include "LeapImage.h"
 
 
 /**
@@ -65,7 +68,6 @@ public:
 	void LatestFrame(FLeapFrameData& OutFrame);
 
 	//Policy and toggles
-	bool EnableImageStreaming(bool Enable);
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
 	//BodyState
@@ -127,12 +129,16 @@ private:
 	FLeapFrameData CurrentFrame;
 	FLeapFrameData PastFrame;
 	
+	TArray<FString> AttachedDevices;
 	TArray<int32> VisibleHands;
 	TArray<int32> PastVisibleHands;
 
 	//Time warp support
 	BSHMDSnapshotHandler SnapshotHandler;
 
+	//Image handling
+	TSharedPtr<FLeapImage> LeapImageHandler;
+	void OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture);
 
 	//SVE
 	bool bSceneViewExtensionSet;

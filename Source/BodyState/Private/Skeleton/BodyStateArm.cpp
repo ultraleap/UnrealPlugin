@@ -1,6 +1,6 @@
-// MIT
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
-#include "BodyStateArm.h"
+#include "Skeleton/BodyStateArm.h"
 
 UBodyStateFinger::UBodyStateFinger(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

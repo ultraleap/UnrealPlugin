@@ -1,13 +1,14 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "FLeapMotionInputDevice.h"
 #include "IHeadMountedDisplay.h"
-#include "LeapLambdaRunnable.h"
+#include "LeapAsync.h"
 #include "LeapComponent.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateBPLibrary.h"
 #include "LeapMotionData.h"
 #include "LeapUtility.h"
-#include "SlateBasics.h"
+#include "Runtime/Slate/Public/Framework/Application/SlateApplication.h"
 #include "IBodyState.h"
 
 DECLARE_STATS_GROUP(TEXT("LeapMotion"), STATGROUP_LeapMotion, STATCAT_Advanced);
@@ -33,7 +34,7 @@ void FLeapMotionInputDevice::CallFunctionOnComponents(TFunction< void(ULeapCompo
 	}
 	else
 	{
-		FLeapLambdaRunnable::RunShortLambdaOnGameThread([this, InFunction]
+		FLeapAsync::RunShortLambdaOnGameThread([this, InFunction]
 		{
 			for (ULeapComponent* EventDelegate : EventDelegates)
 			{
@@ -96,6 +97,7 @@ int64 FLeapMotionInputDevice::GetInterpolatedNow()
 	return LeapGetNow() + HandInterpolationTimeOffset;
 }
 
+
 void FLeapMotionInputDevice::OnConnect()
 {
 	UE_LOG(LeapMotionLog, Log, TEXT("LeapService: OnConnect."));
@@ -119,31 +121,60 @@ void FLeapMotionInputDevice::OnConnect()
 
 	CallFunctionOnComponents([&](ULeapComponent* Component)
 	{
-		Component->OnLeapConnected.Broadcast();
+		Component->OnLeapServiceConnected.Broadcast();
 	});
 }
 
 void FLeapMotionInputDevice::OnConnectionLost()
 {
 	UE_LOG(LeapMotionLog, Warning, TEXT("LeapService: OnConnectionLost."));
+
+	CallFunctionOnComponents([&](ULeapComponent* Component)
+	{
+		Component->OnLeapServiceDisconnected.Broadcast();
+	});
 }
 
-void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *props)
+void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 {
 	SetOptions(Options);
-	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)props);
+	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
+	LeapImageHandler->Reset();
+
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
+
+	FLeapAsync::RunShortLambdaOnGameThread([&]
+	{
+		AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
+
+		CallFunctionOnComponents([&](ULeapComponent* Component)
+		{
+			Component->OnLeapDeviceAttached.Broadcast(Stats.DeviceInfo.Serial);
+		});
+	});
 }
 
-void FLeapMotionInputDevice::OnDeviceLost(const char* serial)
+void FLeapMotionInputDevice::OnDeviceLost(const char* Serial)
 {
-	UE_LOG(LeapMotionLog, Warning, TEXT("OnDeviceLost %s."), ANSI_TO_TCHAR(serial));
+	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
+
+	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString] 
+	{
+		UE_LOG(LeapMotionLog, Warning, TEXT("OnDeviceLost %s."), *SerialString);
+
+		AttachedDevices.Remove(SerialString);
+
+		CallFunctionOnComponents([SerialString](ULeapComponent* Component)
+		{
+			Component->OnLeapDeviceDetatched.Broadcast(SerialString);
+		});
+	});
 }
 
-void FLeapMotionInputDevice::OnDeviceFailure(const eLeapDeviceStatus failure_code, const LEAP_DEVICE failed_device)
+void FLeapMotionInputDevice::OnDeviceFailure(const eLeapDeviceStatus FailureCode, const LEAP_DEVICE FailedDevice)
 {
 	FString ErrorString;
-	switch (failure_code)
+	switch (FailureCode)
 	{
 	case eLeapDeviceStatus_Streaming:
 		ErrorString = TEXT("Streaming");
@@ -174,34 +205,45 @@ void FLeapMotionInputDevice::OnDeviceFailure(const eLeapDeviceStatus failure_cod
 		ErrorString = TEXT("Unknown");
 		break;
 	}
-	UE_LOG(LeapMotionLog, Warning, TEXT("OnDeviceFailure: %s (%d)"), *ErrorString, (int32)failure_code);
+	UE_LOG(LeapMotionLog, Warning, TEXT("OnDeviceFailure: %s (%d)"), *ErrorString, (int32)FailureCode);
 }
 
-void FLeapMotionInputDevice::OnFrame(const LEAP_TRACKING_EVENT *frame)
+void FLeapMotionInputDevice::OnFrame(const LEAP_TRACKING_EVENT *Frame)
 {
 	//Not used. Polled on separate thread for lower latency.
 }
 
 
-void FLeapMotionInputDevice::OnImage(const LEAP_IMAGE_EVENT *image_event)
+void FLeapMotionInputDevice::OnImage(const LEAP_IMAGE_EVENT *ImageEvent)
 {
-	//todo: handle image pairs
+	//Forward it to the handler
+	LeapImageHandler->OnImage(ImageEvent);
 }
 
-void FLeapMotionInputDevice::OnPolicy(const uint32_t current_policies)
+void FLeapMotionInputDevice::OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture)
+{
+	//Handler has returned with batched easy-to-parse results, forward callback on game thread
+	CallFunctionOnComponents([LeftCapturedTexture, RightCapturedTexture](ULeapComponent* Component)
+	{
+		Component->OnImageEvent.Broadcast(LeftCapturedTexture, ELeapImageType::LEAP_IMAGE_LEFT);
+		Component->OnImageEvent.Broadcast(RightCapturedTexture, ELeapImageType::LEAP_IMAGE_RIGHT);
+	});
+}
+
+void FLeapMotionInputDevice::OnPolicy(const uint32_t CurrentPolicies)
 {
 	TArray<TEnumAsByte<ELeapPolicyFlag>> Flags;
 	ELeapMode UpdatedMode = Options.Mode;
-	if (current_policies & eLeapPolicyFlag_BackgroundFrames)
+	if (CurrentPolicies & eLeapPolicyFlag_BackgroundFrames)
 	{
 		Flags.Add(ELeapPolicyFlag::LEAP_POLICY_BACKGROUND_FRAMES);
 	}
-	if (current_policies & eLeapPolicyFlag_OptimizeHMD)
+	if (CurrentPolicies & eLeapPolicyFlag_OptimizeHMD)
 	{
 		UpdatedMode = ELeapMode::LEAP_MODE_VR;
 		Flags.Add(ELeapPolicyFlag::LEAP_POLICY_OPTIMIZE_HMD);
 	}
-	if (current_policies & eLeapPolicyFlag_AllowPauseResume)
+	if (CurrentPolicies & eLeapPolicyFlag_AllowPauseResume)
 	{
 		Flags.Add(ELeapPolicyFlag::LEAP_POLICY_ALLOW_PAUSE_RESUME);
 	}
@@ -216,33 +258,33 @@ void FLeapMotionInputDevice::OnPolicy(const uint32_t current_policies)
 	});
 }
 
-void FLeapMotionInputDevice::OnLog(const eLeapLogSeverity severity, const int64_t timestamp, const char* message)
+void FLeapMotionInputDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Timestamp, const char* Message)
 {
-	if (!message)
+	if (!Message)
 	{
 		return;
 	}
 
-	switch (severity)
+	switch (Severity)
 	{
 	case eLeapLogSeverity_Unknown:
 		break;
 	case eLeapLogSeverity_Critical:
 		if (Options.LeapServiceLogLevel > ELeapServiceLogLevel::LEAP_LOG_NONE)
 		{
-			UE_LOG(LeapMotionLog, Error, TEXT("LeapServiceError: %s"), UTF8_TO_TCHAR(message));
+			UE_LOG(LeapMotionLog, Error, TEXT("LeapServiceError: %s"), UTF8_TO_TCHAR(Message));
 		}
 		break;
 	case eLeapLogSeverity_Warning:
 		if (Options.LeapServiceLogLevel > ELeapServiceLogLevel::LEAP_LOG_ERROR)
 		{
-			UE_LOG(LeapMotionLog, Warning, TEXT("LeapServiceWarning: %s"), UTF8_TO_TCHAR(message));
+			UE_LOG(LeapMotionLog, Warning, TEXT("LeapServiceWarning: %s"), UTF8_TO_TCHAR(Message));
 		}
 		break;
 	case eLeapLogSeverity_Information:
 		if (Options.LeapServiceLogLevel > ELeapServiceLogLevel::LEAP_LOG_WARNING)
 		{
-			UE_LOG(LeapMotionLog, Log, TEXT("LeapServiceLog: %s"), UTF8_TO_TCHAR(message));
+			UE_LOG(LeapMotionLog, Log, TEXT("LeapServiceLog: %s"), UTF8_TO_TCHAR(Message));
 		}
 		break;
 	default:
@@ -269,7 +311,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	FrameTimeInMicros = 0;	//default
 
 	//Set static stats
-	Stats.LeapAPIVersion = FString(TEXT("3.2.0"));
+	Stats.LeapAPIVersion = FString(TEXT("4.0.0"));
 
 	Leap.OpenConnection(this);							//pass in the this as callback delegate
 
@@ -278,6 +320,8 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	//Attach to bodystate
 	Config.DeviceName = "Leap Motion";
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
+	Config.TrackingTags.Add("Hands");
+	Config.TrackingTags.Add("Fingers");
 	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
 	//Add IM keys
@@ -290,6 +334,10 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
 	LiveLink->Startup();
 	LiveLink->SyncSubjectToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
+
+	//Image support
+	LeapImageHandler = MakeShareable(new FLeapImage);
+	LeapImageHandler->OnImageCallback.AddRaw(this, &FLeapMotionInputDevice::OnImageCallback);
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -329,7 +377,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
 
 	//Did a device connect?
-	if (!Leap.bIsConnected || !Leap.lastDevice)
+	if (!Leap.bIsConnected || !Leap.LastDevice)
 	{
 		return;
 	}
@@ -367,7 +415,6 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 	}
 	else
 	{
-		//Frame = Leap.GetFrame();
 		CurrentFrame.SetFromLeapFrame(Frame);
 		Stats.FrameExtrapolationInMS = 0;
 	}
@@ -377,6 +424,12 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 
 void FLeapMotionInputDevice::ParseEvents()
 {
+	//Early exit: no device attached that produce data
+	if (AttachedDevices.Num() < 1)
+	{
+		return;
+	}
+
 	//Are we in HMD mode? add our HMD snapshot
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
 	{
@@ -554,6 +607,7 @@ void FLeapMotionInputDevice::ParseEvents()
 		}
 	}//End for each hand
 
+	//Emit tracking data if it is being captured
 	CallFunctionOnComponents([this](ULeapComponent* Component)
 	{
 		//Scale input?
@@ -635,6 +689,8 @@ void FLeapMotionInputDevice::ShutdownLeap()
 
 	//This will kill the leap thread
 	Leap.CloseConnection();
+
+	LeapImageHandler->CleanupImageData();
 }
 
 void FLeapMotionInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
@@ -649,25 +705,24 @@ void FLeapMotionInputDevice::LatestFrame(FLeapFrameData& OutFrame)
 }
 
 //Policies
-bool FLeapMotionInputDevice::EnableImageStreaming(bool Enable)
-{
-	//not yet implemented
-	return false;
-}
-
 void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
 	switch (Flag)
 	{
-	case LEAP_POLICY_ALLOW_PAUSE_RESUME:
-		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
-		break;
 	case LEAP_POLICY_BACKGROUND_FRAMES:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
+		break;
+	case LEAP_POLICY_IMAGES:
+		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
 		break;
 	case LEAP_POLICY_OPTIMIZE_HMD:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
 		break;
+	case LEAP_POLICY_ALLOW_PAUSE_RESUME:
+		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
+		break;
+	case LEAP_POLICY_MAP_POINTS:
+		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
 	default:
 		break;
 	}
@@ -684,38 +739,38 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 	bool bLeftIsTracking = false;
 	bool bRightIsTracking = false;
 
-	//Update our skeleton with new data
-	for (auto LeapHand : CurrentFrame.Hands)
 	{
-		if (LeapHand.HandType == EHandType::LEAP_HAND_LEFT)
+		FScopeLock ScopeLock(&Skeleton->BoneDataLock);
+
+		//Update our skeleton with new data
+		for (auto LeapHand : CurrentFrame.Hands)
 		{
-			UBodyStateArm* LeftArm = Skeleton->LeftArm();
+			if (LeapHand.HandType == EHandType::LEAP_HAND_LEFT)
+			{
+				UBodyStateArm* LeftArm = Skeleton->LeftArm();
 
-			LeftArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-			LeftArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
-			//LeftArm->LowerArm->Meta.Confidence = LeapHand.Confidence;
-			//LeftArm->LowerArm->Meta.Confidence = 1.f;
+				LeftArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
+				LeftArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
 
-			//Set hand data
-			SetBSHandFromLeapHand(LeftArm->Hand, LeapHand);
+				//Set hand data
+				SetBSHandFromLeapHand(LeftArm->Hand, LeapHand);
 
-			//We're tracking that hand, show it. If we haven't updated tracking, update it.
-			bLeftIsTracking = true;
-		}
-		else if (LeapHand.HandType == EHandType::LEAP_HAND_RIGHT)
-		{
-			UBodyStateArm* RightArm = Skeleton->RightArm();
+				//We're tracking that hand, show it. If we haven't updated tracking, update it.
+				bLeftIsTracking = true;
+			}
+			else if (LeapHand.HandType == EHandType::LEAP_HAND_RIGHT)
+			{
+				UBodyStateArm* RightArm = Skeleton->RightArm();
 
-			RightArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-			RightArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
-			//RightArm->LowerArm->Meta.Confidence = LeapHand.Confidence;
-			//RightArm->LowerArm->Meta.Confidence = 1.f;
+				RightArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
+				RightArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
 
-			//Set hand data
-			SetBSHandFromLeapHand(RightArm->Hand, LeapHand);
+				//Set hand data
+				SetBSHandFromLeapHand(RightArm->Hand, LeapHand);
 
-			//We're tracking that hand, show it. If we haven't updated tracking, update it.
-			bRightIsTracking = true;
+				//We're tracking that hand, show it. If we haven't updated tracking, update it.
+				bRightIsTracking = true;
+			}
 		}
 	}
 
@@ -734,11 +789,13 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
 			Arm->LowerArm->Meta.ParentDistinctMeta = true;
 			Arm->LowerArm->SetTrackingConfidenceRecursively(1.f);
+			Arm->LowerArm->Meta.TrackingTags = Config.TrackingTags;
 		}
 		else
 		{
 			Arm->LowerArm->SetTrackingConfidenceRecursively(0.f);
 			Arm->LowerArm->Meta.ParentDistinctMeta = false;
+			Arm->LowerArm->Meta.TrackingTags.Empty();
 		}
 	}
 
@@ -754,14 +811,17 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 			Arm->LowerArm->Meta.TrackingType = Config.DeviceName;
 			Arm->LowerArm->Meta.ParentDistinctMeta = true;
 			Arm->LowerArm->SetTrackingConfidenceRecursively(1.f);
+			Arm->LowerArm->Meta.TrackingTags = Config.TrackingTags;
 		}
 		else
 		{
 			Arm->LowerArm->SetTrackingConfidenceRecursively(0.f);
 			Arm->LowerArm->Meta.ParentDistinctMeta = false;
+			Arm->LowerArm->Meta.TrackingTags.Empty();
 		}
 	}
 
+	//LiveLink logic
 	if (LiveLink->HasConnection())
 	{
 		if (bTrackedBonesChanged)

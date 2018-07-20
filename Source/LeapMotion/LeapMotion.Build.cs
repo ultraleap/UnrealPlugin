@@ -1,4 +1,4 @@
-// Copyright 1998-2014 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 using System.IO;
 
@@ -8,7 +8,7 @@ namespace UnrealBuildTool.Rules
 	{
 		private bool IsEnginePlugin()
 		{
-			return Path.GetFullPath(ModuleDirectory).EndsWith("UnrealEngine\\Engine\\Plugins\\Runtime\\LeapMotion\\Source\\LeapMotion");
+			return Path.GetFullPath(ModuleDirectory).EndsWith("Engine\\Plugins\\Runtime\\LeapMotion\\Source\\LeapMotion");
 		}
 
 		private string ModulePath
@@ -16,19 +16,25 @@ namespace UnrealBuildTool.Rules
 			get { return ModuleDirectory; }
 		}
 
-		private string EngineDirectory
-		{
-			get { return Path.GetFullPath("../"); }
-		}
-
 		private string ThirdPartyPath
 		{
-			get { return Path.GetFullPath(Path.Combine(ModulePath, "../../ThirdParty/")); }
+			get
+			{
+				if (IsEnginePlugin())
+				{
+					return Path.GetFullPath(Path.Combine(EngineDirectory, "Source/ThirdParty"));
+				}
+				else
+				{
+					return Path.GetFullPath(Path.Combine(ModulePath, "../ThirdParty/"));
+				}
+			}
 		}
 
 		private string BinariesPath
 		{
-			get {
+			get
+			{
 				if (IsEnginePlugin())
 				{
 					return Path.GetFullPath(Path.Combine(EngineDirectory, "Binaries/ThirdParty/LeapMotion"));
@@ -42,14 +48,30 @@ namespace UnrealBuildTool.Rules
 
 		private string LibraryPath
 		{
-			get {
+			get
+			{
 				if (IsEnginePlugin())
 				{
-					return Path.GetFullPath(Path.Combine(EngineDirectory, "Source/ThirdParty/Leap/Lib"));
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Leap/Lib"));
 				}
 				else
 				{
-					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK", "Lib"));
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK/Lib"));
+				}
+			}
+		}
+
+		private string IncludePath
+		{
+			get
+			{
+				if (IsEnginePlugin())
+				{
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Leap/Include"));
+				}
+				else
+				{
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK/Include"));
 				}
 			}
 		}
@@ -60,7 +82,6 @@ namespace UnrealBuildTool.Rules
 
 			PublicIncludePaths.AddRange(
 				new string[] {
-					"LeapMotion/Public",
 					// ... add public include paths required here ...
 				}
 				);
@@ -68,7 +89,7 @@ namespace UnrealBuildTool.Rules
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"LeapMotion/Private",
-					Path.Combine(ThirdPartyPath, "LeapSDK", "Include"),
+					IncludePath,
 					// ... add other private include paths required here ...
 				}
 				);
@@ -116,46 +137,70 @@ namespace UnrealBuildTool.Rules
 			return Path.Combine(ModuleDirectory, "../../../..");
 		}
 
+		private int HashFile(string FilePath)
+		{
+			string DLLString = File.ReadAllText(FilePath);
+			return DLLString.GetHashCode() + DLLString.Length;	//ensure both hash and file lengths match
+		}
+
 		private void CopyToProjectBinaries(string Filepath, ReadOnlyTargetRules Target)
 		{
-			System.Console.WriteLine("uprojectpath is: " + Path.GetFullPath(GetUProjectPath()));
+			//System.Console.WriteLine("uprojectpath is: " + Path.GetFullPath(GetUProjectPath()));
 
-			string binariesDir = Path.Combine(GetUProjectPath(), "Binaries", Target.Platform.ToString());
-			string filename = Path.GetFileName(Filepath);
+			string BinariesDir = Path.Combine(GetUProjectPath(), "Binaries", Target.Platform.ToString());
+			string Filename = Path.GetFileName(Filepath);
 
-			//convert relative path
-			string fullBinariesDir = Path.GetFullPath(binariesDir);
+			//convert relative path 
+			string FullBinariesDir = Path.GetFullPath(BinariesDir);
 
-			if (!Directory.Exists(fullBinariesDir))
-				Directory.CreateDirectory(fullBinariesDir);
-
-			if (!File.Exists(Path.Combine(fullBinariesDir, filename)))
+			if (!Directory.Exists(FullBinariesDir))
 			{
-				System.Console.WriteLine("LeapPlugin: Copied from " + Filepath + ", to " + Path.Combine(fullBinariesDir, filename));
-				File.Copy(Filepath, Path.Combine(fullBinariesDir, filename), true);
+				Directory.CreateDirectory(FullBinariesDir);
+			}
+
+			string FullExistingPath = Path.Combine(FullBinariesDir, Filename);
+			bool ValidFile = false;
+
+			//File exists, check if they're the same
+			if (File.Exists(FullExistingPath))
+			{
+				int ExistingFileHash = HashFile(FullExistingPath);
+				int TargetFileHash = HashFile(Filepath);
+				ValidFile = ExistingFileHash == TargetFileHash;
+				if (!ValidFile)
+				{
+					System.Console.WriteLine("LeapPlugin: outdated dll detected.");
+				}
+			}
+
+			//No valid existing file found, copy new dll
+			if(!ValidFile)
+			{
+				System.Console.WriteLine("LeapPlugin: Copied from " + Filepath + ", to " + Path.Combine(FullBinariesDir, Filename));
+				File.Copy(Filepath, Path.Combine(FullBinariesDir, Filename), true);
 			}
 		}
 
 		public bool LoadLeapLib(ReadOnlyTargetRules Target)
 		{
-			bool isLibrarySupported = false;
+			bool IsLibrarySupported = false;
 
 			if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
 			{
-				isLibrarySupported = true;
+				IsLibrarySupported = true;
 
 				string PlatformString = Target.Platform.ToString();
 
 				//Lib
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
-				System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+				//System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
 				if (IsEnginePlugin())
 				{
 					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
 
-					System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
+					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
 
 					PublicDelayLoadDLLs.Add("LeapC.dll");
 					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/LeapMotion/" + PlatformString + "/LeapC.dll");
@@ -178,7 +223,7 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				isLibrarySupported = false;	//Not supported since Leap SDK 3.0
+				IsLibrarySupported = false;	//Not supported since Leap SDK 3.0
 
 				string PlatformString = "Mac";
 				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeap.dylib"));
@@ -186,7 +231,7 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
-				isLibrarySupported = true;
+				IsLibrarySupported = true;
 
 				System.Console.WriteLine(Target.Architecture);    //doesn't work
 
@@ -199,7 +244,7 @@ namespace UnrealBuildTool.Rules
 				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "LeapMotion_APL.xml"));
 			}
 
-			return isLibrarySupported;
+			return IsLibrarySupported;
 		}
 	}
 }

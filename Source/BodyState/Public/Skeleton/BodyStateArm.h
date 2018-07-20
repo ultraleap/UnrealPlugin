@@ -1,7 +1,8 @@
-// MIT
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
-#include "BodyStateBone.h"
+
+#include "Skeleton/BodyStateBone.h"
 #include "BodyStateArm.generated.h"
 
 /** Convenience BodyState wrapper around finger bones*/

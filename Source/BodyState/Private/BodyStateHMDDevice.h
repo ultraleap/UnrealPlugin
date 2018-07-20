@@ -1,6 +1,8 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
-#include "BodyStatePrivatePCH.h"
+#include "BodyStateInputInterface.h"
 #include "BodyStateDeviceConfig.h"
 
 
@@ -10,6 +12,10 @@ public:
 	FBodyStateHMDDevice();
 	virtual ~FBodyStateHMDDevice();
 	int32 HMDDeviceIndex;
+	bool bShouldTrackMotionControllers;
+	float MotionControllerInertialConfidence;
+	float MotionControllerTrackedConfidence;
+
 	FBodyStateDeviceConfig Config;
 
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;

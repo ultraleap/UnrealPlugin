@@ -1,9 +1,10 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "BodyStateEnums.h"
-#include "BodyStateSkeleton.h"
+#include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateAnimInstance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -73,6 +74,10 @@ struct FMappedBoneAnimData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
 	bool bShouldDeformMesh;
 
+	/** List of tags required by the tracking solution for this animation to use that data */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
+	TArray<FString> TrackingTagLimit;
+
 	/** Offset rotation base applied before given rotation (will rotate input) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	FRotator PreBaseRotation;
@@ -97,9 +102,13 @@ struct FMappedBoneAnimData
 		bShouldDeformMesh = true;
 		OffsetTransform.SetScale3D(FVector(1.f));
 		PreBaseRotation = FRotator(ForceInitToZero);
+		TrackingTagLimit.Empty();
 	}
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
+
+	bool BoneHasValidTags(const UBodyStateBone* QueryBone);
+	bool SkeletonHasValidTags();
 };
 
 USTRUCT(BlueprintType)
@@ -153,6 +162,9 @@ public:
 	/** Strings used to identify left or right hand in your rig. Customize if autorig is failing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	FSearchStrings SearchStrings;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> TrackingLimitTags;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	int32 DefaultBodyStateIndex;

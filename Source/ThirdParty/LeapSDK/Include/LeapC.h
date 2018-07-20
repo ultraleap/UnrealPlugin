@@ -1,5 +1,5 @@
 /******************************************************************************\
-* Copyright (C) 2012-2017 Leap Motion, Inc. All rights reserved.               *
+* Copyright (C) 2012-2018 Leap Motion, Inc. All rights reserved.               *
 * Leap Motion proprietary and confidential. Not for distribution.              *
 * Use subject to the terms of the Leap Motion SDK Agreement available at       *
 * https://developer.leapmotion.com/sdk_agreement, or another agreement         *

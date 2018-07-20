@@ -1,7 +1,10 @@
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+
 #include "FLeapMotionPlugin.h"
 #include "FLeapMotionInputDevice.h"
 #include "BodyStateBPLibrary.h"
-#include "Projects.h"
+#include "Runtime/InputDevice/Public/IInputDeviceModule.h"
+#include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
 #include "BodyStateDeviceConfig.h"
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
@@ -111,11 +114,6 @@ void FLeapMotionPlugin::GetLatestFrameData(FLeapFrameData& OutData)
 void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
 	LeapInputDevice->SetLeapPolicy(Flag, Enable);
-}
-
-bool FLeapMotionPlugin::EnableImageStreaming(bool Enable)
-{
-	return LeapInputDevice->EnableImageStreaming(Enable);
 }
 
 void FLeapMotionPlugin::ShutdownLeap()
