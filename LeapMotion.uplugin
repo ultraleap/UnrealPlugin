@@ -10,7 +10,7 @@
 	"DocsURL": "https://github.com/leapmotion/leapunreal",
 	"MarketplaceURL": "",
 	"SupportURL": "",
-	"EnabledByDefault": false,
+	"EnabledByDefault": true,
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"Installed": false,
