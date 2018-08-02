@@ -1,6 +1,8 @@
 LeapUnreal
 ====================
 
+[![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/leapmotion/leapunreal/releases)
+
 The official [Leap Motion](http://www.leapmotion.com) plugin for the Unreal Engine 4. 
 
 You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
