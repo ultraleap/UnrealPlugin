@@ -32,6 +32,13 @@ public:
 
 	static float ScaleLeapFloatToUE(float LeapFloat);
 	static float ScaleUEToLeap(float UEFloat);
+
+
+	static FVector LeapMountTranslationOffset;
+	static FQuat LeapMountRotationOffset;
+	static FQuat FacingAdjustQuat;
+	static FQuat LeapRotationOffset;
+
 };	
 
 class LeapUtilityTimer

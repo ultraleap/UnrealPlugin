@@ -1,18 +1,22 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapUtility.h"
+#include "Engine.h"
 #include "IHeadMountedDisplay.h"
 
 DEFINE_LOG_CATEGORY(LeapMotionLog);
 
+//Static vars
 #define LEAP_TO_UE_SCALE 0.1f
 #define UE_TO_LEAP_SCALE 10.f
 
-FVector LeapMountTranslationOffset = FVector(8.f, 0, 0);
-FQuat LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
 
-FQuat FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
-FQuat LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
+//Defaults - NB: these don't get automatically set in a development context since 4.20
+FVector FLeapUtility::LeapMountTranslationOffset = FVector(8.f, 0, 0);
+FQuat FLeapUtility::LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
+
+FQuat FLeapUtility::FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
+FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 
 //Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
@@ -37,6 +41,10 @@ void FLeapUtility::SetLeapGlobalOffsets(const FVector& TranslationOffset, const 
 {
 	LeapMountTranslationOffset = TranslationOffset;
 	LeapMountRotationOffset = RotationOffset.Quaternion();
+
+	//These need to be set from a call due to static constants not being set since 4.20
+	FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
+	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 }
 
 //Single point to handle leap conversion
@@ -56,12 +64,12 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 	Quat.Z = Quaternion.z;
 	Quat.W = Quaternion.w;
 
-	return Quat * LeapRotationOffset;
+	return Quat * FLeapUtility::LeapRotationOffset;
 }
 
 FVector AdjustForLeapFacing(FVector In)
 {
-	return FacingAdjustQuat.RotateVector(In);
+	return FLeapUtility::FacingAdjustQuat.RotateVector(In);
 }
 
 FVector AdjustForHMD(FVector In)
@@ -72,7 +80,7 @@ FVector AdjustForHMD(FVector In)
 		FVector Position;
 		GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, OrientationQuat, Position);
 		FVector Out = OrientationQuat.RotateVector(In);
-		Position += OrientationQuat.RotateVector(LeapMountTranslationOffset);
+		Position += OrientationQuat.RotateVector(FLeapUtility::LeapMountTranslationOffset);
 		Out += Position;
 		return Out;
 	}
