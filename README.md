@@ -339,7 +339,7 @@ Currently known good settings:
 
 ![Daydream SDK](http://i.imgur.com/1OLST4t.png)
 
-NB: if you pick armv7, ensure you swap to https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/LeapMotion.Build.cs#L152 to use armeabi-v7a (comment 153, uncomment 152)
+NB: if you pick armv7, ensure you swap to https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/LeapMotion.Build.cs#L241 to use armeabi-v7a (comment 242, uncomment 241)
 
 
 #### Example Packaging - Cardboard
