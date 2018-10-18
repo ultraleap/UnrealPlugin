@@ -24,17 +24,11 @@ See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-
 # How to use it - Convenience Rigged Pawn
 
 ### VR - Example Pawn
-After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with a Vive, it expects the pawn camera to be at the floor which is it's tracking origin. 
+After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
 [![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
 
 *NB: click the gif for a higher resolution video*
-
-If you're using Oculus, you may wish to adjust the LeapHandsPawn offset or the MoveUpVector to match your expected origin if different than default.
-
-If you're using the mobile platform exclusively, place the pawn where you head is and disable *Move Up for Mobile VR*.
-
-If you're using multiple platforms, place the pawn at the floor and leave *Move Up for Mobile VR* on.
 
 ### Desktop - Example Actor
 After the plugin is enabled, find *Leap Desktop Actor* in your content browser (plugin content enabled) and place it anywhere in your scene. When you hit play your hands will be tracked from the actor center with the sensor expected to be facing upwards.
