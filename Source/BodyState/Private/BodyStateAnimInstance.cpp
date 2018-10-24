@@ -3,6 +3,8 @@
 #include "BodyStateAnimInstance.h"
 #include "BodyStateUtility.h"
 #include "BodyStateBPLibrary.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "BodyStateSelectorComponent.h"
 
 
 UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer)
@@ -478,8 +480,24 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	//Get our default bodystate skeleton
-	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+	//Get our BodyState skeleton
+	UBodyStateSkeleton* Skeleton = nullptr;
+	AActor* Owner = GetOwningComponent()->GetOwner();
+	if (Owner->IsValidLowLevel())
+	{
+		UBodyStateSelectorComponent* Selector = Cast<UBodyStateSelectorComponent>(Owner->GetComponentByClass(UBodyStateSelectorComponent::StaticClass()));
+		if (Selector)
+		{
+			Skeleton = Selector->Skeleton;
+		}
+	}
+
+	//Failed to find selector, use local device
+	if(!Skeleton)
+	{
+		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+	}
+	
 	SetAnimSkeleton(Skeleton);
 
 	//Try to auto-detect our bones

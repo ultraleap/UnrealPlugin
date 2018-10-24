@@ -497,20 +497,3 @@ void UBodyStateSkeleton::ClearConfidence()
 	//Clear from root bone
 	Bones[0]->SetTrackingConfidenceRecursively(0.f);
 }
-
-bool UBodyStateSkeleton::ServerUpdateBodyState_Validate(FNamedSkeletonData BodyState)
-{
-	return true;
-}
-
-void UBodyStateSkeleton::ServerUpdateBodyState_Implementation(const FNamedSkeletonData InBodyStateSkeleton)
-{
-	// Multi cast to everybody
-	Multi_UpdateBodyState(InBodyStateSkeleton);
-}
-
-void UBodyStateSkeleton::Multi_UpdateBodyState_Implementation(const FNamedSkeletonData InBodyStateSkeleton)
-{
-	SetFromNamedSkeletonData(InBodyStateSkeleton);
-	Name = TEXT("Network");
-}
