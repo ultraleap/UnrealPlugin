@@ -542,6 +542,11 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 		SetAnimSkeleton(BodyStateSkeleton);  
 	}
+
+	if (BodyStateSkeleton)
+	{
+		BodyStateSkeleton->bTrackingActive = !bFreezeTracking;
+	}
 }
 
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
