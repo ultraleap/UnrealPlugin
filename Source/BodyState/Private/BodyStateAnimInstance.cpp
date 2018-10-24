@@ -481,11 +481,16 @@ void UBodyStateAnimInstance::SetBodyStateSkeletonFromSelector()
 	AActor* Owner = GetOwningComponent()->GetOwner();
 	if (Owner->IsValidLowLevel())
 	{
-		UBodyStateSelectorComponent* Selector = Cast<UBodyStateSelectorComponent>(Owner->GetComponentByClass(UBodyStateSelectorComponent::StaticClass()));
+		UActorComponent* Component = Owner->GetComponentByClass(UBodyStateSelectorComponent::StaticClass());
+		UBodyStateSelectorComponent* Selector = Cast<UBodyStateSelectorComponent>(Component);
 		if (Selector)
 		{
-			//Bind to updates
-			Selector->OnSkeletonChanged.AddDynamic(this, &UBodyStateAnimInstance::SkeletonChanged);
+			UWorld* World = GetWorld();
+			//Bind to updates but only in game worlds
+			if (World && World->IsGameWorld())
+			{
+				Selector->OnSkeletonChanged.AddDynamic(this, &UBodyStateAnimInstance::SkeletonChanged);
+			}
 
 			//Set current
 			Skeleton = Selector->Skeleton;
@@ -618,7 +623,7 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 		return One.MeshBone.BoneIndex < Two.MeshBone.BoneIndex;
 	});
 
-	UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
+	//UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
 }
 
 bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)

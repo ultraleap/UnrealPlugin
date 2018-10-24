@@ -28,7 +28,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "BS Selector")
 	FBodyStateSkeletonSignature OnSkeletonChanged;
 
-	UPROPERTY(BlueprintReadOnly, Category = "BS Selector")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Selector")
 	UBodyStateSkeleton* Skeleton;
 
 	/** Force local, force network, or auto (default)*/
