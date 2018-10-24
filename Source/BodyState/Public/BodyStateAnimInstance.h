@@ -148,6 +148,10 @@ class UBodyStateAnimInstance : public UAnimInstance
 public:
 	GENERATED_UCLASS_BODY()
 
+	/** Toggle to freeze the tracking at current state. Useful for debugging your anim instance*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BS Anim Instance - Debug")
+	bool bFreezeTracking;
+
 	/** Whether the anim instance should autodetect and fill the bonemap on anim init*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bAutoDetectBoneMapAtInit;

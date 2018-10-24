@@ -72,6 +72,10 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	FString Name;
 
+	/** If tracking is active or frozen (useful for debugging)*/
+	UPROPERTY(BlueprintReadWrite, Category = "BodyState Skeleton")
+	bool bTrackingActive;
+
 	/** Id issued to this skeleton, useful for getting device information */
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	int32 SkeletonId;

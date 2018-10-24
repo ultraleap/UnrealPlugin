@@ -133,6 +133,11 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 	//Basic merge of skeleton data
 	MergedSkeleton();
 
+	if (!PrivateMergedSkeleton->bTrackingActive)
+	{
+		return;
+	}
+
 	//Reset our confidence
 	PrivateMergedSkeleton->ClearConfidence();
 	PrivateMergedSkeleton->TrackingTags.Empty();

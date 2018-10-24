@@ -418,6 +418,11 @@ void UBodyStateSkeleton::SetFromNamedSkeletonData(const FNamedSkeletonData& Name
 //Not fully deep copy atm, but usable
 void UBodyStateSkeleton::SetFromOtherSkeleton(UBodyStateSkeleton* Other)
 {
+	if (!bTrackingActive)
+	{
+		return;
+	}
+
 	for (int i = 0; i < Bones.Num(); i++)
 	{
 		UBodyStateBone* OtherBone = Other->Bones[i];
@@ -431,6 +436,11 @@ void UBodyStateSkeleton::SetFromOtherSkeleton(UBodyStateSkeleton* Other)
 
 void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 {
+	if (!bTrackingActive)
+	{
+		return;
+	}
+
 	if (!Other->IsTrackingAnyBone())
 	{
 		return;
