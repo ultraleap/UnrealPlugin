@@ -36,6 +36,8 @@ void UBodyStateSelectorComponent::SyncSkeletonAndAuthority()
 	//Who are we owned by? cache authority and replication status
 	bReplicatesSkeleton = false;
 	bHasAuthority = true;
+	UBodyStateSkeleton* OldSkeleton = Skeleton;
+
 	AActor* Owner = GetOwner();
 	if (!Owner)
 	{
@@ -65,6 +67,11 @@ void UBodyStateSelectorComponent::SyncSkeletonAndAuthority()
 		{
 			Skeleton = NewObject<UBodyStateSkeleton>(this);
 		}
+	}
+
+	if (Skeleton != OldSkeleton)
+	{
+		OnSkeletonChanged.Broadcast(Skeleton);
 	}
 }
 

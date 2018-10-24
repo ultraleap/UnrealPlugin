@@ -4,9 +4,8 @@
 
 #include "Runtime/Engine/Classes/Components/ActorComponent.h"
 #include "Skeleton/BodyStateSkeleton.h"
+#include "BodyStateEnums.h"
 #include "BodyStateEstimatorComponent.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBodyStateSkeletonSignature, UBodyStateSkeleton*, Skeleton);
 
 /** 
 * Offers an estimation event with a skeleton which will be applied to the merged bodystate.

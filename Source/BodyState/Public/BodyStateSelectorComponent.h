@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BodyStateSkeleton.h"
+#include "BodyStateEnums.h"
 #include "BodyStateSelectorComponent.generated.h"
 
 UENUM(BlueprintType, Category = "BS Enums")
@@ -23,6 +24,9 @@ class BODYSTATE_API UBodyStateSelectorComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UBodyStateSelectorComponent();
+
+	UPROPERTY(BlueprintAssignable, Category = "BS Selector")
+	FBodyStateSkeletonSignature OnSkeletonChanged;
 
 	UPROPERTY(BlueprintReadOnly, Category = "BS Selector")
 	UBodyStateSkeleton* Skeleton;

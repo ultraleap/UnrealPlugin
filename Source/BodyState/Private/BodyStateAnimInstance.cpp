@@ -475,12 +475,8 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	return ReferenceMap;
 }
 
-
-void UBodyStateAnimInstance::NativeInitializeAnimation()
+void UBodyStateAnimInstance::SetBodyStateSkeletonFromSelector()
 {
-	Super::NativeInitializeAnimation();
-
-	//Get our BodyState skeleton
 	UBodyStateSkeleton* Skeleton = nullptr;
 	AActor* Owner = GetOwningComponent()->GetOwner();
 	if (Owner->IsValidLowLevel())
@@ -488,17 +484,38 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 		UBodyStateSelectorComponent* Selector = Cast<UBodyStateSelectorComponent>(Owner->GetComponentByClass(UBodyStateSelectorComponent::StaticClass()));
 		if (Selector)
 		{
+			//Bind to updates
+			Selector->OnSkeletonChanged.AddDynamic(this, &UBodyStateAnimInstance::SkeletonChanged);
+
+			//Set current
 			Skeleton = Selector->Skeleton;
 		}
 	}
 
 	//Failed to find selector, use local device
-	if(!Skeleton)
+	if (!Skeleton)
 	{
 		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 	}
-	
+
+	BodyStateSkeleton = Skeleton;
 	SetAnimSkeleton(Skeleton);
+}
+
+void UBodyStateAnimInstance::SkeletonChanged(UBodyStateSkeleton* NewSkeleton)
+{
+	BodyStateSkeleton = NewSkeleton;
+	SetAnimSkeleton(NewSkeleton);
+}
+
+
+
+void UBodyStateAnimInstance::NativeInitializeAnimation()
+{
+	Super::NativeInitializeAnimation();
+
+	//Get our BodyState skeleton
+	SetBodyStateSkeletonFromSelector();
 
 	//Try to auto-detect our bones
 	if (bAutoDetectBoneMapAtInit)
@@ -538,8 +555,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	//Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-		SetAnimSkeleton(BodyStateSkeleton);	//this will sync all the bones
+		SetBodyStateSkeletonFromSelector();
 	}
 	else
 	{
