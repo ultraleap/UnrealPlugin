@@ -200,7 +200,7 @@ static void SetLeapMode(ELeapMode Mode, ELeapTrackingFidelity Fidelity = ELeapTr
 
 #### Set Leap Options
 
-Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L108).
+Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L119).
 ```c++
 static void SetLeapOptions(const FLeapOptions& Options);
 ```
@@ -208,7 +208,7 @@ If tracking fidelity is set to custom, passed in ```TimewarpOffset```, ```Timewa
 
 #### Get Leap Options
 
-Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L108).
+Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L119).
 
 ```c++
 static void GetLeapOptions(FLeapOptions& OutOptions);
