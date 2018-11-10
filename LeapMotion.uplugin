@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "3.0.2",
+	"VersionName": "3.1.0",
 	"FriendlyName": "Leap Motion Plugin",
 	"Description": "Support for the Leap Motion input device.",
 	"Category": "Input Devices",
