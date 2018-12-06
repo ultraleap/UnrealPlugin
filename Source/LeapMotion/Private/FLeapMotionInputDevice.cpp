@@ -137,8 +137,9 @@ void FLeapMotionInputDevice::OnConnectionLost()
 
 void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 {
-	SetOptions(Options);
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
+	SetOptions(Options);
+
 	LeapImageHandler->Reset();
 
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
@@ -975,19 +976,19 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 				{
 					Options.bUseTimeWarp = true;
 					Options.bUseInterpolation = true;
-					Options.TimewarpOffset = 2000;
-					Options.TimewarpFactor = 1.f;
-					Options.HandInterpFactor = -1.2f;
-					Options.FingerInterpFactor = -1.2f;
+					Options.TimewarpOffset = 9500;
+					Options.TimewarpFactor = -1.f;
+					Options.HandInterpFactor = -1.6f;
+					Options.FingerInterpFactor = -1.6f;
 				}
 				else
 				{
-					Options.bUseTimeWarp = true;
+					Options.bUseTimeWarp = false;
 					Options.bUseInterpolation = true;
-					Options.TimewarpOffset = 0;
-					Options.TimewarpFactor = 1.f;
-					Options.HandInterpFactor = -0.8f;
-					Options.FingerInterpFactor = -0.8f;
+					Options.TimewarpOffset = 10000;
+					Options.TimewarpFactor = -1.f;
+					Options.HandInterpFactor = -0.75f;
+					Options.FingerInterpFactor = -0.75f;
 				}
 				break;
 			case ELeapTrackingFidelity::LEAP_CUSTOM:
