@@ -970,6 +970,26 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 				Options.HandInterpFactor = -1.f;
 				Options.FingerInterpFactor = -1.f;
 				break;
+			case ELeapTrackingFidelity::LEAP_WIRELESS:
+				if (Stats.DeviceInfo.PID == TEXT("Peripheral"))
+				{
+					Options.bUseTimeWarp = true;
+					Options.bUseInterpolation = true;
+					Options.TimewarpOffset = 2000;
+					Options.TimewarpFactor = 1.f;
+					Options.HandInterpFactor = -1.2f;
+					Options.FingerInterpFactor = -1.2f;
+				}
+				else
+				{
+					Options.bUseTimeWarp = true;
+					Options.bUseInterpolation = true;
+					Options.TimewarpOffset = 0;
+					Options.TimewarpFactor = 1.f;
+					Options.HandInterpFactor = -0.8f;
+					Options.FingerInterpFactor = -0.8f;
+				}
+				break;
 			case ELeapTrackingFidelity::LEAP_CUSTOM:
 				break;
 			default:
