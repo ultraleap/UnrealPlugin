@@ -232,6 +232,11 @@ Change leap policy. See [Leap Policies](https://developer.leapmotion.com/documen
 static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 ```
 
+## Wireless Adapter
+
+If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https://www.vive.com/us/wireless-adapter/) you need to adjust the timewarp settings via ```SetLeapOptions```. Change only the tracking Fidelity to ```Leap Wireless``` on e.g. begin play and then the plugin should correctly compensate for the increased latency from the wireless link.
+
+![setting wireless fidelity](https://i.imgur.com/v0yOqaL.png)
 
 ## Custom Rigging
 
