@@ -923,6 +923,9 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	//Set main options
 	Options = InOptions;
 
+	//Cache device type
+	FString DeviceType = Stats.DeviceInfo.PID;
+
 	//If our tracking fidelity is not custom, set the parameters to good defaults for each platform
 	if (InOptions.TrackingFidelity == ELeapTrackingFidelity::LEAP_CUSTOM)
 	{
@@ -972,7 +975,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 				Options.FingerInterpFactor = -1.f;
 				break;
 			case ELeapTrackingFidelity::LEAP_WIRELESS:
-				if (Stats.DeviceInfo.PID == TEXT("Peripheral"))
+				if (DeviceType == TEXT("Peripheral"))
 				{
 					Options.bUseTimeWarp = true;
 					Options.bUseInterpolation = true;
@@ -1024,14 +1027,21 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 				
 				break;
 			case ELeapTrackingFidelity::LEAP_NORMAL:
-
+				if (DeviceType == TEXT("Peripheral"))
+				{
+					Options.TimewarpOffset = 20000;
+				}
+				else
+				{
+					Options.TimewarpOffset = 25000;
+				}
 				Options.bUseTimeWarp = true;
 				Options.bUseInterpolation = true;
-				Options.TimewarpOffset = 20000;
 				Options.TimewarpFactor = -1.f;
 				Options.HandInterpFactor = 0.f;
 				Options.FingerInterpFactor = 0.f;
 				break;
+
 			case ELeapTrackingFidelity::LEAP_SMOOTH:
 				Options.bUseTimeWarp = true;
 				Options.bUseInterpolation = true;
@@ -1046,6 +1056,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 				break;
 			}
 		}
+
 		//Cardboard and Daydream
 		else if (HMDType == TEXT("FGoogleVRHMD"))
 		{
