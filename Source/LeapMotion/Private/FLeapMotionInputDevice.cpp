@@ -1013,7 +1013,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 			case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
 				Options.bUseTimeWarp = true;
 				Options.bUseInterpolation = true;
-				Options.TimewarpOffset = 24000;
+				Options.TimewarpOffset = 16000;
 				Options.TimewarpFactor = -1.f;
 				Options.HandInterpFactor = 0.5;
 				Options.FingerInterpFactor = 0.5f;
@@ -1023,7 +1023,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 
 				Options.bUseTimeWarp = true;
 				Options.bUseInterpolation = true;
-				Options.TimewarpOffset = 29000;
+				Options.TimewarpOffset = 20000;
 				Options.TimewarpFactor = -1.f;
 				Options.HandInterpFactor = 0.f;
 				Options.FingerInterpFactor = 0.f;
@@ -1031,7 +1031,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 			case ELeapTrackingFidelity::LEAP_SMOOTH:
 				Options.bUseTimeWarp = true;
 				Options.bUseInterpolation = true;
-				Options.TimewarpOffset = 35000;
+				Options.TimewarpOffset = 26000;
 				Options.TimewarpFactor = -1.f;
 				Options.HandInterpFactor = -1.f;
 				Options.FingerInterpFactor = -1.f;
