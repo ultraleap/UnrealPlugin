@@ -1007,6 +1007,10 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 				FVector OculusOffset = FVector(8.0, 0, 0);
 				Options.HMDPositionOffset = OculusOffset;
 			}
+			if (InOptions.HMDRotationOffset.IsNearlyZero())
+			{
+				Options.HMDRotationOffset = FRotator(-4, 0, 0);	//typically oculus mounts sag a tiny bit
+			}
 
 			switch (InOptions.TrackingFidelity)
 			{
