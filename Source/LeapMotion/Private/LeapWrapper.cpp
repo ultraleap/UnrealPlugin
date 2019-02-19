@@ -49,9 +49,9 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 {
 	SetCallbackDelegate(InCallbackDelegate);
 
-	LEAP_CONNECTION_CONFIG Config;
+	//LEAP_CONNECTION_CONFIG Config;
 
-	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
+	eLeapRS result = LeapCreateConnection(NULL, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
 		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success) {
