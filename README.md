@@ -9,6 +9,10 @@ You can use convenience blueprints to just select and play or use a custom appro
 
 See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-Leap-Motion-Event-Driven) for version downloads and development updates.
 
+# Multi-device branch
+
+Requires [4.0.0-52238 runtime](https://github.com/leapmotion/UnityModules/raw/feat-multi-device/Multidevice%20Service/LeapDeveloperKit_4.0.0%2B52238_win.zip)
+
 
 # Setup
 
