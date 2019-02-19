@@ -87,6 +87,7 @@ void FLeapWrapper::CloseConnection()
 	FTimespan ExitWaitTimeSpan = FTimespan::FromSeconds(3);
 
 	ProducerLambdaFuture.WaitFor(ExitWaitTimeSpan);
+	ProducerLambdaFuture.Reset();
 	
 	//Nullify the callback delegate. Any outstanding task graphs will not run if the delegate is nullified.
 	CallbackDelegate = nullptr;
