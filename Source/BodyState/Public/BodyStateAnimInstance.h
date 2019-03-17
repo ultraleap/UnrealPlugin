@@ -213,6 +213,12 @@ public:
 protected:
 
 	
+	void SetBodyStateSkeletonFromSelector();
+
+	/** Bodystate Selector callback */
+	UFUNCTION()
+	void SkeletonChanged(UBodyStateSkeleton* NewSkeleton);
+	
 	// traverse a bone index node until you hit -1, count the hops
 	int32 TraverseLengthForIndex(int32 Index);
 	void AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex, TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger = 3);

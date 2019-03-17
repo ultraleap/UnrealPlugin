@@ -4,6 +4,8 @@
 
 #include "BodyStateEnums.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBodyStateSkeletonSignature, UBodyStateSkeleton*, Skeleton);
+
 UENUM(BlueprintType, Category = "BS Enums")
 enum class EBodyStateHandType : uint8
 {

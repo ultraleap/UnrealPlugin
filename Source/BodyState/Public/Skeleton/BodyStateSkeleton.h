@@ -163,13 +163,6 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 
 	void ClearConfidence();
 
-	//Replication
-	UFUNCTION(Unreliable, Server, WithValidation)
-	void ServerUpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multi_UpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
-
 	FCriticalSection BoneDataLock;
 
 protected:

@@ -3,6 +3,8 @@
 #include "BodyStateAnimInstance.h"
 #include "BodyStateUtility.h"
 #include "BodyStateBPLibrary.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "BodyStateSelectorComponent.h"
 
 
 UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer)
@@ -473,14 +475,52 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	return ReferenceMap;
 }
 
+void UBodyStateAnimInstance::SetBodyStateSkeletonFromSelector()
+{
+	UBodyStateSkeleton* Skeleton = nullptr;
+	AActor* Owner = GetOwningComponent()->GetOwner();
+	if (Owner->IsValidLowLevel())
+	{
+		UActorComponent* Component = Owner->GetComponentByClass(UBodyStateSelectorComponent::StaticClass());
+		UBodyStateSelectorComponent* Selector = Cast<UBodyStateSelectorComponent>(Component);
+		if (Selector)
+		{
+			UWorld* World = GetWorld();
+			//Bind to updates but only in game worlds
+			if (World && World->IsGameWorld())
+			{
+				Selector->OnSkeletonChanged.AddDynamic(this, &UBodyStateAnimInstance::SkeletonChanged);
+			}
+
+			//Set current
+			Skeleton = Selector->Skeleton;
+		}
+	}
+
+	//Failed to find selector, use local device
+	if (!Skeleton)
+	{
+		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+	}
+
+	BodyStateSkeleton = Skeleton;
+	SetAnimSkeleton(Skeleton);
+}
+
+void UBodyStateAnimInstance::SkeletonChanged(UBodyStateSkeleton* NewSkeleton)
+{
+	BodyStateSkeleton = NewSkeleton;
+	SetAnimSkeleton(NewSkeleton);
+}
+
+
 
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	//Get our default bodystate skeleton
-	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-	SetAnimSkeleton(Skeleton);
+	//Get our BodyState skeleton
+	SetBodyStateSkeletonFromSelector();
 
 	//Try to auto-detect our bones
 	if (bAutoDetectBoneMapAtInit)
@@ -520,8 +560,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	//Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-		SetAnimSkeleton(BodyStateSkeleton);	//this will sync all the bones
+		SetBodyStateSkeletonFromSelector();
 	}
 	else
 	{
@@ -584,7 +623,7 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 		return One.MeshBone.BoneIndex < Two.MeshBone.BoneIndex;
 	});
 
-	UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
+	//UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
 }
 
 bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
