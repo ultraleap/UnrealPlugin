@@ -66,7 +66,7 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 			//enum motion controllers
 			TArray<IMotionController*> MotionControllers = IModularFeatures::Get().GetModularFeatureImplementations<IMotionController>(IMotionController::GetModularFeatureName());
 
-			FRotator OrientationRot;
+			FRotator OrientationRot = FRotator(0.f,0.f,0.f);
 			FTransform HandTransform;
 			LeftHand->Meta.Confidence = 0.f;
 			RightHand->Meta.Confidence = 0.f;

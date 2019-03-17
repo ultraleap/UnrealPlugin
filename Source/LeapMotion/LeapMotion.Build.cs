@@ -88,7 +88,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"LeapMotion/Private",
+					Path.Combine(ModuleDirectory, "Private"),
 					IncludePath,
 					// ... add other private include paths required here ...
 				}

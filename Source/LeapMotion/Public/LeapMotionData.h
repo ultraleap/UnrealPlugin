@@ -28,10 +28,11 @@ enum class ELeapImageType :uint8
 UENUM(BlueprintType)
 enum ELeapTrackingFidelity
 {
+	LEAP_CUSTOM,
 	LEAP_LOW_LATENCY,
 	LEAP_NORMAL,
 	LEAP_SMOOTH,
-	LEAP_CUSTOM
+	LEAP_WIRELESS
 };
 
 UENUM(BlueprintType)

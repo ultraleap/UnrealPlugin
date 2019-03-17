@@ -3,6 +3,7 @@
 #include "LeapWrapper.h"
 #include "LeapC.h"
 #include "LeapAsync.h"
+#include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
 
@@ -48,6 +49,9 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 {
 	SetCallbackDelegate(InCallbackDelegate);
 
+	//Don't use config for now
+	//LEAP_CONNECTION_CONFIG Config;
+
 	eLeapRS result = LeapCreateConnection(NULL, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
 		result = LeapOpenConnection(ConnectionHandle);
@@ -81,7 +85,10 @@ void FLeapWrapper::CloseConnection()
 	CleanupLastDevice();
 
 	//Wait for thread to exit - Blocking call, but it should be very quick.
-	ProducerLambdaFuture.Wait();
+	FTimespan ExitWaitTimeSpan = FTimespan::FromSeconds(3);
+
+	ProducerLambdaFuture.WaitFor(ExitWaitTimeSpan);
+	ProducerLambdaFuture.Reset();
 	
 	//Nullify the callback delegate. Any outstanding task graphs will not run if the delegate is nullified.
 	CallbackDelegate = nullptr;
@@ -510,7 +517,7 @@ void FLeapWrapper::ServiceMessageLoop(void * Unused)
 				break;
 			default:
 				//discard unknown message types
-				//UE_LOG(LeapMotionLog, Log, TEXT("Unhandled message type %i."), (int32)msg.type);
+				//UE_LOG(LeapMotionLog, Log, TEXT("Unhandled message type %i."), (int32)Msg.type);
 				break;
 		} //switch on msg.type
 	}//end while running

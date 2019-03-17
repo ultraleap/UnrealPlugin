@@ -23,14 +23,16 @@ See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-
 
 # How to use it - Convenience Rigged Pawn
 
-### VR - Example Pawn
+Use one of the following methods
+
+### Option 1. VR Mode- Example Pawn
 After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
 [![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
 
 *NB: click the gif for a higher resolution video*
 
-### Desktop - Example Actor
+### Option 2. Desktop Mode - Example Actor
 After the plugin is enabled, find *Leap Desktop Actor* in your content browser (plugin content enabled) and place it anywhere in your scene. When you hit play your hands will be tracked from the actor center with the sensor expected to be facing upwards.
 
 ## Gestures
@@ -200,7 +202,7 @@ static void SetLeapMode(ELeapMode Mode, ELeapTrackingFidelity Fidelity = ELeapTr
 
 #### Set Leap Options
 
-Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L108).
+Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L119).
 ```c++
 static void SetLeapOptions(const FLeapOptions& Options);
 ```
@@ -208,7 +210,7 @@ If tracking fidelity is set to custom, passed in ```TimewarpOffset```, ```Timewa
 
 #### Get Leap Options
 
-Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L108).
+Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L119).
 
 ```c++
 static void GetLeapOptions(FLeapOptions& OutOptions);
@@ -230,6 +232,11 @@ Change leap policy. See [Leap Policies](https://developer.leapmotion.com/documen
 static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 ```
 
+## Wireless Adapter
+
+If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https://www.vive.com/us/wireless-adapter/) you need to adjust the timewarp settings via ```SetLeapOptions```. Change only the tracking Fidelity to ```Leap Wireless``` on e.g. begin play and then the plugin should correctly compensate for the increased latency from the wireless link.
+
+![setting wireless fidelity](https://i.imgur.com/v0yOqaL.png)
 
 ## Custom Rigging
 
