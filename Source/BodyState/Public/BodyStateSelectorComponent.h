@@ -49,8 +49,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "BS Selector")
 	bool bReplicatesSkeleton;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Flag)
-	FNamedSkeletonData ReplicatedStruct;
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_NamedSkeletonData)
+	FNamedSkeletonData MinimalSkeletalData;
 
 protected:
 	// Called when the game starts
@@ -59,6 +59,10 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	APawn* OwningPawn;
+	ENetMode NetMode;
+
+	UFUNCTION()
+	void OnRep_NamedSkeletonData();
 
 	//Replication
 	UFUNCTION(Unreliable, Server, WithValidation)
