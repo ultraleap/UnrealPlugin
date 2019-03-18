@@ -3,7 +3,7 @@
 #include "BodyStateSelectorComponent.h"
 #include "BodyStateBPLibrary.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
-
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 
 // Sets default values for this component's properties
 UBodyStateSelectorComponent::UBodyStateSelectorComponent()
@@ -14,7 +14,8 @@ UBodyStateSelectorComponent::UBodyStateSelectorComponent()
 	Skeleton = nullptr;
 	SkeletonType = EBSSkeletonType::BSSkeletonType_Auto;
 	DeviceId = 0;
-	bReplicates = false;
+	bReplicates = true;
+	OwningPawn = nullptr;
 }
 
 
@@ -35,18 +36,20 @@ void UBodyStateSelectorComponent::SyncSkeletonAndAuthority()
 {
 	//Who are we owned by? cache authority and replication status
 	bReplicatesSkeleton = false;
-	bHasAuthority = true;
+	bIsLocallyControlled = true;
 	UBodyStateSkeleton* OldSkeleton = Skeleton;
 
-	AActor* Owner = GetOwner();
-	if (!Owner)
+	OwningPawn = Cast<APawn>(GetOwner());
+	if (!OwningPawn)
 	{
 		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 		return;
 	}
 
 	//Sync authority
-	bHasAuthority = Owner->HasAuthority();
+	UE_LOG(LogTemp, Log, TEXT("SyncSkeletonAndAuthorityRole: %d"), (int32)OwningPawn->Role);
+	
+	bIsLocallyControlled = OwningPawn->IsLocallyControlled(); //Owner->Role == ENetRole::ROLE_Authority || Owner->Role == ENetRole::ROLE_AutonomousProxy;
 
 	//Local only, won't ever replicate
 	if (SkeletonType == EBSSkeletonType::BSSkeletonType_Local)
@@ -57,17 +60,21 @@ void UBodyStateSelectorComponent::SyncSkeletonAndAuthority()
 	else
 	{
 		//owner? we will be replicating outward
-		if (bHasAuthority)
+		if (bIsLocallyControlled)
 		{
 			bReplicatesSkeleton = true;
 			Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 		}
 		//I'll be receiving skeleton data
-		else if(!Skeleton)
-		{
-			Skeleton = NewObject<UBodyStateSkeleton>(this);
+		//else if(!Skeleton)
+		else{
+			Skeleton = NewObject<UBodyStateSkeleton>(this, TEXT("NRBodyStateSkeleton"));
+			Skeleton->Name = TEXT("NetworkReplicated");
+			Skeleton->SkeletonId = -1;
 		}
 	}
+
+	bReplicates = bReplicatesSkeleton;
 
 	if (Skeleton != OldSkeleton)
 	{
@@ -87,6 +94,7 @@ void UBodyStateSelectorComponent::UninitializeComponent()
 
 void UBodyStateSelectorComponent::ServerUpdateBodyState_Implementation(const FNamedSkeletonData InBodyStateSkeleton)
 {
+	UE_LOG(LogTemp, Log, TEXT("Server : %d, %s %s"), bIsLocallyControlled, *Skeleton->Name, *UKismetSystemLibrary::GetDisplayName(GetOwner()));
 	// Multi cast to everybody
 	Multi_UpdateBodyState(InBodyStateSkeleton);
 }
@@ -98,8 +106,23 @@ void UBodyStateSelectorComponent::Multi_UpdateBodyState_Implementation(const FNa
 		UE_LOG(LogTemp, Warning, TEXT("Multi_UpdateBodyState_Implementation: Skeleton not ready, skipping update"));
 		return;
 	}
+	if (bIsLocallyControlled)
+	{
+		//We should not update ourselves
+		return;
+	}
 	Skeleton->SetFromNamedSkeletonData(InBodyStateSkeleton);
-	Skeleton->Name = TEXT("Network");
+	Skeleton->Name = TEXT("ActivelyNetworked");
+
+	UE_LOG(LogTemp, Log, TEXT("receiving data to: %d, %s %s"), bIsLocallyControlled, *Skeleton->Name, *(UKismetSystemLibrary::GetDisplayName(GetOwner()) ));
+
+	//Temp: Reset thumb so we know the data is different from regularly fetched data
+	FBodyStateBoneData Bone;
+	Bone.Alpha = 1.0f;
+
+	Skeleton->SetDataForBone(Bone, EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R);
+	Skeleton->SetDataForBone(Bone, EBodyStateBasicBoneType::BONE_THUMB_1_PROXIMAL_R);
+	Skeleton->SetDataForBone(Bone, EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R);
 }
 
 bool UBodyStateSelectorComponent::ServerUpdateBodyState_Validate(const FNamedSkeletonData InBodyStateSkeleton)
@@ -113,8 +136,20 @@ void UBodyStateSelectorComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//Replicate to other clients
-	if (bReplicatesSkeleton && Skeleton)
+	if (bReplicatesSkeleton && bIsLocallyControlled && Skeleton)
 	{
-		ServerUpdateBodyState_Implementation(Skeleton->GetMinimalNamedSkeletonData());
+		UE_LOG(LogTemp, Log, TEXT("Sending data from: %d, %s %s"), bIsLocallyControlled, *Skeleton->Name, *UKismetSystemLibrary::GetDisplayName(GetOwner()));
+		const FNamedSkeletonData MinimalSkeleton = Skeleton->GetMinimalNamedSkeletonData();
+
+		//update server
+		if (OwningPawn->Role < ROLE_Authority)
+		{
+			ServerUpdateBodyState_Implementation(MinimalSkeleton);
+		}
+		//multicast to everyone
+		else
+		{
+			Multi_UpdateBodyState(MinimalSkeleton);
+		}
 	}
 }

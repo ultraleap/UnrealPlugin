@@ -4,6 +4,7 @@
 #include "BodyStateUtility.h"
 #include "BodyStateBPLibrary.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
 #include "BodyStateSelectorComponent.h"
 
 
@@ -43,6 +44,11 @@ void UBodyStateAnimInstance::SetAnimSkeleton(UBodyStateSkeleton* InSkeleton)
 		//Re-cache our results
 		SyncMappedBoneDataCache(Map);
 	}
+}
+
+void UBodyStateAnimInstance::NativeBeginPlay()
+{
+	SetBodyStateSkeletonFromSelector();
 }
 
 TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
@@ -511,6 +517,9 @@ void UBodyStateAnimInstance::SkeletonChanged(UBodyStateSkeleton* NewSkeleton)
 {
 	BodyStateSkeleton = NewSkeleton;
 	SetAnimSkeleton(NewSkeleton);
+
+	AActor* Owner = GetOwningComponent()->GetOwner();
+	UE_LOG(LogTemp, Log, TEXT("%s %s anim changed skel to %s"), *NewSkeleton->Name, *UKismetSystemLibrary::GetDisplayName(Owner), *UKismetSystemLibrary::GetDisplayName(NewSkeleton));
 }
 
 

@@ -197,7 +197,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	void SetAnimSkeleton(UBodyStateSkeleton* InSkeleton);
-
 	
 	/** Struct containing all variables needed at anim node time */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
@@ -209,6 +208,10 @@ public:
 	//Manual sync
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	void SyncMappedBoneDataCache(UPARAM(ref) FMappedBoneAnimData& InMappedBoneData);
+
+
+	//override begin play
+	virtual void NativeBeginPlay() override;
 
 protected:
 

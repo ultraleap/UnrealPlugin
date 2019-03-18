@@ -41,10 +41,16 @@ public:
 
 	/** Determine if this is an owner or not*/
 	UPROPERTY(BlueprintReadOnly, Category = "BS Selector")
-	bool bHasAuthority;
+	bool bIsLocallyControlled;
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "BS Selector")
+	bool bReplicatesSkeleton;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Flag)
+	FNamedSkeletonData ReplicatedStruct;
 
 protected:
 	// Called when the game starts
@@ -52,14 +58,14 @@ protected:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(BlueprintReadOnly, Category = "BS Selector")
-	bool bReplicatesSkeleton;
+	APawn* OwningPawn;
 
 	//Replication
 	UFUNCTION(Unreliable, Server, WithValidation)
 	void ServerUpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
 
-	UFUNCTION(NetMulticast, Unreliable)
+	//add: Unreliable
+	UFUNCTION(Unreliable, Client)
 	void Multi_UpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
 
 	void SyncSkeletonAndAuthority();
