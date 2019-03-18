@@ -65,6 +65,13 @@ protected:
 	void OnRep_NamedSkeletonData();
 
 	//Replication
+	UFUNCTION(Reliable, Server, WithValidation)
+	void ServerUpdateMinimalData(const FNamedSkeletonData InBodyStateSkeleton);
+
+	virtual bool ServerUpdateMinimalData_Validate(const FNamedSkeletonData InBodyStateSkeleton);
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty> & OutLifetimeProps) const;
+
+	//Replication
 	UFUNCTION(Unreliable, Server, WithValidation)
 	void ServerUpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
 
