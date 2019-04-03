@@ -3,6 +3,7 @@
 #include "LeapWrapper.h"
 #include "LeapC.h"
 #include "LeapAsync.h"
+#include "LeapUtility.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
