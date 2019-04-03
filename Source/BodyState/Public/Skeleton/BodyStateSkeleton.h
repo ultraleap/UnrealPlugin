@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Core.h"
+#include "Runtime/CoreUObject/Public/UObject/CoreNet.h"
 #include "Skeleton/BodyStateBone.h"
 #include "Skeleton/BodyStateArm.h"
 #include "BodyStateEnums.h"

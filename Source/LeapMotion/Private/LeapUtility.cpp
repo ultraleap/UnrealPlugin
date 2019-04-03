@@ -3,6 +3,7 @@
 #include "LeapUtility.h"
 #include "Engine.h"
 #include "IHeadMountedDisplay.h"
+#include "IXRTrackingSystem.h"
 
 DEFINE_LOG_CATEGORY(LeapMotionLog);
 

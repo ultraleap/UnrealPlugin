@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "BodyStateInputInterface.h"
 #include "BodyStateDeviceConfig.h"
 

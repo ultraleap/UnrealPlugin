@@ -3,6 +3,7 @@
 #include "BodyStateBPLibrary.h"
 #include "FBodyState.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "BodyStateUtility.h"
 
 UBodyStateBPLibrary::UBodyStateBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

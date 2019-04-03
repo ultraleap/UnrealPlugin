@@ -4,6 +4,8 @@
 
 #include "IInputDevice.h"
 #include "BodyStateDevice.h"
+#include "BodyStateSkeletonStorage.h"
+#include "BodyStateBoneComponent.h"
 
 class FBodyStateInputDevice : public IInputDevice
 {

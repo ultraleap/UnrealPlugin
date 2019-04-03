@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "Core.h"
+#include "LeapC.h"
+#include "Runtime/Core/Public/HAL/ThreadSafeBool.h"
 #include "LeapMotionData.h"
 #include "IInputDeviceModule.h"
 

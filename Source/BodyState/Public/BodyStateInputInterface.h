@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 #include "BodyStateInputInterface.generated.h"
 
 //For non-uobjects

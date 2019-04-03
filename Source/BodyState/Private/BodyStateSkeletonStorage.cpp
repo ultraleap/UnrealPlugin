@@ -3,6 +3,7 @@
 #include "BodyStateSkeletonStorage.h"
 #include "Skeleton/BodyStateSkeleton.h"
 #include "CoreMinimal.h"
+#include "BodyStateUtility.h"
 
 
 FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()

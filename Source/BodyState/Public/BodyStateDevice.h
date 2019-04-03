@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "BodyStateDeviceConfig.h"
+#include "BodyStateInputInterface.h"
+
 #include "BodyStateDevice.generated.h"
 
 USTRUCT(BlueprintType)

@@ -4,6 +4,7 @@
 #include "IHeadMountedDisplay.h"
 #include "Runtime/HeadMountedDisplay/Public/XRMotionControllerBase.h"
 #include "IXRTrackingSystem.h"
+#include "Skeleton/BodyStateSkeleton.h"
 
 FBodyStateHMDDevice::FBodyStateHMDDevice()
 {

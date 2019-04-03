@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "ILeapMotionPlugin.h"
+
 /** Interface for the passed callback delegate receiving game thread LeapC callbacks */
 class LeapWrapperCallbackInterface
 {

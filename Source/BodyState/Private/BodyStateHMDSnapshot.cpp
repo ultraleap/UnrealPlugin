@@ -5,6 +5,7 @@
 #include "BodyStateHMDSnapshot.h"
 #include "IHeadMountedDisplay.h"
 #include "IXRTrackingSystem.h"
+#include "BodyStateUtility.h"
 
 
 void BSHMDSnapshotHandler::AddCurrentHMDSample(double CustomTimeStamp)
