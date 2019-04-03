@@ -1,7 +1,6 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapWrapper.h"
-#include "LeapC.h"
 #include "LeapAsync.h"
 #include "LeapUtility.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
