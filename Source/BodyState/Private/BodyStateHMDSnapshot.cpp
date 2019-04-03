@@ -1,10 +1,9 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
-
-#pragma once
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateHMDSnapshot.h"
-#include "IHeadMountedDisplay.h"
+#include "BodyStateUtility.h"
 #include "IXRTrackingSystem.h"
+#include "Engine/Engine.h"
 
 
 void BSHMDSnapshotHandler::AddCurrentHMDSample(double CustomTimeStamp)

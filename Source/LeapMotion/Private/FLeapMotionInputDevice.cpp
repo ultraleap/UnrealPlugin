@@ -1,14 +1,15 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "FLeapMotionInputDevice.h"
-#include "IHeadMountedDisplay.h"
+#include "Engine/Engine.h"
+#include "IXRTrackingSystem.h"
 #include "LeapAsync.h"
 #include "LeapComponent.h"
 #include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateBPLibrary.h"
 #include "LeapMotionData.h"
 #include "LeapUtility.h"
-#include "Runtime/Slate/Public/Framework/Application/SlateApplication.h"
+#include "Framework/Application/SlateApplication.h"
 #include "IBodyState.h"
 
 DECLARE_STATS_GROUP(TEXT("LeapMotion"), STATGROUP_LeapMotion, STATCAT_Advanced);

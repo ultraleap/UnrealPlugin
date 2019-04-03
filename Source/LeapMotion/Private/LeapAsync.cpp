@@ -1,9 +1,9 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "LeapAsync.h"
-#include "Runtime/Core/Public/Async/Async.h"
+#include "Async/Async.h"
 
 TFuture<void> FLeapAsync::RunLambdaOnBackGroundThread(TFunction< void()> InFunction)
 {

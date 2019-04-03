@@ -1,10 +1,10 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
-#include "Runtime/LiveLinkInterface/Public/LiveLinkTypes.h"
-#include "Runtime/LiveLinkInterface/Public/ILiveLinkClient.h"
-#include "Runtime/LiveLinkMessageBusFramework/Public/LiveLinkProvider.h"
+#include "LiveLinkTypes.h"
+#include "ILiveLinkClient.h"
+#include "LiveLinkProvider.h"
 #include "Skeleton/BodyStateSkeleton.h"
 
 class FLeapLiveLinkProducer

@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapImage.h"
 #include "LeapAsync.h"
@@ -75,32 +75,32 @@ void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint3
 		RegionData->bFreeData = bFreeData;
 		RegionData->LeapImagePtr = this;
 
-		ENQUEUE_RENDER_COMMAND(LeapImageCommand)(
-			[RegionData](FRHICommandList& CommandList)
-		{
-			for (uint32 RegionIndex = 0; RegionIndex < RegionData->NumRegions; ++RegionIndex)
+		ENQUEUE_RENDER_COMMAND(UpdateTextureRegionsData)(
+			[RegionData](FRHICommandListImmediate& RHICmdList)
 			{
-				int32 CurrentFirstMip = RegionData->Texture2DResource->GetCurrentFirstMip();
-				if (RegionData->MipIndex >= CurrentFirstMip)
+				for (uint32 RegionIndex = 0; RegionIndex < RegionData->NumRegions; ++RegionIndex)
 				{
-					RHIUpdateTexture2D(
-						RegionData->Texture2DResource->GetTexture2DRHI(),
-						RegionData->MipIndex - CurrentFirstMip,
-						RegionData->Regions[RegionIndex],
-						RegionData->SrcPitch,
-						RegionData->SrcData
-						+ RegionData->Regions[RegionIndex].SrcY * RegionData->SrcPitch
-						+ RegionData->Regions[RegionIndex].SrcX * RegionData->SrcBpp
-					);
+					int32 CurrentFirstMip = RegionData->Texture2DResource->GetCurrentFirstMip();
+					if (RegionData->MipIndex >= CurrentFirstMip)
+					{
+						RHIUpdateTexture2D(
+							RegionData->Texture2DResource->GetTexture2DRHI(),
+							RegionData->MipIndex - CurrentFirstMip,
+							RegionData->Regions[RegionIndex],
+							RegionData->SrcPitch,
+							RegionData->SrcData
+							+ RegionData->Regions[RegionIndex].SrcY * RegionData->SrcPitch
+							+ RegionData->Regions[RegionIndex].SrcX * RegionData->SrcBpp
+						);
+					}
 				}
-			}
-			if (RegionData->bFreeData)
-			{
-				FMemory::Free(RegionData->SrcData);
-			}
-			RegionData->LeapImagePtr->bRenderDidUpdate= true;
-			delete RegionData;
-		});//End Enqueue
+				if (RegionData->bFreeData)
+				{
+					FMemory::Free(RegionData->SrcData);
+				}
+				RegionData->LeapImagePtr->bRenderDidUpdate= true;
+				delete RegionData;
+			});//End Enqueue
 	}
 }
 

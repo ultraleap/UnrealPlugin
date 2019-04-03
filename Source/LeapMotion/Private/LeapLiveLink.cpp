@@ -1,7 +1,9 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapLiveLink.h"
 #include "CoreMinimal.h"
+#include "Misc/App.h"
+#include "Animation/AnimInstance.h"
 #include "LiveLinkProvider.h"
 
 FLeapLiveLinkProducer::FLeapLiveLinkProducer()
