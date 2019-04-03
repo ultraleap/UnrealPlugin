@@ -75,9 +75,8 @@ void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint3
 		RegionData->bFreeData = bFreeData;
 		RegionData->LeapImagePtr = this;
 
-		ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-			UpdateTextureRegionsData,
-			FUpdateTextureRegionsData*, RegionData, RegionData,
+		ENQUEUE_RENDER_COMMAND(LeapImageCommand)(
+			[RegionData](FRHICommandList& CommandList)
 		{
 			for (uint32 RegionIndex = 0; RegionIndex < RegionData->NumRegions; ++RegionIndex)
 			{

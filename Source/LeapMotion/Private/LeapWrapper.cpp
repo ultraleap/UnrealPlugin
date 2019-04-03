@@ -11,8 +11,8 @@
 LeapWrapperCallbackInterface* FLeapWrapper::CallbackDelegate = nullptr;
 
 FLeapWrapper::FLeapWrapper():
-	bIsConnected(false),
-	bIsRunning(false)
+	bIsRunning(false),
+	bIsConnected(false)
 {
 	CallbackDelegate = nullptr;
 	InterpolatedFrame = nullptr;
