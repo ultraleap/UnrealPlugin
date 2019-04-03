@@ -9,7 +9,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	: Super(ObjectInitializer)
 {
 	//Defaults
-	bAutoDetectBoneMapAtInit = true;
+	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
 	BonesPerFinger = -1;
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
