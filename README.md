@@ -46,7 +46,7 @@ These should be globally available via Input Mapping. Look for keys *Leap (L)/(R
 If you add input mapping to a non-input chain actor, ensure you override the default to receive the input 
 ![ensure input is received](http://i.imgur.com/zWMrHxn.png)
 
-# Common Examples - Ok great but how do I interact with... stuff?
+# Common Examples - Ok great but how do I interact with things?
 
 Common use cases and examples will be found here:
 
