@@ -1,7 +1,8 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
+#include "UObject/CoreNet.h"
 #include "Skeleton/BodyStateBone.h"
 #include "Skeleton/BodyStateArm.h"
 #include "BodyStateEnums.h"
@@ -75,7 +76,7 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	/** If tracking is active or frozen (useful for debugging)*/
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Skeleton")
 	bool bTrackingActive;
-
+	
 	/** Id issued to this skeleton, useful for getting device information */
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	int32 SkeletonId;

@@ -50,7 +50,7 @@ These should be globally available via Input Mapping. Look for keys *Leap (L)/(R
 If you add input mapping to a non-input chain actor, ensure you override the default to receive the input 
 ![ensure input is received](http://i.imgur.com/zWMrHxn.png)
 
-# Common Examples - Ok great but how do I interact with... stuff?
+# Common Examples - Ok great but how do I interact with things?
 
 Common use cases and examples will be found here:
 
@@ -330,33 +330,6 @@ To package project plugins you will need a C++ project. If you have a blueprint 
 Below is a link to an example video for packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
 
 [![Windows Packaging](https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg)](https://youtu.be/pRzm0M_a8uY)
-
-
-
-### Android (Public peripheral not supported, you will need access to a private runtime)
-Ensure you've completed https://docs.unrealengine.com/latest/INT/Platforms/Android/GettingStarted/1/index.html at least once per engine release first, then package for you build type
-
-#### Cardboard
-Pick Android ATC, set SDK version to at least 21. See daydream for good settings.
-
-#### Gear VR
-For Gear VR follow https://docs.unrealengine.com/latest/INT/Platforms/GearVR/ instructions.
-
-#### Daydream
-For Daydream follow these instructions (https://docs.unrealengine.com/latest/INT/Platforms/GoogleVR/Daydream/)
-
-Currently known good settings:
-![Daydream NDK](http://i.imgur.com/SNkgnUp.png)
-
-![Daydream SDK](http://i.imgur.com/1OLST4t.png)
-
-NB: if you pick armv7, ensure you swap to https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/LeapMotion.Build.cs#L241 to use armeabi-v7a (comment 242, uncomment 241)
-
-
-#### Example Packaging - Cardboard
-Below is a link to an example video of packaging for Cardboard after having NDK 1R5 installed. The user first changes build to android-21 then changes the default material to a simple engine material instance with a different color so that it shows up on cardboard due to simpler rendering pipeline. Finally the user selects Package-> Android ATC and installs the resulting apk using the install .bat. Remember connect your device to usb before this final step.
-
-[![Android Packaging](https://img.youtube.com/vi/6Gb767S353o/0.jpg)](https://youtu.be/6Gb767S353o)
 
 ## Contact
 

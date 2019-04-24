@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateAnimInstance.h"
 #include "BodyStateUtility.h"
@@ -9,7 +9,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	: Super(ObjectInitializer)
 {
 	//Defaults
-	bAutoDetectBoneMapAtInit = true;
+	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
 	BonesPerFinger = -1;
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;

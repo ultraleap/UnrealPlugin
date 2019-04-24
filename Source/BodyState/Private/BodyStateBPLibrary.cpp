@@ -1,8 +1,13 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateBPLibrary.h"
+#include "BodyStateUtility.h"
 #include "FBodyState.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Engine/Engine.h"
+#include "Engine/World.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 
 UBodyStateBPLibrary::UBodyStateBPLibrary(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

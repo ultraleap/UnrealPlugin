@@ -1,8 +1,8 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapWrapper.h"
-#include "LeapC.h"
 #include "LeapAsync.h"
+#include "LeapUtility.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
@@ -11,8 +11,8 @@
 LeapWrapperCallbackInterface* FLeapWrapper::CallbackDelegate = nullptr;
 
 FLeapWrapper::FLeapWrapper():
-	bIsConnected(false),
-	bIsRunning(false)
+	bIsRunning(false),
+	bIsConnected(false)
 {
 	CallbackDelegate = nullptr;
 	InterpolatedFrame = nullptr;
@@ -49,6 +49,7 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 {
 	SetCallbackDelegate(InCallbackDelegate);
 
+	//Don't use config for now
 	//LEAP_CONNECTION_CONFIG Config;
 
 	eLeapRS result = LeapCreateConnection(NULL, &ConnectionHandle);

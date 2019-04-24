@@ -1,8 +1,10 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateSkeletonStorage.h"
 #include "Skeleton/BodyStateSkeleton.h"
 #include "CoreMinimal.h"
+#include "Misc/App.h"
+#include "BodyStateUtility.h"
 
 
 FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()

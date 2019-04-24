@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateUtility.h"
 
@@ -23,14 +23,5 @@ float FBodyStateUtility::AngleBetweenVectors(FVector A, FVector B)
 	else
 	{
 		return 0.f;
-	}
-}
-
-template<typename T>
-FString FBodyStateUtility::EnumToString(const FString& enumName, const T value)
-{
-	{
-		UEnum* pEnum = FindObject<UEnum>(ANY_PACKAGE, *enumName);
-		return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
 	}
 }

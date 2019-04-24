@@ -1,10 +1,11 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "LeapC.h"
-#include "Runtime/Engine/Classes/Engine/Texture2D.h"
-#include "Runtime/RHI/Public/RHI.h"
+#include "Engine/Texture2D.h"
+#include "RHI.h"
+#include "HAL/ThreadSafeBool.h"
 #include "LeapMotionData.h"
 
 /** Signature with Left/Right Image pair */

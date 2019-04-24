@@ -1,6 +1,8 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateEstimatorComponent.h"
+#include "IBodyState.h"
+#include "Engine/World.h"
 
 UBodyStateEstimatorComponent::UBodyStateEstimatorComponent(const FObjectInitializer &init) : UActorComponent(init)
 {

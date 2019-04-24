@@ -1,12 +1,11 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "FBodyState.h"
 #include "BodyStateSkeletonStorage.h"
 #include "BodyStateBoneComponent.h"
 #include "FBodyStateInputDevice.h"
 #include "BodyStateHMDDevice.h"
-
-#undef LOCTEXT_NAMESPACE
+#include "Modules/ModuleManager.h"
 
 #define LOCTEXT_NAMESPACE "BodyState"
 

@@ -1,8 +1,8 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
-#include "Runtime/HeadMountedDisplay/Public/IXRTrackingSystem.h"
+#include "IXRTrackingSystem.h"
 #include "LeapUtility.h"
 #include "LeapComponent.h"
 #include "LeapMotionData.h"

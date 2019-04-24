@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 using System.IO;
 
@@ -88,7 +88,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					Path.Combine(ModuleDirectory, "Private"),
+					"LeapMotion/Private",
 					IncludePath,
 					// ... add other private include paths required here ...
 				}
@@ -198,7 +198,7 @@ namespace UnrealBuildTool.Rules
 
 				if (IsEnginePlugin())
 				{
-					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
+					//string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
 
 					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
 

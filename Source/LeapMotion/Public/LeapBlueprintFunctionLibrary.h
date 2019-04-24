@@ -1,9 +1,9 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "LeapMotionData.h"
-#include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "LeapBlueprintFunctionLibrary.generated.h"
 
 /**

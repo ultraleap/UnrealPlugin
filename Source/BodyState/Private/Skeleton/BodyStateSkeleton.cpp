@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateUtility.h"
@@ -440,7 +440,7 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 	{
 		return;
 	}
-
+	
 	if (!Other->IsTrackingAnyBone())
 	{
 		return;

@@ -1,8 +1,10 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapUtility.h"
-#include "Engine.h"
-#include "IHeadMountedDisplay.h"
+#include "Engine/Engine.h" // for GEngine
+#include "Engine/World.h"
+#include "GameFramework/WorldSettings.h"
+#include "IXRTrackingSystem.h"
 
 DEFINE_LOG_CATEGORY(LeapMotionLog);
 

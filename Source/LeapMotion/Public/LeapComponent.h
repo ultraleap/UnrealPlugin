@@ -1,9 +1,9 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "LeapMotionData.h"
-#include "Runtime/Engine/Classes/Components/ActorComponent.h"
+#include "Components/ActorComponent.h"
 #include "LeapComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
