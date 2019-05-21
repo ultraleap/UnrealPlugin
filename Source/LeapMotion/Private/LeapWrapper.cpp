@@ -50,9 +50,17 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 	SetCallbackDelegate(InCallbackDelegate);
 
 	//Don't use config for now
-	//LEAP_CONNECTION_CONFIG Config;
+	LEAP_CONNECTION_CONFIG Config;
+	Config.server_namespace = "Leap Service";
+	Config.size = sizeof(Config);
 
-	eLeapRS result = LeapCreateConnection(NULL, &ConnectionHandle);
+	//Enable multi-device awareness fixed
+	bIsMultiDeviceAware = true;
+	
+	Config.flags = bIsMultiDeviceAware ? eLeapConnectionConfig_MultiDeviceAware: 0;
+
+
+	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
 		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success) {
@@ -133,8 +141,12 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
 
 LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
+	//shortcut device handle
+	LEAP_DEVICE DeviceHandle = DeviceHandles[1];
+	//TODO: generalize, but it seems only first handle succeeds for now
+
 	uint64_t FrameSize = 0;
-	LeapGetFrameSize(ConnectionHandle, TimeStamp, &FrameSize);
+	LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
 
 	//Check validity of frame size
 	if (FrameSize > 0 )
@@ -152,10 +164,12 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 		InterpolatedFrameSize = FrameSize;
 
 		//Grab the new frame
-		LeapInterpolateFrame(ConnectionHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
+		LeapInterpolateFrameEx(ConnectionHandle, DeviceHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
 	}
 
-	return InterpolatedFrame;
+	//Disable interpolation test
+	return GetFrame();
+	//return InterpolatedFrame;
 }
 
 LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
@@ -249,14 +263,22 @@ void FLeapWrapper::CleanupLastDevice()
 	LastDevice = nullptr;
 }
 
-void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame)
+
+void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame, LEAP_DEVICE DeviceHandle)
 {
 	DataLock.Lock();
-	if (!LastFrame) LastFrame = (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame));
+	if (!LatestFrames.Contains(DeviceHandle))
+	{
+		LatestFrames.Add(DeviceHandle, (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame)));
+	}
+	*LatestFrames[DeviceHandle] = *Frame;
+	if(!LastFrame)
+	{
+		LastFrame = (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame));
+	}
 	*LastFrame = *Frame;
 	DataLock.Unlock();
 }
-
 
 /** Called by ServiceMessageLoop() when a connection event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT *ConnectionEvent)
@@ -283,14 +305,14 @@ void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *C
 /**
 * Called by ServiceMessageLoop() when a device event is returned by LeapPollConnection()
 */
-void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
+void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId)
 {
 	LEAP_DEVICE DeviceHandle;
 	//Open device using LEAP_DEVICE_REF from event struct.
 	eLeapRS Result = LeapOpenDevice(DeviceEvent->device, &DeviceHandle);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("Could not open device %s.\n"), ResultString(Result));
+		UE_LOG(LeapMotionLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
 		return;
 	}
 
@@ -317,6 +339,16 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 	}
 	SetDevice(&DeviceProperties);
 
+	Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(LeapMotionLog, Warning, TEXT("failed to subscribe to device %s.\n"), ResultString(Result));
+		return;
+	}
+
+	//Link device_id and handle
+	DeviceHandles.Add(DeviceEvent->device.id, DeviceHandle);
+
 	if (CallbackDelegate) 
 	{
 		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this]
@@ -329,11 +361,15 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 	}
 
 	free(DeviceProperties.serial);
-	LeapCloseDevice(DeviceHandle);
+	//LeapCloseDevice(DeviceHandle);
+	//TODO: maybe reverse. For multi device to we close?
 }
 
 /** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent) {
+void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId) {
+	//todo: remove device handles matched here
+	//DeviceHandles.Remove(DeviceHandle);
+
 	if (CallbackDelegate)
 	{
 		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, this]
@@ -347,7 +383,7 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent) {
 }
 
 /** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent) 
+void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent, uint32_t DeviceId) 
 {
 	if (CallbackDelegate) 
 	{
@@ -362,8 +398,13 @@ void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *Dev
 }
 
 /** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent) {
-	SetFrame(TrackingEvent); //support polling tracking data from different thread
+void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent, uint32_t DeviceId) {
+	//temp disable
+	/*if (DeviceId == 2) {
+		return;
+	}*/
+
+	SetFrame(TrackingEvent, DeviceHandles[DeviceId]); //support polling tracking data from different thread
 
 	//Callback delegate is checked twice since the second call happens on the second thread and may be invalidated!
 	if (CallbackDelegate) 
@@ -375,7 +416,7 @@ void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent)
 	}
 }
 
-void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent)
+void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent, uint32_t DeviceId)
 {	
 	//Callback with data
 	if (CallbackDelegate)
@@ -386,7 +427,7 @@ void FLeapWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent)
 }
 
 /** Called by ServiceMessageLoop() when a log event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent) 
+void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent, uint32_t DeviceId) 
 {
 	if (CallbackDelegate)
 	{
@@ -401,7 +442,7 @@ void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT *LogEvent)
 }
 
 /** Called by ServiceMessageLoop() when a policy event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent)
+void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent, uint32_t DeviceId)
 {
 	if (CallbackDelegate)
 	{
@@ -489,25 +530,25 @@ void FLeapWrapper::ServiceMessageLoop(void * Unused)
 				HandleConnectionLostEvent(Msg.connection_lost_event);
 				break;
 			case eLeapEventType_Device:
-				HandleDeviceEvent(Msg.device_event);
+				HandleDeviceEvent(Msg.device_event, Msg.device_id);
 				break;
 			case eLeapEventType_DeviceLost:
-				HandleDeviceLostEvent(Msg.device_event);
+				HandleDeviceLostEvent(Msg.device_event, Msg.device_id);
 				break;
 			case eLeapEventType_DeviceFailure:
-				HandleDeviceFailureEvent(Msg.device_failure_event);
+				HandleDeviceFailureEvent(Msg.device_failure_event, Msg.device_id);
 				break;
 			case eLeapEventType_Tracking:
-				HandleTrackingEvent(Msg.tracking_event);
+				HandleTrackingEvent(Msg.tracking_event, Msg.device_id);
 				break;
 			case eLeapEventType_Image:
-				HandleImageEvent(Msg.image_event);
+				HandleImageEvent(Msg.image_event, Msg.device_id);
 				break;
 			case eLeapEventType_LogEvent:
-				HandleLogEvent(Msg.log_event);
+				HandleLogEvent(Msg.log_event, Msg.device_id);
 				break;
 			case eLeapEventType_Policy:
-				HandlePolicyEvent(Msg.policy_event);
+				HandlePolicyEvent(Msg.policy_event, Msg.device_id);
 				break;
 			case eLeapEventType_ConfigChange:
 				HandleConfigChangeEvent(Msg.config_change_event);

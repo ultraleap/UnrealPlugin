@@ -33,6 +33,7 @@ class FLeapWrapper
 {
 public:
 	//LeapC Vars
+	bool bIsMultiDeviceAware;
 	FThreadSafeBool bIsRunning;
 	FThreadSafeBool bHasFinished;
 	bool bIsConnected;
@@ -76,6 +77,10 @@ private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);
 
+	//Frame and handle data
+	TMap<uint32, LEAP_DEVICE> DeviceHandles;
+	TMap<LEAP_DEVICE, LEAP_TRACKING_EVENT*> LatestFrames;
+
 	//Threading variables
 	FCriticalSection DataLock;
 	TFuture<void> ProducerLambdaFuture;
@@ -99,7 +104,7 @@ private:
 	FGraphEventRef TaskRefConfigResponse;
 
 	//void setImage();
-	void SetFrame(const LEAP_TRACKING_EVENT *Frame);
+	void SetFrame(const LEAP_TRACKING_EVENT *Frame, LEAP_DEVICE DeviceHandle);
 	void SetDevice(const LEAP_DEVICE_INFO *DeviceProps);
 	void CleanupLastDevice();
 
@@ -108,13 +113,13 @@ private:
 	//Received LeapC callbacks converted into game thread events
 	void HandleConnectionEvent(const LEAP_CONNECTION_EVENT *ConnectionEvent);
 	void HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *ConnectionLostEvent);
-	void HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent);
-	void HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent);
-	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent);
-	void HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent);
-	void HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent);
-	void HandleLogEvent(const LEAP_LOG_EVENT *LogEvent);
-	void HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent);
+	void HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId);
+	void HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId);
+	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT *DeviceFailureEvent, uint32_t DeviceId);
+	void HandleTrackingEvent(const LEAP_TRACKING_EVENT *TrackingEvent, uint32_t DeviceId);
+	void HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent, uint32_t DeviceId);
+	void HandleLogEvent(const LEAP_LOG_EVENT *LogEvent, uint32_t DeviceId);
+	void HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent, uint32_t DeviceId);
 	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *ConfigChangeEvent);
 	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *ConfigResponseEvent);
 };
