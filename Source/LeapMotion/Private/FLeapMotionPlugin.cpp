@@ -103,24 +103,36 @@ FLeapOptions FLeapMotionPlugin::GetOptions()
 
 void FLeapMotionPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
 {
-	LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible);
+	if (bActive) 
+	{
+		LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible);
+	}
 }
 
 void FLeapMotionPlugin::GetLatestFrameData(FLeapFrameData& OutData)
 {
 	//Copies data
-	LeapInputDevice->LatestFrame(OutData);
+	if (bActive)
+	{
+		LeapInputDevice->LatestFrame(OutData);
+	}
 }
 
 void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
-	LeapInputDevice->SetLeapPolicy(Flag, Enable);
+	if (bActive)
+	{
+		LeapInputDevice->SetLeapPolicy(Flag, Enable);
+	}
 }
 
 void FLeapMotionPlugin::ShutdownLeap()
 {
-	UE_LOG(LeapMotionLog, Log, TEXT("Shutting down leap from command."));
-	LeapInputDevice->ShutdownLeap();
+	if (bActive)
+	{
+		UE_LOG(LeapMotionLog, Log, TEXT("Shutting down leap from command."));
+		LeapInputDevice->ShutdownLeap();
+	}
 }
 
 void* FLeapMotionPlugin::GetLeapHandle()
