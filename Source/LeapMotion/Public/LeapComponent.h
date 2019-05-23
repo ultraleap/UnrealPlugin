@@ -85,6 +85,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Properties")
 	TEnumAsByte<ELeapMode> TrackingMode;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Properties")
+	int32 DeviceId;
+
 	/** Utility function to check if a hand is visible and tracked at this moment */
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible);

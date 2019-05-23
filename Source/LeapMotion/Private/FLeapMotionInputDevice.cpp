@@ -384,6 +384,8 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 		return;
 	}
 
+	//Todo: get frame and parse for each device
+
 	_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame();
 
 	//Is the frame valid?
