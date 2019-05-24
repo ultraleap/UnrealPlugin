@@ -29,11 +29,11 @@ public:
 
 	bool IsActive();
 
-	TSharedPtr< class FLeapMotionInputDevice > LeapInputDevice;
-
-	TArray<ULeapComponent*> DeferredComponentList;
 
 private:
+	TSharedPtr< class FLeapMotionInputDevice > LeapInputDevice;
+	TArray<ULeapComponent*> DeferredComponentList;
+
 	bool bActive = false;
 	void *LeapDLLHandle;
 

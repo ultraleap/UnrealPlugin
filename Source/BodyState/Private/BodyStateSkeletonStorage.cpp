@@ -166,7 +166,7 @@ void FBodyStateSkeletonStorage::CallMergingFunctions()
 	//Call all merging functions on our private merged skeleton
 	for (auto& Pair : MergingFunctions)
 	{
-
+		FScopeLock ScopeLock(&PrivateMergedSkeleton->BoneDataLock);
 		Pair.Value(PrivateMergedSkeleton, DeltaTime);
 	}
 }
