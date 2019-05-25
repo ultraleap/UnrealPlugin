@@ -326,6 +326,9 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	Config.TrackingTags.Add("Fingers");
 	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
+	//Multi-device note: attach multiple devices and get another ID?
+	//Origin will be different if mixing vr with desktop/mount
+
 	//Add IM keys
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchL, LOCTEXT("LeapPinchL", "Leap (L) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
@@ -428,7 +431,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 
 void FLeapMotionInputDevice::ParseEvents()
 {
-	//Early exit: no device attached that produce data
+	//Early exit: no device attached that produces data
 	if (AttachedDevices.Num() < 1)
 	{
 		return;
