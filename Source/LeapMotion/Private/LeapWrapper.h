@@ -63,7 +63,7 @@ public:
 	//Polling functions
 
 	/** Get latest frame - critical section locked */
-	LEAP_TRACKING_EVENT* GetFrame();
+	LEAP_TRACKING_EVENT* GetFrame(uint32 DeviceId);
 
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
 	LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp);
@@ -72,6 +72,9 @@ public:
 	const char* ResultString(eLeapRS Result);
 
 	void EnableImageStream(bool bEnable);
+
+	//Get a list of device ids
+	TArray<uint32> DeviceIds();
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);

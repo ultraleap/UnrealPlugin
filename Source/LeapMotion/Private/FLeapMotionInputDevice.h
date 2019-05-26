@@ -30,6 +30,15 @@ struct EKeysLeap
 	static const FKey LeapGrabR;
 };
 
+//Current/past frame data
+struct FLeapDeviceFrameData
+{
+	FLeapFrameData CurrentFrame;
+	FLeapFrameData PastFrame;
+	TArray<int32> VisibleHands;
+	TArray<int32> PastVisibleHands;
+};
+
 class FLeapMotionInputDevice :	public IInputDevice, 
 								public LeapWrapperCallbackInterface, 
 								public IBodyStateInputRawInterface,
@@ -47,7 +56,7 @@ public:
 
 	/** Main input capture and event parsing 'tick' */
 	void CaptureAndEvaluateInput();
-	void ParseEvents();
+	void ParseEventsForDeviceFrame(FLeapDeviceFrameData& DeviceFrame);
 
 	/** Set which MessageHandler will get the events from SendControllerEvents. */
 	virtual void SetMessageHandler(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler) override;
@@ -64,8 +73,8 @@ public:
 	void AddEventDelegate(const ULeapComponent* EventDelegate);
 	void RemoveEventDelegate(const ULeapComponent* EventDelegate);
 	void ShutdownLeap();
-	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
-	void LatestFrame(FLeapFrameData& OutFrame);
+	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, int32 DeviceId);
+	void LatestFrame(FLeapFrameData& OutFrame, int32 DeviceId);
 
 	//Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
@@ -96,6 +105,7 @@ private:
 
 	//Private utility methods
 	void CallFunctionOnComponents(TFunction< void(ULeapComponent*)> InFunction);	//lambda multi-cast convenience wrapper
+	void CallFunctionOnComponentsWithDeviceId(TFunction< void(ULeapComponent*)> InFunction, int32 DeviceId);
 	bool EmitKeyUpEventForKey(FKey Key, int32 User, bool Repeat);
 	bool EmitKeyDownEventForKey(FKey Key, int32 User, bool Repeat);
 	bool EmitAnalogInputEventForKey(FKey Key, float Value, int32 User, bool Repeat);
@@ -126,12 +136,14 @@ private:
 	int64 FrameTimeInMicros;
 	
 	//Game thread Data
-	FLeapFrameData CurrentFrame;
-	FLeapFrameData PastFrame;
-	
-	TArray<FString> AttachedDevices;
+	TMap<int32, FLeapDeviceFrameData> DeviceFrameData;
+	/*TMap<int32, FLeapFrameData> CurrentFrames;
+	TMap<int32, FLeapFrameData> PastFrames;
 	TArray<int32> VisibleHands;
-	TArray<int32> PastVisibleHands;
+	TArray<int32> PastVisibleHands;*/
+	
+	//Devices attached (serials)
+	TArray<FString> AttachedDevices;
 
 	//Time warp support
 	BSHMDSnapshotHandler SnapshotHandler;

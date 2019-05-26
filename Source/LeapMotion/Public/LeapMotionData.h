@@ -360,6 +360,14 @@ struct LEAPMOTION_API FLeapFrameData
 	UPROPERTY()
 	int64 TimeStamp;
 
+	//deviceid associated with this frame
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	int32 DeviceId;
+
+	//whether this frame auto-adds hmd origin data (hmd mode only, possibly only one device supported)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	bool DoesAddHMDOrigin;
+
 	UPROPERTY()
 	FRotator FinalRotationAdjustment;
 

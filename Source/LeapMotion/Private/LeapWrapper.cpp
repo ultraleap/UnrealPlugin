@@ -130,13 +130,17 @@ void FLeapWrapper::CloseConnectionHandle(LEAP_CONNECTION* InConnectionHandle)
 	LeapDestroyConnection(*InConnectionHandle);
 }
 
-LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
+LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame(uint32 DeviceId /*= 1*/)
 {
-	LEAP_TRACKING_EVENT *currentFrame;
-	DataLock.Lock();
-	currentFrame = LastFrame;
-	DataLock.Unlock();
-	return currentFrame;
+	LEAP_TRACKING_EVENT* CurrentFrame = nullptr;
+
+	if (DeviceHandles.Num() > 0)
+	{
+		DataLock.Lock();
+		CurrentFrame = LatestFrames[DeviceHandles[DeviceId]];
+		DataLock.Unlock();
+	}
+	return CurrentFrame;
 }
 
 LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
@@ -168,8 +172,8 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 	}
 
 	//Disable interpolation test
-	return GetFrame();
-	//return InterpolatedFrame;
+	//return GetFrame(1);
+	return InterpolatedFrame;
 }
 
 LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
@@ -231,6 +235,13 @@ void FLeapWrapper::EnableImageStream(bool bEnable)
 	}
 }
 
+
+TArray<uint32> FLeapWrapper::DeviceIds()
+{
+	TArray<uint32> TempDeviceIdArray;
+	DeviceHandles.GetKeys(TempDeviceIdArray);
+	return TempDeviceIdArray;
+}
 
 void FLeapWrapper::Millisleep(int milliseconds)
 {

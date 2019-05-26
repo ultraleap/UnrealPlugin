@@ -45,6 +45,17 @@ void FLeapMotionInputDevice::CallFunctionOnComponents(TFunction< void(ULeapCompo
 	}
 }
 
+void FLeapMotionInputDevice::CallFunctionOnComponentsWithDeviceId(TFunction< void(ULeapComponent*)> InFunction, int32 DeviceId)
+{
+	CallFunctionOnComponents([InFunction, DeviceId](ULeapComponent* Component)
+	{
+		if (Component->DeviceId == DeviceId)
+		{
+			InFunction(Component);
+		}
+	});
+}
+
 //UE v4.6 IM event wrappers
 bool FLeapMotionInputDevice::EmitKeyUpEventForKey(FKey Key, int32 User = 0, bool Repeat = false)
 {
@@ -389,53 +400,73 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 
 	//Todo: get frame and parse for each device
 
-	_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame();
+	TArray<uint32> DeviceIds = Leap.DeviceIds();
 
-	//Is the frame valid?
-	if (!Frame)
+	for (uint32 DeviceId : DeviceIds)
 	{
-		return;
+		_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame(DeviceId);
+
+		//Is the frame valid?
+		if (!Frame)
+		{
+			return;
+		}
+
+		//initialize if needed
+		if (!DeviceFrameData.Contains(DeviceId))
+		{
+			DeviceFrameData[DeviceId] = FLeapDeviceFrameData();
+			DeviceFrameData[DeviceId].CurrentFrame.DeviceId = DeviceId;
+			DeviceFrameData[DeviceId].PastFrame.DeviceId = DeviceId;
+		}
+
+		FLeapFrameData& CurrentFrame = DeviceFrameData[DeviceId].CurrentFrame;
+
+		TimeWarpTimeStamp = Frame->info.timestamp;
+
+		int64 LeapTimeNow = LeapGetNow();
+		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
+
+		HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
+		FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
+
+		if (Options.bUseInterpolation)
+		{
+			//Let's interpolate the frame using leap function
+
+			//Get the future interpolated finger frame
+			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
+			CurrentFrame.SetFromLeapFrame(Frame);
+
+			//Get the future interpolated hand frame, farther than fingers to provide lower latency
+			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+
+			//Track our extrapolation time in stats
+			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
+		}
+		else
+		{
+			CurrentFrame.SetFromLeapFrame(Frame);
+			Stats.FrameExtrapolationInMS = 0;
+		}
+
+		ParseEventsForDeviceFrame(DeviceFrameData[DeviceId]);
 	}
-
-	TimeWarpTimeStamp = Frame->info.timestamp;
-
-	int64 LeapTimeNow = LeapGetNow();
-	SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
-
-	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
-	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
-
-	if (Options.bUseInterpolation)
-	{
-		//Let's interpolate the frame using leap function
-
-		//Get the future interpolated finger frame
-		Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
-		CurrentFrame.SetFromLeapFrame(Frame);
-
-		//Get the future interpolated hand frame, farther than fingers to provide lower latency
-		Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
-		CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
-
-		//Track our extrapolation time in stats
-		Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
-	}
-	else
-	{
-		CurrentFrame.SetFromLeapFrame(Frame);
-		Stats.FrameExtrapolationInMS = 0;
-	}
-
-	ParseEvents();
 }
 
-void FLeapMotionInputDevice::ParseEvents()
+void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceFrameData& DeviceFrame)
 {
 	//Early exit: no device attached that produces data
 	if (AttachedDevices.Num() < 1)
 	{
 		return;
 	}
+
+	FLeapFrameData& CurrentFrame = DeviceFrame.CurrentFrame;
+	FLeapFrameData& PastFrame = DeviceFrame.PastFrame;
+	TArray<int32>& VisibleHands = DeviceFrame.VisibleHands;
+	TArray<int32>& PastVisibleHands = DeviceFrame.PastVisibleHands;
 
 	//Are we in HMD mode? add our HMD snapshot
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
@@ -496,10 +527,10 @@ void FLeapMotionInputDevice::ParseEvents()
 			if (!VisibleHands.Contains(HandId))
 			{
 				const FLeapHandData Hand = PastFrame.HandForId(HandId);
-				CallFunctionOnComponents([Hand](ULeapComponent* Component)
+				CallFunctionOnComponentsWithDeviceId([Hand](ULeapComponent* Component)
 				{
 					Component->OnHandEndTracking.Broadcast(Hand);
-				});
+				}, CurrentFrame.DeviceId);
 			}
 		}
 	}
@@ -508,18 +539,18 @@ void FLeapMotionInputDevice::ParseEvents()
 	if (PastFrame.LeftHandVisible != CurrentFrame.LeftHandVisible)
 	{
 		const bool LeftVisible = CurrentFrame.LeftHandVisible;
-		CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
+		CallFunctionOnComponentsWithDeviceId([this, LeftVisible](ULeapComponent* Component)
 		{
 			Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-		});
+		}, CurrentFrame.DeviceId);
 	}
 	if (PastFrame.RightHandVisible != CurrentFrame.RightHandVisible)
 	{
 		const bool RightVisible = CurrentFrame.RightHandVisible;
-		CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+		CallFunctionOnComponentsWithDeviceId([this, RightVisible](ULeapComponent* Component)
 		{
 			Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-		});
+		}, CurrentFrame.DeviceId);
 	}
 
 	for (auto& Hand : CurrentFrame.Hands)
@@ -541,12 +572,12 @@ void FLeapMotionInputDevice::ParseEvents()
 		if (!PastVisibleHands.Contains(Hand.Id))	//or if the hand changed type?
 		{
 			//New hand
-			CallFunctionOnComponents([Hand](ULeapComponent* Component)
+			CallFunctionOnComponentsWithDeviceId([Hand](ULeapComponent* Component)
 			{
 				Component->OnHandBeginTracking.Broadcast(Hand);
-			});
+			}, CurrentFrame.DeviceId);
 		}
-		
+
 		//Grab
 		if (Hand.GrabStrength > 0.5f && PastHand.GrabStrength <= 0.5f)
 		{
@@ -558,10 +589,10 @@ void FLeapMotionInputDevice::ParseEvents()
 			{
 				EmitKeyDownEventForKey(EKeysLeap::LeapGrabR);
 			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+			CallFunctionOnComponentsWithDeviceId([FinalHandData](ULeapComponent* Component)
 			{
 				Component->OnHandGrabbed.Broadcast(FinalHandData);
-			});
+			}, CurrentFrame.DeviceId);
 		}
 		//Release
 		else if (Hand.GrabStrength <= 0.5f && PastHand.GrabStrength > 0.5f)
@@ -574,10 +605,10 @@ void FLeapMotionInputDevice::ParseEvents()
 			{
 				EmitKeyUpEventForKey(EKeysLeap::LeapGrabR);
 			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+			CallFunctionOnComponentsWithDeviceId([FinalHandData](ULeapComponent* Component)
 			{
 				Component->OnHandReleased.Broadcast(FinalHandData);
-			});
+			}, CurrentFrame.DeviceId);
 		}
 
 		//Pinch
@@ -591,10 +622,10 @@ void FLeapMotionInputDevice::ParseEvents()
 			{
 				EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
 			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+			CallFunctionOnComponentsWithDeviceId([FinalHandData](ULeapComponent* Component)
 			{
 				Component->OnHandPinched.Broadcast(FinalHandData);
-			});
+			}, CurrentFrame.DeviceId);
 		}
 		//Unpinch
 		else if (Hand.PinchStrength <= 0.5f && PastHand.PinchStrength > 0.5f)
@@ -607,20 +638,20 @@ void FLeapMotionInputDevice::ParseEvents()
 			{
 				EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
 			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+			CallFunctionOnComponentsWithDeviceId([FinalHandData](ULeapComponent* Component)
 			{
 				Component->OnHandUnpinched.Broadcast(FinalHandData);
-			});
+			}, CurrentFrame.DeviceId);
 		}
 	}//End for each hand
 
 	//Emit tracking data if it is being captured
-	CallFunctionOnComponents([this](ULeapComponent* Component)
+	CallFunctionOnComponentsWithDeviceId([CurrentFrame](ULeapComponent* Component)
 	{
 		//Scale input?
 		//FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters / 100.f);
 		Component->OnLeapTrackingData.Broadcast(CurrentFrame);
-	});
+	}, CurrentFrame.DeviceId);
 
 	//It's now the past data
 	PastVisibleHands = VisibleHands;
@@ -700,15 +731,21 @@ void FLeapMotionInputDevice::ShutdownLeap()
 	LeapImageHandler->CleanupImageData();
 }
 
-void FLeapMotionInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
+void FLeapMotionInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, int32 DeviceId)
 {
-	LeftHandIsVisible = CurrentFrame.LeftHandVisible;
-	RightHandIsVisible = CurrentFrame.RightHandVisible;
+	if (DeviceFrameData.Contains(DeviceId))
+	{
+		LeftHandIsVisible = DeviceFrameData[DeviceId].CurrentFrame.LeftHandVisible;
+		RightHandIsVisible = DeviceFrameData[DeviceId].CurrentFrame.RightHandVisible;
+	}
 }
 
-void FLeapMotionInputDevice::LatestFrame(FLeapFrameData& OutFrame)
+void FLeapMotionInputDevice::LatestFrame(FLeapFrameData& OutFrame, int32 DeviceId)
 {
-	OutFrame = CurrentFrame;
+	if (DeviceFrameData.Contains(DeviceId))
+	{
+		OutFrame = DeviceFrameData[DeviceId].CurrentFrame;
+	}
 }
 
 //Policies
@@ -746,8 +783,15 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 	bool bLeftIsTracking = false;
 	bool bRightIsTracking = false;
 
+	//Bodystate currently only supports device 1
+	if (!DeviceFrameData.Contains(1))
+	{
+		return;
+	}
+
 	{
 		FScopeLock ScopeLock(&Skeleton->BoneDataLock);
+		FLeapFrameData& CurrentFrame = DeviceFrameData[1].CurrentFrame;
 
 		//Update our skeleton with new data
 		for (auto LeapHand : CurrentFrame.Hands)
@@ -904,8 +948,10 @@ void FLeapMotionInputDevice::BeginRenderViewFamily(FSceneViewFamily& InViewFamil
 void FLeapMotionInputDevice::PreRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)
 {
 	//SnapshotHandler.AddCurrentHMDSample(LeapGetNow());
-	CurrentFrame.SetFromLeapFrame(Leap.GetFrame());
-	ParseEvents();
+	
+	//Not used
+	//CurrentFrames.SetFromLeapFrame(Leap.GetFrame());
+	//ParseEvents();
 }
 
 void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)

@@ -21,8 +21,8 @@ public:
 	virtual FLeapStats GetLeapStats() override;
 	virtual void SetOptions(const FLeapOptions& Options) override;
 	virtual FLeapOptions GetOptions() override;
-	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
-	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
+	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, int32 DeviceId = 1) override;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData, int32 DeviceId = 1) override;
 	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) override;
 
 	virtual void ShutdownLeap() override;

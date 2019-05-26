@@ -101,20 +101,20 @@ FLeapOptions FLeapMotionPlugin::GetOptions()
 	}
 }
 
-void FLeapMotionPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
+void FLeapMotionPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, int32 DeviceId)
 {
 	if (bActive) 
 	{
-		LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible);
+		LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible, DeviceId);
 	}
 }
 
-void FLeapMotionPlugin::GetLatestFrameData(FLeapFrameData& OutData)
+void FLeapMotionPlugin::GetLatestFrameData(FLeapFrameData& OutData, int32 DeviceId)
 {
 	//Copies data
 	if (bActive)
 	{
-		LeapInputDevice->LatestFrame(OutData);
+		LeapInputDevice->LatestFrame(OutData, DeviceId);
 	}
 }
 

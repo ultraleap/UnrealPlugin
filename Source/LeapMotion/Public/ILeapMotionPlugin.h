@@ -54,10 +54,10 @@ public:
 	virtual FLeapOptions GetOptions() { return FLeapOptions(); };
 
 	/** Convenience function to determine hand visibility*/
-	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) = 0;
+	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, int32 DeviceId = 1) = 0;
 
 	/** Polling method for latest frame data*/
-	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData, int32 DeviceId = 1) = 0;
 
 	/** Set a Leap Policy, such as image streaming or optimization type*/
 	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) = 0;
