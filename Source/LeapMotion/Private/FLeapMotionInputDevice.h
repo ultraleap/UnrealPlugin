@@ -83,7 +83,7 @@ public:
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;
 	virtual void OnDeviceDetach();
 
-	bool MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton);
+	void MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton, bool& bLeftIsTracking, bool& bIsRightTracking);
 
 	FCriticalSection LeapSection;
 
