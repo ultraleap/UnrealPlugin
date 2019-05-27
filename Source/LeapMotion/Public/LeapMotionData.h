@@ -379,3 +379,31 @@ struct LEAPMOTION_API FLeapFrameData
 	void RotateFrame(const FRotator& InRotation);
 	void TranslateFrame(const FVector& InTranslation);
 };
+
+
+//Device context data. One for each attached Leap device.
+USTRUCT(BlueprintType)
+struct LEAPMOTION_API FLeapDeviceData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	FLeapFrameData CurrentFrame;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	FLeapFrameData PastFrame;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	TArray<int32> VisibleHandIds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	TArray<int32> PastVisibleHandIds;
+
+	//Whether this device should track hmd origin
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	bool bAddHMDOrigin;
+
+	//Offset from device origin, set simple sync for e.g. bodystate
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	FTransform DeviceOffset;
+};

@@ -30,15 +30,6 @@ struct EKeysLeap
 	static const FKey LeapGrabR;
 };
 
-//Current/past frame data
-struct FLeapDeviceFrameData
-{
-	FLeapFrameData CurrentFrame;
-	FLeapFrameData PastFrame;
-	TArray<int32> VisibleHands;
-	TArray<int32> PastVisibleHands;
-};
-
 class FLeapMotionInputDevice :	public IInputDevice, 
 								public LeapWrapperCallbackInterface, 
 								public IBodyStateInputRawInterface,
@@ -56,7 +47,7 @@ public:
 
 	/** Main input capture and event parsing 'tick' */
 	void CaptureAndEvaluateInput();
-	void ParseEventsForDeviceFrame(FLeapDeviceFrameData& DeviceFrame);
+	void ParseEventsForDeviceFrame(FLeapDeviceData& DeviceFrame);
 
 	/** Set which MessageHandler will get the events from SendControllerEvents. */
 	virtual void SetMessageHandler(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler) override;
@@ -138,7 +129,7 @@ private:
 	int64 FrameTimeInMicros;
 	
 	//Game thread Data
-	TMap<int32, FLeapDeviceFrameData> DeviceFrameData;
+	TMap<int32, FLeapDeviceData> DeviceFrameData;
 	/*TMap<int32, FLeapFrameData> CurrentFrames;
 	TMap<int32, FLeapFrameData> PastFrames;
 	TArray<int32> VisibleHands;

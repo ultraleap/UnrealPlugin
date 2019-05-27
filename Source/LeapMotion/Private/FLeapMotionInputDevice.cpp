@@ -415,7 +415,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 		//initialize if needed
 		if (!DeviceFrameData.Contains(DeviceId))
 		{
-			DeviceFrameData.Add(DeviceId, FLeapDeviceFrameData());
+			DeviceFrameData.Add(DeviceId, FLeapDeviceData());
 			DeviceFrameData[DeviceId].CurrentFrame.DeviceId = DeviceId;
 			DeviceFrameData[DeviceId].PastFrame.DeviceId = DeviceId;
 		}
@@ -456,7 +456,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 	}
 }
 
-void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceFrameData& DeviceFrame)
+void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceData& DeviceFrame)
 {
 	//Early exit: no device attached that produces data
 	if (AttachedDevices.Num() < 1)
@@ -466,8 +466,8 @@ void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceFrameData& Dev
 
 	FLeapFrameData& CurrentFrame = DeviceFrame.CurrentFrame;
 	FLeapFrameData& PastFrame = DeviceFrame.PastFrame;
-	TArray<int32>& VisibleHands = DeviceFrame.VisibleHands;
-	TArray<int32>& PastVisibleHands = DeviceFrame.PastVisibleHands;
+	TArray<int32>& VisibleHands = DeviceFrame.VisibleHandIds;
+	TArray<int32>& PastVisibleHands = DeviceFrame.PastVisibleHandIds;
 
 	//Are we in HMD mode? add our HMD snapshot
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)

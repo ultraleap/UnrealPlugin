@@ -85,15 +85,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Properties")
 	TEnumAsByte<ELeapMode> TrackingMode;
 
-	//By default in vr mode the first/primary device has this set to true
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Properties")
-	bool bAddHmdOrigin;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Properties")
 	int32 DeviceId;
-
-	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	void SetShouldAddHmdOrigin(bool& bShouldAdd);
 
 	/** Utility function to check if a hand is visible and tracked at this moment */
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
