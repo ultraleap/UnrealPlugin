@@ -137,7 +137,10 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame(uint32 DeviceId /*= 1*/)
 	if (DeviceHandles.Num() > 0)
 	{
 		DataLock.Lock();
-		CurrentFrame = LatestFrames[DeviceHandles[DeviceId]];
+		if (DeviceHandles.Contains(DeviceId))
+		{
+			CurrentFrame = LatestFrames[DeviceHandles[DeviceId]];
+		}
 		DataLock.Unlock();
 	}
 	return CurrentFrame;
