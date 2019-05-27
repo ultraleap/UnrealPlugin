@@ -41,6 +41,11 @@ void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 	ILeapMotionPlugin::Get().SetLeapPolicy(Flag, Enable);
 }
 
+void ULeapBlueprintFunctionLibrary::SetLeapDeviceSettings(const FLeapDeviceSettings& NewSettings, int32 DeviceId)
+{
+	ILeapMotionPlugin::Get().SetDeviceSettings(NewSettings, DeviceId);
+}
+
 //Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 {
