@@ -382,7 +382,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint3
 /** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId) {
 	//todo: remove device handles matched here
-	//DeviceHandles.Remove(DeviceHandle);
+	DeviceHandles.Remove(DeviceId);
 
 	if (CallbackDelegate)
 	{

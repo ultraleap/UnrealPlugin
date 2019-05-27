@@ -24,7 +24,7 @@ void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
 
 void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
 {
-	ILeapMotionPlugin::Get().GetLatestFrameData(OutData);
+	ILeapMotionPlugin::Get().GetLatestFrameData(OutData, DeviceId);
 }
 
 void ULeapComponent::InitializeComponent()

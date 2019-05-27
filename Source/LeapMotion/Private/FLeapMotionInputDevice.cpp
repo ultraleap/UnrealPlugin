@@ -415,7 +415,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 		//initialize if needed
 		if (!DeviceFrameData.Contains(DeviceId))
 		{
-			DeviceFrameData[DeviceId] = FLeapDeviceFrameData();
+			DeviceFrameData.Add(DeviceId, FLeapDeviceFrameData());
 			DeviceFrameData[DeviceId].CurrentFrame.DeviceId = DeviceId;
 			DeviceFrameData[DeviceId].PastFrame.DeviceId = DeviceId;
 		}
@@ -430,7 +430,8 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 		HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 		FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
-		if (Options.bUseInterpolation)
+		//only primary device can use interpolation
+		if (Options.bUseInterpolation && DeviceId == 1)
 		{
 			//Let's interpolate the frame using leap function
 
@@ -776,22 +777,14 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 
 #pragma region BodyState
 
-void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
+bool FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton)
 {
-	SCOPE_CYCLE_COUNTER(STAT_LeapBodyStateTick);
-	//UE_LOG(LeapMotionLog, Log, TEXT("Update requested for %d"), DeviceID);
 	bool bLeftIsTracking = false;
 	bool bRightIsTracking = false;
 
-	//Bodystate currently only supports device 1
-	if (!DeviceFrameData.Contains(1))
-	{
-		return;
-	}
-
 	{
 		FScopeLock ScopeLock(&Skeleton->BoneDataLock);
-		FLeapFrameData& CurrentFrame = DeviceFrameData[1].CurrentFrame;
+		FLeapFrameData& CurrentFrame = Frame;
 
 		//Update our skeleton with new data
 		for (auto LeapHand : CurrentFrame.Hands)
@@ -872,6 +865,34 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 		}
 	}
 
+	return bTrackedBonesChanged;
+}
+
+void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
+{
+	SCOPE_CYCLE_COUNTER(STAT_LeapBodyStateTick);
+	//UE_LOG(LeapMotionLog, Log, TEXT("Update requested for %d"), DeviceID);
+
+
+	//Bodystate currently only supports device 1
+	if (!DeviceFrameData.Contains(1))
+	{
+		return;
+	}
+
+	bool bTrackedBonesChanged = false;
+
+	for (auto& DeviceFramePair : DeviceFrameData)
+	{
+		FLeapFrameData& CurrentFrame = DeviceFramePair.Value.CurrentFrame;
+		/*for (auto LeapHand : CurrentFrame.Hands)
+		{
+			if(LeapHand.Palm.Position < Skeleton->)
+		}*/
+
+		bTrackedBonesChanged = MergeLeapFrameToSkeleton(CurrentFrame, Skeleton) || bTrackedBonesChanged;
+	}
+
 	//LiveLink logic
 	if (LiveLink->HasConnection())
 	{
@@ -888,6 +909,8 @@ void FLeapMotionInputDevice::OnDeviceDetach()
 	ShutdownLeap();
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceDetach call from BodyState."));
 }
+
+
 
 void FLeapMotionInputDevice::SetBSFingerFromLeapDigit(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
 {
@@ -960,10 +983,10 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	{
 		HMDType = GEngine->XRSystem->GetSystemName();
 	}
-	else
+	/*else
 	{
 		Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-	}
+	}*/
 
 	//Did we change the mode?
 	if (Options.Mode != InOptions.Mode)
