@@ -74,14 +74,14 @@ public:
 	void EnableImageStream(bool bEnable);
 
 	//Get a list of device ids
-	TArray<uint32> DeviceIds();
+	TArray<int32> DeviceIds();
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);
 
 	//Frame and handle data
-	TMap<uint32, LEAP_DEVICE> DeviceHandles;
+	TMap<int32, LEAP_DEVICE> DeviceHandles;
 	TMap<LEAP_DEVICE, LEAP_TRACKING_EVENT*> LatestFrames;
 
 	//Threading variables

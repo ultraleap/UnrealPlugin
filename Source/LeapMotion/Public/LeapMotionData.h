@@ -113,6 +113,9 @@ struct LEAPMOTION_API FLeapStats
 	FLeapDevice DeviceInfo;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
+	TArray<int32> DeviceIds;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
 	float FrameExtrapolationInMS;
 };
 

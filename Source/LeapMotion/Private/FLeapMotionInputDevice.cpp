@@ -149,6 +149,7 @@ void FLeapMotionInputDevice::OnConnectionLost()
 
 void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 {
+	Stats.DeviceIds = Leap.DeviceIds();
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
 	SetOptions(Options);
 
@@ -169,6 +170,7 @@ void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 
 void FLeapMotionInputDevice::OnDeviceLost(const char* Serial)
 {
+	Stats.DeviceIds = Leap.DeviceIds();
 	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
 
 	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString] 
@@ -400,9 +402,9 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 
 	//Todo: get frame and parse for each device
 
-	TArray<uint32> DeviceIds = Leap.DeviceIds();
+	TArray<int32> DeviceIds = Leap.DeviceIds();
 
-	for (uint32 DeviceId : DeviceIds)
+	for (int32 DeviceId : DeviceIds)
 	{
 		_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame(DeviceId);
 

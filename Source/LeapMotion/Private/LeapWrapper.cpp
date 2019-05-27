@@ -240,9 +240,9 @@ void FLeapWrapper::EnableImageStream(bool bEnable)
 }
 
 
-TArray<uint32> FLeapWrapper::DeviceIds()
+TArray<int32> FLeapWrapper::DeviceIds()
 {
-	TArray<uint32> TempDeviceIdArray;
+	TArray<int32> TempDeviceIdArray;
 	DeviceHandles.GetKeys(TempDeviceIdArray);
 	return TempDeviceIdArray;
 }
