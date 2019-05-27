@@ -161,13 +161,14 @@ void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props, int32 
 
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *DeviceStats.PID, *DeviceStats.Serial);
 
-	FLeapAsync::RunShortLambdaOnGameThread([&]
+	const FString SerialString = DeviceStats.Serial;
+	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString]
 	{
-		AttachedDevices.AddUnique(DeviceStats.Serial);
+		AttachedDevices.AddUnique(SerialString);
 
-		CallFunctionOnComponents([&](ULeapComponent* Component)
+		CallFunctionOnComponents([&, SerialString](ULeapComponent* Component)
 		{
-			Component->OnLeapDeviceAttached.Broadcast(DeviceStats.Serial);
+			Component->OnLeapDeviceAttached.Broadcast(SerialString);
 		});
 	});
 }

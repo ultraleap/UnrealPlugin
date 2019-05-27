@@ -393,15 +393,15 @@ struct LEAPMOTION_API FLeapDeviceSettings
 	GENERATED_USTRUCT_BODY()
 
 	//Whether this device should track hmd origin
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
 	bool bAddHMDOrigin;
 
 	//Whether this device attempt to use interpolated position/rotation values (recommended for hmd)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
 	bool bShouldInterpolate;
 
 	//Offset from device origin, set simple sync for e.g. bodystate
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
 	FTransform DeviceOffset;
 
 	FLeapDeviceSettings();
@@ -426,6 +426,6 @@ struct LEAPMOTION_API FLeapDeviceData
 	UPROPERTY()
 	TArray<int32> PastVisibleHandIds;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
 	FLeapDeviceSettings Settings;
 };

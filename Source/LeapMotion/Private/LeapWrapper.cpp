@@ -362,15 +362,17 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint3
 	}
 
 	//Link device_id and handle
-	DeviceHandles.Add(DeviceEvent->device.id, DeviceHandle);
+	int32 ValidDeviceId = DeviceEvent->device.id;
+	DeviceHandles.Add(ValidDeviceId, DeviceHandle);
+
 
 	if (CallbackDelegate) 
 	{
-		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, DeviceId, this]
+		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, ValidDeviceId, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceFound(&DeviceProperties, DeviceId);
+				CallbackDelegate->OnDeviceFound(&DeviceProperties, ValidDeviceId);
 			}
 		});
 	}
