@@ -362,3 +362,9 @@ void FLeapDevice::SetFromLeapDevice(struct _LEAP_DEVICE_INFO* LeapInfo)
 	VerticalFOV = LeapInfo->v_fov;
 	Range = LeapInfo->range;
 }
+
+FLeapDeviceSettings::FLeapDeviceSettings()
+{
+	bAddHMDOrigin = true;
+	bShouldInterpolate = true;
+}

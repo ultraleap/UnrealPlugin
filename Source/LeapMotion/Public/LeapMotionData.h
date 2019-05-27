@@ -389,9 +389,15 @@ struct LEAPMOTION_API FLeapDeviceSettings
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
 	bool bAddHMDOrigin;
 
+	//Whether this device attempt to use interpolated position/rotation values (recommended for hmd)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
+	bool bShouldInterpolate;
+
 	//Offset from device origin, set simple sync for e.g. bodystate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
 	FTransform DeviceOffset;
+
+	FLeapDeviceSettings();
 };
 
 //Device context data. One for each attached Leap device.

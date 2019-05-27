@@ -420,7 +420,8 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 			DeviceFrameData[DeviceId].PastFrame.DeviceId = DeviceId;
 		}
 
-		FLeapFrameData& CurrentFrame = DeviceFrameData[DeviceId].CurrentFrame;
+		FLeapDeviceData& DeviceData = DeviceFrameData[DeviceId];
+		FLeapFrameData& CurrentFrame = DeviceData.CurrentFrame;
 
 		TimeWarpTimeStamp = Frame->info.timestamp;
 
@@ -431,7 +432,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 		FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
 		//only primary device can use interpolation
-		if (Options.bUseInterpolation && DeviceId == 1)
+		if (Options.bUseInterpolation && DeviceData.Settings.bShouldInterpolate)
 		{
 			//Let's interpolate the frame using leap function
 
@@ -452,6 +453,10 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 			Stats.FrameExtrapolationInMS = 0;
 		}
 
+		//Append offset
+		CurrentFrame.TranslateFrame(DeviceData.Settings.DeviceOffset.GetLocation());
+		CurrentFrame.RotateFrame(DeviceData.Settings.DeviceOffset.GetRotation().Rotator());
+
 		ParseEventsForDeviceFrame(DeviceFrameData[DeviceId]);
 	}
 }
@@ -470,7 +475,7 @@ void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceData& DeviceFr
 	TArray<int32>& PastVisibleHands = DeviceFrame.PastVisibleHandIds;
 
 	//Are we in HMD mode? add our HMD snapshot
-	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
+	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD && DeviceFrame.Settings.bAddHMDOrigin)
 	{
 		CurrentFrame.TranslateFrame(Options.HMDPositionOffset);		//Offset HMD-Leap
 
