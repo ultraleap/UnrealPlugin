@@ -777,11 +777,8 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 
 #pragma region BodyState
 
-bool FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton)
+void FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton, bool& bLeftIsTracking, bool& bIsRightTracking)
 {
-	bool bLeftIsTracking = false;
-	bool bRightIsTracking = false;
-
 	{
 		FScopeLock ScopeLock(&Skeleton->BoneDataLock);
 		FLeapFrameData& CurrentFrame = Frame;
@@ -789,33 +786,54 @@ bool FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, cla
 		//Update our skeleton with new data
 		for (auto LeapHand : CurrentFrame.Hands)
 		{
+			UBodyStateArm* Arm = nullptr;
+			
 			if (LeapHand.HandType == EHandType::LEAP_HAND_LEFT)
 			{
-				UBodyStateArm* LeftArm = Skeleton->LeftArm();
-
-				LeftArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-				LeftArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
-
-				//Set hand data
-				SetBSHandFromLeapHand(LeftArm->Hand, LeapHand);
-
-				//We're tracking that hand, show it. If we haven't updated tracking, update it.
+				Arm = Skeleton->LeftArm();
 				bLeftIsTracking = true;
 			}
 			else if (LeapHand.HandType == EHandType::LEAP_HAND_RIGHT)
 			{
-				UBodyStateArm* RightArm = Skeleton->RightArm();
+				Arm = Skeleton->RightArm();
+				bIsRightTracking = true;
+			}
 
-				RightArm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-				RightArm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
+			//Merge higher confidence values
+			if (LeapHand.Confidence > Arm->LowerArm->Meta.Confidence)
+			{
+
+				Arm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
+				Arm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
 
 				//Set hand data
-				SetBSHandFromLeapHand(RightArm->Hand, LeapHand);
-
-				//We're tracking that hand, show it. If we haven't updated tracking, update it.
-				bRightIsTracking = true;
+				SetBSHandFromLeapHand(Arm->Hand, LeapHand);
 			}
 		}
+	}
+}
+
+void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
+{
+	SCOPE_CYCLE_COUNTER(STAT_LeapBodyStateTick);
+	//UE_LOG(LeapMotionLog, Log, TEXT("Update requested for %d"), DeviceID);
+
+	bool bLeftIsTracking = false;
+	bool bRightIsTracking = false;
+
+	//New frame, clear all confidence
+	Skeleton->ClearConfidence();
+
+	//Merge each device frame
+	for (auto& DeviceFramePair : DeviceFrameData)
+	{
+		FLeapFrameData& CurrentFrame = DeviceFramePair.Value.CurrentFrame;
+		/*for (auto LeapHand : CurrentFrame.Hands)
+		{
+			if(LeapHand.Palm.Position < Skeleton->)
+		}*/
+
+		MergeLeapFrameToSkeleton(CurrentFrame, Skeleton, bLeftIsTracking, bRightIsTracking);
 	}
 
 	//if the number or type of bones that are tracked changed
@@ -865,33 +883,6 @@ bool FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, cla
 		}
 	}
 
-	return bTrackedBonesChanged;
-}
-
-void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
-{
-	SCOPE_CYCLE_COUNTER(STAT_LeapBodyStateTick);
-	//UE_LOG(LeapMotionLog, Log, TEXT("Update requested for %d"), DeviceID);
-
-
-	//Bodystate currently only supports device 1
-	if (!DeviceFrameData.Contains(1))
-	{
-		return;
-	}
-
-	bool bTrackedBonesChanged = false;
-
-	for (auto& DeviceFramePair : DeviceFrameData)
-	{
-		FLeapFrameData& CurrentFrame = DeviceFramePair.Value.CurrentFrame;
-		/*for (auto LeapHand : CurrentFrame.Hands)
-		{
-			if(LeapHand.Palm.Position < Skeleton->)
-		}*/
-
-		bTrackedBonesChanged = MergeLeapFrameToSkeleton(CurrentFrame, Skeleton) || bTrackedBonesChanged;
-	}
 
 	//LiveLink logic
 	if (LiveLink->HasConnection())
@@ -953,11 +944,11 @@ void FLeapMotionInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const F
 	Hand->Wrist->SetOrientation(LeapHand.Palm.Orientation);
 
 	//did our confidence change? set it recursively
-	/* 4.0 breaks this as confidence isn't set!
+	//4.0 breaks this as confidence isn't set!
 	if (Hand->Wrist->Meta.Confidence != LeapHand.Confidence)
 	{
 		Hand->Wrist->SetTrackingConfidenceRecursively(LeapHand.Confidence);
-	}*/
+	}
 }
 
 #pragma endregion BodyState
