@@ -14,8 +14,9 @@ enum EHandType
 UENUM(BlueprintType)
 enum ELeapMode
 {
+	LEAP_MODE_UNSET,
 	LEAP_MODE_VR,
-	LEAP_MODE_DESKTOP
+	LEAP_MODE_DESKTOP,
 };
 
 UENUM(BlueprintType)

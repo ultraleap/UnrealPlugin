@@ -331,7 +331,7 @@ void FLeapPalmData::TranslatePalm(const FVector& InTranslation)
 FLeapOptions::FLeapOptions()
 {
 	//Good Vive settings used as defaults
-	Mode = LEAP_MODE_DESKTOP;
+	Mode = LEAP_MODE_UNSET;
 	TrackingFidelity = LEAP_NORMAL;
 	LeapServiceLogLevel = LEAP_LOG_INFO;	//most verbose by default
 	bUseTimeWarp = true;

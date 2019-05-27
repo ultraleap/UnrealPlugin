@@ -995,13 +995,9 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	{
 		HMDType = GEngine->XRSystem->GetSystemName();
 	}
-	/*else
-	{
-		Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-	}*/
 
 	//Did we change the mode?
-	if (Options.Mode != InOptions.Mode)
+	if (Options.Mode != InOptions.Mode || Options.Mode == LEAP_MODE_UNSET)
 	{
 		bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
 		SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
