@@ -126,6 +126,14 @@ void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 	}
 }
 
+void FLeapMotionPlugin::SetDeviceSettings(const FLeapDeviceSettings& InSettings, int32 DeviceId /*= 1*/)
+{
+	if (bActive)
+	{
+		LeapInputDevice->SetDeviceSettings(InSettings, DeviceId);
+	}
+}
+
 void FLeapMotionPlugin::ShutdownLeap()
 {
 	if (bActive)

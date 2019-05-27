@@ -69,6 +69,7 @@ public:
 
 	//Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
+	void SetDeviceSettings(const FLeapDeviceSettings& InSettings, int32 DeviceId);
 
 	//BodyState
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;

@@ -773,6 +773,14 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 	}
 }
 
+void FLeapMotionInputDevice::SetDeviceSettings(const FLeapDeviceSettings& InSettings, int32 DeviceId)
+{
+	if (DeviceFrameData.Contains(DeviceId))
+	{
+		DeviceFrameData[DeviceId].Settings = InSettings;
+	}
+}
+
 #pragma endregion Leap Input Device
 
 #pragma region BodyState
