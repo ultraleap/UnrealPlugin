@@ -351,7 +351,7 @@ FLeapStats::FLeapStats()
 	
 }
 
-void FLeapDevice::SetFromLeapDevice(struct _LEAP_DEVICE_INFO* LeapInfo)
+void FLeapDeviceProperties::SetFromLeapDevice(struct _LEAP_DEVICE_INFO* LeapInfo)
 {
 	Status = LeapInfo->status;
 	Caps = LeapInfo->caps;

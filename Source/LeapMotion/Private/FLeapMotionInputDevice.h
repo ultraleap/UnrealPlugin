@@ -155,8 +155,8 @@ private:
 	//LeapWrapper Callbacks
 	virtual void OnConnect() override;
 	virtual void OnConnectionLost() override;
-	virtual void OnDeviceFound(const LEAP_DEVICE_INFO *props) override;
-	virtual void OnDeviceLost(const char* serial) override;
+	virtual void OnDeviceFound(const LEAP_DEVICE_INFO *props, int32 DeviceId) override;
+	virtual void OnDeviceLost(const char* serial, int32 DeviceId) override;
 	virtual void OnDeviceFailure(
 		const eLeapDeviceStatus failure_code,
 		const LEAP_DEVICE failed_device) override;

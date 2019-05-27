@@ -12,8 +12,8 @@ class LeapWrapperCallbackInterface
 public:
 	virtual void OnConnect() {};
 	virtual void OnConnectionLost() {};
-	virtual void OnDeviceFound(const LEAP_DEVICE_INFO *Device) {};
-	virtual void OnDeviceLost(const char* Serial) {};
+	virtual void OnDeviceFound(const LEAP_DEVICE_INFO *Device, int32 DeviceId) {};
+	virtual void OnDeviceLost(const char* Serial, int32 DeviceId) {};
 	virtual void OnDeviceFailure(
 		const eLeapDeviceStatus FailureCode,
 		const LEAP_DEVICE FailedDevice) {};

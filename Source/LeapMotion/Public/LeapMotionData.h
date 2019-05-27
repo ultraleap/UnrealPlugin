@@ -55,7 +55,7 @@ enum ELeapServiceLogLevel
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapDevice
+struct LEAPMOTION_API FLeapDeviceProperties
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -96,6 +96,10 @@ struct LEAPMOTION_API FLeapDevice
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
 	int32 Range;
 
+	/** Integer id of device*/
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
+	int32 DeviceId;
+
 	void SetFromLeapDevice(struct _LEAP_DEVICE_INFO* LeapInfo);
 };
 
@@ -110,7 +114,7 @@ struct LEAPMOTION_API FLeapStats
 	FString LeapAPIVersion;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
-	FLeapDevice DeviceInfo;
+	TMap<int32, FLeapDeviceProperties> Devices;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
 	TArray<int32> DeviceIds;
@@ -408,6 +412,7 @@ USTRUCT(BlueprintType)
 struct LEAPMOTION_API FLeapDeviceData
 {
 	GENERATED_USTRUCT_BODY()
+	//Todo: potentially merge with device properties
 
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Bone Data")
 	FLeapFrameData CurrentFrame;

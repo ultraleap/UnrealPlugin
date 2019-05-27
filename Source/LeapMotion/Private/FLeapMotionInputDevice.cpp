@@ -147,30 +147,35 @@ void FLeapMotionInputDevice::OnConnectionLost()
 	});
 }
 
-void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
+void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props, int32 DeviceId)
 {
 	Stats.DeviceIds = Leap.DeviceIds();
-	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
+	FLeapDeviceProperties DeviceStats;
+	DeviceStats.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
+	DeviceStats.DeviceId = DeviceId;
+
+	Stats.Devices.Add(DeviceId, DeviceStats);
 	SetOptions(Options);
 
 	LeapImageHandler->Reset();
 
-	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
+	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *DeviceStats.PID, *DeviceStats.Serial);
 
 	FLeapAsync::RunShortLambdaOnGameThread([&]
 	{
-		AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
+		AttachedDevices.AddUnique(DeviceStats.Serial);
 
 		CallFunctionOnComponents([&](ULeapComponent* Component)
 		{
-			Component->OnLeapDeviceAttached.Broadcast(Stats.DeviceInfo.Serial);
+			Component->OnLeapDeviceAttached.Broadcast(DeviceStats.Serial);
 		});
 	});
 }
 
-void FLeapMotionInputDevice::OnDeviceLost(const char* Serial)
+void FLeapMotionInputDevice::OnDeviceLost(const char* Serial, int32 DeviceId)
 {
 	Stats.DeviceIds = Leap.DeviceIds();
+	Stats.Devices.Remove(DeviceId);
 	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
 
 	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString] 
@@ -1004,8 +1009,13 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	//Set main options
 	Options = InOptions;
 
-	//Cache device type
-	FString DeviceType = Stats.DeviceInfo.PID;
+	//Cache main device type
+	TArray<int32> Devices = Leap.DeviceIds();
+	FString DeviceType = TEXT("Peripheral");
+	if (Devices.Num() > 0) 
+	{
+		DeviceType = Stats.Devices[Devices[0]].PID;
+	}
 
 	//If our tracking fidelity is not custom, set the parameters to good defaults for each platform
 	if (InOptions.TrackingFidelity == ELeapTrackingFidelity::LEAP_CUSTOM)

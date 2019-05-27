@@ -366,11 +366,11 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint3
 
 	if (CallbackDelegate) 
 	{
-		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this]
+		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, DeviceId, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceFound(&DeviceProperties);
+				CallbackDelegate->OnDeviceFound(&DeviceProperties, DeviceId);
 			}
 		});
 	}
@@ -387,11 +387,11 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent, u
 
 	if (CallbackDelegate)
 	{
-		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, this]
+		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceId, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceLost(LastDevice->serial);
+				CallbackDelegate->OnDeviceLost(LastDevice->serial, DeviceId);
 			}
 		});
 	}
