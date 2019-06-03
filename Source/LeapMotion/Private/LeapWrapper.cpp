@@ -91,10 +91,7 @@ void FLeapWrapper::CloseConnection()
 	bIsConnected = false;
 	bIsRunning = false;
 	
-	for (auto Pair : DeviceProps)
-	{
-		CleanupDeviceProps(Pair.Key);
-	}
+	CleanupAllDeviceProps();
 
 	//Wait for thread to exit - Blocking call, but it should be very quick.
 	FTimespan ExitWaitTimeSpan = FTimespan::FromSeconds(3);
@@ -300,6 +297,16 @@ void FLeapWrapper::CleanupDeviceProps(LEAP_DEVICE DeviceHandle)
 }
 
 
+void FLeapWrapper::CleanupAllDeviceProps()
+{
+	TArray<LEAP_DEVICE> Keys;
+	DeviceProps.GetKeys(Keys);
+	for (LEAP_DEVICE Key : Keys)
+	{
+		CleanupDeviceProps(Key);
+	}
+}
+
 int32 FLeapWrapper::GetFirstDevice()
 {
 	int LowestDevice = INT_MAX;
@@ -341,10 +348,7 @@ void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *C
 {
 	bIsConnected = false;
 
-	for (auto Pair: DeviceProps) 
-	{
-		CleanupDeviceProps(Pair.Key);
-	}
+	CleanupAllDeviceProps();
 
 	if (CallbackDelegate) 
 	{

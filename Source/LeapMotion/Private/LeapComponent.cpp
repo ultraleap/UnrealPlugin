@@ -8,7 +8,7 @@ ULeapComponent::ULeapComponent(const FObjectInitializer &init) : UActorComponent
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
 
-	DeviceId = 1;	//default to first device
+	DeviceId = 0;	//default to obtain all device data
 }
 
 void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)

@@ -110,6 +110,7 @@ private:
 	void SetFrame(const LEAP_TRACKING_EVENT *Frame, LEAP_DEVICE DeviceHandle);
 	void SetDeviceProps(const LEAP_DEVICE_INFO *DeviceProps, LEAP_DEVICE DeviceHandle);
 	void CleanupDeviceProps(LEAP_DEVICE DeviceHandle);
+	void CleanupAllDeviceProps();
 	int32 GetFirstDevice();
 
 	void ServiceMessageLoop(void * unused = nullptr);
