@@ -13,6 +13,30 @@ See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-
 
 Requires [4.0.0-52238 runtime](https://github.com/leapmotion/UnityModules/raw/feat-multi-device/Multidevice%20Service/LeapDeveloperKit_4.0.0%2B52238_win.zip)
 
+## How to use multiple devices
+
+With multi-device support _Leap Components_ now have a ```Device Id``` field. This is an integer which starts at 1 and increases for each device attached. Ids are not re-used so hot plugging a new/same device will generate a new id.
+
+![device id](https://i.imgur.com/A4HotiB.png)
+
+Matching this device id to your desired device will filter all events to only emit ones related to that device. If the device id is left as 0, it will listen to all device events.
+
+### Finding device ids
+To get available devices, call ```Get Leap Stats``` and query the ```DeviceIds``` array. If you have a fixed setup that requires two devices you can for example check that you have 2 devices attached and get their ids, then set your leap components to track these device ids.
+
+![two device link](https://i.imgur.com/w9yTy1D.png)
+
+### Setting Calibration offset
+
+By default Bodystate data merges multi-device data into one single data source, but there is no automatic way to get the offsets between devices. If you know this fixed offset you can call ```Set Leap Device Settings``` with ```Device Offset``` transform. You can also set HMD origin adding or if the device should use interpolated data or only raw data. Interpolated data may only work for one device at this time.
+
+![settings for two devices](https://i.imgur.com/pRv4FrX.png)
+
+If you have two devices tracking the same data, you can then use the offset between these to set the device offset transform for one of the devices so that the data syncs. In the example below it's assumed a fixed location offset only with the devices oriented the same way. When the right hand is visible to both sensors this offset is captured and forwarded to the second leap device via ```Set Leap Device Settings```.
+
+![set calibration offset](https://i.imgur.com/9c6EKAZ.png)
+
+With some smart logic you can probably automate this process, but this basic calibration should be sufficient for most common configurations such as using multiple fixed devices for wider coverage.
 
 # Setup
 
