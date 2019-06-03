@@ -41,7 +41,6 @@ public:
 	LEAP_TRACKING_EVENT *LastFrame = NULL;
 	LEAP_IMAGE_FRAME_DESCRIPTION *ImageDescription = NULL;
 	void* ImageBuffer = NULL;
-	LEAP_DEVICE_INFO *LastDevice = NULL;
 	
 	FLeapWrapper();
 	~FLeapWrapper();
@@ -66,12 +65,12 @@ public:
 	LEAP_TRACKING_EVENT* GetFrame(uint32 DeviceId);
 
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
-	LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp);
+	LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp, int32 DeviceId);
 
-	LEAP_DEVICE_INFO* GetDeviceProperties(); //Used in polling example
 	const char* ResultString(eLeapRS Result);
 
 	void EnableImageStream(bool bEnable);
+	bool HasDeviceConnected();
 
 	//Get a list of device ids
 	TArray<int32> DeviceIds();
@@ -83,6 +82,7 @@ private:
 	//Frame and handle data
 	TMap<int32, LEAP_DEVICE> DeviceHandles;
 	TMap<LEAP_DEVICE, LEAP_TRACKING_EVENT*> LatestFrames;
+	TMap<LEAP_DEVICE, LEAP_DEVICE_INFO*> DeviceProps;
 
 	//Threading variables
 	FCriticalSection DataLock;
@@ -108,8 +108,9 @@ private:
 
 	//void setImage();
 	void SetFrame(const LEAP_TRACKING_EVENT *Frame, LEAP_DEVICE DeviceHandle);
-	void SetDevice(const LEAP_DEVICE_INFO *DeviceProps);
-	void CleanupLastDevice();
+	void SetDeviceProps(const LEAP_DEVICE_INFO *DeviceProps, LEAP_DEVICE DeviceHandle);
+	void CleanupDeviceProps(LEAP_DEVICE DeviceHandle);
+	int32 GetFirstDevice();
 
 	void ServiceMessageLoop(void * unused = nullptr);
 

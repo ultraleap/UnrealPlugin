@@ -90,7 +90,11 @@ void FLeapWrapper::CloseConnection()
 	}
 	bIsConnected = false;
 	bIsRunning = false;
-	CleanupLastDevice();
+	
+	for (auto Pair : DeviceProps)
+	{
+		CleanupDeviceProps(Pair.Key);
+	}
 
 	//Wait for thread to exit - Blocking call, but it should be very quick.
 	FTimespan ExitWaitTimeSpan = FTimespan::FromSeconds(3);
@@ -140,24 +144,25 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame(uint32 DeviceId /*= 1*/)
 		if (DeviceHandles.Contains(DeviceId) && 
 			LatestFrames.Num() == DeviceHandles.Num())
 		{
-			CurrentFrame = LatestFrames[DeviceHandles[DeviceId]];
+			LEAP_DEVICE Device = DeviceHandles[DeviceId];
+			CurrentFrame = LatestFrames[Device];
 		}
 		DataLock.Unlock();
 	}
 	return CurrentFrame;
 }
 
-LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
+LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp, int32 DeviceId)
 {
 	//shortcut device handle
-	LEAP_DEVICE DeviceHandle = DeviceHandles[1];
-	//TODO: generalize, but it seems only first handle succeeds for now
+	//NB: it seems only first handle succeeds at interpolated fetch for now
+	LEAP_DEVICE DeviceHandle = DeviceHandles[DeviceId];
 
 	uint64_t FrameSize = 0;
 	LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
 
 	//Check validity of frame size
-	if (FrameSize > 0 )
+	if (FrameSize > 0)
 	{
 		//Different frame? 
 		if (FrameSize != InterpolatedFrameSize)
@@ -178,15 +183,6 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 	//Disable interpolation test
 	//return GetFrame(1);
 	return InterpolatedFrame;
-}
-
-LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
-{
-	LEAP_DEVICE_INFO *currentDevice;
-	DataLock.Lock();
-	currentDevice = LastDevice;
-	DataLock.Unlock();
-	return currentDevice;
 }
 
 const char* FLeapWrapper::ResultString(eLeapRS Result)
@@ -240,6 +236,11 @@ void FLeapWrapper::EnableImageStream(bool bEnable)
 }
 
 
+bool FLeapWrapper::HasDeviceConnected()
+{
+	return DeviceHandles.Num() > 0;
+}
+
 TArray<int32> FLeapWrapper::DeviceIds()
 {
 	TArray<int32> TempDeviceIdArray;
@@ -252,32 +253,62 @@ void FLeapWrapper::Millisleep(int milliseconds)
 	FPlatformProcess::Sleep(((float)milliseconds) / 1000.f);
 }
 
-void FLeapWrapper::SetDevice(const LEAP_DEVICE_INFO *DeviceProps)
+void FLeapWrapper::SetDeviceProps(const LEAP_DEVICE_INFO *NewDeviceProps, LEAP_DEVICE DeviceHandle)
 {
+	LEAP_DEVICE_INFO* Props = nullptr;
+
 	DataLock.Lock();
-	if (LastDevice)
+
+	if (!DeviceProps.Contains(DeviceHandle))
 	{
-		free(LastDevice->serial);
+		Props = (LEAP_DEVICE_INFO*)malloc(sizeof(*NewDeviceProps));
+		DeviceProps.Add(DeviceHandle, Props);
 	}
 	else 
 	{
-		LastDevice = (LEAP_DEVICE_INFO*) malloc(sizeof(*DeviceProps));
+		Props = DeviceProps[DeviceHandle];
+
+		if (Props)
+		{
+			free(Props->serial);
+		}
 	}
-	*LastDevice = *DeviceProps;
-	LastDevice->serial = (char*)malloc(DeviceProps->serial_length);
-	memcpy(LastDevice->serial, DeviceProps->serial, DeviceProps->serial_length);
+
+	*Props = *NewDeviceProps;
+	Props->serial = (char*)malloc(NewDeviceProps->serial_length);
+	memcpy(Props->serial, NewDeviceProps->serial, NewDeviceProps->serial_length);
+
+	DeviceProps[DeviceHandle] = Props;
 	DataLock.Unlock();
 }
 
-void FLeapWrapper::CleanupLastDevice()
+void FLeapWrapper::CleanupDeviceProps(LEAP_DEVICE DeviceHandle)
 {
-	if (LastDevice)
+	if(!DeviceProps.Contains(DeviceHandle))
 	{
-		free(LastDevice->serial);
+		return;
 	}
-	LastDevice = nullptr;
+	LEAP_DEVICE_INFO* Props = DeviceProps[DeviceHandle];
+
+	if (Props)
+	{
+		free(Props->serial);
+	}
+	Props = nullptr;
+
+	DeviceProps.Remove(DeviceHandle);
 }
 
+
+int32 FLeapWrapper::GetFirstDevice()
+{
+	int LowestDevice = INT_MAX;
+	for (auto Pair : DeviceHandles)
+	{
+		LowestDevice = FMath::Min(Pair.Key, LowestDevice);
+	}
+	return LowestDevice;
+}
 
 void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame, LEAP_DEVICE DeviceHandle)
 {
@@ -309,7 +340,11 @@ void FLeapWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT *Connection
 void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT *ConnectionLostEvent)
 {
 	bIsConnected = false;
-	CleanupLastDevice();
+
+	for (auto Pair: DeviceProps) 
+	{
+		CleanupDeviceProps(Pair.Key);
+	}
 
 	if (CallbackDelegate) 
 	{
@@ -352,7 +387,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint3
 			return;
 		}
 	}
-	SetDevice(&DeviceProperties);
+	SetDeviceProps(&DeviceProperties, DeviceHandle);
 
 	Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
 	if (Result != eLeapRS_Success)
@@ -383,17 +418,21 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint3
 }
 
 /** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId) {
-	//todo: remove device handles matched here
+void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT *DeviceEvent, uint32_t DeviceId) 
+{
+	LEAP_DEVICE DeviceHandle = DeviceHandles[DeviceId];
+	FString Serial = FString(DeviceProps[DeviceHandle]->serial);
+	CleanupDeviceProps(DeviceHandle);
+	LatestFrames.Remove(DeviceHandle);
 	DeviceHandles.Remove(DeviceId);
 
 	if (CallbackDelegate)
 	{
-		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceId, this]
+		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceId, Serial, this]
 		{
 			if (CallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceLost(LastDevice->serial, DeviceId);
+				CallbackDelegate->OnDeviceLost((char*)*Serial, DeviceId);
 			}
 		});
 	}
@@ -547,10 +586,10 @@ void FLeapWrapper::ServiceMessageLoop(void * Unused)
 				HandleConnectionLostEvent(Msg.connection_lost_event);
 				break;
 			case eLeapEventType_Device:
-				HandleDeviceEvent(Msg.device_event, Msg.device_id);
+				HandleDeviceEvent(Msg.device_event, Msg.device_event->device.id);
 				break;
 			case eLeapEventType_DeviceLost:
-				HandleDeviceLostEvent(Msg.device_event, Msg.device_id);
+				HandleDeviceLostEvent(Msg.device_event, Msg.device_event->device.id);
 				break;
 			case eLeapEventType_DeviceFailure:
 				HandleDeviceFailureEvent(Msg.device_failure_event, Msg.device_id);

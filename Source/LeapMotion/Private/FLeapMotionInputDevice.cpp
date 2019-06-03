@@ -49,7 +49,8 @@ void FLeapMotionInputDevice::CallFunctionOnComponentsWithDeviceId(TFunction< voi
 {
 	CallFunctionOnComponents([InFunction, DeviceId](ULeapComponent* Component)
 	{
-		if (Component->DeviceId == DeviceId)
+		//send if our component is matching or our device id is 0
+		if (Component->DeviceId == DeviceId || Component->DeviceId == 0)
 		{
 			InFunction(Component);
 		}
@@ -177,6 +178,7 @@ void FLeapMotionInputDevice::OnDeviceLost(const char* Serial, int32 DeviceId)
 {
 	Stats.DeviceIds = Leap.DeviceIds();
 	Stats.Devices.Remove(DeviceId);
+	DeviceFrameData.Remove(DeviceId);
 	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
 
 	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString] 
@@ -401,7 +403,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
 
 	//Did a device connect?
-	if (!Leap.bIsConnected || !Leap.LastDevice)
+	if (!Leap.bIsConnected || !Leap.HasDeviceConnected())
 	{
 		return;
 	}
@@ -445,11 +447,11 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 			//Let's interpolate the frame using leap function
 
 			//Get the future interpolated finger frame
-			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
+			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset, DeviceId);
 			CurrentFrame.SetFromLeapFrame(Frame);
 
 			//Get the future interpolated hand frame, farther than fingers to provide lower latency
-			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset, DeviceId);
 			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
 
 			//Track our extrapolation time in stats
