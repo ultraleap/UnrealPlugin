@@ -17,7 +17,7 @@ If you want to use multiple devices at the same time, see the experimental https
 
 1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started). This plugin requires v4 SDK tracking or newer.
 2. Create new or open a project. 
-3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link)
+3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link and https://www.7-zip.org/ to unzip it)
 4. Drag and drop Plugins into your project root folder
 5. The plugin should be enabled and ready to use, if not enable it.
 
