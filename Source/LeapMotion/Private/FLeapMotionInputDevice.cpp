@@ -448,26 +448,22 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 
 			//Get the future interpolated finger frame
 			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset, DeviceId);
-			CurrentFrame.SetFromLeapFrame(Frame);
+			CurrentFrame.SetFromLeapFrame(Frame, DeviceData.Settings.bAddHMDOrigin);
 
 			//Get the future interpolated hand frame, farther than fingers to provide lower latency
 			Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset, DeviceId);
-			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame, DeviceData.Settings.bAddHMDOrigin);
 
 			//Track our extrapolation time in stats
 			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
 		}
 		else
 		{
-			CurrentFrame.SetFromLeapFrame(Frame);
+			CurrentFrame.SetFromLeapFrame(Frame, DeviceData.Settings.bAddHMDOrigin);
 			Stats.FrameExtrapolationInMS = 0;
 		}
 
-		//Append offset
-		CurrentFrame.TranslateFrame(DeviceData.Settings.DeviceOffset.GetLocation());
-		CurrentFrame.RotateFrame(DeviceData.Settings.DeviceOffset.GetRotation().Rotator());
-
-		ParseEventsForDeviceFrame(DeviceFrameData[DeviceId]);
+		ParseEventsForDeviceFrame(DeviceData);
 	}
 }
 
@@ -489,40 +485,44 @@ void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceData& DeviceFr
 	{
 		CurrentFrame.TranslateFrame(Options.HMDPositionOffset);		//Offset HMD-Leap
 
-		if (Options.bTransformOriginToHMD)
+		BodyStateHMDSnapshot SnapshotNow = SnapshotHandler.LastHMDSample();
+
+		if (IsInGameThread())
 		{
-			BodyStateHMDSnapshot SnapshotNow = SnapshotHandler.LastHMDSample();
-
-			if (IsInGameThread())
-			{
-				SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(LeapGetNow());
-			}
-
-			FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
-			FVector FinalHMDTranslation = SnapshotNow.Position;
-
-			//Determine time-warp, only relevant for VR
-			if (Options.bUseTimeWarp)
-			{
-				//We use fixed timewarp offsets so then is a fixed amount away from now (negative). Positive numbers are invalid for TimewarpOffset
-				BodyStateHMDSnapshot SnapshotThen = SnapshotHandler.HMDSampleClosestToTimestamp(SnapshotNow.Timestamp - Options.TimewarpOffset);
-
-				BodyStateHMDSnapshot SnapshotDifference = SnapshotNow.Difference(SnapshotThen);
-
-				FRotator WarpRotation = SnapshotDifference.Orientation.Rotator() *Options.TimewarpFactor;
-				FVector WarpTranslation = SnapshotDifference.Position * Options.TimewarpFactor;
-
-				FinalHMDTranslation += WarpTranslation;
-
-				FinalHMDRotation = FLeapUtility::CombineRotators(WarpRotation, FinalHMDRotation);
-				CurrentFrame.FinalRotationAdjustment = FinalHMDRotation;
-			}
-
-			//Rotate our frame by time warp difference
-			CurrentFrame.RotateFrame(FinalHMDRotation);
-			CurrentFrame.TranslateFrame(FinalHMDTranslation);
+			SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(LeapGetNow());
 		}
+
+		FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
+		FVector FinalHMDTranslation = SnapshotNow.Position;
+
+		//Determine time-warp, only relevant for VR
+		if (Options.bUseTimeWarp)
+		{
+			//We use fixed timewarp offsets so then is a fixed amount away from now (negative). Positive numbers are invalid for TimewarpOffset
+			BodyStateHMDSnapshot SnapshotThen = SnapshotHandler.HMDSampleClosestToTimestamp(SnapshotNow.Timestamp - Options.TimewarpOffset);
+
+			BodyStateHMDSnapshot SnapshotDifference = SnapshotNow.Difference(SnapshotThen);
+
+			FRotator WarpRotation = SnapshotDifference.Orientation.Rotator() *Options.TimewarpFactor;
+			FVector WarpTranslation = SnapshotDifference.Position * Options.TimewarpFactor;
+
+			FinalHMDTranslation += WarpTranslation;
+
+			FinalHMDRotation = FLeapUtility::CombineRotators(WarpRotation, FinalHMDRotation);
+			CurrentFrame.FinalRotationAdjustment = FinalHMDRotation;
+		}
+
+		//Rotate our frame by time warp difference
+		CurrentFrame.RotateFrame(FinalHMDRotation);
+		CurrentFrame.TranslateFrame(FinalHMDTranslation);
 	}
+
+	//Finally apply any device offset
+	CurrentFrame.RotateFrame(DeviceFrame.Settings.DeviceOffset.GetRotation().Rotator());
+	CurrentFrame.TranslateFrame(DeviceFrame.Settings.DeviceOffset.GetLocation());
+
+	//Copy frame
+	FLeapFrameData CopiedFrame = CurrentFrame;
 
 	//Update visible hand list, must happen first
 	VisibleHands.Empty(CurrentFrame.Hands.Num());
@@ -662,11 +662,11 @@ void FLeapMotionInputDevice::ParseEventsForDeviceFrame(FLeapDeviceData& DeviceFr
 	}//End for each hand
 
 	//Emit tracking data if it is being captured
-	CallFunctionOnComponentsWithDeviceId([CurrentFrame](ULeapComponent* Component)
+	CallFunctionOnComponentsWithDeviceId([CopiedFrame](ULeapComponent* Component)
 	{
 		//Scale input?
 		//FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters / 100.f);
-		Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+		Component->OnLeapTrackingData.Broadcast(CopiedFrame);
 	}, CurrentFrame.DeviceId);
 
 	//It's now the past data
@@ -800,7 +800,7 @@ void FLeapMotionInputDevice::SetDeviceSettings(const FLeapDeviceSettings& InSett
 
 #pragma region BodyState
 
-void FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton, bool& bLeftIsTracking, bool& bIsRightTracking)
+void FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, const FLeapDeviceSettings& Settings, class UBodyStateSkeleton* Skeleton, bool& bLeftIsTracking, bool& bIsRightTracking)
 {
 	{
 		FScopeLock ScopeLock(&Skeleton->BoneDataLock);
@@ -811,26 +811,55 @@ void FLeapMotionInputDevice::MergeLeapFrameToSkeleton(FLeapFrameData& Frame, cla
 		{
 			UBodyStateArm* Arm = nullptr;
 			
-			if (LeapHand.HandType == EHandType::LEAP_HAND_LEFT)
+			if (Settings.bMergeBSLeftHand &&
+				LeapHand.HandType == EHandType::LEAP_HAND_LEFT &&
+				LeapHand.Confidence > 0.f)
 			{
 				Arm = Skeleton->LeftArm();
 				bLeftIsTracking = true;
 			}
-			else if (LeapHand.HandType == EHandType::LEAP_HAND_RIGHT)
+			else if (Settings.bMergeBSRightHand && 
+				LeapHand.HandType == EHandType::LEAP_HAND_RIGHT &&
+				LeapHand.Confidence > 0.f)
 			{
 				Arm = Skeleton->RightArm();
 				bIsRightTracking = true;
 			}
 
-			//Merge higher confidence values
-			if (LeapHand.Confidence > Arm->LowerArm->Meta.Confidence)
+			if (Arm == nullptr)
 			{
+				continue;
+			}
 
-				Arm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
-				Arm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
+			float TotalConfidence = LeapHand.Confidence + Settings.ConfidenceBoost;
 
-				//Set hand data
-				SetBSHandFromLeapHand(Arm->Hand, LeapHand);
+			//Merge higher confidence values - not fully written
+			if (Settings.bMergeBSWithLerp)
+			{
+				float DeviceHandAlpha = LeapHand.Confidence * Settings.bMergeBSLerpBias;
+				float TotalAlpha = Arm->LowerArm->Meta.AccumulatedAlpha + DeviceHandAlpha;
+
+				float BFraction = DeviceHandAlpha / TotalAlpha;
+
+				Arm->LowerArm->SetPositionAndOrientationWithLerp(LeapHand.Arm.PrevJoint, LeapHand.Arm.Rotation, BFraction);
+
+				//Todo: merge hand data via lerp, for now just set it from current
+				SetBSHandFromLeapHand(Arm->Hand, LeapHand, BFraction);
+
+				//Accumulate alpha for this hand
+				Arm->LowerArm->Meta.AccumulatedAlpha = TotalAlpha;
+			}
+			else
+			{
+				if ( TotalConfidence > Arm->LowerArm->Meta.Confidence)
+				{
+					Arm->LowerArm->SetPosition(LeapHand.Arm.PrevJoint);
+					Arm->LowerArm->SetOrientation(LeapHand.Arm.Rotation);
+					Arm->LowerArm->SetTrackingConfidenceRecursively(TotalConfidence);
+
+					//Set hand data
+					SetBSHandFromLeapHand(Arm->Hand, LeapHand, 1.f);
+				}
 			}
 		}
 	}
@@ -846,17 +875,15 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 
 	//New frame, clear all confidence
 	Skeleton->ClearConfidence();
+	Skeleton->ClearAccumulatedAlpha();
 
 	//Merge each device frame
 	for (auto& DeviceFramePair : DeviceFrameData)
 	{
 		FLeapFrameData& CurrentFrame = DeviceFramePair.Value.CurrentFrame;
-		/*for (auto LeapHand : CurrentFrame.Hands)
-		{
-			if(LeapHand.Palm.Position < Skeleton->)
-		}*/
+		FLeapDeviceSettings& Settings = DeviceFramePair.Value.Settings;
 
-		MergeLeapFrameToSkeleton(CurrentFrame, Skeleton, bLeftIsTracking, bRightIsTracking);
+		MergeLeapFrameToSkeleton(CurrentFrame, Settings, Skeleton, bLeftIsTracking, bRightIsTracking);
 	}
 
 	//if the number or type of bones that are tracked changed
@@ -926,48 +953,36 @@ void FLeapMotionInputDevice::OnDeviceDetach()
 
 
 
-void FLeapMotionInputDevice::SetBSFingerFromLeapDigit(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
+void FLeapMotionInputDevice::SetBSFingerFromLeapDigit(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit, float Alpha)
 {
-	Finger->Metacarpal->SetPosition(LeapDigit.Metacarpal.PrevJoint);
-	Finger->Metacarpal->SetOrientation(LeapDigit.Metacarpal.Rotation);
-
-	Finger->Proximal->SetPosition(LeapDigit.Proximal.PrevJoint);
-	Finger->Proximal->SetOrientation(LeapDigit.Proximal.Rotation);
-
-	Finger->Intermediate->SetPosition(LeapDigit.Intermediate.PrevJoint);
-	Finger->Intermediate->SetOrientation(LeapDigit.Intermediate.Rotation);
-
-	Finger->Distal->SetPosition(LeapDigit.Distal.PrevJoint);
-	Finger->Distal->SetOrientation(LeapDigit.Distal.Rotation);
+	Finger->Metacarpal->SetPositionAndOrientationWithLerp(LeapDigit.Metacarpal.PrevJoint, LeapDigit.Metacarpal.Rotation, Alpha);
+	Finger->Proximal->SetPositionAndOrientationWithLerp(LeapDigit.Proximal.PrevJoint, LeapDigit.Proximal.Rotation, Alpha);
+	Finger->Intermediate->SetPositionAndOrientationWithLerp(LeapDigit.Intermediate.PrevJoint, LeapDigit.Intermediate.Rotation, Alpha);
+	Finger->Distal->SetPositionAndOrientationWithLerp(LeapDigit.Distal.PrevJoint, LeapDigit.Distal.Rotation, Alpha);
 
 	Finger->bIsExtended = LeapDigit.IsExtended;
 }
 
-void FLeapMotionInputDevice::SetBSThumbFromLeapThumb(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
+void FLeapMotionInputDevice::SetBSThumbFromLeapThumb(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit, float Alpha)
 {
-	Finger->Metacarpal->SetPosition(LeapDigit.Proximal.PrevJoint);
-	Finger->Metacarpal->SetOrientation(LeapDigit.Proximal.Rotation);
+	Finger->Metacarpal->SetPositionAndOrientationWithLerp(LeapDigit.Proximal.PrevJoint, LeapDigit.Proximal.Rotation, Alpha);
+	Finger->Proximal->SetPositionAndOrientationWithLerp(LeapDigit.Intermediate.PrevJoint, LeapDigit.Intermediate.Rotation, Alpha);
+	Finger->Distal->SetPositionAndOrientationWithLerp(LeapDigit.Distal.PrevJoint, LeapDigit.Distal.Rotation, Alpha);
 
-	Finger->Proximal->SetPosition(LeapDigit.Intermediate.PrevJoint);
-	Finger->Proximal->SetOrientation(LeapDigit.Intermediate.Rotation);
-
-	Finger->Distal->SetPosition(LeapDigit.Distal.PrevJoint);
-	Finger->Distal->SetOrientation(LeapDigit.Distal.Rotation);
+	Finger->bIsExtended = LeapDigit.IsExtended;
 }
 
-void FLeapMotionInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHandData& LeapHand)
+void FLeapMotionInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHandData& LeapHand, float Alpha)
 {
-	SetBSThumbFromLeapThumb(Hand->ThumbFinger(), LeapHand.Thumb);
-	SetBSFingerFromLeapDigit(Hand->IndexFinger(), LeapHand.Index);
-	SetBSFingerFromLeapDigit(Hand->MiddleFinger(), LeapHand.Middle);
-	SetBSFingerFromLeapDigit(Hand->RingFinger(), LeapHand.Ring);
-	SetBSFingerFromLeapDigit(Hand->PinkyFinger(), LeapHand.Pinky);
+	SetBSThumbFromLeapThumb(Hand->ThumbFinger(), LeapHand.Thumb, Alpha);
+	SetBSFingerFromLeapDigit(Hand->IndexFinger(), LeapHand.Index, Alpha);
+	SetBSFingerFromLeapDigit(Hand->MiddleFinger(), LeapHand.Middle, Alpha);
+	SetBSFingerFromLeapDigit(Hand->RingFinger(), LeapHand.Ring, Alpha);
+	SetBSFingerFromLeapDigit(Hand->PinkyFinger(), LeapHand.Pinky, Alpha);
 
-	Hand->Wrist->SetPosition(LeapHand.Arm.NextJoint);
-	Hand->Wrist->SetOrientation(LeapHand.Palm.Orientation);
+	Hand->Wrist->SetPositionAndOrientationWithLerp(LeapHand.Arm.NextJoint, LeapHand.Palm.Orientation, Alpha);
 
-	//did our confidence change? set it recursively
-	//4.0 breaks this as confidence isn't set!
+	//did our confidence change? set it recursively 4.0 may break confidence...
 	if (Hand->Wrist->Meta.Confidence != LeapHand.Confidence)
 	{
 		Hand->Wrist->SetTrackingConfidenceRecursively(LeapHand.Confidence);
@@ -984,11 +999,7 @@ void FLeapMotionInputDevice::BeginRenderViewFamily(FSceneViewFamily& InViewFamil
 
 void FLeapMotionInputDevice::PreRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)
 {
-	//SnapshotHandler.AddCurrentHMDSample(LeapGetNow());
-	
 	//Not used
-	//CurrentFrames.SetFromLeapFrame(Leap.GetFrame());
-	//ParseEvents();
 }
 
 void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)

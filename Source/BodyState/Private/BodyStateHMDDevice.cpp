@@ -16,9 +16,9 @@ FBodyStateHMDDevice::FBodyStateHMDDevice()
 	Config.InputType = EBodyStateDeviceInputType::EXTERNAL_REFERENCE_INPUT_TYPE;
 	Config.TrackingTags.Add("Hands");
 	Config.TrackingTags.Add("Head");
-	bShouldTrackMotionControllers = true;
+	bShouldTrackMotionControllers = false;
 	MotionControllerInertialConfidence = 0.1f;
-	MotionControllerTrackedConfidence = 0.8f;	//it's not 1.0 to allow leap motion to override it if both are tracked at same time
+	MotionControllerTrackedConfidence = 0.5f;	//it's not 1.0 to allow leap motion to override it if both are tracked at same time
 }
 
 FBodyStateHMDDevice::~FBodyStateHMDDevice()

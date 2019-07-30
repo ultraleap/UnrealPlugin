@@ -75,7 +75,7 @@ public:
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;
 	virtual void OnDeviceDetach();
 
-	void MergeLeapFrameToSkeleton(FLeapFrameData& Frame, class UBodyStateSkeleton* Skeleton, bool& bLeftIsTracking, bool& bIsRightTracking);
+	void MergeLeapFrameToSkeleton(FLeapFrameData& Frame, const FLeapDeviceSettings& DeviceSettings, class UBodyStateSkeleton* Skeleton, bool& bLeftIsTracking, bool& bIsRightTracking);
 
 	FCriticalSection LeapSection;
 
@@ -176,7 +176,7 @@ private:
 	TSharedPtr<FLeapLiveLinkProducer> LiveLink;
 
 	//Convenience Converters - Todo: wrap into separate class?
-	void SetBSFingerFromLeapDigit(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit);
-	void SetBSThumbFromLeapThumb(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit);
-	void SetBSHandFromLeapHand(class UBodyStateHand* Hand, const FLeapHandData& LeapHand);
+	void SetBSFingerFromLeapDigit(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit, float Alpha);
+	void SetBSThumbFromLeapThumb(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit, float Alpha);
+	void SetBSHandFromLeapHand(class UBodyStateHand* Hand, const FLeapHandData& LeapHand, float Alpha);
 };

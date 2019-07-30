@@ -30,6 +30,10 @@ struct BODYSTATE_API FBodyStateBoneMeta
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone Data")
 	float Confidence;
 
+	/** Used for lerp merging data */
+	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone Data")
+	float AccumulatedAlpha;
+
 	/** Time when this value was sampled */
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone Data")
 	float TimeStamp;
@@ -42,6 +46,7 @@ struct BODYSTATE_API FBodyStateBoneMeta
 		Accuracy = 0.f;
 		Confidence = 0.f;
 		TimeStamp = 0.f;
+		AccumulatedAlpha = 0.f;
 	}
 };
 
@@ -91,6 +96,7 @@ UCLASS(BlueprintType)
 class BODYSTATE_API UBodyStateBone : public UObject
 {
 	GENERATED_UCLASS_BODY()
+public:
 
 	/** Human readable name */
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone")
@@ -132,6 +138,15 @@ class BODYSTATE_API UBodyStateBone : public UObject
 	UFUNCTION(BlueprintPure, Category = "BodyState Bone")
 	FTransform Transform();
 
+	UFUNCTION(BlueprintCallable, meta = (Keywords = "set transform"), Category = "BodyState Bone")
+	void SetTransform(const FTransform & InTransform);
+
+	UFUNCTION(BlueprintCallable, meta = (Keywords = "set transform lerp"), Category = "BodyState Bone")
+	void SetTransformWithLerp(const FTransform & InTransform, float Alpha);
+
+	UFUNCTION(BlueprintCallable, meta = (Keywords = "set transform lerp"), Category = "BodyState Bone")
+	void SetPositionAndOrientationWithLerp(const FVector & InPosition, const FRotator& InOrientation, float Alpha);
+
 	UFUNCTION(BlueprintCallable, Category = "BodyState Bone")
 	void SetScale(const FVector& InScale);
 
@@ -155,6 +170,9 @@ class BODYSTATE_API UBodyStateBone : public UObject
 
 	UFUNCTION(BlueprintCallable, Category = "BodyState Bone")
 	virtual void ShiftBone(FVector ShiftAmount);
+
+	UFUNCTION(BlueprintCallable, Category = "BodyState Bone")
+	virtual void ApplyTransformRecursively(const FTransform& Transform);
 
 	UFUNCTION(BlueprintCallable, Category = "BodyState Bone")
 	virtual void ChangeBasis(const FRotator& PreBase, const FRotator& PostBase, bool AdjustVectors = true);

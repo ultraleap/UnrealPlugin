@@ -43,6 +43,35 @@ FTransform UBodyStateBone::Transform()
 	return BoneData.Transform;
 }
 
+void UBodyStateBone::SetTransform(const FTransform& InTransform)
+{
+	BoneData.Transform = InTransform;
+}
+
+void UBodyStateBone::SetTransformWithLerp(const FTransform& InTransform, float Alpha)
+{
+	BoneData.Transform.SetLocation(FMath::Lerp(BoneData.Transform.GetLocation(), InTransform.GetLocation(), Alpha));
+	BoneData.Transform.SetRotation(FMath::Lerp(BoneData.Transform.GetRotation(), InTransform.GetRotation(), Alpha));
+	//BoneData.Transform.SetScale3D(FMath::Lerp(BoneData.Transform.GetScale3D(), InTransform.GetScale3D(), Alpha)); scale unused in bs, uncomment if added
+}
+
+void UBodyStateBone::SetPositionAndOrientationWithLerp(const FVector& InPosition, const FRotator& InOrientation, float Alpha)
+{
+	FTransform InTransform;
+	InTransform.SetLocation(InPosition);
+	InTransform.SetRotation(InOrientation.Quaternion());
+
+	if (Alpha == 1.f)
+	{
+		//minor optimization
+		SetTransform(InTransform);
+	}
+	else
+	{
+		SetTransformWithLerp(InTransform, Alpha);
+	}
+}
+
 void UBodyStateBone::SetScale(const FVector& InScale)
 {
 	BoneData.Transform.SetScale3D(InScale);
@@ -106,6 +135,16 @@ void UBodyStateBone::SetEnabled(bool enable)
 void UBodyStateBone::ShiftBone(FVector Shift)
 {
 	BoneData.Transform.SetTranslation(BoneData.Transform.GetTranslation() + Shift);
+}
+
+void UBodyStateBone::ApplyTransformRecursively(const FTransform& Transform)
+{
+	BoneData.Transform = BoneData.Transform * Transform;
+
+	for (auto Child : Children)
+	{
+		Child->ApplyTransformRecursively(Transform);
+	}
 }
 
 void UBodyStateBone::ChangeBasis(const FRotator& PreBase, const FRotator& PostBase, bool AdjustVectors /*= true*/)

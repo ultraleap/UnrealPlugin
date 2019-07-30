@@ -202,7 +202,7 @@ struct LEAPMOTION_API FLeapBoneData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
 	float Width;
 
-	void SetFromLeapBone(struct _LEAP_BONE* bone);
+	void SetFromLeapBone(struct _LEAP_BONE* bone, bool bAddHMDOffset = true);
 	void ScaleBone(float Scale);
 	void RotateBone(const FRotator& InRotation);
 	void TranslateBone(const FVector& InTranslation);
@@ -234,7 +234,7 @@ struct LEAPMOTION_API FLeapPalmData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
 	float Width;
 
-	void SetFromLeapPalm(struct _LEAP_PALM* palm);
+	void SetFromLeapPalm(struct _LEAP_PALM* palm, bool bAddHMDOffset);
 	void ScalePalm(float Scale);
 	void RotatePalm(const FRotator& InRotation);
 	void TranslatePalm(const FVector& InTranslation);
@@ -266,7 +266,7 @@ struct LEAPMOTION_API FLeapDigitData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
 	FLeapBoneData Proximal;
 
-	void SetFromLeapDigit(struct _LEAP_DIGIT* digit);
+	void SetFromLeapDigit(struct _LEAP_DIGIT* digit, bool bAddHMDOffset);
 	void ScaleDigit(float Scale);
 	void RotateDigit(const FRotator& InRotation);
 	void TranslateDigit(const FVector& InTranslation);
@@ -331,10 +331,10 @@ struct LEAPMOTION_API FLeapHandData
 	float VisibleTime;
 
 	/** Copy all data from leap type*/
-	void SetFromLeapHand(struct _LEAP_HAND* hand);
+	void SetFromLeapHand(struct _LEAP_HAND* hand, bool bAddHMDOffset);
 
 	/** Used in interpolation*/
-	void SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand);	
+	void SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand, bool bAddHMDOffset);	
 	
 	void ScaleHand(float Scale);
 	void RotateHand(const FRotator& InRotation);
@@ -381,8 +381,8 @@ struct LEAPMOTION_API FLeapFrameData
 
 	FLeapHandData HandForId(int32 HandId);
 
-	void SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame);
-	void SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame);
+	void SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame, bool bAddHMDOffset);
+	void SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame, bool bAddHMDOffset);
 	void ScaleFrame(float Scale);
 	void RotateFrame(const FRotator& InRotation);
 	void TranslateFrame(const FVector& InTranslation);
@@ -394,16 +394,36 @@ struct LEAPMOTION_API FLeapDeviceSettings
 	GENERATED_USTRUCT_BODY()
 
 	//Whether this device should track hmd origin
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
 	bool bAddHMDOrigin;
 
 	//Whether this device attempt to use interpolated position/rotation values (recommended for hmd)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
 	bool bShouldInterpolate;
 
 	//Offset from device origin, set simple sync for e.g. bodystate
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
 	FTransform DeviceOffset;
+
+	//Allows you to change tracking preference by raising/lowering per device confidence. Merge with lerp will generally override this bias.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
+	float ConfidenceBoost;
+
+	//If this is enabled, the tracking data will merge as a balanced lerp (0.5), Use bMergeBSLerpBias to adjust the bias
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
+	bool bMergeBSWithLerp;
+
+	//Lerp bias, default is 1.0, higher value will give this device higher preference (e.g. 9.0 == 9x, 0.1 = 10%)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
+	float bMergeBSLerpBias;
+
+	//Whether we should use/discard data from this device for the left hand when merging BS
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
+	bool bMergeBSLeftHand;
+
+	//Whether we should use/discard data from this device for the right hand when merging BS
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Settings")
+	bool bMergeBSRightHand;
 
 	FLeapDeviceSettings();
 };
@@ -415,10 +435,10 @@ struct LEAPMOTION_API FLeapDeviceData
 	GENERATED_USTRUCT_BODY()
 	//Todo: potentially merge with device properties
 
-	UPROPERTY(BlueprintReadOnly, Category = "Leap Bone Data")
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Device Data")
 	FLeapFrameData CurrentFrame;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Leap Bone Data")
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Device Data")
 	FLeapFrameData PastFrame;
 
 	UPROPERTY()
@@ -427,6 +447,6 @@ struct LEAPMOTION_API FLeapDeviceData
 	UPROPERTY()
 	TArray<int32> PastVisibleHandIds;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Bone Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Leap Device Data")
 	FLeapDeviceSettings Settings;
 };

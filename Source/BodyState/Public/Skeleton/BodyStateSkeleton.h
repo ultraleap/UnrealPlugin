@@ -163,6 +163,7 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	bool IsTrackingAnyBone();
 
 	void ClearConfidence();
+	void ClearAccumulatedAlpha();
 
 	//Replication
 	UFUNCTION(Unreliable, Server, WithValidation)

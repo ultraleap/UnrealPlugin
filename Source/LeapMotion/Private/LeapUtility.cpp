@@ -108,19 +108,34 @@ FVector AdjustForHMDOrientation(FVector In)
 }
 
 
-FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector)
+FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector, bool bAddHMDOffset)
 {
-	//Scale from mm to cm (ue default)
-	FVector ConvertedVector = (ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
+	if (bAddHMDOffset)
+	{
+		//Scale from mm to cm (ue default)
+		FVector ConvertedVector = (ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
 
-	//Rotate our vector to adjust for any global rotation offsets
-	return LeapMountRotationOffset.RotateVector(ConvertedVector);
+		//Rotate our vector to adjust for any global rotation offsets
+		return LeapMountRotationOffset.RotateVector(ConvertedVector);
+	}
+	else
+	{
+		//only conversions scaling
+		return ConvertLeapVectorToFVector(LeapVector) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
+	}
 }
 
-FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion)
+FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, bool bAddHMDOffset)
 {
 	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion);
-	return LeapMountRotationOffset * UEQuat;
+	if (bAddHMDOffset)
+	{
+		return LeapMountRotationOffset * UEQuat;
+	}
+	else
+	{
+		return UEQuat;
+	}
 }
 
 FMatrix FLeapUtility::ConvertLeapBasisMatrix(LEAP_DISTORTION_MATRIX LeapMatrix)

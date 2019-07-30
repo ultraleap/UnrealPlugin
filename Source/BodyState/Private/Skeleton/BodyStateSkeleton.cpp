@@ -497,6 +497,13 @@ void UBodyStateSkeleton::ClearConfidence()
 	//Clear from root bone
 	Bones[0]->SetTrackingConfidenceRecursively(0.f);
 }
+void UBodyStateSkeleton::ClearAccumulatedAlpha()
+{
+	for (UBodyStateBone* Bone : Bones)
+	{
+		Bone->Meta.AccumulatedAlpha = 0.f;
+	}
+}
 
 bool UBodyStateSkeleton::ServerUpdateBodyState_Validate(FNamedSkeletonData BodyState)
 {

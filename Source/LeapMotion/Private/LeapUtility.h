@@ -20,8 +20,8 @@ public:
 	static FVector ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector);
 	static FQuat ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion);
 
-	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector);
-	static FQuat ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion);
+	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector, bool bAddHMDOffset);
+	static FQuat ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, bool bAddHMDOffset);
 
 	static FMatrix ConvertLeapBasisMatrix(LEAP_DISTORTION_MATRIX LeapMatrix);
 	static FMatrix SwapLeftHandRuleForRight(const FMatrix &UEMatrix);		//needed for all left hand basis which will be incorrect in ue format
