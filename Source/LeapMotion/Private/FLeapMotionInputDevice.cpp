@@ -1022,7 +1022,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	//Cache main device type
 	TArray<int32> Devices = Leap.DeviceIds();
 	FString DeviceType = TEXT("Peripheral");
-	if (Devices.Num() > 0) 
+	if (Devices.Num() > 0 && Stats.Devices.Num() > 0)
 	{
 		DeviceType = Stats.Devices[Devices[0]].PID;
 	}
