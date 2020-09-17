@@ -7,6 +7,8 @@ The official [Leap Motion](http://www.leapmotion.com) plugin for the Unreal Engi
 
 You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
 
+Additionally, further Leap UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
+
 ### Problems & Questions
 Reach out at https://forums.leapmotion.com/
 
