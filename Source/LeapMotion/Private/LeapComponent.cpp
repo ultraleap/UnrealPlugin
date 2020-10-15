@@ -7,6 +7,14 @@ ULeapComponent::ULeapComponent(const FObjectInitializer &init) : UActorComponent
 {
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
+
+	bAddHmdOrigin = false;
+	DeviceId = 1;	//default to first device
+}
+
+void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
+{
+	//this needs to propagate to all other components with same id
 }
 
 void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
