@@ -12,6 +12,7 @@ Versions
 * Fixed freeing of device property before it is read causing invalid serials/devices. 
 * Fixed bad event usage example.
 * Updated hand colliders to be more accurate (now mesh based).
+* Resolved an issue where performance would decrease after a leap was unplugged/replugged.
 
 
 ---
