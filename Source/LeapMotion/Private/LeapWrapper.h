@@ -33,12 +33,10 @@ class FLeapWrapper
 {
 public:
 	//LeapC Vars
-	//bool bIsMultiDeviceAware;
 	FThreadSafeBool bIsRunning;
 	FThreadSafeBool bHasFinished;
 	bool bIsConnected;
 	LEAP_CONNECTION ConnectionHandle;
-	//static LEAP_TRACKING_EVENT *LastFrame = NULL;
 	LEAP_IMAGE_FRAME_DESCRIPTION *ImageDescription = NULL;
 	void* ImageBuffer = NULL;
 	LEAP_DEVICE_INFO *CurrentDeviceInfo = NULL;
@@ -104,7 +102,7 @@ private:
 	FGraphEventRef TaskRefConfigResponse;
 
 	//void setImage();
-	void SetFrame(const LEAP_TRACKING_EVENT* Frame);//, LEAP_DEVICE DeviceHandle);
+	void SetFrame(const LEAP_TRACKING_EVENT* Frame);
 	void SetDevice(const LEAP_DEVICE_INFO *DeviceProps);
 	void CleanupLastDevice();
 

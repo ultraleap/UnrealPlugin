@@ -55,12 +55,6 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 	Config.server_namespace = "Leap Service";
 	Config.size = sizeof(Config);
 
-	//Enable multi-device awareness fixed
-	//bIsMultiDeviceAware = true;
-	
-	//Config.flags = bIsMultiDeviceAware ? eLeapConnectionConfig_MultiDeviceAware: 0;
-
-
 	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
 		result = LeapOpenConnection(ConnectionHandle);
@@ -142,10 +136,6 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
 
 LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
-	//shortcut device handle
-	//LEAP_DEVICE DeviceHandle = DeviceHandle;
-	//TODO: generalize, but it seems only first handle succeeds for now
-
 	uint64_t FrameSize = 0;
 	LeapGetFrameSize(ConnectionHandle, TimeStamp, &FrameSize);
 
@@ -170,7 +160,6 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 
 	//Disable interpolation test
 	return GetFrame();
-	//return InterpolatedFrame;
 }
 
 LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
@@ -269,22 +258,13 @@ void FLeapWrapper::CleanupLastDevice()
 void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT *Frame)//, LEAP_DEVICE DeviceHandle)
 {
 	DataLock.Lock();
-	/*
-	if (!LatestFrames.Contains(DeviceHandle))
-	{
-		LatestFrames.Add(DeviceHandle, (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame)));
-	}
-	*LatestFrames[DeviceHandle] = *Frame;
-	*/
+
 	if (!LatestFrame) {
 		LatestFrame = (LEAP_TRACKING_EVENT*)malloc(sizeof(*Frame));
 	}
+
 	*LatestFrame = *Frame;
-	/*if(!LastFrame)
-	{
-		LastFrame = (LEAP_TRACKING_EVENT *)malloc(sizeof(*Frame));
-	}
-	*LastFrame = *Frame;*/
+	
 	DataLock.Unlock();
 }
 
@@ -347,16 +327,6 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT *DeviceEvent)
 	}
 
 	SetDevice(&DeviceProperties);
-
-	/*Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
-	if (Result != eLeapRS_Success)
-	{
-		UE_LOG(LeapMotionLog, Warning, TEXT("failed to subscribe to device %s.\n"), ResultString(Result));
-		return;
-	}*/
-
-	//Link device_id and handle
-	//DeviceHandles.Add(DeviceEvent->device.id, DeviceHandle);
 
 	if (CallbackDelegate) 
 	{

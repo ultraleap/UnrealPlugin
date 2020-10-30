@@ -192,9 +192,6 @@ struct LEAPMOTION_API FLeapOptions
 
 	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
 	float PinchTimeout;
-	/** Enable or disable image streaming from the device*/
-	//UPROPERTY(BlueprintReadWrite, Category = "Leap Options")	//disabled for now, current version doesn't actually support image streaming
-	//bool bEnableImageStreaming;
 };
 
 USTRUCT(BlueprintType)
