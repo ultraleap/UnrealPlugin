@@ -55,7 +55,7 @@ If you add input mapping to a non-input chain actor, ensure you override the def
 
 Leap Options (see below) exposes new settings that allow the sensitivity of the gesture detection to be adjusted:
 
-![image](Resources/LeapOptions.png)
+![image info](./Resources/LeapOptions.png)
 
 * Use Frame Based Gesture Detection - enables the older method of detecting pinch/grab gestures.
 * Start Grab Threshold - specifies the minimum grab value that needs to be detected before a grab gesture is started.
