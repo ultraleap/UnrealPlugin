@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "AnimNode_ModifyBodyStateMappedBones.h"
 #include "AnimationRuntime.h"
@@ -12,12 +12,23 @@ FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones()
 	Alpha = 1.f;
 }
 
-void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms)
-{
-	//Tag limit by skeleton
-	if (!MappedBoneAnimData.SkeletonHasValidTags())
+void FAnimNode_ModifyBodyStateMappedBones::OnInitializeAnimInstance(const FAnimInstanceProxy* InProxy, const UAnimInstance* InAnimInstance) {
+	Super::OnInitializeAnimInstance(InProxy, InAnimInstance);
+	BSAnimInstance = Cast<UBodyStateAnimInstance>(InAnimInstance);
+}
+
+void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms) {
+	EvaluateComponentPose_AnyThread(Output);
+}
+
+
+void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComponentSpacePoseContext& Output) {
+	Super::EvaluateComponentPose_AnyThread(Output);
+
+	if (MappedBoneAnimData.BoneMap.Num() == 0 || MappedBoneAnimData.BodyStateSkeleton == nullptr)
 	{
-		return;
+		UE_LOG(LogTemp, Log, TEXT("Updating cached MappedBoneAnimData"));
+		MappedBoneAnimData = BSAnimInstance->MappedBoneList[0];
 	}
 
 	//If we don't have data driving us, ignore this evaluation
@@ -25,8 +36,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(FCo
 	const float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
 	TArray<FBoneTransform> TempTransform;
-
-	
 
 	//SN: there should be an array re-ordered by hierarchy (parents -> children order)
 	for (auto CachedBone : MappedBoneAnimData.CachedBoneList)

@@ -42,6 +42,7 @@ After the plugin is enabled you can change your default pawn to *LeapHandsPawn* 
 After the plugin is enabled, find *Leap Desktop Actor* in your content browser (plugin content enabled) and place it anywhere in your scene. When you hit play your hands will be tracked from the actor center with the sensor expected to be facing upwards.
 
 ## Gestures
+Version 3.6.0 introduces a new gesture detection system, which is no longer based on frames. This reduces the likelihood that gestures will be dropped, particularly when hands are rotated. Users have the option to use the new or the old system.
 
 ### Grab and Pinch
 
@@ -51,6 +52,18 @@ These should be globally available via Input Mapping. Look for keys *Leap (L)/(R
 
 If you add input mapping to a non-input chain actor, ensure you override the default to receive the input 
 ![ensure input is received](http://i.imgur.com/zWMrHxn.png)
+
+Leap Options (see below) exposes new settings that allow the sensitivity of the gesture detection to be adjusted:
+
+![image info](./Resources/LeapOptions.PNG)
+
+* Use Frame Based Gesture Detection - enables the older method of detecting pinch/grab gestures.
+* Start Grab Threshold - specifies the minimum grab value that needs to be detected before a grab gesture is started.
+* End Grab Threshold - specifies the minimum grab value that needs to be detected before a grab gesture is stopped.
+* Start Pinch Threshold - specifies the minimum grab value that needs to be detected before a pinch gesture is started.
+* End Pinch Threshold - specifies the minimum grab value that needs to be detected before a pinch gesture is stopped.
+* Grab Timeout - the number of microseconds required to pass before an end grab is triggered, in which no values were detected above the end grab threshold during that time. 
+* Pinch Timeout - the number of microseconds required to pass before an end pinch is triggered, in which no values were detected above the end pinch threshold during that time. 
 
 # Common Examples - Ok great but how do I interact with things?
 

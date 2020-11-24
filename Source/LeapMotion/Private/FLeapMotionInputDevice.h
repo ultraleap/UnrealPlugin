@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -89,6 +89,34 @@ public:
 	FLeapStats GetStats();
 
 private:
+	bool UseTimeBasedVisibilityCheck = false;
+	bool UseTimeBasedGestureCheck = false;
+	//Time Based Variables
+	//Pinch And Grab Thresholds
+	float StartGrabThreshold = .8f;
+	float EndGrabThreshold = .5f;
+	float StartPinchThreshold = .8f;
+	float EndPinchThreshold = .5f;
+	double TimeSinceLastLeftPinch = 0;
+	double TimeSinceLastRightPinch = 0;
+	double TimeSinceLastLeftGrab = 0;
+	double TimeSinceLastRightGrab = 0;
+	double PinchTimeout = 100000; //.1 Second
+	double GrabTimeout = 100000; //.1 Second
+	bool IsLeftPinching = false;
+	bool IsRightPinching = false;
+	bool IsLeftGrabbing = false;
+	bool IsRightGrabbing = false;
+	//Visibility Tracking and Thresholds
+	bool IsLeftVisible = false;
+	bool IsRightVisible = false;
+	int64_t TimeSinceLastLeftVisible = 10000;
+	int64_t TimeSinceLastRightVisible = 10000;
+	int64_t VisibilityTimeout = 1000000; //1 Second
+	int64_t LastLeapTime = 0;
+	FLeapHandData LastLeftHand;
+	FLeapHandData LastRightHand;
+
 	//Private UProperties
 	void ClearReferences(UObject* object);
 
@@ -101,6 +129,9 @@ private:
 	bool EmitAnalogInputEventForKey(FKey Key, float Value, int32 User, bool Repeat);
 	bool HandClosed(float Strength);
 	bool HandPinched(float Strength);
+	void CheckHandVisibility();
+	void CheckPinchGesture();
+	void CheckGrabGesture();
 
 	int64 GetInterpolatedNow();
 
@@ -166,8 +197,10 @@ private:
 	int32 BodyStateDeviceId;
 	FBodyStateDeviceConfig Config;
 
+#if !UE_BUILD_SHIPPING
 	//LiveLink
 	TSharedPtr<FLeapLiveLinkProducer> LiveLink;
+#endif
 
 	//Convenience Converters - Todo: wrap into separate class?
 	void SetBSFingerFromLeapDigit(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit);

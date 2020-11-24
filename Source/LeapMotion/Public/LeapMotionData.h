@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -14,9 +14,8 @@ enum EHandType
 UENUM(BlueprintType)
 enum ELeapMode
 {
-	LEAP_MODE_UNSET,
 	LEAP_MODE_VR,
-	LEAP_MODE_DESKTOP,
+	LEAP_MODE_DESKTOP
 };
 
 UENUM(BlueprintType)
@@ -172,10 +171,27 @@ struct LEAPMOTION_API FLeapOptions
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	FRotator HMDRotationOffset;
 
-	/** Enable or disable image streaming from the device*/
-	//UPROPERTY(BlueprintReadWrite, Category = "Leap Options")	//disabled for now, current version doesn't actually support image streaming
-	bool bEnableImageStreaming;
+	/** Enable or disable the use of frame based gesture detection (old system)*/
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	bool bUseFrameBasedGestureDetection;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	float StartGrabThreshold;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	float EndGrabThreshold;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	float StartPinchThreshold;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	float EndPinchThreshold;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	float GrabTimeout;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
+	float PinchTimeout;
 };
 
 USTRUCT(BlueprintType)

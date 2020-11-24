@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "FLeapMotionInputDevice.h"
 #include "Engine/Engine.h"
@@ -105,6 +105,7 @@ void FLeapMotionInputDevice::OnConnect()
 
 	//Default to hmd mode if one is plugged in
 	FLeapOptions DefaultOptions;
+	
 	Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
 
 	//if we have a valid engine pointer and hmd update the device type
@@ -313,7 +314,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	FrameTimeInMicros = 0;	//default
 
 	//Set static stats
-	Stats.LeapAPIVersion = FString(TEXT("4.0.0"));
+	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
 
 	Leap.OpenConnection(this);							//pass in the this as callback delegate
 
@@ -326,16 +327,21 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	Config.TrackingTags.Add("Fingers");
 	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
+	//Multi-device note: attach multiple devices and get another ID?
+	//Origin will be different if mixing vr with desktop/mount
+
 	//Add IM keys
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchL, LOCTEXT("LeapPinchL", "Leap (L) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
 
+#if !UE_BUILD_SHIPPING
 	//LiveLink startup
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
 	LiveLink->Startup();
 	LiveLink->SyncSubjectToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
+#endif
 
 	//Image support
 	LeapImageHandler = MakeShareable(new FLeapImage);
@@ -346,8 +352,10 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 
 FLeapMotionInputDevice::~FLeapMotionInputDevice()
 {
+#if !UE_BUILD_SHIPPING
 	//LiveLink cleanup
 	LiveLink->ShutDown();
+#endif
 
 	ShutdownLeap();
 }
@@ -379,10 +387,12 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
 
 	//Did a device connect?
-	if (!Leap.bIsConnected || !Leap.LastDevice)
+	if (!Leap.bIsConnected || !Leap.CurrentDeviceInfo)
 	{
 		return;
 	}
+
+	//Todo: get frame and parse for each device
 
 	_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame();
 
@@ -426,7 +436,7 @@ void FLeapMotionInputDevice::CaptureAndEvaluateInput()
 
 void FLeapMotionInputDevice::ParseEvents()
 {
-	//Early exit: no device attached that produce data
+	//Early exit: no device attached that produces data
 	if (AttachedDevices.Num() < 1)
 	{
 		return;
@@ -472,142 +482,12 @@ void FLeapMotionInputDevice::ParseEvents()
 		}
 	}
 
-	//Update visible hand list, must happen first
-	VisibleHands.Empty(CurrentFrame.Hands.Num());
-	for (auto& Hand : CurrentFrame.Hands)
-	{
-		//Add each hand to visible hands
-		VisibleHands.Add(Hand.Id);
-	}
+	if (LastLeapTime == 0)
+		LastLeapTime = LeapGetNow();
 
-	//Compare past to present visible hands to determine hand enums.
-	//== change can happen when chirality is incorrect and changes
-	//Hand end tracking must be called first before we call begin tracking
-	if (VisibleHands.Num() <= PastVisibleHands.Num())
-	{
-		for (auto HandId : PastVisibleHands)
-		{
-			//Not visible anymore? lost hand
-			if (!VisibleHands.Contains(HandId))
-			{
-				const FLeapHandData Hand = PastFrame.HandForId(HandId);
-				CallFunctionOnComponents([Hand](ULeapComponent* Component)
-				{
-					Component->OnHandEndTracking.Broadcast(Hand);
-				});
-			}
-		}
-	}
-
-	//Check for hand visibility changes
-	if (PastFrame.LeftHandVisible != CurrentFrame.LeftHandVisible)
-	{
-		const bool LeftVisible = CurrentFrame.LeftHandVisible;
-		CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-		{
-			Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-		});
-	}
-	if (PastFrame.RightHandVisible != CurrentFrame.RightHandVisible)
-	{
-		const bool RightVisible = CurrentFrame.RightHandVisible;
-		CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-		{
-			Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-		});
-	}
-
-	for (auto& Hand : CurrentFrame.Hands)
-	{
-		FLeapHandData PastHand;
-
-		//Hand list is tiny, typically 1-3, just enum until you find the matching one
-		for (auto& EnumPastHand : PastFrame.Hands)
-		{
-			if (Hand.Id == EnumPastHand.Id)
-			{
-				//Same id? same hand
-				PastHand = EnumPastHand;
-			}
-		}
-
-		const FLeapHandData& FinalHandData = Hand;
-
-		if (!PastVisibleHands.Contains(Hand.Id))	//or if the hand changed type?
-		{
-			//New hand
-			CallFunctionOnComponents([Hand](ULeapComponent* Component)
-			{
-				Component->OnHandBeginTracking.Broadcast(Hand);
-			});
-		}
-		
-		//Grab
-		if (Hand.GrabStrength > 0.5f && PastHand.GrabStrength <= 0.5f)
-		{
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
-			{
-				EmitKeyDownEventForKey(EKeysLeap::LeapGrabL);
-			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
-			{
-				EmitKeyDownEventForKey(EKeysLeap::LeapGrabR);
-			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-			{
-				Component->OnHandGrabbed.Broadcast(FinalHandData);
-			});
-		}
-		//Release
-		else if (Hand.GrabStrength <= 0.5f && PastHand.GrabStrength > 0.5f)
-		{
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
-			{
-				EmitKeyUpEventForKey(EKeysLeap::LeapGrabL);
-			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
-			{
-				EmitKeyUpEventForKey(EKeysLeap::LeapGrabR);
-			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-			{
-				Component->OnHandReleased.Broadcast(FinalHandData);
-			});
-		}
-
-		//Pinch
-		if (Hand.PinchStrength > 0.5f && PastHand.PinchStrength <= 0.5f)
-		{
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
-			{
-				EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
-			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
-			{
-				EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
-			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-			{
-				Component->OnHandPinched.Broadcast(FinalHandData);
-			});
-		}
-		//Unpinch
-		else if (Hand.PinchStrength <= 0.5f && PastHand.PinchStrength > 0.5f)
-		{
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
-			{
-				EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
-			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
-			{
-				EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
-			}
-			CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-			{
-				Component->OnHandUnpinched.Broadcast(FinalHandData);
-			});
-		}
-	}//End for each hand
+	CheckHandVisibility();
+	CheckPinchGesture();
+	CheckGrabGesture();
 
 	//Emit tracking data if it is being captured
 	CallFunctionOnComponents([this](ULeapComponent* Component)
@@ -620,7 +500,366 @@ void FLeapMotionInputDevice::ParseEvents()
 	//It's now the past data
 	PastVisibleHands = VisibleHands;
 	PastFrame = CurrentFrame;
+	LastLeapTime = LeapGetNow();
 }
+
+void FLeapMotionInputDevice::CheckHandVisibility() {
+	if (UseTimeBasedVisibilityCheck) {
+		//Update visible hand list, must happen first
+		if (IsLeftVisible) {
+			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (LeapGetNow() - LastLeapTime);
+		}
+		if (IsRightVisible) {
+			TimeSinceLastRightVisible = TimeSinceLastRightVisible + (LeapGetNow() - LastLeapTime);
+		}
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			if (Hand.HandType == EHandType::LEAP_HAND_LEFT) {
+				if (CurrentFrame.LeftHandVisible) {
+					TimeSinceLastLeftVisible = 0;
+					LastLeftHand = Hand;
+					if (!IsLeftVisible) {
+						IsLeftVisible = true;
+						const bool LeftVisible = true;
+						CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
+						{
+							Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+						});
+						CallFunctionOnComponents([Hand](ULeapComponent* Component)
+						{
+							Component->OnHandBeginTracking.Broadcast(Hand);
+						});
+					}
+				}
+			}
+			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT) {
+				if (CurrentFrame.RightHandVisible) {
+					TimeSinceLastRightVisible = 0;
+					LastRightHand = Hand;
+					if (!IsRightVisible) {
+						IsRightVisible = true;
+						const bool RightVisible = true;
+						CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+						{
+							Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+						});
+						CallFunctionOnComponents([Hand](ULeapComponent* Component)
+						{
+							Component->OnHandBeginTracking.Broadcast(Hand);
+						});
+					}
+				}
+
+			}
+			//Add each hand to visible hands
+			//VisibleHands.Add(Hand.Id);
+		}
+
+		//Check if hands should no longer be visible
+		if (IsLeftVisible && TimeSinceLastLeftVisible > VisibilityTimeout) {
+			IsLeftVisible = false;
+			const FLeapHandData EndHand = LastLeftHand;
+			CallFunctionOnComponents([EndHand](ULeapComponent* Component)
+			{
+				Component->OnHandEndTracking.Broadcast(EndHand);
+			});
+			const bool LeftVisible = false;
+			CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
+			{
+				Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+			});
+		}
+		if (IsRightVisible && TimeSinceLastRightVisible > VisibilityTimeout) {
+			IsRightVisible = false;
+			const FLeapHandData EndHand = LastRightHand;
+			CallFunctionOnComponents([EndHand](ULeapComponent* Component)
+			{
+				Component->OnHandEndTracking.Broadcast(EndHand);
+			});
+			const bool RightVisible = false;
+			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+			{
+				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+			});
+		}
+	}
+	else { //Use old, frame based checking
+		//Compare past to present visible hands to determine hand enums.
+		//== change can happen when chirality is incorrect and changes
+		//Hand end tracking must be called first before we call begin tracking
+		if (VisibleHands.Num() <= PastVisibleHands.Num())
+		{
+			for (auto HandId : PastVisibleHands)
+			{
+				//Not visible anymore? lost hand
+				if (!VisibleHands.Contains(HandId))
+				{
+					const FLeapHandData Hand = PastFrame.HandForId(HandId);
+					CallFunctionOnComponents([Hand](ULeapComponent* Component)
+					{
+						Component->OnHandEndTracking.Broadcast(Hand);
+					});
+				}
+			}
+		}
+
+		//Check for hand visibility changes
+		if (PastFrame.LeftHandVisible != CurrentFrame.LeftHandVisible)
+		{
+			const bool LeftVisible = CurrentFrame.LeftHandVisible;
+			CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
+			{
+				Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+			});
+		}
+		if (PastFrame.RightHandVisible != CurrentFrame.RightHandVisible)
+		{
+			const bool RightVisible = CurrentFrame.RightHandVisible;
+			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+			{
+				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+			});
+		}
+
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			FLeapHandData PastHand;
+
+			//Hand list is tiny, typically 1-3, just enum until you find the matching one
+			for (auto& EnumPastHand : PastFrame.Hands)
+			{
+				if (Hand.Id == EnumPastHand.Id)
+				{
+					//Same id? same hand
+					PastHand = EnumPastHand;
+				}
+			}
+
+			if (!PastVisibleHands.Contains(Hand.Id))	//or if the hand changed type?
+			{
+				//New hand
+				CallFunctionOnComponents([Hand](ULeapComponent* Component)
+				{
+					Component->OnHandBeginTracking.Broadcast(Hand);
+				});
+			}
+		}
+	}
+}
+
+void FLeapMotionInputDevice::CheckPinchGesture() {
+	if (UseTimeBasedGestureCheck) {
+		if (IsLeftPinching) {
+			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
+		}
+		if (IsRightPinching) {
+			TimeSinceLastRightPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
+		}
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			const FLeapHandData& FinalHandData = Hand;
+			if (Hand.HandType == EHandType::LEAP_HAND_LEFT) {
+				if ((!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold)) || (IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold))) {
+					TimeSinceLastLeftPinch = 0;
+					if (!IsLeftPinching) {
+						IsLeftPinching = true;
+						EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
+						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+						{
+							Component->OnHandPinched.Broadcast(FinalHandData);
+						});
+					}
+				}
+				else if (IsLeftPinching && (TimeSinceLastLeftPinch > PinchTimeout)) {
+					IsLeftPinching = false;
+					EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
+					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+					{
+						Component->OnHandUnpinched.Broadcast(FinalHandData);
+					});
+				}
+			}
+			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT) {
+				if ((!IsRightPinching && (Hand.PinchStrength > StartPinchThreshold)) || (IsRightPinching && (Hand.PinchStrength > EndPinchThreshold))) {
+					TimeSinceLastRightPinch = 0;
+					if (!IsRightPinching) {
+						IsRightPinching = true;
+						EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
+					}
+				}
+				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout)) {
+					IsRightPinching = false;
+					EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
+					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+					{
+						Component->OnHandUnpinched.Broadcast(FinalHandData);
+					});
+				}
+
+			}
+		}
+	}
+	else {
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			FLeapHandData PastHand;
+
+			//Hand list is tiny, typically 1-3, just enum until you find the matching one
+			for (auto& EnumPastHand : PastFrame.Hands)
+			{
+				if (Hand.Id == EnumPastHand.Id)
+				{
+					//Same id? same hand
+					PastHand = EnumPastHand;
+				}
+			}
+
+			const FLeapHandData& FinalHandData = Hand;
+			//Pinch
+			if (Hand.PinchStrength > StartPinchThreshold&& PastHand.PinchStrength <= StartPinchThreshold)
+			{
+				if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+				{
+					EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
+				}
+				else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+				{
+					EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
+				}
+				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+				{
+					Component->OnHandPinched.Broadcast(FinalHandData);
+				});
+			}
+			//Unpinch (TODO: Adjust values)
+			else if (Hand.PinchStrength <= EndPinchThreshold && PastHand.PinchStrength > EndPinchThreshold)
+			{
+				if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+				{
+					EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
+				}
+				else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+				{
+					EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
+				}
+				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+				{
+					Component->OnHandUnpinched.Broadcast(FinalHandData);
+				});
+			}
+		}
+	}
+}
+
+void FLeapMotionInputDevice::CheckGrabGesture() {
+	if (UseTimeBasedGestureCheck) {
+		if (IsLeftGrabbing) {
+			TimeSinceLastLeftGrab = TimeSinceLastLeftGrab + (LeapGetNow() - LastLeapTime);
+		}
+		if (IsRightGrabbing) {
+			TimeSinceLastRightGrab = TimeSinceLastRightGrab + (LeapGetNow() - LastLeapTime);
+		}
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			const FLeapHandData& FinalHandData = Hand;
+			if (Hand.HandType == EHandType::LEAP_HAND_LEFT) {
+				if ((!IsLeftGrabbing && (Hand.GrabStrength > StartGrabThreshold)) || (IsLeftGrabbing && (Hand.GrabStrength > EndGrabThreshold))) {
+					TimeSinceLastLeftGrab = 0;
+					if (!IsLeftGrabbing) {
+						IsLeftGrabbing = true;
+						EmitKeyDownEventForKey(EKeysLeap::LeapGrabL);
+						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+						{
+							Component->OnHandGrabbed.Broadcast(FinalHandData);
+						});
+					}
+				}
+				else if (IsLeftGrabbing && (TimeSinceLastLeftGrab > GrabTimeout)) {
+					IsLeftGrabbing = false;
+					EmitKeyUpEventForKey(EKeysLeap::LeapGrabL);
+					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+					{
+						Component->OnHandReleased.Broadcast(FinalHandData);
+					});
+				}
+			}
+			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT) {
+				if ((!IsRightGrabbing && (Hand.GrabStrength > StartGrabThreshold)) || (IsRightGrabbing && (Hand.GrabStrength > EndGrabThreshold))) {
+					TimeSinceLastRightGrab = 0;
+					if (!IsRightGrabbing) {
+						IsRightGrabbing = true;
+						EmitKeyDownEventForKey(EKeysLeap::LeapGrabR);
+						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+						{
+							Component->OnHandGrabbed.Broadcast(FinalHandData);
+						});
+					}
+				}
+				else if (IsRightGrabbing && (TimeSinceLastRightGrab > GrabTimeout)) {
+					IsRightGrabbing = false;
+					EmitKeyUpEventForKey(EKeysLeap::LeapGrabR);
+					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+					{
+						Component->OnHandReleased.Broadcast(FinalHandData);
+					});
+				}
+
+			}
+		}
+	}
+	else {
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			FLeapHandData PastHand;
+
+			//Hand list is tiny, typically 1-3, just enum until you find the matching one
+			for (auto& EnumPastHand : PastFrame.Hands)
+			{
+				if (Hand.Id == EnumPastHand.Id)
+				{
+					//Same id? same hand
+					PastHand = EnumPastHand;
+				}
+			}
+
+			const FLeapHandData& FinalHandData = Hand;
+
+			if (Hand.GrabStrength > StartGrabThreshold&& PastHand.GrabStrength <= StartGrabThreshold)
+			{
+				if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+				{
+					EmitKeyDownEventForKey(EKeysLeap::LeapGrabL);
+				}
+				else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+				{
+					EmitKeyDownEventForKey(EKeysLeap::LeapGrabR);
+				}
+				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+				{
+					Component->OnHandGrabbed.Broadcast(FinalHandData);
+				});
+			}
+			//Release
+			else if (Hand.GrabStrength <= EndGrabThreshold && PastHand.GrabStrength > EndGrabThreshold)
+			{
+				if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+				{
+					EmitKeyUpEventForKey(EKeysLeap::LeapGrabL);
+				}
+				else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+				{
+					EmitKeyUpEventForKey(EKeysLeap::LeapGrabR);
+				}
+				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+				{
+					Component->OnHandReleased.Broadcast(FinalHandData);
+				});
+			}
+		}
+	}
+}
+
+
 
 void FLeapMotionInputDevice::SetMessageHandler(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler)
 {
@@ -823,6 +1062,9 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 		}
 	}
 
+	
+// Livelink is an editor only thing
+#if !UE_BUILD_SHIPPING
 	//LiveLink logic
 	if (LiveLink->HasConnection())
 	{
@@ -832,6 +1074,7 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 		}
 		LiveLink->UpdateFromBodyState(Skeleton);
 	}
+#endif
 }
 
 void FLeapMotionInputDevice::OnDeviceDetach()
@@ -911,7 +1154,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	}
 
 	//Did we change the mode?
-	if (Options.Mode != InOptions.Mode || Options.Mode == LEAP_MODE_UNSET)
+	if (Options.Mode != InOptions.Mode)
 	{
 		bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
 		SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
@@ -1103,6 +1346,15 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 
 	//Always sync global offsets
 	FLeapUtility::SetLeapGlobalOffsets(Options.HMDPositionOffset, Options.HMDRotationOffset);
+
+	UseTimeBasedGestureCheck = !Options.bUseFrameBasedGestureDetection;
+
+	StartGrabThreshold = Options.StartGrabThreshold;
+	EndGrabThreshold = Options.EndGrabThreshold;
+	StartPinchThreshold = Options.StartPinchThreshold;
+	EndPinchThreshold = Options.EndPinchThreshold;
+	GrabTimeout = Options.GrabTimeout;
+	PinchTimeout = Options.PinchTimeout;
 
 	//Did we trigger our image mode?
 	//TODO: add image request support here and forward the events to a struct with two UTexture2Ds for each image

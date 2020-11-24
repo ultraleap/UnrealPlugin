@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -16,13 +16,15 @@ struct BODYSTATE_API FAnimNode_ModifyBodyStateMappedBones : public FAnimNode_Ske
 public:
 
 	/** All combined settings required for this node to process mapped bones */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BodyState, meta = (PinShownByDefault))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BodyState, meta = (PinHiddenByDefault))
 	FMappedBoneAnimData MappedBoneAnimData;
 
 	// FAnimNode_SkeletalControlBase interface
-	//virtual void UpdateInternal(const FAnimationUpdateContext& Context) override;
 	virtual void EvaluateSkeletalControl_AnyThread(FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms) override;
 	virtual bool IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& RequiredBones) override;
+	virtual void OnInitializeAnimInstance(const FAnimInstanceProxy* InProxy, const UAnimInstance* InAnimInstance) override;
+	virtual bool NeedsOnInitializeAnimInstance() const override { return true; };
+	virtual void EvaluateComponentPose_AnyThread(FComponentSpacePoseContext& Output) override;
 	// End of FAnimNode_SkeletalControlBase interface
 
 	// Constructor 
@@ -31,4 +33,6 @@ public:
 protected:
 	bool WorldIsGame;
 	AActor* OwningActor;
+	const UBodyStateAnimInstance* BSAnimInstance;
+
 };

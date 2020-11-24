@@ -1,13 +1,11 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "LiveLinkTypes.h"
 #include "ILiveLinkClient.h"
 #include "LiveLinkProvider.h"
-#include "Skeleton/BodyStateBone.h"
 #include "Skeleton/BodyStateSkeleton.h"
-#include "UObject/WeakObjectPtrTemplates.h"
 
 class FLeapLiveLinkProducer
 {
@@ -28,7 +26,6 @@ public:
 protected:
 	FDelegateHandle ConnectionStatusChangedHandle;
 	TSharedPtr<ILiveLinkProvider> LiveLinkProvider;
-
 	FName SubjectName;
-	TArray<TWeakObjectPtr<UBodyStateBone>> TrackedBones;
+	TArray<UBodyStateBone*> TrackedBones;
 };

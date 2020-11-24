@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapMotionData.h"
 #include "LeapC.h"
@@ -331,7 +331,7 @@ void FLeapPalmData::TranslatePalm(const FVector& InTranslation)
 FLeapOptions::FLeapOptions()
 {
 	//Good Vive settings used as defaults
-	Mode = LEAP_MODE_UNSET;
+	Mode = LEAP_MODE_DESKTOP;
 	TrackingFidelity = LEAP_NORMAL;
 	LeapServiceLogLevel = LEAP_LOG_INFO;	//most verbose by default
 	bUseTimeWarp = true;
@@ -343,7 +343,14 @@ FLeapOptions::FLeapOptions()
 	FingerInterpFactor = 0.f;
 	HMDPositionOffset = FVector(9.0, 0, 0);		//Vive default, for oculus use 8,0,0
 	HMDRotationOffset = FRotator(0, 0, 0);		//If imperfectly mounted it might need to sag
-	bEnableImageStreaming = false;		//default image streaming to off
+	bUseFrameBasedGestureDetection = false;
+	StartGrabThreshold = .8f;
+	EndGrabThreshold = .5f;
+	StartPinchThreshold = .8f;
+	EndPinchThreshold = .5f;
+	GrabTimeout = 100000;
+	PinchTimeout = 100000;
+	//bEnableImageStreaming = false;		//default image streaming to off
 }
 
 FLeapStats::FLeapStats()
