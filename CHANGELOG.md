@@ -10,6 +10,7 @@ Versions
 * Removed some unsupported platforms.
 * Fixed a bug that forced desktop mode when vr headset is attached. 
 * Fixed freeing of device property before it is read causing invalid serials/devices. 
+* Fixed a bug where HMDPositionOffset and HMDRotationOffset settings for a Vive were being applied to all SteamVR headsets (Valve Index, Varjo, etc), if the value were set to zero - UNREAL-64
 * Fixed bad event usage example.
 * Updated hand colliders to be more accurate (now mesh based).
 * Resolved an issue where performance would decrease after a leap was unplugged/replugged.

@@ -1175,17 +1175,6 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 		if (HMDType == TEXT("SteamVR") ||
 			HMDType == TEXT("GearVR"))
 		{
-			//Apply default options to zero offsets/rotations
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
-			{
-				FVector ViveOffset = FVector(9.0, 0, 0);
-				Options.HMDPositionOffset = ViveOffset;
-			}
-			if (InOptions.HMDRotationOffset.IsNearlyZero())
-			{
-				Options.HMDRotationOffset = FRotator(-10.f, 0, 0);	//typically vive mounts sag a bit
-			}
-
 			switch (InOptions.TrackingFidelity)
 			{
 			case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
