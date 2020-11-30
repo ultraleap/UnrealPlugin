@@ -445,41 +445,39 @@ void FLeapMotionInputDevice::ParseEvents()
 	//Are we in HMD mode? add our HMD snapshot
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
 	{
-		CurrentFrame.TranslateFrame(Options.HMDPositionOffset);		//Offset HMD-Leap
+		// Correction for HMD offset and rotation has already been applied in call to CaptureAndEvaluateInput through CurrentFrame->SetFromLeapFrame()
 
-		if (Options.bTransformOriginToHMD)
+		BodyStateHMDSnapshot SnapshotNow = SnapshotHandler.LastHMDSample();
+
+		if (IsInGameThread())
 		{
-			BodyStateHMDSnapshot SnapshotNow = SnapshotHandler.LastHMDSample();
-
-			if (IsInGameThread())
-			{
-				SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(LeapGetNow());
-			}
-
-			FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
-			FVector FinalHMDTranslation = SnapshotNow.Position;
-
-			//Determine time-warp, only relevant for VR
-			if (Options.bUseTimeWarp)
-			{
-				//We use fixed timewarp offsets so then is a fixed amount away from now (negative). Positive numbers are invalid for TimewarpOffset
-				BodyStateHMDSnapshot SnapshotThen = SnapshotHandler.HMDSampleClosestToTimestamp(SnapshotNow.Timestamp - Options.TimewarpOffset);
-
-				BodyStateHMDSnapshot SnapshotDifference = SnapshotNow.Difference(SnapshotThen);
-
-				FRotator WarpRotation = SnapshotDifference.Orientation.Rotator() *Options.TimewarpFactor;
-				FVector WarpTranslation = SnapshotDifference.Position * Options.TimewarpFactor;
-
-				FinalHMDTranslation += WarpTranslation;
-
-				FinalHMDRotation = FLeapUtility::CombineRotators(WarpRotation, FinalHMDRotation);
-				CurrentFrame.FinalRotationAdjustment = FinalHMDRotation;
-			}
-
-			//Rotate our frame by time warp difference
-			CurrentFrame.RotateFrame(FinalHMDRotation);
-			CurrentFrame.TranslateFrame(FinalHMDTranslation);
+			SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(LeapGetNow());
 		}
+
+		FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
+		FVector FinalHMDTranslation = SnapshotNow.Position;
+
+		//Determine time-warp, only relevant for VR
+		if (Options.bUseTimeWarp)
+		{
+			//We use fixed timewarp offsets so then is a fixed amount away from now (negative). Positive numbers are invalid for TimewarpOffset
+			BodyStateHMDSnapshot SnapshotThen = SnapshotHandler.HMDSampleClosestToTimestamp(SnapshotNow.Timestamp - Options.TimewarpOffset);
+
+			BodyStateHMDSnapshot SnapshotDifference = SnapshotNow.Difference(SnapshotThen);
+
+			FRotator WarpRotation = SnapshotDifference.Orientation.Rotator() *Options.TimewarpFactor;
+			FVector WarpTranslation = SnapshotDifference.Position * Options.TimewarpFactor;
+
+			FinalHMDTranslation += WarpTranslation;
+
+			FinalHMDRotation = FLeapUtility::CombineRotators(WarpRotation, FinalHMDRotation);
+			CurrentFrame.FinalRotationAdjustment = FinalHMDRotation;
+		}
+
+		//Rotate our frame by time warp difference
+		CurrentFrame.RotateFrame(FinalHMDRotation);
+		CurrentFrame.TranslateFrame(FinalHMDTranslation);
+		
 	}
 
 	if (LastLeapTime == 0)

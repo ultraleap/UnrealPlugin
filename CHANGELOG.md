@@ -13,6 +13,7 @@ Versions
 * Fixed bad event usage example.
 * Updated hand colliders to be more accurate (now mesh based).
 * Resolved an issue where performance would decrease after a leap was unplugged/replugged.
+* Fixed a bug where the HMDPositionOffset was being applied twice, and at different scales. Should be in leap units - mm (UNREAL-63)
 
 
 ---
