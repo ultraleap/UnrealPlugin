@@ -651,7 +651,7 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
 		}
 		if (IsRightPinching) {
-			TimeSinceLastRightPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (LeapGetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
