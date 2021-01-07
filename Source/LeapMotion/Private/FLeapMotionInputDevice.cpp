@@ -336,7 +336,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
 
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink startup
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
 	LiveLink->Startup();
@@ -352,7 +352,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 
 FLeapMotionInputDevice::~FLeapMotionInputDevice()
 {
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink cleanup
 	LiveLink->ShutDown();
 #endif
@@ -1066,7 +1066,7 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 
 	
 // Livelink is an editor only thing
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink logic
 	if (LiveLink->HasConnection())
 	{
