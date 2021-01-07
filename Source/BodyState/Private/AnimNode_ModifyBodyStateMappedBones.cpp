@@ -37,62 +37,72 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 	TArray<FBoneTransform> TempTransform;
 
-	//SN: there should be an array re-ordered by hierarchy (parents -> children order)
-	for (auto CachedBone : MappedBoneAnimData.CachedBoneList)
+	//JIM: moved scoped lock around all
 	{
-		if (CachedBone.MeshBone.BoneIndex == -1)
+		if (!MappedBoneAnimData.BodyStateSkeleton)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(), CachedBone.MeshBone.BoneIndex);
-			continue;
+			return;
 		}
-	
-		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
-		FTransform NewBoneTM;
-		FTransform ComponentTransform;
-
+		FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
+		//SN: there should be an array re-ordered by hierarchy (parents -> children order)
+		for (auto CachedBone : MappedBoneAnimData.CachedBoneList)
 		{
-			FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
-			NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
-			ComponentTransform = Output.AnimInstanceProxy->GetComponentTransform();
+			if (CachedBone.MeshBone.BoneIndex == -1)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(), CachedBone.MeshBone.BoneIndex);
+				continue;
+			}
+
+			FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
+			FTransform NewBoneTM;
+			FTransform ComponentTransform;
+
+			// JIM: scoped lock used to be here
+			{
+				NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+				ComponentTransform = Output.AnimInstanceProxy->GetComponentTransform();
+
+			}
+
+			//Scale
+			//Ignored
+
+			//Rotate
+
+			//Bone Space
+			FAnimationRuntime::ConvertCSTransformToBoneSpace(ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
+			FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
+
+
+			//Apply pre and post adjustment (Post * (Input * Pre) )
+			if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
+			{
+				BoneQuat = MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
+			}
+
+			NewBoneTM.SetRotation(BoneQuat);
+
+			if (MappedBoneAnimData.bShouldDeformMesh)
+			{
+				const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
+				const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+				NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+			}
+
+			//Back to component space
+			FAnimationRuntime::ConvertBoneSpaceTransformToCS(ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
+
+			//Translate
+
+			//Workaround ensure our rotations are offset for each bone
+			TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
+			Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+			TempTransform.Reset();
+
+			//Apply transforms to list
+			//OutBoneTransforms.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
 		}
-
-		//Scale
-		//Ignored
-
-		//Rotate
-
-		//Bone Space
-		FAnimationRuntime::ConvertCSTransformToBoneSpace(ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
-		FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
-		
-
-		//Apply pre and post adjustment (Post * (Input * Pre) )
-		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
-		{
-			BoneQuat = MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
-		}
-
-		NewBoneTM.SetRotation(BoneQuat);
-
-		if (MappedBoneAnimData.bShouldDeformMesh)
-		{
-			const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
-			const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
-			NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
-		}
-
-		//Back to component space
-		FAnimationRuntime::ConvertBoneSpaceTransformToCS(ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
-
-		//Translate
-		
-		//Workaround ensure our rotations are offset for each bone
-		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
-		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
-		TempTransform.Reset();
-
-		//Apply transforms to list
-		//OutBoneTransforms.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
+	// JIM: end of new scoped lock position
 	}
 }
 
