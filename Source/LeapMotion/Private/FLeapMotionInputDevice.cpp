@@ -683,6 +683,10 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 					if (!IsRightPinching) {
 						IsRightPinching = true;
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
+						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+						{
+							Component->OnHandPinched.Broadcast(FinalHandData);
+						});
 					}
 				}
 				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout)) {

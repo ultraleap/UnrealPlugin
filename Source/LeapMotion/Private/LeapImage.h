@@ -4,6 +4,7 @@
 
 #include "LeapC.h"
 #include "Engine/Texture2D.h"
+#include "Engine/Public/Rendering/Texture2DResource.h"
 #include "RHI.h"
 #include "HAL/ThreadSafeBool.h"
 #include "LeapMotionData.h"
