@@ -197,7 +197,7 @@ private:
 	int32 BodyStateDeviceId;
 	FBodyStateDeviceConfig Config;
 
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink
 	TSharedPtr<FLeapLiveLinkProducer> LiveLink;
 #endif
