@@ -1176,6 +1176,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	else
 	{
 		//Vive
+		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will pass through here (is it supposed to?)
 		if (HMDType == TEXT("SteamVR") ||
 			HMDType == TEXT("GearVR"))
 		{
@@ -1361,5 +1362,4 @@ FLeapStats FLeapMotionInputDevice::GetStats()
 {
 	return Stats;
 }
-
 #pragma endregion Leap Input Device
