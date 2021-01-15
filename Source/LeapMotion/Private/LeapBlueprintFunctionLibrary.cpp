@@ -5,6 +5,8 @@
 #include "LeapBlueprintFunctionLibrary.h"
 #include "ILeapMotionPlugin.h"
 
+
+FTransform ULeapBlueprintFunctionLibrary::DebugTransform;
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer)
 	: Super(Initializer)
 {
@@ -40,6 +42,11 @@ void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 {
 	ILeapMotionPlugin::Get().SetLeapPolicy(Flag, Enable);
 }
+void ULeapBlueprintFunctionLibrary::SetDebugTransform(const FTransform& TransformIn)
+{
+	DebugTransform = TransformIn;
+}
+
 
 //Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
