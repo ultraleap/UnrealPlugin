@@ -7,6 +7,7 @@
 #include "LiveLinkProvider.h"
 #include "Roles/LiveLinkAnimationRole.h"
 #include "Roles/LiveLinkAnimationTypes.h"
+#include "LeapBlueprintFunctionLibrary.h"
 
 FLeapLiveLinkProducer::FLeapLiveLinkProducer()
 {
@@ -60,10 +61,11 @@ void FLeapLiveLinkProducer::SyncSubjectToSkeleton(const UBodyStateSkeleton* Skel
 	}
 
 	//Add bone parents
-	for (int j = 0; j < ParentsNames.Num(); j++) {
+	for (int j = 0; j < ParentsNames.Num(); j++) 
+	{
 		AnimationData.BoneParents.Add(AnimationData.BoneNames.IndexOfByKey(ParentsNames[j]));
 	}
-
+	
 	LiveLinkProvider->UpdateSubjectStaticData(SubjectName, ULiveLinkAnimationRole::StaticClass(), MoveTemp(StaticData));
 }
 
@@ -72,12 +74,20 @@ void FLeapLiveLinkProducer::UpdateFromBodyState(const UBodyStateSkeleton* Skelet
 	FLiveLinkFrameDataStruct FrameData(FLiveLinkAnimationFrameData::StaticStruct());
 	FLiveLinkAnimationFrameData* AnimationFrameData = FrameData.Cast<FLiveLinkAnimationFrameData>();
 
-	for (int i=0; i < TrackedBones.Num(); i++)
+	const TArray<UBodyStateBone*>& Bones = Skeleton->Bones;
+
+
+	for (int i = 0; i < Bones.Num(); i++)
 	{
-		UBodyStateBone* Bone = TrackedBones[i];
-		if (Bone->IsTracked())
+		if (Bones[i]->IsTracked())
 		{
-			AnimationFrameData->Transforms.Add(Bone->Transform());
+			FTransform BoneTransform = Bones[i]->Transform();
+			FTransform ParentTransform;
+
+			// The live link node outputs in local space (this means each bone transform must be relative to its parent)
+			// so convert from component space here
+			ConvertComponentTransformToLocalTransform(BoneTransform, Bones[i]->Parent->Transform());
+			AnimationFrameData->Transforms.Add(BoneTransform);
 		}
 	}
 
@@ -87,4 +97,9 @@ void FLeapLiveLinkProducer::UpdateFromBodyState(const UBodyStateSkeleton* Skelet
 bool FLeapLiveLinkProducer::HasConnection()
 {
 	return LiveLinkProvider->HasConnection();
+}
+void FLeapLiveLinkProducer::ConvertComponentTransformToLocalTransform(FTransform& BoneTransform,const FTransform& ParentTransform)
+{
+	BoneTransform.SetToRelativeTransform(ParentTransform);
+	BoneTransform.NormalizeRotation();
 }
