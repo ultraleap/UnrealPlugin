@@ -28,4 +28,6 @@ protected:
 	TSharedPtr<ILiveLinkProvider> LiveLinkProvider;
 	FName SubjectName;
 	TArray<UBodyStateBone*> TrackedBones;
+	 
+	static void ConvertComponentTransformToLocalTransform(FTransform& BoneTransform,const FTransform& ParentTransform);
 };

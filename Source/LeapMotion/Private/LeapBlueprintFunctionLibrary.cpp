@@ -5,6 +5,7 @@
 #include "LeapBlueprintFunctionLibrary.h"
 #include "ILeapMotionPlugin.h"
 
+
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer)
 	: Super(Initializer)
 {

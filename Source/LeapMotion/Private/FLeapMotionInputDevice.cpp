@@ -98,45 +98,53 @@ int64 FLeapMotionInputDevice::GetInterpolatedNow()
 	return LeapGetNow() + HandInterpolationTimeOffset;
 }
 
-
+// comes from service message loop
 void FLeapMotionInputDevice::OnConnect()
 {
-	UE_LOG(LeapMotionLog, Log, TEXT("LeapService: OnConnect."));
+	FLeapAsync::RunShortLambdaOnGameThread([&]
+		{
 
-	//Default to hmd mode if one is plugged in
-	FLeapOptions DefaultOptions;
-	
-	Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
+			UE_LOG(LeapMotionLog, Log, TEXT("LeapService: OnConnect."));
 
-	//if we have a valid engine pointer and hmd update the device type
-	if (GEngine && GEngine->XRSystem.IsValid())
-	{
-		DefaultOptions.Mode = ELeapMode::LEAP_MODE_VR;
-	}
-	else
-	{
-		//HMD is disabled on load, default to desktop
-		DefaultOptions.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-	}
-		
-	SetOptions(DefaultOptions);
+			//Default to hmd mode if one is plugged in
+			FLeapOptions DefaultOptions;
 
-	CallFunctionOnComponents([&](ULeapComponent* Component)
-	{
-		Component->OnLeapServiceConnected.Broadcast();
-	});
+			Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
+
+			//if we have a valid engine pointer and hmd update the device type
+			if (GEngine && GEngine->XRSystem.IsValid())
+			{
+				DefaultOptions.Mode = ELeapMode::LEAP_MODE_VR;
+			}
+			else
+			{
+				//HMD is disabled on load, default to desktop
+				DefaultOptions.Mode = ELeapMode::LEAP_MODE_DESKTOP;
+			}
+
+			SetOptions(DefaultOptions);
+
+			CallFunctionOnComponents([&](ULeapComponent* Component)
+				{
+					Component->OnLeapServiceConnected.Broadcast();
+				});
+		});
 }
-
+// comes from service message loop
 void FLeapMotionInputDevice::OnConnectionLost()
 {
-	UE_LOG(LeapMotionLog, Warning, TEXT("LeapService: OnConnectionLost."));
+	FLeapAsync::RunShortLambdaOnGameThread([&]
+		{
 
-	CallFunctionOnComponents([&](ULeapComponent* Component)
-	{
-		Component->OnLeapServiceDisconnected.Broadcast();
-	});
+			UE_LOG(LeapMotionLog, Warning, TEXT("LeapService: OnConnectionLost."));
+
+			CallFunctionOnComponents([&](ULeapComponent* Component)
+				{
+					Component->OnLeapServiceDisconnected.Broadcast();
+				});
+		});
 }
-
+// already proxied onto game thread in wrapper
 void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 {
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*)Props);
@@ -146,17 +154,16 @@ void FLeapMotionInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO *Props)
 
 	UE_LOG(LeapMotionLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
 
-	FLeapAsync::RunShortLambdaOnGameThread([&]
+	
+	AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
+
+	CallFunctionOnComponents([&](ULeapComponent* Component)
 	{
-		AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
-
-		CallFunctionOnComponents([&](ULeapComponent* Component)
-		{
-			Component->OnLeapDeviceAttached.Broadcast(Stats.DeviceInfo.Serial);
-		});
+		Component->OnLeapDeviceAttached.Broadcast(Stats.DeviceInfo.Serial);
 	});
+	
 }
-
+// comes from service message loop
 void FLeapMotionInputDevice::OnDeviceLost(const char* Serial)
 {
 	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
@@ -336,7 +343,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
 
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink startup
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
 	LiveLink->Startup();
@@ -352,7 +359,7 @@ FLeapMotionInputDevice::FLeapMotionInputDevice(const TSharedRef< FGenericApplica
 
 FLeapMotionInputDevice::~FLeapMotionInputDevice()
 {
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink cleanup
 	LiveLink->ShutDown();
 #endif
@@ -651,7 +658,7 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
 		}
 		if (IsRightPinching) {
-			TimeSinceLastRightPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (LeapGetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -683,6 +690,10 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 					if (!IsRightPinching) {
 						IsRightPinching = true;
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
+						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
+						{
+							Component->OnHandPinched.Broadcast(FinalHandData);
+						});
 					}
 				}
 				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout)) {
@@ -1062,7 +1073,7 @@ void FLeapMotionInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleto
 
 	
 // Livelink is an editor only thing
-#if !UE_BUILD_SHIPPING
+#if WITH_EDITOR
 	//LiveLink logic
 	if (LiveLink->HasConnection())
 	{
@@ -1172,6 +1183,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	else
 	{
 		//Vive
+		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will pass through here (is it supposed to?)
 		if (HMDType == TEXT("SteamVR") ||
 			HMDType == TEXT("GearVR"))
 		{
@@ -1357,5 +1369,4 @@ FLeapStats FLeapMotionInputDevice::GetStats()
 {
 	return Stats;
 }
-
 #pragma endregion Leap Input Device

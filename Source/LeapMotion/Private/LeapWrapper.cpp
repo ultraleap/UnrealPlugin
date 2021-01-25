@@ -101,7 +101,11 @@ void FLeapWrapper::CloseConnection()
 
 void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {
-	LeapSetPolicyFlags(ConnectionHandle, Flags, ClearFlags);
+	eLeapRS Result = LeapSetPolicyFlags(ConnectionHandle, Flags, ClearFlags);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(LeapMotionLog, Log, TEXT("LeapSetPolicyFlags failed in  FLeapWrapper::SetPolicy."));
+	}
 }
 
 void FLeapWrapper::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
@@ -425,11 +429,14 @@ void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent)
 {
 	if (CallbackDelegate)
 	{
-		TaskRefPolicy = FLeapAsync::RunShortLambdaOnGameThread([PolicyEvent, this]
+		// this is always coming back as 0, this means either the Leap service refused to set any flags?
+		// or there's a bug in the policy notification system with Leap Motion V4.
+		const uint32_t CurrentPolicy = PolicyEvent->current_policy;
+		TaskRefPolicy = FLeapAsync::RunShortLambdaOnGameThread([CurrentPolicy, this]
 			{
 				if (CallbackDelegate)
 				{
-					CallbackDelegate->OnPolicy(PolicyEvent->current_policy);
+					CallbackDelegate->OnPolicy(CurrentPolicy);
 				}
 			});
 	}

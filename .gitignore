@@ -14,3 +14,4 @@ Binaries/Win64/UE4-*.lib
 Binaries/Win64/UE4Editor*.dll
 Binaries/Win64/UE4Editor*.dll
 *.a
+Binaries/
