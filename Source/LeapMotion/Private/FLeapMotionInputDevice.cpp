@@ -435,7 +435,8 @@ void FLeapMotionInputDevice::ParseEvents()
 	//Are we in HMD mode? add our HMD snapshot
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
 	{
-		CurrentFrame.TranslateFrame(Options.HMDPositionOffset);		//Offset HMD-Leap
+        // MODIFIED!!!
+		//CurrentFrame.TranslateFrame(Options.HMDPositionOffset);		//Offset HMD-Leap
 
 		if (Options.bTransformOriginToHMD)
 		{
@@ -934,8 +935,9 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 		if (HMDType == TEXT("SteamVR") ||
 			HMDType == TEXT("GearVR"))
 		{
+            // MODIFIED!!!
 			//Apply default options to zero offsets/rotations
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
+			/*if (InOptions.HMDPositionOffset.IsNearlyZero())
 			{
 				FVector ViveOffset = FVector(9.0, 0, 0);
 				Options.HMDPositionOffset = ViveOffset;
@@ -943,7 +945,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 			if (InOptions.HMDRotationOffset.IsNearlyZero())
 			{
 				Options.HMDRotationOffset = FRotator(-10.f, 0, 0);	//typically vive mounts sag a bit
-			}
+			}*/
 
 			switch (InOptions.TrackingFidelity)
 			{

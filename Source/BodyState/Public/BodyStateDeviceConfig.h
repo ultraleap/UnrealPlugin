@@ -28,7 +28,7 @@ struct BODYSTATE_API FBodyStateDeviceConfig
 
 	/** Input type this device uses */
 	UPROPERTY()
-	TEnumAsByte<EBodyStateDeviceInputType> InputType;
+	TEnumAsByte<EBodyStateDeviceInputType> InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
 
 	/** Any specific tracking tags you may wish to expose to various systems, e.g. Finger Hand Tracking, Full Body Tracking*/
 	UPROPERTY()

@@ -92,7 +92,7 @@ struct FMappedBoneAnimData
 
 	/** Skeleton driving mapped data */
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
-	class UBodyStateSkeleton* BodyStateSkeleton;
+	class UBodyStateSkeleton* BodyStateSkeleton = nullptr;
 
 	//Data structure containing a parent -> child ordered bone list
 	TArray<CachedBoneLink> CachedBoneList;

@@ -1,10 +1,9 @@
-/******************************************************************************\
-* Copyright (C) 2012-2018 Leap Motion, Inc. All rights reserved.               *
-* Leap Motion proprietary and confidential. Not for distribution.              *
-* Use subject to the terms of the Leap Motion SDK Agreement available at       *
-* https://developer.leapmotion.com/sdk_agreement, or another agreement         *
-* between Leap Motion and you, your company or other organization.             *
-\******************************************************************************/
+/* Copyright (C) 2012-2017 Ultraleap Limited. All rights reserved.
+ *
+ * Use of this code is subject to the terms of the Leap Motion SDK Agreement
+ * (available at https://central.leapmotion.com/agreements/SdkAgreement or from
+ * the company on request), or another agreement between Ultraleap Limited and
+ * you, your company or other organization. */
 #ifndef _LEAP_C_H
 #define _LEAP_C_H
 
@@ -246,19 +245,29 @@ typedef struct _LEAP_DEVICE_REF {
   uint32_t id;
 } LEAP_DEVICE_REF;
 
+typedef enum _eLeapConnectionConfig {
+  /**
+   * The client is aware of how to handle multiple devices through the API.
+   * @since 4.1.0
+   */
+  eLeapConnectionConfig_MultiDeviceAware = 0x00000001,
+} eLeapConnectionConfig;
+
 /** \ingroup Structs
  * Specifies the configuration for a connection.
- * Currently, there are no externally useful configuration options.
  * @since 3.0.0
  */
 typedef struct _LEAP_CONNECTION_CONFIG {
   /** Set to the final size of the structure. @since 3.0.0 */
   uint32_t size;
 
-  /** The connection configuration flags. (currently there are none. @since 3.0.0 */
+  /**
+   * A combination of eLeapConnectionConfig flags. Set to 0 to indicate no
+   * special flags. @since 3.0.0
+   */
   uint32_t flags;
 
-  /*
+  /**
    * Specifies the server namespace to be used. Leave NULL to use the default namespace.
    *
    * It is possible to launch the service with a different IPC connection namespace
@@ -702,6 +711,12 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceList(LEAP_CONNECTION hConnection, LEA
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapOpenDevice(LEAP_DEVICE_REF rDevice, LEAP_DEVICE* phDevice);
 
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetPrimaryDevice(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, bool unsubscribeOthers);
+
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSubscribeEvents(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice);
+
+LEAP_EXPORT eLeapRS LEAP_CALL LeapUnsubscribeEvents(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice);
+
 /**  \ingroup Enum
  * Flags enumerating Leap device capabilities. @since 3.0.0
  */
@@ -933,7 +948,7 @@ typedef enum _eLeapImageFormat {
  * @since 3.0.0
  */
 typedef enum _eLeapPerspectiveType {
-  /** An unknown or invalid type.  @since 3.0.0 */
+  /** An unknown or invalid type. @since 3.0.0 */
   eLeapPerspectiveType_invalid = 0,
 
   /** A canonically left image. @since 3.0.0 */
@@ -945,6 +960,18 @@ typedef enum _eLeapPerspectiveType {
   /** Reserved for future use. @since 3.0.0 */
   eLeapPerspectiveType_mono = 3,
 } eLeapPerspectiveType;
+
+/**  \ingroup Enum
+ * Camera calibration types.
+ * @since 3.0.0
+ */
+typedef enum _eLeapCameraCalibrationType {
+  /** Infrared calibration (default). @since 4.1.0 */
+  eLeapCameraCalibrationType_infrared = 0,
+
+  /** Visual calibration. @since 4.1.0 */
+  eLeapCameraCalibrationType_visual = 1,
+} eLeapCameraCalibrationType;
 
 /** \ingroup Structs
  * Properties of a sensor image.
@@ -1421,6 +1448,10 @@ typedef struct _LEAP_DROPPED_FRAME_EVENT {
   eLeapDroppedFrameType type;
 } LEAP_DROPPED_FRAME_EVENT;
 
+/** \ingroup Structs
+ * An image associated with a frame of data.
+ * @since 4.0.0
+ */
 typedef struct _LEAP_IMAGE {
   /** The properties of the received image. */
   LEAP_IMAGE_PROPERTIES properties;
@@ -1449,13 +1480,8 @@ typedef struct _LEAP_IMAGE {
 
   /** Offset, in bytes, from the beginning of the data ptr to the actual beginning of the image data */
   uint32_t offset;
-
 } LEAP_IMAGE;
 
-/** \ingroup Structs
- * A notification that a device's point mapping has changed.
- * @since 4.0.0
- */
 typedef struct _LEAP_POINT_MAPPING_CHANGE_EVENT {
   /** The ID of the frame corresponding to the source of the currently tracked points. @since 4.0.0 */
   int64_t frame_id;
@@ -1465,11 +1491,6 @@ typedef struct _LEAP_POINT_MAPPING_CHANGE_EVENT {
   uint32_t nPoints;
 } LEAP_POINT_MAPPING_CHANGE_EVENT;
 
-/** \ingroup Structs
- * A notification that a device's point mapping has changed.  It contains
- * the entire set of points being mapped.
- * @since 4.0.0
- */
 typedef struct _LEAP_POINT_MAPPING {
   /** The ID of the frame corresponding to the source of the currently tracked points. @since 4.0.0 */
   int64_t frame_id;
@@ -1486,16 +1507,117 @@ typedef struct _LEAP_POINT_MAPPING {
 typedef struct _LEAP_HEAD_POSE_EVENT {
   /**
   * The timestamp for this image, in microseconds, referenced against LeapGetNow().
-  * @since 3.2.1
+  * @since 4.1.0
   */
   int64_t timestamp;
   /**
   * The position and orientation of the user's head. Positional tracking must be enabled.
-  * @since 3.2.1
+  * @since 4.1.0
   */
   LEAP_VECTOR head_position;
   LEAP_QUATERNION head_orientation;
+  /**
+  * The linear and angular velocity of the user's head. Positional tracking must be enabled.
+  * @since 4.1.0
+  */
+  LEAP_VECTOR head_linear_velocity;
+  LEAP_VECTOR head_angular_velocity;
 } LEAP_HEAD_POSE_EVENT;
+
+typedef struct _LEAP_EYE_EVENT {
+
+  /**
+  * The ID of the frame corresponding to the source of the currently tracked
+  * eye positions.
+  * @since 4.1.0
+  */
+  int64_t frame_id;
+
+  /**
+  * The timestamp for this image, in microseconds, referenced against
+  * LeapGetNow().
+  * @since 4.1.0
+  */
+  int64_t timestamp;
+
+  /**
+  * The position of the user's left eye.
+  * @since 4.1.0
+  */
+  LEAP_VECTOR left_eye_position;
+
+  /**
+  * The position of the user's right eye.
+  * @since 4.1.0
+  */
+  LEAP_VECTOR right_eye_position;
+
+  /**
+  * An error estimate of the tracked left eye position. Higher values indicate
+  * uncertain tracking and a higher likelihood of there being no such eye in
+  * view of the sensor.
+  * @since 4.1.0
+  */
+  float left_eye_estimated_error;
+
+  /**
+  * An error estimate of the tracked right eye position. Higher values indicate
+  * uncertain tracking and a higher likelihood of there being no such eye in
+  * view of the sensor.
+  * @since 4.1.0
+  */
+  float right_eye_estimated_error;
+
+} LEAP_EYE_EVENT;
+
+typedef enum _eLeapIMUFlag {
+  /** Has accelerometer measurements. @since 4.1.0 */
+  eLeapIMUFlag_HasAccelerometer = 0x00000001,
+  /** Has gyroscope measurements. @since 4.1.0 */
+  eLeapIMUFlag_HasGyroscope     = 0x00000002,
+  /** Has a temperature measurement. @since 4.1.0 */
+  eLeapIMUFlag_HasTemperature   = 0x00000004,
+} eLeapIMUFlag;
+
+typedef struct _LEAP_IMU_EVENT {
+  /**
+  * The timestamp for these measurements, in microseconds, referenced against
+  * LeapGetNow().
+  * @since 4.1.0
+  */
+  int64_t timestamp;
+
+  /**
+  * The timestamp for these measurements, in microseconds, referenced against
+  * the device's internal clock.
+  * @since 4.1.0
+  */
+  int64_t timestamp_hw;
+
+  /**
+  * A combination of eLeapIMUFlag flags.
+  * @since 4.1.0
+  */
+  uint32_t flags;
+
+  /**
+  * The accelerometer measurements, in m/s^2.
+  * @since 4.1.0
+  */
+  LEAP_VECTOR accelerometer;
+
+  /**
+  * The gyroscope measurements, in rad/s.
+  * @since 4.1.0
+  */
+  LEAP_VECTOR gyroscope;
+
+  /**
+  * The measured temperature, in deg C.
+  * @since 4.1.0
+  */
+  float temperature;
+} LEAP_IMU_EVENT;
 
 /** \ingroup Structs
  * Streaming stereo image pairs from the device.
@@ -1515,7 +1637,6 @@ typedef struct _LEAP_IMAGE_EVENT {
 
   /** For internal use only. */
   LEAP_CALIBRATION calib;
-
 } LEAP_IMAGE_EVENT;
 
 /** \ingroup Enum
@@ -1646,7 +1767,22 @@ typedef enum _eLeapEventType {
    * An array of system messages. @since 4.0.0
    */
   eLeapEventType_LogEvents,
-  eLeapEventType_HeadPose
+
+  /**
+  * A head pose. The message contains the timestamped head position and orientation.
+  * @since 4.1.0
+  */
+  eLeapEventType_HeadPose,
+
+  /**
+  * Tracked eye positions. @since 4.1.0
+  */
+  eLeapEventType_Eyes,
+
+  /**
+  * An IMU reading. @since 4.1.0
+  */
+  eLeapEventType_IMU
 } eLeapEventType;
 
 /** \ingroup Structs
@@ -1698,8 +1834,20 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
     const LEAP_IMAGE_EVENT* image_event;
     /** A point mapping message. @since 4.0.0 */
     const LEAP_POINT_MAPPING_CHANGE_EVENT* point_mapping_change_event;
+    /** A head pose message. @since 4.1.0 */
     const LEAP_HEAD_POSE_EVENT* head_pose_event;
+    /** An eye positions message for both the left and right eyes. @since 4.1.0 */
+    const LEAP_EYE_EVENT* eye_event;
+    /** An IMU message. @since 4.1.0 */
+    const LEAP_IMU_EVENT* imu_event;
   };
+
+  /** A unique ID for the attached device that sent this message. A value of
+   *  0 indicates that it was a system-wide message, and not device specific.
+   *  Use this ID to distinguish messages sent from multiple attached devices.
+   *  @since 4.1.0
+   */
+  uint32_t device_id;
 } LEAP_CONNECTION_MESSAGE;
 
 /** \ingroup Functions
@@ -1740,6 +1888,21 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapPollConnection(LEAP_CONNECTION hConnection, ui
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetFrameSize(LEAP_CONNECTION hConnection, int64_t timestamp, uint64_t* pncbEvent);
 
 /** \ingroup Functions
+ * Retrieves the number of bytes required to allocate an interpolated frame at the specified time
+ * for a particular device.
+ *
+ * Use this function to determine the size of the buffer to allocate when calling
+ * LeapInterpolateFrameEx().
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param timestamp The timestamp of the frame whose size is to be queried.
+ * @param[out] pncbEvent A pointer that receives the number of bytes required to store the specified frame.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 4.1.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetFrameSizeEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, int64_t timestamp, uint64_t* pncbEvent);
+
+/** \ingroup Functions
  * Constructs a frame at the specified timestamp by interpolating between measured
  * frames.
  *
@@ -1758,6 +1921,27 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetFrameSize(LEAP_CONNECTION hConnection, int6
  * @since 3.1.1
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrame(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
+
+/** \ingroup Functions
+ * Constructs a frame at the specified timestamp for a particular device by
+ * interpolating between measured frames.
+ *
+ * Caller is responsible for allocating a buffer large enough to hold the data of the frame.
+ * Use LeapGetFrameSizeEx() to calculate the minimum size of this buffer.
+ *
+ * Use LeapCreateClockRebaser(), LeapUpdateRebase(), and LeapRebaseClock() to
+ * synchronize time measurements in the application with time measurements in
+ * the Leap Motion service. This process is required to achieve accurate, smooth
+ * interpolation.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param timestamp The timestamp at which to interpolate the frame data.
+ * @param[out] pEvent A pointer to a flat buffer which is filled with an interpolated frame.
+ * @param ncbEvent The number of bytes pointed to by pEvent.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 4.1.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, int64_t timestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
 
 /** \ingroup Functions
 * Constructs a frame at the specified timestamp by interpolating between a frame near the timestamp
@@ -1781,23 +1965,33 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrame(LEAP_CONNECTION hConnection, 
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameFromTime(LEAP_CONNECTION hConnection, int64_t timestamp, int64_t sourceTimestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
 
 /** \ingroup Functions
-* Gets the head tracking pose at the specified timestamp by interpolating between measured
-* frames.
+* Constructs a frame at the specified timestamp for a particular device by
+* interpolating between a frame near the timestamp and a frame near the
+* sourceTimestamp.
 *
 * Caller is responsible for allocating a buffer large enough to hold the data of the frame.
-* Use LeapGetFrameSize() to calculate the minimum size of this buffer.
+* Use LeapGetFrameSizeEx() to calculate the minimum size of this buffer.
 *
 * Use LeapCreateClockRebaser(), LeapUpdateRebase(), and LeapRebaseClock() to
 * synchronize time measurements in the application with time measurements in
 * the Leap Motion service. This process is required to achieve accurate, smooth
 * interpolation.
 * @param hConnection The connection handle created by LeapCreateConnection().
-* @param timestamp The timestamp at which to interpolate the frame data.
+* @param hDevice A device handle returned by LeapOpenDevice().
+* @param timestamp The timestamp to which to interpolate the frame data.
+* @param sourceTimestamp The timestamp of the beginning frame from which to interpolate the frame data.
 * @param[out] pEvent A pointer to a flat buffer which is filled with an interpolated frame.
+* @param ncbEvent The number of bytes pointed to by pEvent.
 * @returns The operation result code, a member of the eLeapRS enumeration.
-* @since 3.1.1
+* @since 4.1.0
 */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameFromTimeEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, int64_t timestamp, int64_t sourceTimestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
+
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateHeadPose(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_HEAD_POSE_EVENT* pEvent);
+
+LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateHeadPoseEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, int64_t timestamp, LEAP_HEAD_POSE_EVENT* pEvent);
+
+LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateEyePositions(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_EYE_EVENT* pEvent);
 
 /** \ingroup Functions
  * Closes a device handle previously opened with LeapOpenDevice.
@@ -1919,6 +2113,30 @@ LEAP_EXPORT void LEAP_CALL LeapDestroyClockRebaser(LEAP_CLOCK_REBASER hClockReba
 LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinear(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, LEAP_VECTOR pixel);
 
 /** \ingroup Functions
+ * Provides the corrected camera ray intercepting the specified point
+ * on the image for a particular device.
+ *
+ * Given a point on the image, ``LeapPixelToRectilinearEx()`` corrects for camera distortion
+ * and returns the true direction from the camera to the source of that image point
+ * within the Leap Motion field of view.
+ *
+ * This direction vector has an x and y component [x, y, 1], with the third element
+ * always 1. Note that this vector uses the 2D camera coordinate system
+ * where the x-axis parallels the longer (typically horizontal) dimension and
+ * the y-axis parallels the shorter (vertical) dimension. The camera coordinate
+ * system does not correlate to the 3D Leap Motion coordinate system.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param calibrationType The type of camera calibration to use
+ * @param pixel A Vector containing the position of a pixel in the image.
+ * @returns A Vector containing the ray direction (the z-component of the vector is always 1).
+ * @since 4.1.0
+ */
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinearEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, eLeapCameraCalibrationType calibrationType, LEAP_VECTOR pixel);
+
+/** \ingroup Functions
  * Provides the point in the image corresponding to a ray projecting
  * from the camera.
  *
@@ -1945,7 +2163,35 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinear(LEAP_CONNECTION hConnec
 LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, LEAP_VECTOR rectilinear);
 
 /** \ingroup Functions
- * Returns an OpenCV-compatible camera matrix
+ * Provides the point in the image corresponding to a ray projecting
+ * from the camera for a particular device.
+ *
+ * Given a ray projected from the camera in the specified direction, ``LeapRectilinearToPixelEx()``
+ * corrects for camera distortion and returns the corresponding pixel
+ * coordinates in the image.
+ *
+ * The ray direction is specified in relationship to the camera. The first
+ * vector element is the tangent of the "horizontal" view angle; the second
+ * element is the tangent of the "vertical" view angle.
+ *
+ * The ``LeapRectilinearToPixelEx()`` function returns pixel coordinates outside of the image bounds
+ * if you project a ray toward a point for which there is no recorded data.
+ *
+ * ``LeapRectilinearToPixelEx()`` is typically not fast enough for realtime distortion correction.
+ * For better performance, use a shader program executed on a GPU.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param calibrationType The type of camera calibration to use
+ * @param rectilinear A Vector containing the ray direction.
+ * @returns A Vector containing the pixel coordinates [x, y, 1] (with z always 1).
+ * @since 4.1.0
+ */
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixelEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, eLeapCameraCalibrationType calibrationType, LEAP_VECTOR rectilinear);
+
+/** \ingroup Functions
+ * Returns an OpenCV-compatible camera matrix.
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
  * @param[out] dest A pointer to a single-precision float array of size 9
@@ -1954,7 +2200,18 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnec
 LEAP_EXPORT void LEAP_CALL LeapCameraMatrix(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
 
 /** \ingroup Functions
- * Returns an OpenCV-compatible lens distortion using the 8-parameter rational model
+ * Returns an OpenCV-compatible camera matrix for a particular device.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param[out] dest A pointer to a single-precision float array of size 9
+ * @since 4.1.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapCameraMatrixEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
+
+/** \ingroup Functions
+ * Returns an OpenCV-compatible lens distortion using the 8-parameter rational
+ * model.
  *
  * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
  *
@@ -1964,6 +2221,20 @@ LEAP_EXPORT void LEAP_CALL LeapCameraMatrix(LEAP_CONNECTION hConnection, eLeapPe
  * @since 3.2.1
  */
 LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffs(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
+
+/** \ingroup Functions
+ * Returns an OpenCV-compatible lens distortion for a particular device, using
+ * the 8-parameter rational model.
+ *
+ * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param[out] dest A pointer to a single-precision float array of size 8.
+ * @since 4.1.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffsEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
 
 /** \ingroup Functions
  * Provides the human-readable canonical name of the specified device model.

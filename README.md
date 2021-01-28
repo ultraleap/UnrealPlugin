@@ -7,7 +7,8 @@ The official [Leap Motion](http://www.leapmotion.com) plugin for the Unreal Engi
 
 You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
 
-See [unreal thread](https://forums.unrealengine.com/showthread.php?49107-Plugin-Leap-Motion-Event-Driven) for version downloads and development updates.
+### Problems & Questions
+Reach out at https://forums.leapmotion.com/
 
 ## Multiple Devices
 
