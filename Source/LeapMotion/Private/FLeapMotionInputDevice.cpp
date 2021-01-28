@@ -17,6 +17,7 @@ DECLARE_CYCLE_STAT(TEXT("Leap Game Input and Events"), STAT_LeapInputTick, STATG
 DECLARE_CYCLE_STAT(TEXT("Leap BodyState Tick"), STAT_LeapBodyStateTick, STATGROUP_LeapMotion);
 
 #pragma region Utility
+bool FLeapMotionInputDevice::bUseNewTrackingModeAPI = true;
 //Function call Utility
 void FLeapMotionInputDevice::CallFunctionOnComponents(TFunction< void(ULeapComponent*)> InFunction)
 {
@@ -267,7 +268,22 @@ void FLeapMotionInputDevice::OnPolicy(const uint32_t CurrentPolicies)
 		Component->OnLeapPoliciesUpdated.Broadcast(Flags);
 	});
 }
-
+void FLeapMotionInputDevice::OnTrackingMode(const eLeapTrackingMode CurrentMode)
+{
+	switch (CurrentMode)
+	{
+		case eLeapTrackingMode_Desktop: Options.Mode = LEAP_MODE_DESKTOP; break;
+		case eLeapTrackingMode_HMD: Options.Mode = LEAP_MODE_VR; break;
+		case eLeapTrackingMode_ScreenTop: Options.Mode = LEAP_MODE_SCREENTOP; break;
+	}
+	ELeapMode UpdatedMode = Options.Mode;
+	//Update mode for each component and broadcast current policies
+	CallFunctionOnComponents([&, UpdatedMode](ULeapComponent* Component)
+		{
+			Component->TrackingMode = UpdatedMode;
+			Component->OnLeapTrackingModeUpdated.Broadcast(UpdatedMode);
+		});
+}
 void FLeapMotionInputDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Timestamp, const char* Message)
 {
 	if (!Message)
@@ -965,6 +981,7 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 	case LEAP_POLICY_IMAGES:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
 		break;
+	// legacy 3.0 implementation superseded by SetTrackingMode
 	case LEAP_POLICY_OPTIMIZE_HMD:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
 		break;
@@ -977,7 +994,16 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 		break;
 	}
 }
-
+// v5 implementation of tracking mode
+void FLeapMotionInputDevice::SetTrackingMode(ELeapMode Flag)
+{
+	switch (Flag)
+	{
+		case LEAP_MODE_DESKTOP: Leap.SetTrackingMode(eLeapTrackingMode_Desktop); break;
+		case LEAP_MODE_VR: Leap.SetTrackingMode(eLeapTrackingMode_HMD); break;
+		case LEAP_MODE_SCREENTOP: Leap.SetTrackingMode(eLeapTrackingMode_ScreenTop); break;
+	}
+}
 #pragma endregion Leap Input Device
 
 #pragma region BodyState
@@ -1165,8 +1191,16 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	//Did we change the mode?
 	if (Options.Mode != InOptions.Mode)
 	{
-		bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
-		SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
+		if (bUseNewTrackingModeAPI)
+		{
+			SetTrackingMode(Options.Mode);
+		}
+		else
+		{
+			bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
+
+			SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
+		}
 	}
 
 	//Set main options

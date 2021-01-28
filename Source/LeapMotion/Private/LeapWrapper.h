@@ -18,6 +18,7 @@ public:
 		const eLeapDeviceStatus FailureCode,
 		const LEAP_DEVICE FailedDevice) {};
 	virtual void OnPolicy(const uint32_t CurrentPolicies) {};
+	virtual void OnTrackingMode(const eLeapTrackingMode current_tracking_mode) {};
 	virtual void OnFrame(const LEAP_TRACKING_EVENT *TrackingEvent) {};
 	virtual void OnImage(const LEAP_IMAGE_EVENT *ImageEvent) {};
 	virtual void OnLog(
@@ -57,7 +58,8 @@ public:
 
 	void SetPolicy(int64 Flags, int64 ClearFlags);
 	void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet);
-
+	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
+	void SetTrackingMode(eLeapTrackingMode TrackingMode);
 	//Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -118,6 +120,7 @@ private:
 	void HandleImageEvent(const LEAP_IMAGE_EVENT *ImageEvent);
 	void HandleLogEvent(const LEAP_LOG_EVENT *LogEvent);
 	void HandlePolicyEvent(const LEAP_POLICY_EVENT *PolicyEvent);
+	void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent);
 	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT *ConfigChangeEvent);
 	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT *ConfigResponseEvent);
 };
