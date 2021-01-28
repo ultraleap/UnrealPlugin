@@ -1193,7 +1193,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	{
 		if (bUseNewTrackingModeAPI)
 		{
-			SetTrackingMode(Options.Mode);
+			SetTrackingMode(InOptions.Mode);
 		}
 		else
 		{
