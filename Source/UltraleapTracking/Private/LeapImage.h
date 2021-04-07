@@ -10,7 +10,7 @@
 #endif
 #include "RHI.h"
 #include "HAL/ThreadSafeBool.h"
-#include "LeapMotionData.h"
+#include "UltraleapTrackingData.h"
 
 /** Signature with Left/Right Image pair */
 DECLARE_MULTICAST_DELEGATE_TwoParams(FLeapImageRawSignature, UTexture2D*, UTexture2D*);

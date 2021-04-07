@@ -4,10 +4,10 @@ using System.IO;
 
 namespace UnrealBuildTool.Rules
 {
-	public class LeapMotionEditor : ModuleRules
+	public class UltraleapTrackingEditor : ModuleRules
 	{
 
-		public LeapMotionEditor(ReadOnlyTargetRules Target) : base(Target)
+		public UltraleapTrackingEditor(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -19,7 +19,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"LeapMotionEditor/Private",
+					"UltraleapTrackingEditor/Private",
 					// ... add other private include paths required here ...
 				}
 				);
@@ -31,7 +31,7 @@ namespace UnrealBuildTool.Rules
 					"Engine",
 					"Core",
 					"CoreUObject",
-					"LeapMotion",
+					"UltraleapTracking",
 				}
 				);
 

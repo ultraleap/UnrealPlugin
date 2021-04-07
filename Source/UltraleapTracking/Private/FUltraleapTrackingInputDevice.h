@@ -5,7 +5,7 @@
 #include "IXRTrackingSystem.h"
 #include "LeapUtility.h"
 #include "LeapComponent.h"
-#include "LeapMotionData.h"
+#include "UltraleapTrackingData.h"
 #include "BodyStateInputInterface.h"
 #include "BodyStateHMDSnapshot.h"
 #include "BodyStateDeviceConfig.h"
@@ -30,14 +30,14 @@ struct EKeysLeap
 	static const FKey LeapGrabR;
 };
 
-class FLeapMotionInputDevice :	public IInputDevice, 
+class FUltraleapTrackingInputDevice :	public IInputDevice,
 								public LeapWrapperCallbackInterface, 
 								public IBodyStateInputRawInterface,
 								public ISceneViewExtension
 {
 public:
-	FLeapMotionInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& MessageHandler);
-	virtual ~FLeapMotionInputDevice();
+	FUltraleapTrackingInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& MessageHandler);
+	virtual ~FUltraleapTrackingInputDevice();
 
 	/** Tick the interface (e.g. check for new controllers) */
 	virtual void Tick(float DeltaTime) override;

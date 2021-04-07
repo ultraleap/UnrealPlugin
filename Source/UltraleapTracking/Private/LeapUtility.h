@@ -5,7 +5,7 @@
 #include "LeapC.h"
 #include "CoreMinimal.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LeapMotionLog, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(UltraleapTrackingLog, Log, All);
 
 class FLeapUtility 
 {

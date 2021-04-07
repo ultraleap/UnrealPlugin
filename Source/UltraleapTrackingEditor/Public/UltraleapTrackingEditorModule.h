@@ -4,7 +4,7 @@
 
 #include "Modules/ModuleInterface.h"
 
-class FLeapMotionEditorModule : public IModuleInterface
+class FUltraleapTrackingEditorModule : public IModuleInterface
 {
 public:
 };

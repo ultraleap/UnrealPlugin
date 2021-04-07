@@ -1,7 +1,7 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "LeapComponent.h"
-#include "ILeapMotionPlugin.h"
+#include "IUltraleapTrackingPlugin.h"
 
 ULeapComponent::ULeapComponent(const FObjectInitializer &init) : UActorComponent(init)
 {
@@ -19,12 +19,12 @@ void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
 
 void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
 {
-	ILeapMotionPlugin::Get().AreHandsVisible(LeftIsVisible, RightIsVisible);
+	IUltraleapTrackingPlugin::Get().AreHandsVisible(LeftIsVisible, RightIsVisible);
 }
 
 void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
 {
-	ILeapMotionPlugin::Get().GetLatestFrameData(OutData);
+	IUltraleapTrackingPlugin::Get().GetLatestFrameData(OutData);
 }
 
 void ULeapComponent::InitializeComponent()
@@ -32,13 +32,13 @@ void ULeapComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	//Attach delegate references
-	ILeapMotionPlugin::Get().AddEventDelegate(this);
+	IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
 }
 
 void ULeapComponent::UninitializeComponent()
 {
 	//remove ourselves from the delegates
-	ILeapMotionPlugin::Get().RemoveEventDelegate(this);
+	IUltraleapTrackingPlugin::Get().RemoveEventDelegate(this);
 
 	Super::UninitializeComponent();
 }

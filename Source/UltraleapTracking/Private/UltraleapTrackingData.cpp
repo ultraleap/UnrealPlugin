@@ -1,6 +1,6 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
-#include "LeapMotionData.h"
+#include "UltraleapTrackingData.h"
 #include "LeapC.h"
 #include "LeapUtility.h"
 

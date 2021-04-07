@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LeapMotionData.h"
+#include "UltraleapTrackingData.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "LeapBlueprintFunctionLibrary.generated.h"
 

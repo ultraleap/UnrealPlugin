@@ -4,11 +4,11 @@ using System.IO;
 
 namespace UnrealBuildTool.Rules
 {
-	public class LeapMotion : ModuleRules
+	public class UltraleapTracking : ModuleRules
 	{
 		private bool IsEnginePlugin()
 		{
-			return Path.GetFullPath(ModuleDirectory).EndsWith("Engine\\Plugins\\Runtime\\LeapMotion\\Source\\LeapMotion");
+			return Path.GetFullPath(ModuleDirectory).EndsWith("Engine\\Plugins\\Runtime\\UltraleapTracking\\Source\\UltraleapTracking");
 		}
 
 		private string ModulePath
@@ -37,7 +37,7 @@ namespace UnrealBuildTool.Rules
 			{
 				if (IsEnginePlugin())
 				{
-					return Path.GetFullPath(Path.Combine(EngineDirectory, "Binaries/ThirdParty/LeapMotion"));
+					return Path.GetFullPath(Path.Combine(EngineDirectory, "Binaries/ThirdParty/UltraleapTracking"));
 				}
 				else
 				{ 
@@ -76,7 +76,7 @@ namespace UnrealBuildTool.Rules
 			}
 		}
 
-		public LeapMotion(ReadOnlyTargetRules Target) : base(Target)
+		public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -88,7 +88,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"LeapMotion/Private",
+					"UltraleapTracking/Private",
 					IncludePath,
 					// ... add other private include paths required here ...
 				}
@@ -203,7 +203,7 @@ namespace UnrealBuildTool.Rules
 					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
 
 					PublicDelayLoadDLLs.Add("LeapC.dll");
-					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/LeapMotion/" + PlatformString + "/LeapC.dll");
+					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/UltraleapTracking/" + PlatformString + "/LeapC.dll");
 					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
 				}
 				//Engine plugin, just add the dependency path
@@ -241,7 +241,7 @@ namespace UnrealBuildTool.Rules
 				//PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "armeabi-v7a", "libLeapC.so"));
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "arm64-v8a", "libLeapC.so"));
 
-				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "LeapMotion_APL.xml"));
+				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "UltraleapTracking_APL.xml"));
 			}
 
 			return IsLibrarySupported;

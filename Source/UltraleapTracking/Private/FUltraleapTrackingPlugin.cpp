@@ -1,7 +1,7 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
-#include "FLeapMotionPlugin.h"
-#include "FLeapMotionInputDevice.h"
+#include "FUltraleapTrackingPlugin.h"
+#include "FUltraleapTrackingInputDevice.h"
 #include "BodyStateBPLibrary.h"
 #include "IInputDeviceModule.h"
 #include "Interfaces/IPluginManager.h"
@@ -10,7 +10,7 @@
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
 
-void FLeapMotionPlugin::StartupModule()
+void FUltraleapTrackingPlugin::StartupModule()
 {
 	// This code will execute after your module is loaded into memory (but after global variables are initialized, of course.)
 	// Custom module-specific init can go here.
@@ -27,14 +27,14 @@ void FLeapMotionPlugin::StartupModule()
 	IModularFeatures::Get().RegisterModularFeature(IInputDeviceModule::GetModularFeatureName(), this);
 
 	//Get and display our plugin version in the log for debugging
-	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("LeapMotion"));
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
 	const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
-	UE_LOG(LeapMotionLog, Log, TEXT("Leap Plugin started v%s"), *PluginDescriptor.VersionName);
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Leap Plugin started v%s"), *PluginDescriptor.VersionName);
 }
 
-void FLeapMotionPlugin::ShutdownModule()
+void FUltraleapTrackingPlugin::ShutdownModule()
 {
-	UE_LOG(LeapMotionLog, Log, TEXT("Leap Plugin shutdown."));
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Leap Plugin shutdown."));
 
 	if (LeapDLLHandle)
 	{
@@ -47,7 +47,7 @@ void FLeapMotionPlugin::ShutdownModule()
 }
 
 
-void FLeapMotionPlugin::AddEventDelegate(const ULeapComponent* EventDelegate)
+void FUltraleapTrackingPlugin::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
 	if (bActive)
 	{
@@ -61,7 +61,7 @@ void FLeapMotionPlugin::AddEventDelegate(const ULeapComponent* EventDelegate)
 }
 
 
-void FLeapMotionPlugin::RemoveEventDelegate(const ULeapComponent* EventDelegate)
+void FUltraleapTrackingPlugin::RemoveEventDelegate(const ULeapComponent* EventDelegate)
 {
 	if (bActive)
 	{
@@ -69,7 +69,7 @@ void FLeapMotionPlugin::RemoveEventDelegate(const ULeapComponent* EventDelegate)
 	}
 }
 
-FLeapStats FLeapMotionPlugin::GetLeapStats()
+FLeapStats FUltraleapTrackingPlugin::GetLeapStats()
 {
 	if (bActive)
 	{
@@ -77,11 +77,11 @@ FLeapStats FLeapMotionPlugin::GetLeapStats()
 	}
 	else
 	{
-		return ILeapMotionPlugin::GetLeapStats();
+		return IUltraleapTrackingPlugin::GetLeapStats();
 	}
 }
 
-void FLeapMotionPlugin::SetOptions(const FLeapOptions& Options)
+void FUltraleapTrackingPlugin::SetOptions(const FLeapOptions& Options)
 {
 	if (bActive)
 	{
@@ -89,7 +89,7 @@ void FLeapMotionPlugin::SetOptions(const FLeapOptions& Options)
 	}
 }
 
-FLeapOptions FLeapMotionPlugin::GetOptions()
+FLeapOptions FUltraleapTrackingPlugin::GetOptions()
 {
 	if (bActive)
 	{
@@ -97,11 +97,11 @@ FLeapOptions FLeapMotionPlugin::GetOptions()
 	}
 	else
 	{
-		return ILeapMotionPlugin::GetOptions();
+		return IUltraleapTrackingPlugin::GetOptions();
 	}
 }
 
-void FLeapMotionPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
+void FUltraleapTrackingPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
 {
 	if (bActive) 
 	{
@@ -109,7 +109,7 @@ void FLeapMotionPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHand
 	}
 }
 
-void FLeapMotionPlugin::GetLatestFrameData(FLeapFrameData& OutData)
+void FUltraleapTrackingPlugin::GetLatestFrameData(FLeapFrameData& OutData)
 {
 	//Copies data
 	if (bActive)
@@ -118,7 +118,7 @@ void FLeapMotionPlugin::GetLatestFrameData(FLeapFrameData& OutData)
 	}
 }
 
-void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
+void FUltraleapTrackingPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
 	if (bActive)
 	{
@@ -126,24 +126,24 @@ void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 	}
 }
 
-void FLeapMotionPlugin::ShutdownLeap()
+void FUltraleapTrackingPlugin::ShutdownLeap()
 {
 	if (bActive)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("Shutting down leap from command."));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Shutting down leap from command."));
 		LeapInputDevice->ShutdownLeap();
 	}
 }
 
-void* FLeapMotionPlugin::GetLeapHandle()
+void* FUltraleapTrackingPlugin::GetLeapHandle()
 {
 	void* NewLeapDLLHandle = nullptr;
 
 #if PLATFORM_WINDOWS
 #if PLATFORM_64BITS
-	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/LeapMotion/Win64"));
+	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/UltraleapTracking/Win64"));
 #else
-	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/LeapMotion/Win32"));
+	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/UltraleapTracking/Win32"));
 #endif
 	FPlatformProcess::PushDllDirectory(*BinariesPath);
 	NewLeapDLLHandle = FPlatformProcess::GetDllHandle(*(BinariesPath / "LeapC.dll"));
@@ -152,14 +152,14 @@ void* FLeapMotionPlugin::GetLeapHandle()
 
 	if (NewLeapDLLHandle != nullptr)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(BinariesPath / "LeapC.dll"));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(BinariesPath / "LeapC.dll"));
 	}
 	return NewLeapDLLHandle;
 }
 
-TSharedPtr< class IInputDevice > FLeapMotionPlugin::CreateInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler)
+TSharedPtr< class IInputDevice > FUltraleapTrackingPlugin::CreateInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler)
 {
-	FLeapMotionPlugin::LeapInputDevice = MakeShareable(new FLeapMotionInputDevice(InMessageHandler));
+	FUltraleapTrackingPlugin::LeapInputDevice = MakeShareable(new FUltraleapTrackingInputDevice(InMessageHandler));
 
 	bActive = true;
 
@@ -173,6 +173,6 @@ TSharedPtr< class IInputDevice > FLeapMotionPlugin::CreateInputDevice(const TSha
 	return TSharedPtr< class IInputDevice >(LeapInputDevice);
 }
 
-IMPLEMENT_MODULE(FLeapMotionPlugin, LeapMotion)
+IMPLEMENT_MODULE(FUltraleapTrackingPlugin, UltraleapTracking)
 
 #undef LOCTEXT_NAMESPACE

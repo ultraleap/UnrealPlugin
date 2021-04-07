@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include "ILeapMotionPlugin.h"
+#include "IUltraleapTrackingPlugin.h"
 
 /**
  * The public interface to this module.  In most cases, this interface is only public to sibling modules 
  * within this plugin.
  */
-class FLeapMotionPlugin : public ILeapMotionPlugin
+class FUltraleapTrackingPlugin : public IUltraleapTrackingPlugin
 {
 public:
 	virtual TSharedPtr< class IInputDevice > CreateInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler);
@@ -31,7 +31,7 @@ public:
 
 
 private:
-	TSharedPtr< class FLeapMotionInputDevice > LeapInputDevice;
+	TSharedPtr< class FUltraleapTrackingInputDevice > LeapInputDevice;
 	TArray<ULeapComponent*> DeferredComponentList;
 
 	bool bActive = false;

@@ -16,7 +16,7 @@ FLeapLiveLinkProducer::FLeapLiveLinkProducer()
 
 void FLeapLiveLinkProducer::Startup()
 {
-	LiveLinkProvider = ILiveLinkProvider::CreateLiveLinkProvider(TEXT("Leap Motion Live Link"));
+	LiveLinkProvider = ILiveLinkProvider::CreateLiveLinkProvider(TEXT("Ultraleap Tracking Live Link"));
 
 	TFunction<void()> StatusChangeLambda = [this]
 	{
@@ -31,7 +31,7 @@ void FLeapLiveLinkProducer::Startup()
 	};
 	ConnectionStatusChangedHandle = LiveLinkProvider->RegisterConnStatusChangedHandle(FLiveLinkProviderConnectionStatusChanged::FDelegate::CreateLambda(StatusChangeLambda));
 
-	SubjectName = TEXT("Leap Motion");
+	SubjectName = TEXT("Ultraleap Tracking");
 }
 
 void FLeapLiveLinkProducer::ShutDown()

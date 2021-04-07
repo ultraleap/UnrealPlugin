@@ -3,7 +3,7 @@
 #pragma once
 
 #include "LeapBlueprintFunctionLibrary.h"
-#include "ILeapMotionPlugin.h"
+#include "IUltraleapTrackingPlugin.h"
 
 
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer)
@@ -14,7 +14,7 @@ ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObject
 
 void ULeapBlueprintFunctionLibrary::SetLeapMode(ELeapMode InMode, ELeapTrackingFidelity InTrackingFidelity)
 {
-	FLeapOptions Options = ILeapMotionPlugin::Get().GetOptions();
+	FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions();
 	
 	Options.Mode = InMode;
 	Options.TrackingFidelity = InTrackingFidelity;
@@ -24,26 +24,26 @@ void ULeapBlueprintFunctionLibrary::SetLeapMode(ELeapMode InMode, ELeapTrackingF
 
 void ULeapBlueprintFunctionLibrary::SetLeapOptions(const FLeapOptions& InOptions)
 {
-	ILeapMotionPlugin::Get().SetOptions(InOptions);
+	IUltraleapTrackingPlugin::Get().SetOptions(InOptions);
 }
 
 void ULeapBlueprintFunctionLibrary::GetLeapOptions(FLeapOptions& OutOptions)
 {
-	OutOptions = ILeapMotionPlugin::Get().GetOptions();
+	OutOptions = IUltraleapTrackingPlugin::Get().GetOptions();
 }
 
 void ULeapBlueprintFunctionLibrary::GetLeapStats(FLeapStats& OutStats)
 {
-	OutStats = ILeapMotionPlugin::Get().GetLeapStats();
+	OutStats = IUltraleapTrackingPlugin::Get().GetLeapStats();
 }
 
 void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
-	ILeapMotionPlugin::Get().SetLeapPolicy(Flag, Enable);
+	IUltraleapTrackingPlugin::Get().SetLeapPolicy(Flag, Enable);
 }
 
 //Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 {
-	ILeapMotionPlugin::Get().ShutdownLeap();
+	IUltraleapTrackingPlugin::Get().ShutdownLeap();
 }

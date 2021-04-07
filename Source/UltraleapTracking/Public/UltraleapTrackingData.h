@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LeapMotionData.generated.h"
+#include "UltraleapTrackingData.generated.h"
 
 UENUM(BlueprintType)
 enum EHandType
@@ -58,7 +58,7 @@ enum ELeapServiceLogLevel
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapDevice
+struct ULTRALEAPTRACKING_API FLeapDevice
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -104,7 +104,7 @@ struct LEAPMOTION_API FLeapDevice
 
 /** Read only stats from the plugin such as version and prediction interval. */
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapStats
+struct ULTRALEAPTRACKING_API FLeapStats
 {
 	GENERATED_USTRUCT_BODY()
 	FLeapStats();
@@ -120,7 +120,7 @@ struct LEAPMOTION_API FLeapStats
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapOptions
+struct ULTRALEAPTRACKING_API FLeapOptions
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -198,7 +198,7 @@ struct LEAPMOTION_API FLeapOptions
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapBoneData
+struct ULTRALEAPTRACKING_API FLeapBoneData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -221,7 +221,7 @@ struct LEAPMOTION_API FLeapBoneData
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapPalmData
+struct ULTRALEAPTRACKING_API FLeapPalmData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -253,7 +253,7 @@ struct LEAPMOTION_API FLeapPalmData
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapDigitData
+struct ULTRALEAPTRACKING_API FLeapDigitData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -287,7 +287,7 @@ struct LEAPMOTION_API FLeapDigitData
 
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapHandData
+struct ULTRALEAPTRACKING_API FLeapHandData
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -354,7 +354,7 @@ struct LEAPMOTION_API FLeapHandData
 };
 
 USTRUCT(BlueprintType)
-struct LEAPMOTION_API FLeapFrameData
+struct ULTRALEAPTRACKING_API FLeapFrameData
 {
 	GENERATED_USTRUCT_BODY()
 

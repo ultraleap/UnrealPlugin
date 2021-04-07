@@ -63,9 +63,9 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 			LEAP_CONNECTION* Handle = &ConnectionHandle;
 			ProducerLambdaFuture = FLeapAsync::RunLambdaOnBackGroundThread([&, Handle]
 				{
-					UE_LOG(LeapMotionLog, Log, TEXT("ServiceMessageLoop started."));
+					UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop started."));
 					ServiceMessageLoop();
-					UE_LOG(LeapMotionLog, Log, TEXT("ServiceMessageLoop stopped."));
+					UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop stopped."));
 
 					CloseConnectionHandle(Handle);
 				});
@@ -79,7 +79,7 @@ void FLeapWrapper::CloseConnection()
 	if (!bIsConnected)
 	{
 		//Not connected, already done
-		UE_LOG(LeapMotionLog, Log, TEXT("Attempt at closing an already closed connection."));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Attempt at closing an already closed connection."));
 		return;
 	}
 	bIsConnected = false;
@@ -95,7 +95,7 @@ void FLeapWrapper::CloseConnection()
 	//Nullify the callback delegate. Any outstanding task graphs will not run if the delegate is nullified.
 	CallbackDelegate = nullptr;
 
-	UE_LOG(LeapMotionLog, Log, TEXT("Connection successfully closed."));
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Connection successfully closed."));
 	//CloseConnectionHandle(&connectionHandle);
 }
 void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
@@ -103,7 +103,7 @@ void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 	eLeapRS Result = LeapSetTrackingMode(ConnectionHandle, TrackingMode);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("SetTrackingMode failed in  FLeapWrapper::SetTrackingMode."));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingMode failed in  FLeapWrapper::SetTrackingMode."));
 	}
 }
 void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
@@ -111,7 +111,7 @@ void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 	eLeapRS Result = LeapSetPolicyFlags(ConnectionHandle, Flags, ClearFlags);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("LeapSetPolicyFlags failed in  FLeapWrapper::SetPolicy."));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetPolicyFlags failed in  FLeapWrapper::SetPolicy."));
 	}
 
 }
@@ -310,7 +310,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	eLeapRS Result = LeapOpenDevice(DeviceEvent->device, &DeviceHandle);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(LeapMotionLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
 		return;
 	}
 
@@ -521,7 +521,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 
 		if (Result != eLeapRS_Success)
 		{
-			//UE_LOG(LeapMotionLog, Log, TEXT("LeapC PollConnection unsuccessful result %s.\n"), UTF8_TO_TCHAR(ResultString(result)));
+			//UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapC PollConnection unsuccessful result %s.\n"), UTF8_TO_TCHAR(ResultString(result)));
 			if (!bIsConnected)
 			{
 				FPlatformProcess::Sleep(5.f);
@@ -573,7 +573,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 			break;
 		default:
 			//discard unknown message types
-			//UE_LOG(LeapMotionLog, Log, TEXT("Unhandled message type %i."), (int32)Msg.type);
+			//UE_LOG(UltraleapTrackingLog, Log, TEXT("Unhandled message type %i."), (int32)Msg.type);
 			break;
 		} //switch on msg.type
 	}//end while running

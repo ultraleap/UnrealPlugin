@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LeapMotionData.h"
+#include "UltraleapTrackingData.h"
 #include "Components/ActorComponent.h"
 #include "LeapComponent.generated.h"
 
@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapTrackingModeSignature, ELeapMod
 
 UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
-class LEAPMOTION_API ULeapComponent : public UActorComponent
+class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:

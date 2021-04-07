@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "LeapMotionData.h"
+#include "UltraleapTrackingData.h"
 #include "IInputDeviceModule.h"
 
 class ULeapComponent;
@@ -11,7 +11,7 @@ class ULeapComponent;
  * The public interface to this module.  In most cases, this interface is only public to sibling modules 
  * within this plugin.
  */
-class LEAPMOTION_API ILeapMotionPlugin : public IInputDeviceModule
+class ULTRALEAPTRACKING_API IUltraleapTrackingPlugin : public IInputDeviceModule
 {
 
 public:
@@ -22,9 +22,9 @@ public:
 	 *
 	 * @return Returns singleton instance, loading the module on demand if needed
 	 */
-	static inline ILeapMotionPlugin& Get()
+	static inline IUltraleapTrackingPlugin& Get()
 	{
-		return FModuleManager::LoadModuleChecked< ILeapMotionPlugin >("LeapMotion");
+		return FModuleManager::LoadModuleChecked< IUltraleapTrackingPlugin >("UltraleapTracking");
 	}
 
 	/**
@@ -34,7 +34,7 @@ public:
 	 */
 	static inline bool IsAvailable()
 	{
-		return FModuleManager::Get().IsModuleLoaded("LeapMotion");
+		return FModuleManager::Get().IsModuleLoaded("UltraleapTracking");
 	}
 
 	//These are typically called by a wrapped class such as LeapController (Actor Component)

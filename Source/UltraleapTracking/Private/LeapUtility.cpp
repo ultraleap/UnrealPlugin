@@ -6,7 +6,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "IXRTrackingSystem.h"
 
-DEFINE_LOG_CATEGORY(LeapMotionLog);
+DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 
 //Static vars
 #define LEAP_TO_UE_SCALE 0.1f

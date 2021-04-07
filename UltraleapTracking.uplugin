@@ -2,8 +2,8 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "3.7",
-	"FriendlyName": "Leap Motion Plugin",
-	"Description": "Support for the Leap Motion input device.",
+	"FriendlyName": "Ultraleap Tracking Plugin",
+	"Description": "Support for  ULtraleap hand tracking devices.",
 	"Category": "Input Devices",
 	"CreatedBy": "Ultraleap",
 	"CreatedByURL": "https://www.ultraleap.com/",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "LeapMotion",
+			"Name": "UltraleapTracking",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
@@ -25,7 +25,7 @@
 			]
 		},
 		{
-			"Name": "LeapMotionEditor",
+			"Name": "UltraleapTrackingEditor",
 			"Type": "Developer",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
