@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "3.7",
 	"FriendlyName": "Ultraleap Tracking Plugin",
-	"Description": "Support for  ULtraleap hand tracking devices.",
+	"Description": "Support for  Ultraleap hand tracking devices.",
 	"Category": "Input Devices",
 	"CreatedBy": "Ultraleap",
 	"CreatedByURL": "https://www.ultraleap.com/",
