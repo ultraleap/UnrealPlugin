@@ -341,8 +341,6 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef< F
 
 	Leap.OpenConnection(this);							//pass in the this as callback delegate
 
-	bSceneViewExtensionSet = false;
-
 	//Attach to bodystate
 	Config.DeviceName = "Leap Motion";
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
@@ -388,14 +386,6 @@ void FUltraleapTrackingInputDevice::Tick(float DeltaTime)
 {
 	GameTimeInSec += DeltaTime;
 	FrameTimeInMicros = DeltaTime * 1000000;
-
-	//TODO: enable the scene view extension and add the late update
-	/*if (!bSceneViewExtensionSet && GEngine)
-	{
-		TSharedPtr<ISceneViewExtension, ESPMode::ThreadSafe> ViewExtension(this);
-		GEngine->ViewExtensions.Add(ViewExtension);
-		bSceneViewExtensionSet = true;
-	}*/
 }
 
 
@@ -1206,18 +1196,6 @@ void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, 
 
 #pragma endregion BodyState
 
-#pragma region FSceneViewExtension
-
-void FUltraleapTrackingInputDevice::BeginRenderViewFamily(FSceneViewFamily& InViewFamily)
-{
-}
-
-void FUltraleapTrackingInputDevice::PreRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily)
-{
-	//SnapshotHandler.AddCurrentHMDSample(LeapGetNow());
-	CurrentFrame.SetFromLeapFrame(Leap.GetFrame());
-	ParseEvents();
-}
 
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 {

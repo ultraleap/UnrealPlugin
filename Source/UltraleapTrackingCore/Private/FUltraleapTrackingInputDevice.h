@@ -32,8 +32,7 @@ struct EKeysLeap
 
 class FUltraleapTrackingInputDevice :	public IInputDevice,
 								public LeapWrapperCallbackInterface, 
-								public IBodyStateInputRawInterface,
-								public ISceneViewExtension
+								public IBodyStateInputRawInterface
 {
 public:
 	FUltraleapTrackingInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& MessageHandler);
@@ -76,13 +75,6 @@ public:
 
 	FCriticalSection LeapSection;
 
-	/** ISceneViewExtension interface */
-	virtual void SetupViewFamily(FSceneViewFamily& InViewFamily) override {}
-	virtual void SetupView(FSceneViewFamily& InViewFamily, FSceneView& InView) override {}
-	virtual void BeginRenderViewFamily(FSceneViewFamily& InViewFamily) override;
-	virtual void PreRenderView_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneView& InView) override {}
-	virtual void PreRenderViewFamily_RenderThread(FRHICommandListImmediate& RHICmdList, FSceneViewFamily& InViewFamily) override;
-	virtual int32 GetPriority() const override { return -10; }
 
 	void SetOptions(const FLeapOptions& Options);
 	FLeapOptions GetOptions();
@@ -171,9 +163,7 @@ private:
 	TSharedPtr<FLeapImage> LeapImageHandler;
 	void OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture);
 
-	//SVE
-	bool bSceneViewExtensionSet;
-
+	
 
 	// v5 Tracking mode API
 	static bool bUseNewTrackingModeAPI;
