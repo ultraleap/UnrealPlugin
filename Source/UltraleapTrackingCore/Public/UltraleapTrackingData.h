@@ -358,22 +358,22 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	int32 NumberOfHandsVisible;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	int32 FrameRate;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	TArray<FLeapHandData> Hands;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	int32 FrameId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	bool LeftHandVisible;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Motion Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	bool RightHandVisible;
 
 	//int64 not supported by blueprint, so this will only be accessible inside c++
