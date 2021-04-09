@@ -1,9 +1,9 @@
 /******************************************************************************\
-* Copyright (C) 2012-2018 Leap Motion, Inc. All rights reserved.               *
-* Leap Motion proprietary and confidential. Not for distribution.              *
+* Copyright (C) 2012-2018 Ultraleap Ltd. All rights reserved.                  *
+* Ultraleap proprietary and confidential. Not for distribution.                *
 * Use subject to the terms of the Leap Motion SDK Agreement available at       *
 * https://developer.leapmotion.com/sdk_agreement, or another agreement         *
-* between Leap Motion and you, your company or other organization.             *
+* between Ultraleap and you, your company or other organization.               *
 \******************************************************************************/
 #ifndef _LEAP_C_H
 #define _LEAP_C_H
@@ -387,6 +387,21 @@ typedef enum _eLeapServiceDisposition {
   eLeapServiceState_ALL = eLeapServiceState_LowFpsDetected | eLeapServiceState_PoorPerformancePause
 } eLeapServiceDisposition;
 
+/**  \ingroup Enum
+ * Enumerates values for the tracking mode.
+ */
+typedef enum _eLeapTrackingMode {
+  /** The tracking mode optimised for desktop devices @since 5.0.0 */
+  eLeapTrackingMode_Desktop = 0,
+
+  /** The tracking mode optimised for head-mounted devices @since 5.0.0 */
+  eLeapTrackingMode_HMD = 1,
+
+  /** The tracking mode optimised for screen top-mounted devices @since 5.0.0 */
+  eLeapTrackingMode_ScreenTop = 2
+
+} eLeapTrackingMode;
+
 /**  \ingroup Structs
  * Received from LeapPollConnection() when a connection to the Leap Motion service is established.
  * @since 3.0.0
@@ -496,6 +511,10 @@ typedef enum _eLeapPolicyFlag {
 
   /** The policy allowing an application to receive per-frame map points. @since 4.0.0 */
   eLeapPolicyFlag_MapPoints        = 0x00000080,
+
+  /** The policy specifying whether to optimize tracking for screen-top device. @since 5.0.0 */
+  eLeapPolicyFlag_OptimizeScreenTop = 0x00000100,
+
 } eLeapPolicyFlag;
 
 /** \ingroup Structs
@@ -513,6 +532,24 @@ typedef struct _LEAP_POLICY_EVENT {
   */
   uint32_t current_policy;
 } LEAP_POLICY_EVENT;
+
+/** \ingroup Structs
+ * The response from a request to get or set a policy.
+ * LeapPollConnection() creates this struct when the response becomes available.
+ * @since 3.0.0
+ */
+
+typedef struct _LEAP_TRACKING_MODE_EVENT {
+  /** Reserved for future use. @since 5.0.0 */
+  uint32_t reserved;
+
+  /**
+  * An enum specifying the tracking mode effective at the
+  * time the tracking mode event was processed. @since 5.0.0
+  */
+  eLeapTrackingMode current_tracking_mode;
+} LEAP_TRACKING_MODE_EVENT;
+
 
 /** \ingroup Functions
  * Sets or clears one or more policy flags.
@@ -534,6 +571,26 @@ typedef struct _LEAP_POLICY_EVENT {
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapSetPolicyFlags(LEAP_CONNECTION hConnection, uint64_t set, uint64_t clear);
+
+/** \ingroup Functions
+ * Requests a tracking mode.
+ *
+ * Changing tracking modes is asynchronous. After you call this function, a subsequent
+ * call to LeapPollConnection provides a LEAP_TRACKING_MODE_EVENT containing the current
+ * tracking mode. Note that, after you call this function, a subsequent
+ * call to LeapPollConnection provides a LEAP_POLICY_EVENT containing the current
+ * tracking mode related policies, reflecting any changes. Note that the relevant
+ * LEAP_POLICY_EVENT is guaranteed to precede the LEAP_TRACKING_MODE_EVENT.
+ * 
+ *
+ * The eLeapTrackingMode enumeration defines the tracking mode.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param mode The enum value specifying the requested tracking mode.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.0.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetTrackingMode(LEAP_CONNECTION hConnection, eLeapTrackingMode mode);
 
 /** \ingroup Functions
  * Pauses the service
@@ -1643,6 +1700,14 @@ typedef enum _eLeapEventType {
   eLeapEventType_PointMappingChange,
 
   /**
+    * A tracking mode change has occurred.
+    * This can be due to changing the hmd or screentop policy with LeapSetPolicyFlags().
+    * or setting the tracking mode using LeapSetTrackingMode().
+    * @since 5.0.0
+    */
+  eLeapEventType_TrackingMode,
+
+  /**
    * An array of system messages. @since 4.0.0
    */
   eLeapEventType_LogEvents,
@@ -1685,6 +1750,8 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
     const LEAP_DEVICE_FAILURE_EVENT* device_failure_event;
     /** A tracking message. @since 3.0.0 */
     const LEAP_TRACKING_EVENT* tracking_event;
+    /** A tracking mode message. @since 5.0.0 */
+    const LEAP_TRACKING_MODE_EVENT* tracking_mode_event;
     /** A log message. @since 3.0.0 */
     const LEAP_LOG_EVENT* log_event;
     /** A log messages. @since 4.0.0 */

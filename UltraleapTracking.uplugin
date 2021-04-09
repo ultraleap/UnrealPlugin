@@ -1,0 +1,46 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "3.7",
+	"FriendlyName": "Ultraleap Tracking Plugin",
+	"Description": "Support for  Ultraleap hand tracking devices.",
+	"Category": "Input Devices",
+	"CreatedBy": "Ultraleap",
+	"CreatedByURL": "https://www.ultraleap.com/",
+	"DocsURL": "https://github.com/leapmotion/leapunreal",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "UltraleapTracking",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
+		},
+		{
+			"Name": "UltraleapTrackingEditor",
+			"Type": "Developer",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
+		},
+		{
+			"Name": "BodyState",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
+		}
+	]
+}
