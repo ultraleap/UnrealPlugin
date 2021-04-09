@@ -1404,10 +1404,6 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	EndPinchThreshold = Options.EndPinchThreshold;
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
-
-	//Did we trigger our image mode?
-	//TODO: add image request support here and forward the events to a struct with two UTexture2Ds for each image
-	//Leap.EnableImageStream(Options.bEnableImageStreaming)
 }
 
 FLeapOptions FUltraleapTrackingInputDevice::GetOptions()
