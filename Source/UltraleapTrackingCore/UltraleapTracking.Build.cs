@@ -185,7 +185,7 @@ namespace UnrealBuildTool.Rules
 		{
 			bool IsLibrarySupported = false;
 
-			if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
+			if (Target.Platform == UnrealTargetPlatform.Win64)
 			{
 				IsLibrarySupported = true;
 
@@ -198,12 +198,7 @@ namespace UnrealBuildTool.Rules
 
 				if (IsEnginePlugin())
 				{
-					//string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
-
-					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
-
 					PublicDelayLoadDLLs.Add("LeapC.dll");
-					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/UltraleapTracking/" + PlatformString + "/LeapC.dll");
 					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
 				}
 				//Engine plugin, just add the dependency path
