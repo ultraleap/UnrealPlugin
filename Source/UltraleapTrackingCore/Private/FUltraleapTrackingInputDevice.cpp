@@ -749,7 +749,6 @@ void FUltraleapTrackingInputDevice::CheckPinchGesture()
 			}
 		}
 	}
-	int hello3;
 }
 
 void FUltraleapTrackingInputDevice::CheckGrabGesture()
