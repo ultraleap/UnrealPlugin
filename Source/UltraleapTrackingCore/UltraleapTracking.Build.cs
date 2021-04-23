@@ -1,7 +1,7 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 using System.IO;
-
+ 
 namespace UnrealBuildTool.Rules
 {
 	public class UltraleapTracking : ModuleRules
