@@ -519,7 +519,6 @@ void FLeapMotionInputDevice::ParseEvents()
 	});
 
 	//It's now the past data
-	PastVisibleHands = VisibleHands;
 	PastFrame = CurrentFrame;
 	LastLeapTime = LeapGetNow();
 }
@@ -528,7 +527,7 @@ void FLeapMotionInputDevice::CheckHandVisibility()
 {
 	if (UseTimeBasedVisibilityCheck)
 	{
-		//Update visible hand list, must happen first
+		// Update visible hand list, must happen first
 		if (IsLeftVisible)
 		{
 			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (LeapGetNow() - LastLeapTime);
@@ -549,14 +548,11 @@ void FLeapMotionInputDevice::CheckHandVisibility()
 					{
 						IsLeftVisible = true;
 						const bool LeftVisible = true;
-						CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-							{
-								Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+						CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component) {
+							Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
 							});
-						CallFunctionOnComponents([Hand](ULeapComponent* Component)
-							{
-								Component->OnHandBeginTracking.Broadcast(Hand);
-							});
+						CallFunctionOnComponents(
+							[Hand](ULeapComponent* Component) { Component->OnHandBeginTracking.Broadcast(Hand); });
 					}
 				}
 			}
@@ -570,88 +566,75 @@ void FLeapMotionInputDevice::CheckHandVisibility()
 					{
 						IsRightVisible = true;
 						const bool RightVisible = true;
-						CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-							{
-								Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+						CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component) {
+							Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
 							});
-						CallFunctionOnComponents([Hand](ULeapComponent* Component)
-							{
-								Component->OnHandBeginTracking.Broadcast(Hand);
-							});
+						CallFunctionOnComponents(
+							[Hand](ULeapComponent* Component) { Component->OnHandBeginTracking.Broadcast(Hand); });
 					}
 				}
-
 			}
-			//Add each hand to visible hands
-			//VisibleHands.Add(Hand.Id);
 		}
 
-		//Check if hands should no longer be visible
+		// Check if hands should no longer be visible
 		if (IsLeftVisible && TimeSinceLastLeftVisible > VisibilityTimeout)
 		{
 			IsLeftVisible = false;
 			const FLeapHandData EndHand = LastLeftHand;
-			CallFunctionOnComponents([EndHand](ULeapComponent* Component)
-				{
-					Component->OnHandEndTracking.Broadcast(EndHand);
-				});
+			CallFunctionOnComponents([EndHand](ULeapComponent* Component) { Component->OnHandEndTracking.Broadcast(EndHand); });
 			const bool LeftVisible = false;
-			CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-				{
-					Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-				});
+			CallFunctionOnComponents(
+				[this, LeftVisible](ULeapComponent* Component) { Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible); });
 		}
 		if (IsRightVisible && TimeSinceLastRightVisible > VisibilityTimeout)
 		{
 			IsRightVisible = false;
 			const FLeapHandData EndHand = LastRightHand;
-			CallFunctionOnComponents([EndHand](ULeapComponent* Component)
-				{
-					Component->OnHandEndTracking.Broadcast(EndHand);
-				});
+			CallFunctionOnComponents([EndHand](ULeapComponent* Component) { Component->OnHandEndTracking.Broadcast(EndHand); });
 			const bool RightVisible = false;
-			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-				{
-					Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component) {
+				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
 				});
 		}
 	}
 	else
-	{ //Use old, frame based checking
-		//Compare past to present visible hands to determine hand enums.
+	{
+		// Use old, frame based checking
+		// Compare past to present visible hands to determine hand enums.
 		//== change can happen when chirality is incorrect and changes
-		//Hand end tracking must be called first before we call begin tracking
+		// Hand end tracking must be called first before we call begin tracking
+		// Add each hand to visible hands
+		// CurrentFrame.Hands;
+		TArray<int32> VisibleHands;
+		for (auto& Hand : CurrentFrame.Hands)
+		{
+			VisibleHands.Add(Hand.Id);
+		}
 		if (VisibleHands.Num() <= PastVisibleHands.Num())
 		{
 			for (auto HandId : PastVisibleHands)
 			{
-				//Not visible anymore? lost hand
+				// Not visible anymore? lost hand
 				if (!VisibleHands.Contains(HandId))
 				{
 					const FLeapHandData Hand = PastFrame.HandForId(HandId);
-					CallFunctionOnComponents([Hand](ULeapComponent* Component)
-						{
-							Component->OnHandEndTracking.Broadcast(Hand);
-						});
+					CallFunctionOnComponents([Hand](ULeapComponent* Component) { Component->OnHandEndTracking.Broadcast(Hand); });
 				}
 			}
 		}
 
-		//Check for hand visibility changes
+		// Check for hand visibility changes
 		if (PastFrame.LeftHandVisible != CurrentFrame.LeftHandVisible)
 		{
 			const bool LeftVisible = CurrentFrame.LeftHandVisible;
-			CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-				{
-					Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-				});
+			CallFunctionOnComponents(
+				[this, LeftVisible](ULeapComponent* Component) { Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible); });
 		}
 		if (PastFrame.RightHandVisible != CurrentFrame.RightHandVisible)
 		{
 			const bool RightVisible = CurrentFrame.RightHandVisible;
-			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-				{
-					Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component) {
+				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
 				});
 		}
 
@@ -659,25 +642,24 @@ void FLeapMotionInputDevice::CheckHandVisibility()
 		{
 			FLeapHandData PastHand;
 
-			//Hand list is tiny, typically 1-3, just enum until you find the matching one
+			// Hand list is tiny, typically 1-3, just enum until you find the matching
+			// one
 			for (auto& EnumPastHand : PastFrame.Hands)
 			{
 				if (Hand.Id == EnumPastHand.Id)
 				{
-					//Same id? same hand
+					// Same id? same hand
 					PastHand = EnumPastHand;
 				}
 			}
 
-			if (!PastVisibleHands.Contains(Hand.Id))	//or if the hand changed type?
+			if (!PastVisibleHands.Contains(Hand.Id))	// or if the hand changed type?
 			{
-				//New hand
-				CallFunctionOnComponents([Hand](ULeapComponent* Component)
-					{
-						Component->OnHandBeginTracking.Broadcast(Hand);
-					});
+				// New hand
+				CallFunctionOnComponents([Hand](ULeapComponent* Component) { Component->OnHandBeginTracking.Broadcast(Hand); });
 			}
 		}
+		PastVisibleHands = VisibleHands;
 	}
 }
 
