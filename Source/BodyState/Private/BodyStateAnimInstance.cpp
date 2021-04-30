@@ -1,21 +1,27 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateAnimInstance.h"
-#include "BodyStateUtility.h"
+
 #include "BodyStateBPLibrary.h"
+#include "BodyStateUtility.h"
 
-
-UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+// static
+FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {
-	//Defaults
+	return BoneRef.MeshBone.BoneName;
+}
+
+UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+	// Defaults
 	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
 	BonesPerFinger = -1;
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 }
 
-void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(UPARAM(ref) FMappedBoneAnimData& InMappedBoneData, EBodyStateBasicBoneType BSBone, FName MeshBone)
+void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(
+	UPARAM(ref) FMappedBoneAnimData& InMappedBoneData, EBodyStateBasicBoneType BSBone, FName MeshBone)
 {
 	FBoneReference BoneRef;
 	BoneRef.BoneName = MeshBone;
@@ -38,12 +44,13 @@ void UBodyStateAnimInstance::SetAnimSkeleton(UBodyStateSkeleton* InSkeleton)
 	for (auto& Map : MappedBoneList)
 	{
 		Map.BodyStateSkeleton = InSkeleton;
-		//Re-cache our results
+		// Re-cache our results
 		SyncMappedBoneDataCache(Map);
 	}
 }
 
-TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
 {
 	auto IndexedMap = AutoDetectHandIndexedBones(Component, RigTargetType);
 	return ToBoneReferenceMap(IndexedMap);
@@ -64,11 +71,12 @@ FString UBodyStateAnimInstance::BoneMapSummary()
 {
 	FString Result = TEXT("+== Bone Summary ==+");
 
-	//Concatenate indexed bones
+	// Concatenate indexed bones
 	for (auto Bone : IndexedBoneMap)
 	{
 		FBodyStateIndexedBone& IndexedBone = Bone.Value;
-		Result += FString::Printf(TEXT("BoneString: %s:%d(%d)\n"), *IndexedBone.BoneName.ToString(), IndexedBone.Index, IndexedBone.ParentIndex);
+		Result += FString::Printf(
+			TEXT("BoneString: %s:%d(%d)\n"), *IndexedBone.BoneName.ToString(), IndexedBone.Index, IndexedBone.ParentIndex);
 	}
 	return Result;
 }
@@ -81,7 +89,7 @@ void UBodyStateAnimInstance::SyncMappedBoneDataCache(UPARAM(ref) FMappedBoneAnim
 //////////////
 /////Protected
 
-//Local data only used for auto-mapping algorithm
+// Local data only used for auto-mapping algorithm
 struct FChildIndices
 {
 	int32 Index;
@@ -105,7 +113,7 @@ struct FIndexParentsCount
 		return DidFindIndex;
 	}
 
-	//run after filling our index
+	// run after filling our index
 	TArray<int32> FindParentsWithCount(int32 Count)
 	{
 		TArray<int32> ResultArray;
@@ -121,7 +129,8 @@ struct FIndexParentsCount
 	}
 };
 
-TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
 {
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoBoneMap;
 
@@ -130,30 +139,30 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		return AutoBoneMap;
 	}
 
-	//Get bones and parent indices
+	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->RefSkeleton;
 
-	//Root bone
+	// Root bone
 	int32 RootBone = -2;
 
-	//Palm bone
+	// Palm bone
 	int32 PalmBone = -2;
 
-	//Finger roots
+	// Finger roots
 	int32 ThumbBone = -2;
 	int32 IndexBone = -2;
 	int32 MiddleBone = -2;
 	int32 RingBone = -2;
 	int32 PinkyBone = -2;
 
-	//Re-organize our bone information
+	// Re-organize our bone information
 	BoneLookupList.SetFromRefSkeleton(RefSkeleton);
 
-	//Find our palm bone
+	// Find our palm bone
 	TArray<int32> HandParents = BoneLookupList.FindBoneWithChildCount(5);
 
-	//Multiple hand parent bones found, let's pick the closest type
+	// Multiple hand parent bones found, let's pick the closest type
 	if (HandParents.Num() > 1)
 	{
 		FString SearchString;
@@ -169,12 +178,14 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			AltSearchString = SearchStrings.LeftSearchStringAlt;
 		}
 
-		//Check the multiple bones for L/R (or lowercase) match
+		// Check the multiple bones for L/R (or lowercase) match
 		for (int32 Index : HandParents)
 		{
 			FBodyStateIndexedBone& IndexedBone = BoneLookupList.Bones[Index];
-			bool HasSearchString = IndexedBone.BoneName.ToString().Contains(SearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-			HasSearchString = HasSearchString || IndexedBone.BoneName.ToString().Contains(AltSearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+			bool HasSearchString =
+				IndexedBone.BoneName.ToString().Contains(SearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+			HasSearchString = HasSearchString || IndexedBone.BoneName.ToString().Contains(
+													 AltSearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
 			if (HasSearchString)
 			{
@@ -182,36 +193,36 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				break;
 			}
 		}
-		//Palm bone still not set?
+		// Palm bone still not set?
 		if (PalmBone == -2)
 		{
-			//Pick the first one
+			// Pick the first one
 			PalmBone = HandParents[0];
 		}
 	}
-	//Single bone of this type found, set that one
+	// Single bone of this type found, set that one
 	else if (HandParents.Num() == 1)
 	{
 		PalmBone = HandParents[0];
 	}
 	else
 	{
-		//We couldn't figure out where the palm is, return an empty map
+		// We couldn't figure out where the palm is, return an empty map
 		return AutoBoneMap;
 	}
 
 	int32 WristBone = RefSkeleton.GetParentIndex(PalmBone);
 	int32 LowerArmBone = -1;
 	bool bWristIsValid = BoneLookupList.Bones[WristBone].BoneName.ToString().ToLower().Contains(SearchStrings.WristSearchString);
-	
-	//We likely got the lower arm
+
+	// We likely got the lower arm
 	if (!bWristIsValid)
 	{
 		LowerArmBone = WristBone;
 		WristBone = -1;
 	}
 
-	//Get all the child bones with that parent index
+	// Get all the child bones with that parent index
 	for (auto& Bone : BoneLookupList.Bones)
 	{
 		bool IsPalmChild = (Bone.ParentIndex == PalmBone);
@@ -220,7 +231,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		{
 			const FString& CompareString = Bone.BoneName.ToString().ToLower();
 
-			if((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
+			if ((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
 			{
 				ThumbBone = Bone.Index;
 			}
@@ -243,17 +254,17 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 	}
 
-	//Test the index finger to determine bones per finger
+	// Test the index finger to determine bones per finger
 	if (BonesPerFinger == -1)
 	{
 		int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(IndexBone);
 		BonesPerFinger = LongestChildTraverse + 1;
 	}
 
-	//UE_LOG(LogTemp, Log, TEXT("Palm: %d"), PalmBone);
-	//UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
+	// UE_LOG(LogTemp, Log, TEXT("Palm: %d"), PalmBone);
+	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
 
-	//Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
+	// Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
 	if (HandType == EBodyStateAutoRigType::HAND_LEFT)
 	{
 		if (bWristIsValid)
@@ -276,7 +287,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (ThumbBone >= 0)
 		{
-			//Thumbs will always be ~ 3 bones
+			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_L, ThumbBone, AutoBoneMap);
 		}
 		if (IndexBone >= 0)
@@ -324,7 +335,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			}
 		}
 	}
-	//Right Hand
+	// Right Hand
 	else
 	{
 		if (bWristIsValid)
@@ -347,7 +358,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (ThumbBone >= 0)
 		{
-			//Thumbs will always be ~ 3 bones
+			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, ThumbBone, AutoBoneMap);
 		}
 		if (IndexBone >= 0)
@@ -401,14 +412,14 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
 {
-	//Grab our skel mesh component
+	// Grab our skel mesh component
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
 	IndexedBoneMap = AutoDetectHandIndexedBones(Component, RigTargetType);
 	auto OldMap = ForMap.BoneMap;
 	ForMap.BoneMap = ToBoneReferenceMap(IndexedBoneMap);
 
-	//Default preset rotations - Note order is different than in BP
+	// Default preset rotations - Note order is different than in BP
 	if (ForMap.PreBaseRotation.IsNearlyZero())
 	{
 		if (RigTargetType == EBodyStateAutoRigType::HAND_LEFT)
@@ -421,7 +432,7 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 		}
 	}
 
-	//Reset specified keys from defaults
+	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
 	{
 		Pair.Value.MeshBone.Initialize(CurrentSkeleton);
@@ -431,22 +442,23 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 
 int32 UBodyStateAnimInstance::TraverseLengthForIndex(int32 Index)
 {
-	if (Index == -1 || Index>= BoneLookupList.Bones.Num())
+	if (Index == -1 || Index >= BoneLookupList.Bones.Num())
 	{
-		return 0;	//this is the root or invalid bone
+		return 0;	 // this is the root or invalid bone
 	}
 	else
 	{
 		FBodyStateIndexedBone& Bone = BoneLookupList.Bones[Index];
-		
-		//Add our parent traversal + 1
+
+		// Add our parent traversal + 1
 		return TraverseLengthForIndex(Bone.ParentIndex) + 1;
 	}
 }
 
-void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex, TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
+void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex,
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
 {
-	int32 FingerRoot = (int32)BoneType;
+	int32 FingerRoot = (int32) BoneType;
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), BoneLookupList.Bones[BoneIndex]);
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), BoneLookupList.Bones[BoneIndex + 1]);
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), BoneLookupList.Bones[BoneIndex + 2]);
@@ -456,7 +468,8 @@ void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, in
 	}
 }
 
-TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneReferenceMap(TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap)
+TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneReferenceMap(
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap)
 {
 	TMap<EBodyStateBasicBoneType, FBPBoneReference> ReferenceMap;
 
@@ -473,22 +486,21 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	return ReferenceMap;
 }
 
-
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	//Get our default bodystate skeleton
+	// Get our default bodystate skeleton
 	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 	SetAnimSkeleton(Skeleton);
 
-	//Try to auto-detect our bones
+	// Try to auto-detect our bones
 	if (bAutoDetectBoneMapAtInit)
 	{
-		//One hand mapping
+		// One hand mapping
 		if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
 		{
-			//Make one map if missing
+			// Make one map if missing
 			if (MappedBoneList.Num() < 1)
 			{
 				FMappedBoneAnimData Map;
@@ -499,16 +511,16 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 
 			AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget);
 		}
-		//Two hand mapping
+		// Two hand mapping
 		else
 		{
-			//Make two maps if missing
+			// Make two maps if missing
 			while (MappedBoneList.Num() < 2)
 			{
 				FMappedBoneAnimData Map;
 				MappedBoneList.Add(Map);
 			}
-			//Map one hand each
+			// Map one hand each
 			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
 			AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
 
@@ -517,11 +529,11 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 		}
 	}
 
-	//Cache all results
+	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
 		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-		SetAnimSkeleton(BodyStateSkeleton);	//this will sync all the bones
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
 	{
@@ -536,11 +548,11 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	//SN: may want to optimize this at some pt
+	// SN: may want to optimize this at some pt
 	if (BodyStateSkeleton == nullptr)
 	{
 		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-		SetAnimSkeleton(BodyStateSkeleton);  
+		SetAnimSkeleton(BodyStateSkeleton);
 	}
 
 	if (BodyStateSkeleton)
@@ -551,18 +563,18 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
-	//Clear our current list
+	// Clear our current list
 	CachedBoneList.Empty();
 
-	//We require a bodystate skeleton to do the mapping
+	// We require a bodystate skeleton to do the mapping
 	if (BodyStateSkeleton == nullptr)
 	{
 		return;
 	}
 
-	//Todo: optimize multiple calls with no / small changes
+	// Todo: optimize multiple calls with no / small changes
 
-	//1) traverse indexed bone list, store all the traverse lengths
+	// 1) traverse indexed bone list, store all the traverse lengths
 
 	for (auto Pair : BoneMap)
 	{
@@ -572,15 +584,15 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 		TraverseResult.MeshBone.Initialize(LinkedSkeleton);
 		TraverseResult.BSBone = BodyStateSkeleton->BoneForEnum(Pair.Key);
 
-		//Costly function and we don't need it after all, and it won't work anymore now that it depends on external data
-		//TraverseResult.TraverseCount = TraverseLengthForIndex(TraverseResult.MeshBone.BoneIndex);
+		// Costly function and we don't need it after all, and it won't work anymore now that it depends on external data
+		// TraverseResult.TraverseCount = TraverseLengthForIndex(TraverseResult.MeshBone.BoneIndex);
 
 		CachedBoneList.Add(TraverseResult);
 	}
 
-	//2) reorder according to shortest traverse list
+	// 2) reorder according to shortest traverse list
 	CachedBoneList.Sort([](const CachedBoneLink& One, const CachedBoneLink& Two) {
-		//return One.TraverseCount < Two.TraverseCount;
+		// return One.TraverseCount < Two.TraverseCount;
 		return One.MeshBone.BoneIndex < Two.MeshBone.BoneIndex;
 	});
 
@@ -589,13 +601,13 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 
 bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
 {
-	//Early exit optimization
+	// Early exit optimization
 	if (TrackingTagLimit.Num() == 0)
 	{
 		return true;
 	}
 
-	FBodyStateBoneMeta UniqueMeta = ((UBodyStateBone*)QueryBone)->UniqueMeta();
+	FBodyStateBoneMeta UniqueMeta = ((UBodyStateBone*) QueryBone)->UniqueMeta();
 
 	for (FString& LimitTag : TrackingTagLimit)
 	{
@@ -638,7 +650,7 @@ void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& Ref
 
 		Bones.Add(Bone);
 
-		//If we're not the root bone, add ourselves to the parent's child list
+		// If we're not the root bone, add ourselves to the parent's child list
 		if (Bone.ParentIndex != -1)
 		{
 			Bones[Bone.ParentIndex].Children.Add(Bone.Index);
@@ -671,4 +683,3 @@ int32 FBodyStateIndexedBoneList::LongestChildTraverseForBone(int32 BoneIndex)
 		return Count + 1;
 	}
 }
-

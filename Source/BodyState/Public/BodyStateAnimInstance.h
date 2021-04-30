@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "BodyStateEnums.h"
+#include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "Skeleton/BodyStateSkeleton.h"
+
 #include "BodyStateAnimInstance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -37,7 +38,7 @@ struct FBodyStateIndexedBoneList
 	TArray<FBodyStateIndexedBone> Bones;
 	int32 RootBoneIndex;
 
-	//run after filling our index
+	// run after filling our index
 	TArray<int32> FindBoneWithChildCount(int32 Count);
 	void SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton);
 	int32 LongestChildTraverseForBone(int32 Bone);
@@ -48,7 +49,7 @@ struct FBodyStateIndexedBoneList
 	}
 };
 
-//C++ only struct used for cached bone lookup
+// C++ only struct used for cached bone lookup
 struct CachedBoneLink
 {
 	FBoneReference MeshBone;
@@ -94,7 +95,7 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	class UBodyStateSkeleton* BodyStateSkeleton;
 
-	//Data structure containing a parent -> child ordered bone list
+	// Data structure containing a parent -> child ordered bone list
 	TArray<CachedBoneLink> CachedBoneList;
 
 	FMappedBoneAnimData()
@@ -141,7 +142,6 @@ struct FSearchStrings
 	}
 };
 
-
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
 class UBodyStateAnimInstance : public UAnimInstance
 {
@@ -177,8 +177,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	class UBodyStateSkeleton* BodyStateSkeleton;
 
-	//UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
-	TMap<EBodyStateBasicBoneType, FBPBoneReference> AutoDetectHandBones(USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
+	// UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
+	TMap<EBodyStateBasicBoneType, FBPBoneReference> AutoDetectHandBones(
+		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 
 	/** Adjust rotation by currently defines offset base rotators */
 	UFUNCTION(BlueprintPure, Category = "BS Anim Instance")
@@ -198,7 +199,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	void SetAnimSkeleton(UBodyStateSkeleton* InSkeleton);
 
-	
 	/** Struct containing all variables needed at anim node time */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	TArray<FMappedBoneAnimData> MappedBoneList;
@@ -206,22 +206,26 @@ public:
 	UFUNCTION(BlueprintPure, Category = "BS Anim Instance")
 	FString BoneMapSummary();
 
-	//Manual sync
+	// Manual sync
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	void SyncMappedBoneDataCache(UPARAM(ref) FMappedBoneAnimData& InMappedBoneData);
 
-protected:
+	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
+	static FName GetBoneNameFromRef(const FBPBoneReference& BoneRef);
 
-	
+protected:
 	// traverse a bone index node until you hit -1, count the hops
 	int32 TraverseLengthForIndex(int32 Index);
-	void AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex, TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger = 3);
-	
-	//Internal Map with parent information
+	void AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex,
+		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger = 3);
+
+	// Internal Map with parent information
 	FBodyStateIndexedBoneList BoneLookupList;
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> IndexedBoneMap;
-	TMap<EBodyStateBasicBoneType, FBPBoneReference> ToBoneReferenceMap(TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap);
-	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(USkeletalMeshComponent* Component,  EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
+	TMap<EBodyStateBasicBoneType, FBPBoneReference> ToBoneReferenceMap(
+		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap);
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(
+		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 
 	virtual void NativeInitializeAnimation() override;
