@@ -16,7 +16,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	// Defaults
 	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
-	BonesPerFinger = -1;
+
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 }
 
@@ -146,9 +146,6 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// Root bone
 	int32 RootBone = -2;
 
-	// Palm bone
-	int32 PalmBone = -2;
-
 	// Finger roots
 	int32 ThumbBone = -2;
 	int32 IndexBone = -2;
@@ -159,113 +156,53 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// Re-organize our bone information
 	BoneLookupList.SetFromRefSkeleton(RefSkeleton);
 
-	// Find our palm bone
-	TArray<int32> HandParents = BoneLookupList.FindBoneWithChildCount(5);
-
-	// Multiple hand parent bones found, let's pick the closest type
-	if (HandParents.Num() > 1)
-	{
-		FString SearchString;
-		FString AltSearchString;
-		if (HandType == EBodyStateAutoRigType::HAND_RIGHT)
-		{
-			SearchString = SearchStrings.RightSearchString;
-			AltSearchString = SearchStrings.RightSearchStringAlt;
-		}
-		else
-		{
-			SearchString = SearchStrings.LeftSearchString;
-			AltSearchString = SearchStrings.LeftSearchStringAlt;
-		}
-
-		// Check the multiple bones for L/R (or lowercase) match
-		for (int32 Index : HandParents)
-		{
-			FBodyStateIndexedBone& IndexedBone = BoneLookupList.Bones[Index];
-			bool HasSearchString =
-				IndexedBone.BoneName.ToString().Contains(SearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-			HasSearchString = HasSearchString || IndexedBone.BoneName.ToString().Contains(
-													 AltSearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-
-			if (HasSearchString)
-			{
-				PalmBone = Index;
-				break;
-			}
-		}
-		// Palm bone still not set?
-		if (PalmBone == -2)
-		{
-			// Pick the first one
-			PalmBone = HandParents[0];
-		}
-	}
-	// Single bone of this type found, set that one
-	else if (HandParents.Num() == 1)
-	{
-		PalmBone = HandParents[0];
-	}
-	else
-	{
-		// We couldn't figure out where the palm is, return an empty map
-		return AutoBoneMap;
-	}
-
-	int32 WristBone = RefSkeleton.GetParentIndex(PalmBone);
+	int32 WristBone = -1;
 	int32 LowerArmBone = -1;
-
 	bool bWristIsValid = false;
-	if (WristBone > -1)
+	// Get all the child bones with that parent index
+	for (auto& Bone : BoneLookupList.Bones)
 	{
-		BoneLookupList.Bones[WristBone].BoneName.ToString().ToLower().Contains(SearchStrings.WristSearchString);
+		const FString& CompareString = Bone.BoneName.ToString().ToLower();
+
+		if (WristBone == -1 &&
+			(CompareString.Contains(TEXT("wrist")) || CompareString.Contains(TEXT("hand")) || CompareString.Contains(TEXT("palm"))))
+		{
+			WristBone = Bone.Index;
+			bWristIsValid = true;
+		}
+		if (LowerArmBone == -1 && (CompareString.Contains(TEXT("elbow")) || CompareString.Contains(TEXT("upperArm"))))
+		{
+			LowerArmBone = Bone.Index;
+		}
+		if ((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
+		{
+			ThumbBone = Bone.Index;
+		}
+		if ((IndexBone == -2) && CompareString.Contains(TEXT("index")))
+		{
+			IndexBone = Bone.Index;
+		}
+		if ((MiddleBone == -2) && CompareString.Contains(TEXT("middle")))
+		{
+			MiddleBone = Bone.Index;
+		}
+		if ((RingBone == -2) && CompareString.Contains(TEXT("ring")))
+		{
+			RingBone = Bone.Index;
+		}
+		if ((PinkyBone == -2) && (CompareString.Contains(TEXT("pinky")) || CompareString.Contains(TEXT("little"))))
+		{
+			PinkyBone = Bone.Index;
+		}
 	}
-	// We likely got the lower arm
 	if (!bWristIsValid)
 	{
 		LowerArmBone = WristBone;
 		WristBone = -1;
 	}
+	int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(IndexBone);
+	int32 BonesPerFinger = LongestChildTraverse + 1;
 
-	// Get all the child bones with that parent index
-	for (auto& Bone : BoneLookupList.Bones)
-	{
-		bool IsPalmChild = (Bone.ParentIndex == PalmBone);
-
-		if (IsPalmChild)
-		{
-			const FString& CompareString = Bone.BoneName.ToString().ToLower();
-
-			if ((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
-			{
-				ThumbBone = Bone.Index;
-			}
-			else if ((IndexBone == -2) && CompareString.Contains(TEXT("index")))
-			{
-				IndexBone = Bone.Index;
-			}
-			else if ((MiddleBone == -2) && CompareString.Contains(TEXT("middle")))
-			{
-				MiddleBone = Bone.Index;
-			}
-			else if ((RingBone == -2) && CompareString.Contains(TEXT("ring")))
-			{
-				RingBone = Bone.Index;
-			}
-			else if ((PinkyBone == -2) && CompareString.Contains(TEXT("pinky")))
-			{
-				PinkyBone = Bone.Index;
-			}
-		}
-	}
-
-	// Test the index finger to determine bones per finger
-	if (BonesPerFinger == -1)
-	{
-		int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(IndexBone);
-		BonesPerFinger = LongestChildTraverse + 1;
-	}
-
-	// UE_LOG(LogTemp, Log, TEXT("Palm: %d"), PalmBone);
 	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
 
 	// Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
@@ -280,10 +217,6 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		else
 		{
-			if (PalmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[PalmBone]);
-			}
 			if (LowerArmBone >= 0)
 			{
 				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.Bones[LowerArmBone]);
@@ -351,10 +284,6 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		else
 		{
-			if (PalmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[PalmBone]);
-			}
 			if (LowerArmBone >= 0)
 			{
 				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.Bones[LowerArmBone]);

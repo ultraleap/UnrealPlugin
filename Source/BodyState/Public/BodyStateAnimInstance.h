@@ -112,36 +112,6 @@ struct FMappedBoneAnimData
 	bool SkeletonHasValidTags();
 };
 
-USTRUCT(BlueprintType)
-struct FSearchStrings
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Search Strings")
-	FString LeftSearchString;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Search Strings")
-	FString LeftSearchStringAlt;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Search Strings")
-	FString RightSearchString;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Search Strings")
-	FString RightSearchStringAlt;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Search Strings")
-	FString WristSearchString;
-
-	FSearchStrings()
-	{
-		LeftSearchString = TEXT("l_");
-		LeftSearchStringAlt = TEXT("_l");
-		RightSearchString = TEXT("r_");
-		RightSearchStringAlt = TEXT("_r");
-		WristSearchString = TEXT("wrist");
-	}
-};
-
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
 class UBodyStateAnimInstance : public UAnimInstance
 {
@@ -158,17 +128,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	EBodyStateAutoRigType AutoMapTarget;
-
-	/** This will be automatically determined based on your palm->index traverse distance if value is -1*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
-	int32 BonesPerFinger;
-
-	/** Strings used to identify left or right hand in your rig. Customize if autorig is failing */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
-	FSearchStrings SearchStrings;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
-	TArray<FString> TrackingLimitTags;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	int32 DefaultBodyStateIndex;
