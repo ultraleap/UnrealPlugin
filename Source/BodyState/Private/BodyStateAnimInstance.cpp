@@ -4,6 +4,7 @@
 
 #include "BodyStateBPLibrary.h"
 #include "BodyStateUtility.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
@@ -208,18 +209,18 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
 	if (HandType == EBodyStateAutoRigType::HAND_LEFT)
 	{
-		if (bWristIsValid)
+		//	if (bWristIsValid)
 		{
 			if (WristBone >= 0)
 			{
 				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[WristBone]);
 			}
 		}
-		else
+		//	else
 		{
 			if (LowerArmBone >= 0)
 			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.Bones[LowerArmBone]);
+				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_UPPERARM_L, BoneLookupList.Bones[LowerArmBone]);
 			}
 		}
 		if (ThumbBone >= 0)
@@ -275,18 +276,18 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// Right Hand
 	else
 	{
-		if (bWristIsValid)
+		// if (bWristIsValid)
 		{
 			if (WristBone >= 0)
 			{
 				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[WristBone]);
 			}
 		}
-		else
+		// else
 		{
 			if (LowerArmBone >= 0)
 			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.Bones[LowerArmBone]);
+				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_UPPERARM_R, BoneLookupList.Bones[LowerArmBone]);
 			}
 		}
 		if (ThumbBone >= 0)
@@ -342,7 +343,140 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 	return AutoBoneMap;
 }
+FRotator MyLookRotation(const FVector& lookAt, const FVector& upDirection)
+{
+	FVector forward = lookAt;
+	FVector up = upDirection;
 
+	forward = forward.GetSafeNormal();
+	up = up - (forward * FVector::DotProduct(up, forward));
+	up = up.GetSafeNormal();
+
+	///////////////////////
+
+	FVector vector = forward.GetSafeNormal();
+	FVector vector2 = FVector::CrossProduct(up, vector);
+	FVector vector3 = FVector::CrossProduct(vector, vector2);
+	float m00 = vector2.X;
+	float m01 = vector2.Y;
+	float m02 = vector2.Z;
+	float m10 = vector3.X;
+	float m11 = vector3.Y;
+	float m12 = vector3.Z;
+	float m20 = vector.X;
+	float m21 = vector.Y;
+	float m22 = vector.Z;
+
+	float num8 = (m00 + m11) + m22;
+	FQuat quaternion = FQuat();
+	if (num8 > 0.0f)
+	{
+		float num = (float) FMath::Sqrt(num8 + 1.0f);
+		quaternion.W = num * 0.5f;
+		num = 0.5f / num;
+		quaternion.X = (m12 - m21) * num;
+		quaternion.Y = (m20 - m02) * num;
+		quaternion.Z = (m01 - m10) * num;
+		return FRotator(quaternion);
+	}
+	if ((m00 >= m11) && (m00 >= m22))
+	{
+		float num7 = (float) FMath::Sqrt(((1.0f + m00) - m11) - m22);
+		float num4 = 0.5f / num7;
+		quaternion.X = 0.5f * num7;
+		quaternion.Y = (m01 + m10) * num4;
+		quaternion.Z = (m02 + m20) * num4;
+		quaternion.W = (m12 - m21) * num4;
+		return FRotator(quaternion);
+	}
+	if (m11 > m22)
+	{
+		float num6 = (float) FMath::Sqrt(((1.0f + m11) - m00) - m22);
+		float num3 = 0.5f / num6;
+		quaternion.X = (m10 + m01) * num3;
+		quaternion.Y = 0.5f * num6;
+		quaternion.Z = (m21 + m12) * num3;
+		quaternion.W = (m20 - m02) * num3;
+		return FRotator(quaternion);
+	}
+	float num5 = (float) FMath::Sqrt(((1.0f + m22) - m00) - m11);
+	float num2 = 0.5f / num5;
+	quaternion.X = (m20 + m02) * num2;
+	quaternion.Y = (m21 + m12) * num2;
+	quaternion.Z = 0.5f * num5;
+	quaternion.W = (m01 - m10) * num2;
+
+	return FRotator(quaternion);
+}
+
+FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
+	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
+		return FRotator();
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
+	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
+	EBodyStateBasicBoneType Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_L;
+	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R;
+		Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R;
+		Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_R;
+		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
+	}
+	FBoneReference IndexBone = ForMap.BoneMap.Find(Index)->MeshBone;
+	FBoneReference MiddleBone = ForMap.BoneMap.Find(Middle)->MeshBone;
+	FBoneReference PinkyBone = ForMap.BoneMap.Find(Pinky)->MeshBone;
+	FBoneReference WristBone = ForMap.BoneMap.Find(Wrist)->MeshBone;
+
+	int32 IndexBoneIndex = Names.Find(IndexBone.BoneName);
+	int32 MiddleBoneIndex = Names.Find(MiddleBone.BoneName);
+	int32 PinkyBoneIndex = Names.Find(PinkyBone.BoneName);
+	int32 WristBoneIndex = Names.Find(WristBone.BoneName);
+
+	FTransform IndexPose = NodeItems[IndexBoneIndex].Transform;
+	FTransform MiddlePose = NodeItems[MiddleBoneIndex].Transform;
+	FTransform PinkyPose = NodeItems[PinkyBoneIndex].Transform;
+	FTransform WristPose = NodeItems[WristBoneIndex].Transform;
+
+	// Calculate the Model's rotation
+	// direct port from c# Unity version HandBinderAutoBinder.cs
+	FVector Forward = MiddlePose.GetLocation() - WristPose.GetLocation();
+	FVector Right = IndexPose.GetLocation() - PinkyPose.GetLocation();
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		// Right = -Right;
+	}
+	FVector Up = FVector::CrossProduct(Forward, Right);
+	FVector::CreateOrthonormalBasis(Up, Forward, Right);
+	// in Unity this was Quat.LookRotation(forward,up).
+	// FRotator ModelRotation = UKismetMathLibrary::FindLookAtRotation(Forward, Up);
+	FRotator ModelRotation = MyLookRotation(Forward, Up);
+	// Calculate the difference between the Calculated hand basis and the wrist's rotation
+	// handBinder.wristRotationOffset = (Quaternion.Inverse(modelRotation) * wrist.transform.rotation).eulerAngles;
+	FQuat ModelQuat(ModelRotation);
+	FQuat WristPoseQuat(WristPose.Rotator());
+	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
+	// FRotator WristRotation = ModelRotation - WristPose.Rotator();
+	// WristRotation += FRotator(90, 0, 0);
+	return WristRotation;
+}
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
 {
 	// Grab our skel mesh component
@@ -364,7 +498,11 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 			ForMap.PreBaseRotation = FRotator(0, 180, 90);
 		}
 	}
-
+	if (bDetectHandRotationDuringAutoMapping)
+	{
+		FRotator WristRotation = EstimateAutoMapRotation(ForMap, RigTargetType);
+		ForMap.OffsetTransform.SetRotation(FQuat(WristRotation));
+	}
 	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
 	{

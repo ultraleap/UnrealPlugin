@@ -126,6 +126,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bAutoDetectBoneMapAtInit;
 
+	/** Whether the anim instance should map the skeleton rotation on auto map*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	bool bDetectHandRotationDuringAutoMapping;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	EBodyStateAutoRigType AutoMapTarget;
 
@@ -185,6 +189,8 @@ protected:
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap);
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(
 		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
+
+	FRotator EstimateAutoMapRotation(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 
 	virtual void NativeInitializeAnimation() override;
