@@ -350,7 +350,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 	return AutoBoneMap;
 }
-FRotator MyLookRotation(const FVector& lookAt, const FVector& upDirection)
+FQuat MyLookRotation(const FVector& lookAt, const FVector& upDirection)
 {
 	FVector forward = lookAt;
 	FVector up = upDirection;
@@ -384,7 +384,7 @@ FRotator MyLookRotation(const FVector& lookAt, const FVector& upDirection)
 		quaternion.X = (m12 - m21) * num;
 		quaternion.Y = (m20 - m02) * num;
 		quaternion.Z = (m01 - m10) * num;
-		return FRotator(quaternion);
+		return (quaternion);
 	}
 	if ((m00 >= m11) && (m00 >= m22))
 	{
@@ -394,7 +394,7 @@ FRotator MyLookRotation(const FVector& lookAt, const FVector& upDirection)
 		quaternion.Y = (m01 + m10) * num4;
 		quaternion.Z = (m02 + m20) * num4;
 		quaternion.W = (m12 - m21) * num4;
-		return FRotator(quaternion);
+		return (quaternion);
 	}
 	if (m11 > m22)
 	{
@@ -404,7 +404,7 @@ FRotator MyLookRotation(const FVector& lookAt, const FVector& upDirection)
 		quaternion.Y = 0.5f * num6;
 		quaternion.Z = (m21 + m12) * num3;
 		quaternion.W = (m20 - m02) * num3;
-		return FRotator(quaternion);
+		return (quaternion);
 	}
 	float num5 = (float) FMath::Sqrt(((1.0f + m22) - m00) - m11);
 	float num2 = 0.5f / num5;
@@ -413,9 +413,14 @@ FRotator MyLookRotation(const FVector& lookAt, const FVector& upDirection)
 	quaternion.Z = 0.5f * num5;
 	quaternion.W = (m01 - m10) * num2;
 
-	return FRotator(quaternion);
+	return quaternion;
 }
-
+void OrthoNormalize(FVector& Normal, FVector& Tangent)
+{
+	Normal = Normal.GetUnsafeNormal();
+	Tangent = Tangent - (Normal * FVector::DotProduct(Tangent, Normal));
+	Tangent = Tangent.GetUnsafeNormal();
+}
 FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -471,16 +476,18 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 		Right = -Right;
 	}
 	FVector Up = FVector::CrossProduct(Forward, Right);
-	FVector::CreateOrthonormalBasis(Up, Forward, Right);
+	OrthoNormalize(Forward, Up);
 	// in Unity this was Quat.LookRotation(forward,up).
-	// FRotator ModelRotation = UKismetMathLibrary::FindLookAtRotation(Forward, Up);
-	FRotator ModelRotation = MyLookRotation(Forward, Up);
+	FQuat ModelRotation = MyLookRotation(Up, Forward);
 	// Calculate the difference between the Calculated hand basis and the wrist's rotation
-	// handBinder.wristRotationOffset = (Quaternion.Inverse(modelRotation) * wrist.transform.rotation).eulerAngles;
 	FQuat ModelQuat(ModelRotation);
-	FQuat WristPoseQuat(WristPose.Rotator());
+
+	// In unity, this came from the wrist in the world/scene coords
+	// In unreal this is the reference direction for the anim system
+	FQuat WristPoseQuat(FRotator(0, 180, -90));
+
 	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
-	// FRotator WristRotation = ModelRotation - WristPose.Rotator();
+
 	return WristRotation;
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
