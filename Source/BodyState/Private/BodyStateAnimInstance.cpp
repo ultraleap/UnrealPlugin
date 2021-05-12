@@ -209,20 +209,16 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
 	if (HandType == EBodyStateAutoRigType::HAND_LEFT)
 	{
-		//	if (bWristIsValid)
+		if (LowerArmBone >= 0)
 		{
-			if (WristBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[WristBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.Bones[LowerArmBone]);
 		}
-		//	else
+
+		if (WristBone >= 0)
 		{
-			if (LowerArmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_UPPERARM_L, BoneLookupList.Bones[LowerArmBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[WristBone]);
 		}
+
 		if (ThumbBone >= 0)
 		{
 			// Thumbs will always be ~ 3 bones
@@ -276,19 +272,13 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// Right Hand
 	else
 	{
-		// if (bWristIsValid)
+		if (LowerArmBone >= 0)
 		{
-			if (WristBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[WristBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.Bones[LowerArmBone]);
 		}
-		// else
+		if (WristBone >= 0)
 		{
-			if (LowerArmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_UPPERARM_R, BoneLookupList.Bones[LowerArmBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[WristBone]);
 		}
 		if (ThumbBone >= 0)
 		{
@@ -461,7 +451,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		// Right = -Right;
+		Right = -Right;
 	}
 	FVector Up = FVector::CrossProduct(Forward, Right);
 	FVector::CreateOrthonormalBasis(Up, Forward, Right);
@@ -474,7 +464,6 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 	FQuat WristPoseQuat(WristPose.Rotator());
 	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
 	// FRotator WristRotation = ModelRotation - WristPose.Rotator();
-	// WristRotation += FRotator(90, 0, 0);
 	return WristRotation;
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
