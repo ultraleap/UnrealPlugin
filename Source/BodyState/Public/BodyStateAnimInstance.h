@@ -192,6 +192,8 @@ protected:
 
 	FRotator EstimateAutoMapRotation(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
+	TArray<int32> SelectBones(const TArray<FString>& Definitions);
+	int32 SelectFirstBone(const TArray<FString>& Definitions);
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

@@ -130,6 +130,36 @@ struct FIndexParentsCount
 	}
 };
 
+int32 UBodyStateAnimInstance::SelectFirstBone(const TArray<FString>& Definitions)
+{
+	TArray<int32> IndicesFound = SelectBones(Definitions);
+	if (IndicesFound.Num())
+	{
+		return IndicesFound[0];
+	}
+	else
+	{
+		return -1;
+	}
+}
+TArray<int32> UBodyStateAnimInstance::SelectBones(const TArray<FString>& Definitions)
+{
+	TArray<int32> BoneIndicesFound;
+
+	for (auto& Definition : Definitions)
+	{
+		for (auto& Bone : BoneLookupList.Bones)
+		{
+			const FString& CompareString = Bone.BoneName.ToString().ToLower();
+			if (CompareString.Contains(Definition))
+			{
+				BoneIndicesFound.Add(Bone.Index);
+			}
+		}
+	}
+	return BoneIndicesFound;
+}
+
 TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(
 	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
 {
@@ -144,9 +174,6 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->RefSkeleton;
 
-	// Root bone
-	int32 RootBone = -2;
-
 	// Finger roots
 	int32 ThumbBone = -2;
 	int32 IndexBone = -2;
@@ -159,22 +186,17 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 	int32 WristBone = -1;
 	int32 LowerArmBone = -1;
-	bool bWristIsValid = false;
+
+	TArray<FString> WristNames = {"wrist", "hand", "palm"};
+	TArray<FString> ArmNames = {"elbow", "upperArm"};
+
+	WristBone = SelectFirstBone(WristNames);
+	LowerArmBone = SelectFirstBone(ArmNames);
 	// Get all the child bones with that parent index
 	for (auto& Bone : BoneLookupList.Bones)
 	{
 		const FString& CompareString = Bone.BoneName.ToString().ToLower();
 
-		if (WristBone == -1 &&
-			(CompareString.Contains(TEXT("wrist")) || CompareString.Contains(TEXT("hand")) || CompareString.Contains(TEXT("palm"))))
-		{
-			WristBone = Bone.Index;
-			bWristIsValid = true;
-		}
-		if (LowerArmBone == -1 && (CompareString.Contains(TEXT("elbow")) || CompareString.Contains(TEXT("upperArm"))))
-		{
-			LowerArmBone = Bone.Index;
-		}
 		if ((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
 		{
 			ThumbBone = Bone.Index;
@@ -195,11 +217,6 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		{
 			PinkyBone = Bone.Index;
 		}
-	}
-	if (!bWristIsValid)
-	{
-		LowerArmBone = WristBone;
-		WristBone = -1;
 	}
 	int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(IndexBone);
 	int32 BonesPerFinger = LongestChildTraverse + 1;
@@ -635,6 +652,9 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 	// Todo: optimize multiple calls with no / small changes
 
 	// 1) traverse indexed bone list, store all the traverse lengths
+	// this can happen on an animation worker thread
+	// set bUseMultiThreadedAnimationUpdate = false if we want to do everything on engine tick
+	FScopeLock ScopeLock(&BodyStateSkeleton->BoneDataLock);
 
 	for (auto Pair : BoneMap)
 	{
