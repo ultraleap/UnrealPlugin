@@ -421,6 +421,41 @@ void OrthoNormalize(FVector& Normal, FVector& Tangent)
 	Tangent = Tangent - (Normal * FVector::DotProduct(Tangent, Normal));
 	Tangent = Tangent.GetUnsafeNormal();
 }
+
+/* Find an orthonormal basis for the set of vectors q
+ * using the Gram-Schmidt Orthogonalization process */
+void OrthoNormalize2(TArray<FVector>& Vectors)
+{
+	int i, j;
+
+	for (i = 1; i < Vectors.Num(); ++i)
+	{
+		for (j = 0; j < i; ++j)
+		{
+			double scaling_factor = FVector::DotProduct(Vectors[j], Vectors[i]) / FVector::DotProduct(Vectors[j], Vectors[j]);
+
+			/* Subtract each scaled component of q_j from q_i */
+			Vectors[i] -= scaling_factor * Vectors[j];
+		}
+	}
+
+	/* Now normalize all the 'n' orthogonal vectors */
+	for (i = 0; i < Vectors.Num(); ++i)
+	{
+		Vectors[i].Normalize();
+	}
+}
+void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
+{
+	TArray<FVector> Vectors = {Normal, Tangent, Binormal};
+
+	OrthoNormalize2(Vectors);
+
+	Normal = Vectors[0];
+	Tangent = Vectors[1];
+	Binormal = Vectors[2];
+}
+
 FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -477,7 +512,9 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 	}
 	FVector Up = FVector::CrossProduct(Forward, Right);
 	// we need a three param versions of this.
-	OrthoNormalize(Forward, Up);
+	// OrthoNormalize(Forward, Up);
+	OrthNormalize2(Forward, Up, Right);
+
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
 	ModelRotation = MyLookRotation(Up, Forward);
