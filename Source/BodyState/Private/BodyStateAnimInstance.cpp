@@ -476,18 +476,28 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 		Right = -Right;
 	}
 	FVector Up = FVector::CrossProduct(Forward, Right);
+	// we need a three param versions of this.
 	OrthoNormalize(Forward, Up);
 	// in Unity this was Quat.LookRotation(forward,up).
-	FQuat ModelRotation = MyLookRotation(Up, Forward);
+	FQuat ModelRotation;
+	ModelRotation = MyLookRotation(Up, Forward);
 	// Calculate the difference between the Calculated hand basis and the wrist's rotation
 	FQuat ModelQuat(ModelRotation);
 
 	// In unity, this came from the wrist in the world/scene coords
-	// In unreal this is the reference direction for the anim system
-	FQuat WristPoseQuat(FRotator(0, 180, -90));
-
+	// FQuat WristPoseQuat(FRotator(0, 180, -90));
+	FQuat WristPoseQuat(WristPose.GetRotation());
 	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
 
+	// In unreal this is the reference direction for the anim system
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		WristRotation += FRotator(FRotator(0, 90, -90));
+	}
+	else
+	{
+		WristRotation += FRotator(FRotator(0, -90, 90));
+	}
 	return WristRotation;
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
