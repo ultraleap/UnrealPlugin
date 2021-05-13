@@ -10,13 +10,13 @@ UAnimGraphNode_ModifyBodyStateMappedBones::UAnimGraphNode_ModifyBodyStateMappedB
 {
 }
 
-//Title Color!
+// Title Color!
 FLinearColor UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeTitleColor() const
 {
 	return FLinearColor(12, 12, 0, 1);
 }
 
-//Node Category
+// Node Category
 FString UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeCategory() const
 {
 	return FString("Body State Animation");
@@ -30,4 +30,9 @@ FText UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeTitle(ENodeTitleType::Ty
 {
 	FText Result = GetControllerDescription();
 	return Result;
+}
+FText UAnimGraphNode_ModifyBodyStateMappedBones::GetTooltipText() const
+{
+	return FText::FromString(
+		"Animates the skeletel mesh using the Ultraleap tracked device hand and optionally auto maps to the skeleton");
 }
