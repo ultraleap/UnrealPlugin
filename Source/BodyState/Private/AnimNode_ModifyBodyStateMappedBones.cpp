@@ -5,7 +5,7 @@
 #include "AnimationRuntime.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
 #include "Runtime/Engine/Public/Animation/AnimInstanceProxy.h"
-
+#include "Skeleton/BodyStateArm.h"
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones() : FAnimNode_SkeletalControlBase()
 {
 	WorldIsGame = false;
@@ -33,16 +33,14 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	{
 		return;
 	}
-	// return;
 	if (MappedBoneAnimData.BoneMap.Num() == 0 || MappedBoneAnimData.BodyStateSkeleton == nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Updating cached MappedBoneAnimData"));
 		MappedBoneAnimData = BSAnimInstance->MappedBoneList[0];
 	}
-
 	// If we don't have data driving us, ignore this evaluation
 	const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
-	const float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
+	float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
 	TArray<FBoneTransform> TempTransform;
 
@@ -53,6 +51,35 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 			return;
 		}
 		FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
+
+		// used to be in the event graph for the anim blueprints
+		// do nothing if not tracking
+		bool IsTracking = false;
+		switch (BSAnimInstance->AutoMapTarget)
+		{
+			case EBodyStateAutoRigType::HAND_LEFT:
+			{
+				IsTracking = MappedBoneAnimData.BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked();
+			}
+			break;
+			case EBodyStateAutoRigType::HAND_RIGHT:
+			{
+				IsTracking = MappedBoneAnimData.BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+			}
+			break;
+			case EBodyStateAutoRigType::BOTH_HANDS:
+			{
+				IsTracking = MappedBoneAnimData.BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked() ||
+							 MappedBoneAnimData.BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+			}
+			break;
+		}
+
+		if (!IsTracking)
+		{
+			BlendWeight = 0;
+		}
+
 		// SN: there should be an array re-ordered by hierarchy (parents -> children order)
 		for (auto CachedBone : MappedBoneAnimData.CachedBoneList)
 		{
@@ -96,7 +123,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 			{
 				const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
 				const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
-				NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+				NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
 			// wrist only, removes the need for a wrist modify node in the anim blueprint
 			else
