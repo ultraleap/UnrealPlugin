@@ -98,6 +98,17 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 				const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
 				NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
+			// wrist only, removes the need for a wrist modify node in the anim blueprint
+			else
+			{
+				if (CachedBone.BSBone->Name.ToLower().Contains("wrist"))
+				{
+					const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
+					//	const FVector RotatedTranslation =
+					//	MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+					NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+				}
+			}
 
 			// Back to component space
 			FAnimationRuntime::ConvertBoneSpaceTransformToCS(

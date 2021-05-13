@@ -456,8 +456,7 @@ void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
 	Binormal = Vectors[2];
 }
 
-FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
-	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	// Get bones and parent indices
@@ -474,11 +473,12 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
+	bool IsFlippedModel = false;
+
 	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
-
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
 		Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R;
@@ -490,6 +490,18 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 	FBoneReference MiddleBone = ForMap.BoneMap.Find(Middle)->MeshBone;
 	FBoneReference PinkyBone = ForMap.BoneMap.Find(Pinky)->MeshBone;
 	FBoneReference WristBone = ForMap.BoneMap.Find(Wrist)->MeshBone;
+
+	EBodyStateAutoRigType RigMeshType = EBodyStateAutoRigType::HAND_LEFT;
+
+	FString IndexName(IndexBone.BoneName.ToString().ToLower());
+	if (IndexName.Contains("_r") || IndexName.Contains("r_"))
+	{
+		RigMeshType = EBodyStateAutoRigType::HAND_RIGHT;
+	}
+	if (RigMeshType != RigTargetType)
+	{
+		IsFlippedModel = true;
+	}
 
 	int32 IndexBoneIndex = Names.Find(IndexBone.BoneName);
 	int32 MiddleBoneIndex = Names.Find(MiddleBone.BoneName);
@@ -529,12 +541,29 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(
 	// In unreal this is the reference direction for the anim system
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		WristRotation += FRotator(FRotator(0, 90, -90));
+		if (IsFlippedModel)
+		{
+			WristRotation += FRotator(0, -90, 90);
+			Component->SetRelativeScale3D(FVector(-1, 1, 1));
+		}
+		else
+		{
+			WristRotation += FRotator(0, 90, -90);
+		}
 	}
 	else
 	{
-		WristRotation += FRotator(FRotator(0, -90, 90));
+		if (IsFlippedModel)
+		{
+			WristRotation += FRotator(0, 90, -90);
+			Component->SetRelativeScale3D(FVector(-1, 1, 1));
+		}
+		else
+		{
+			WristRotation += FRotator(0, -90, 90);
+		}
 	}
+	ForMap.bShouldDeformMesh = !IsFlippedModel;
 	return WristRotation;
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)

@@ -190,7 +190,7 @@ protected:
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(
 		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 
-	FRotator EstimateAutoMapRotation(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);
 	int32 SelectFirstBone(const TArray<FString>& Definitions);
