@@ -178,7 +178,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 				LeapHand.Arm.Rotation.ToQuaternion() * Quaternion.Euler(boundHand.elbow.offset.rotation);
 		}
 	}*/
-	if (WristCachedBone.BSBone->IsValidLowLevel() && ArmCachedBone.BSBone->IsValidLowLevel())
+	if (WristCachedBone.MeshBone.BoneIndex > -1 && ArmCachedBone.MeshBone.BoneIndex > -1)
 	{
 		auto WristPosition = MappedBoneAnimData.BodyStateSkeleton->LeftArm()->Hand->Wrist->Position();
 		auto ElbowForward =

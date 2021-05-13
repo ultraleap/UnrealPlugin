@@ -558,7 +558,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	ForMap.bShouldDeformMesh = !IsFlippedModel;
 	return WristRotation;
 }
-float UBodyStateAnimInstance::CalculateElbowLength(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	float ElbowLength = 0;
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
@@ -586,9 +586,20 @@ float UBodyStateAnimInstance::CalculateElbowLength(FMappedBoneAnimData& ForMap, 
 		LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_R;
 		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
 	}
-	FBoneReference LowerArmBone = ForMap.BoneMap.Find(LowerArm)->MeshBone;
-	FBoneReference WristBone = ForMap.BoneMap.Find(Wrist)->MeshBone;
+	FBoneReference LowerArmBone;
 
+	const FBPBoneReference* MapRef = ForMap.BoneMap.Find(LowerArm);
+	if (MapRef)
+	{
+		LowerArmBone = MapRef->MeshBone;
+	}
+	FBoneReference WristBone;
+
+	MapRef = ForMap.BoneMap.Find(Wrist);
+	if (MapRef)
+	{
+		WristBone = MapRef->MeshBone;
+	}
 	int32 LowerArmBoneIndex = Names.Find(LowerArmBone.BoneName);
 	int32 WristBoneIndex = Names.Find(WristBone.BoneName);
 
@@ -627,7 +638,7 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 		FRotator WristRotation = EstimateAutoMapRotation(ForMap, RigTargetType);
 		ForMap.OffsetTransform.SetRotation(FQuat(WristRotation));
 	}
-	CalculateElbowLength(ForMap, RigTargetType);
+	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
 	{

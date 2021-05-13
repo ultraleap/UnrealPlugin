@@ -195,7 +195,7 @@ protected:
 		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 
 	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
-	float CalculateElbowLength(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);
