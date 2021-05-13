@@ -526,7 +526,6 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	FQuat ModelQuat(ModelRotation);
 
 	// In unity, this came from the wrist in the world/scene coords
-	// FQuat WristPoseQuat(FRotator(0, 180, -90));
 	FQuat WristPoseQuat(WristPose.GetRotation());
 	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
 
