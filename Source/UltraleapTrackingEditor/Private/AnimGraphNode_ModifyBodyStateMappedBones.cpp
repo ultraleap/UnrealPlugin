@@ -19,11 +19,11 @@ FLinearColor UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeTitleColor() cons
 // Node Category
 FString UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeCategory() const
 {
-	return FString("Body State Animation");
+	return FString("Body State Animation (Ultraleap)");
 }
 FText UAnimGraphNode_ModifyBodyStateMappedBones::GetControllerDescription() const
 {
-	return FText::FromString("Modify Mapped Bones (Body State)");
+	return FText::FromString("Ultraleap Modify Mapped Bones (Body State)");
 }
 
 FText UAnimGraphNode_ModifyBodyStateMappedBones::GetNodeTitle(ENodeTitleType::Type TitleType) const

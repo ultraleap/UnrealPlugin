@@ -95,6 +95,10 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	class UBodyStateSkeleton* BodyStateSkeleton;
 
+	/** Skeleton driving mapped data */
+	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
+	float ElbowLength;
+
 	// Data structure containing a parent -> child ordered bone list
 	TArray<CachedBoneLink> CachedBoneList;
 
@@ -191,6 +195,8 @@ protected:
 		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 
 	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	float CalculateElbowLength(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);
 	int32 SelectFirstBone(const TArray<FString>& Definitions);

@@ -350,7 +350,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 	return AutoBoneMap;
 }
-FQuat MyLookRotation(const FVector& lookAt, const FVector& upDirection)
+FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
 {
 	FVector forward = lookAt;
 	FVector up = upDirection;
@@ -415,13 +415,6 @@ FQuat MyLookRotation(const FVector& lookAt, const FVector& upDirection)
 
 	return quaternion;
 }
-void OrthoNormalize(FVector& Normal, FVector& Tangent)
-{
-	Normal = Normal.GetUnsafeNormal();
-	Tangent = Tangent - (Normal * FVector::DotProduct(Tangent, Normal));
-	Tangent = Tangent.GetUnsafeNormal();
-}
-
 /* Find an orthonormal basis for the set of vectors q
  * using the Gram-Schmidt Orthogonalization process */
 void OrthoNormalize2(TArray<FVector>& Vectors)
@@ -455,7 +448,7 @@ void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
 	Tangent = Vectors[1];
 	Binormal = Vectors[2];
 }
-
+// based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
@@ -524,12 +517,11 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	}
 	FVector Up = FVector::CrossProduct(Forward, Right);
 	// we need a three param versions of this.
-	// OrthoNormalize(Forward, Up);
 	OrthNormalize2(Forward, Up, Right);
 
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
-	ModelRotation = MyLookRotation(Up, Forward);
+	ModelRotation = LookRotation(Up, Forward);
 	// Calculate the difference between the Calculated hand basis and the wrist's rotation
 	FQuat ModelQuat(ModelRotation);
 
@@ -566,6 +558,49 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	ForMap.bShouldDeformMesh = !IsFlippedModel;
 	return WristRotation;
 }
+float UBodyStateAnimInstance::CalculateElbowLength(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	float ElbowLength = 0;
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
+		return 0;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	bool IsFlippedModel = false;
+
+	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
+	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_R;
+		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
+	}
+	FBoneReference LowerArmBone = ForMap.BoneMap.Find(LowerArm)->MeshBone;
+	FBoneReference WristBone = ForMap.BoneMap.Find(Wrist)->MeshBone;
+
+	int32 LowerArmBoneIndex = Names.Find(LowerArmBone.BoneName);
+	int32 WristBoneIndex = Names.Find(WristBone.BoneName);
+
+	if (LowerArmBoneIndex > -1 && WristBoneIndex > -1)
+	{
+		FTransform LowerArmPose = NodeItems[LowerArmBoneIndex].Transform;
+		FTransform WristPose = NodeItems[WristBoneIndex].Transform;
+
+		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
+	}
+	return ElbowLength;
+}
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
 {
 	// Grab our skel mesh component
@@ -592,6 +627,7 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 		FRotator WristRotation = EstimateAutoMapRotation(ForMap, RigTargetType);
 		ForMap.OffsetTransform.SetRotation(FQuat(WristRotation));
 	}
+	CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
 	{
