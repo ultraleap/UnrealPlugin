@@ -125,8 +125,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
 		{
-			// BoneQuat =
-			//	MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
 			BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
 			BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
 		}
@@ -166,6 +164,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// OutBoneTransforms.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
 	}
 	//#if 0
+	// Elbow position, only if lower arm bone found.
 	if (WristCachedBone.MeshBone.BoneIndex > -1 && ArmCachedBone.MeshBone.BoneIndex > -1)
 	{
 		auto WristPosition = MappedBoneAnimData.BodyStateSkeleton->LeftArm()->Hand->Wrist->Position();
@@ -195,8 +194,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
 		{
-			//		BoneQuat =
-			//		MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
 			BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
 			BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
 		}

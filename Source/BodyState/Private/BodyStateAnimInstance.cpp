@@ -448,6 +448,14 @@ void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
 	Tangent = Vectors[1];
 	Binormal = Vectors[2];
 }
+
+FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
+	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems)
+{
+	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
+	int Index = Names.Find(Bone.BoneName);
+	return NodeItems[Index].Transform;
+}
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -480,9 +488,6 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
 	}
 	FBoneReference IndexBone = ForMap.BoneMap.Find(Index)->MeshBone;
-	FBoneReference MiddleBone = ForMap.BoneMap.Find(Middle)->MeshBone;
-	FBoneReference PinkyBone = ForMap.BoneMap.Find(Pinky)->MeshBone;
-	FBoneReference WristBone = ForMap.BoneMap.Find(Wrist)->MeshBone;
 
 	EBodyStateAutoRigType RigMeshType = EBodyStateAutoRigType::HAND_LEFT;
 
@@ -496,15 +501,10 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		IsFlippedModel = true;
 	}
 
-	int32 IndexBoneIndex = Names.Find(IndexBone.BoneName);
-	int32 MiddleBoneIndex = Names.Find(MiddleBone.BoneName);
-	int32 PinkyBoneIndex = Names.Find(PinkyBone.BoneName);
-	int32 WristBoneIndex = Names.Find(WristBone.BoneName);
-
-	FTransform IndexPose = NodeItems[IndexBoneIndex].Transform;
-	FTransform MiddlePose = NodeItems[MiddleBoneIndex].Transform;
-	FTransform PinkyPose = NodeItems[PinkyBoneIndex].Transform;
-	FTransform WristPose = NodeItems[WristBoneIndex].Transform;
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems);
 
 	// Calculate the Model's rotation
 	// direct port from c# Unity version HandBinderAutoBinder.cs
