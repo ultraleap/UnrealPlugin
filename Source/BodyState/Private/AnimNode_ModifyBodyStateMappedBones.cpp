@@ -50,6 +50,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
 
+	// use original quat calc one liner
+	static const bool UseOldQuat = true;
 	// used to be in the event graph for the anim blueprints
 	// do nothing if not tracking
 	bool IsTracking = false;
@@ -125,8 +127,16 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
 		{
-			BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
-			BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
+			if (UseOldQuat)
+			{
+				BoneQuat =
+					MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
+			}
+			else
+			{
+				BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
+				BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
+			}
 		}
 
 		NewBoneTM.SetRotation(BoneQuat);
@@ -194,8 +204,16 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
 		{
-			BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
-			BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
+			if (UseOldQuat)
+			{
+				BoneQuat =
+					MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
+			}
+			else
+			{
+				BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
+				BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
+			}
 		}
 
 		NewBoneTM.SetRotation(BoneQuat);

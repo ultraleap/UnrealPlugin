@@ -534,7 +534,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		if (IsFlippedModel)
 		{
-			WristRotation += FRotator(0, -90, 90);
+			// WristRotation += FRotator(0, -90, 90);
 			Component->SetRelativeScale3D(FVector(-1, 1, 1));
 		}
 		else
@@ -546,7 +546,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		if (IsFlippedModel)
 		{
-			WristRotation += FRotator(0, 90, -90);
+			// WristRotation += FRotator(0, 90, -90);
 			Component->SetRelativeScale3D(FVector(-1, 1, 1));
 		}
 		else
