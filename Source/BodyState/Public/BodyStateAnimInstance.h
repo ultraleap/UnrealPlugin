@@ -99,6 +99,9 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	float ElbowLength;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
+	bool IsFlippedByScale;
+
 	// Data structure containing a parent -> child ordered bone list
 	TArray<CachedBoneLink> CachedBoneList;
 

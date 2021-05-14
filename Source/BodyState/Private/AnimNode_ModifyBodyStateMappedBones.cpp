@@ -144,7 +144,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		if (MappedBoneAnimData.bShouldDeformMesh)
 		{
 			const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
-			const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+			// const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
 			NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 		}
 		// wrist only, removes the need for a wrist modify node in the anim blueprint
@@ -152,9 +152,13 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		{
 			if (CachedBone.BSBone->Name.Contains("wrist"))
 			{
-				const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
-				//	const FVector RotatedTranslation =
-				//	MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+				FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
+				if (MappedBoneAnimData.IsFlippedByScale)
+				{
+					BoneTranslation.X = -BoneTranslation.X;
+				}
+				// const FVector RotatedTranslation =
+				// MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
 				NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
 		}
@@ -165,7 +169,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 		// Translate
 
-		// Workaround ensure our rotations are offset for each bone
+		// Set the transform back into the anim system
 		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
 		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
 		TempTransform.Reset();
@@ -221,7 +225,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		if (MappedBoneAnimData.bShouldDeformMesh)
 		{
 			const FVector& BoneTranslation = ElbowPosition;
-			const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+			// const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
 			NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 		}
 
@@ -231,7 +235,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 		// Translate
 
-		// Workaround ensure our rotations are offset for each bone
+		// Set the transform back into the anim system
 		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
 		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
 		TempTransform.Reset();

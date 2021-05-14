@@ -554,6 +554,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 			WristRotation += FRotator(0, -90, 90);
 		}
 	}
+	ForMap.IsFlippedByScale = IsFlippedModel;
 	ForMap.bShouldDeformMesh = !IsFlippedModel;
 	return WristRotation;
 }
