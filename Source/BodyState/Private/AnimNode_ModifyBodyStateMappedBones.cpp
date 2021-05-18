@@ -119,9 +119,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 		// Rotate
 
-		// Bone Space
-		FAnimationRuntime::ConvertCSTransformToBoneSpace(
-			ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
 		FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
 
 		// Apply pre and post adjustment (Post * (Input * Pre) )
@@ -162,10 +159,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 				NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
 		}
-
-		// Back to component space
-		FAnimationRuntime::ConvertBoneSpaceTransformToCS(
-			ComponentTransform, Output.Pose, NewBoneTM, CompactPoseBoneToModify, EBoneControlSpace::BCS_ComponentSpace);
 
 		// Translate
 
