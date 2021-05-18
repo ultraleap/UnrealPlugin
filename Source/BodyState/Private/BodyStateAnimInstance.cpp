@@ -551,7 +551,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		Right = -Right;
 	}
 	FVector Up = FVector::CrossProduct(Forward, Right);
-	// we need a three param versions of this.
+	// we need a three param version of this.
 	OrthNormalize2(Forward, Up, Right);
 
 	// in Unity this was Quat.LookRotation(forward,up).
