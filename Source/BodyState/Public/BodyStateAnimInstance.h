@@ -192,6 +192,9 @@ protected:
 	void AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex,
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger = 3);
 
+	static void AddEmptyFingerToMap(EBodyStateBasicBoneType BoneType, TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap,
+		int32 InBonesPerFinger = 3);
+
 	// Internal Map with parent information
 	FBodyStateIndexedBoneList BoneLookupList;
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> IndexedBoneMap;
@@ -211,4 +214,8 @@ protected:
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+	static void CreateEmptyBoneMap(
+		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType);
+	static const int32 InvalidBone = -1;
 };

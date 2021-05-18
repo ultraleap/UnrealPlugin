@@ -175,17 +175,17 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->RefSkeleton;
 
 	// Finger roots
-	int32 ThumbBone = -2;
-	int32 IndexBone = -2;
-	int32 MiddleBone = -2;
-	int32 RingBone = -2;
-	int32 PinkyBone = -2;
+	int32 ThumbBone = InvalidBone;
+	int32 IndexBone = InvalidBone;
+	int32 MiddleBone = InvalidBone;
+	int32 RingBone = InvalidBone;
+	int32 PinkyBone = InvalidBone;
 
 	// Re-organize our bone information
 	BoneLookupList.SetFromRefSkeleton(RefSkeleton);
 
-	int32 WristBone = -1;
-	int32 LowerArmBone = -1;
+	int32 WristBone = InvalidBone;
+	int32 LowerArmBone = InvalidBone;
 
 	TArray<FString> WristNames = {"wrist", "hand", "palm"};
 	TArray<FString> ArmNames = {"elbow", "upperArm"};
@@ -197,28 +197,32 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	{
 		const FString& CompareString = Bone.BoneName.ToString().ToLower();
 
-		if ((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
+		if ((ThumbBone == InvalidBone) && CompareString.Contains(TEXT("thumb")))
 		{
 			ThumbBone = Bone.Index;
 		}
-		if ((IndexBone == -2) && CompareString.Contains(TEXT("index")))
+		if ((IndexBone == InvalidBone) && CompareString.Contains(TEXT("index")))
 		{
 			IndexBone = Bone.Index;
 		}
-		if ((MiddleBone == -2) && CompareString.Contains(TEXT("middle")))
+		if ((MiddleBone == InvalidBone) && CompareString.Contains(TEXT("middle")))
 		{
 			MiddleBone = Bone.Index;
 		}
-		if ((RingBone == -2) && CompareString.Contains(TEXT("ring")))
+		if ((RingBone == InvalidBone) && CompareString.Contains(TEXT("ring")))
 		{
 			RingBone = Bone.Index;
 		}
-		if ((PinkyBone == -2) && (CompareString.Contains(TEXT("pinky")) || CompareString.Contains(TEXT("little"))))
+		if ((PinkyBone == InvalidBone) && (CompareString.Contains(TEXT("pinky")) || CompareString.Contains(TEXT("little"))))
 		{
 			PinkyBone = Bone.Index;
 		}
 	}
-	int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(BoneLookupList.TreeIndexFromSortedIndex(IndexBone));
+	int32 LongestChildTraverse = 3;
+	if (IndexBone > InvalidBone)
+	{
+		LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(BoneLookupList.TreeIndexFromSortedIndex(IndexBone));
+	}
 	int32 BonesPerFinger = LongestChildTraverse + 1;
 
 	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
@@ -347,8 +351,39 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			}
 		}
 	}
-
+	// create empty skeleton for easy config
+	if (AutoBoneMap.Num() == 0)
+	{
+		CreateEmptyBoneMap(AutoBoneMap, HandType);
+	}
 	return AutoBoneMap;
+}
+void UBodyStateAnimInstance::CreateEmptyBoneMap(
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType)
+{
+	static const int BonesPerFinger = 4;
+	if (HandType == EBodyStateAutoRigType::HAND_LEFT)
+	{
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, FBodyStateIndexedBone());
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, FBodyStateIndexedBone());
+
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_L, AutoBoneMap);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+	}
+	else
+	{
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, FBodyStateIndexedBone());
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, FBodyStateIndexedBone());
+
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, AutoBoneMap);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+	}
 }
 FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
 {
@@ -603,7 +638,7 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	int32 LowerArmBoneIndex = Names.Find(LowerArmBone.BoneName);
 	int32 WristBoneIndex = Names.Find(WristBone.BoneName);
 
-	if (LowerArmBoneIndex > -1 && WristBoneIndex > -1)
+	if (LowerArmBoneIndex > InvalidBone && WristBoneIndex > InvalidBone)
 	{
 		FTransform LowerArmPose = NodeItems[LowerArmBoneIndex].Transform;
 		FTransform WristPose = NodeItems[WristBoneIndex].Transform;
@@ -649,7 +684,7 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 
 int32 UBodyStateAnimInstance::TraverseLengthForIndex(int32 Index)
 {
-	if (Index == -1 || Index >= BoneLookupList.Bones.Num())
+	if (Index == InvalidBone || Index >= BoneLookupList.Bones.Num())
 	{
 		return 0;	 // this is the root or invalid bone
 	}
@@ -659,6 +694,18 @@ int32 UBodyStateAnimInstance::TraverseLengthForIndex(int32 Index)
 
 		// Add our parent traversal + 1
 		return TraverseLengthForIndex(Bone.ParentIndex) + 1;
+	}
+}
+void UBodyStateAnimInstance::AddEmptyFingerToMap(EBodyStateBasicBoneType BoneType,
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
+{
+	int32 FingerRoot = (int32) BoneType;
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), FBodyStateIndexedBone());
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), FBodyStateIndexedBone());
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), FBodyStateIndexedBone());
+	if (InBonesPerFinger > 3)
+	{
+		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), FBodyStateIndexedBone());
 	}
 }
 
