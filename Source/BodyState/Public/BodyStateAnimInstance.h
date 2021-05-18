@@ -42,7 +42,7 @@ struct FBodyStateIndexedBoneList
 
 	// run after filling our index
 	TArray<int32> FindBoneWithChildCount(int32 Count);
-	void SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton);
+	void SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones);
 	int32 LongestChildTraverseForBone(int32 Bone);
 
 	FBodyStateIndexedBoneList()
@@ -139,6 +139,10 @@ public:
 	/** Whether the anim instance should map the skeleton rotation on auto map*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bDetectHandRotationDuringAutoMapping;
+
+	/** Sort the bone names alphabetically when auto mapping rather than by bone order*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	bool bUseSortedBoneNames;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	EBodyStateAutoRigType AutoMapTarget;

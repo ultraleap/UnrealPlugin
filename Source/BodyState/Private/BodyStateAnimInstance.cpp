@@ -182,7 +182,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	int32 PinkyBone = InvalidBone;
 
 	// Re-organize our bone information
-	BoneLookupList.SetFromRefSkeleton(RefSkeleton);
+	BoneLookupList.SetFromRefSkeleton(RefSkeleton, bUseSortedBoneNames);
 
 	int32 WristBone = InvalidBone;
 	int32 LowerArmBone = InvalidBone;
@@ -895,7 +895,7 @@ TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 	return ResultArray;
 }
 
-void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton)
+void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones)
 {
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
@@ -905,13 +905,15 @@ void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& Ref
 		Bone.Index = i;
 		SortedBones.Add(Bone);
 	}
-	SortedBones.Sort();
-
-	for (int i = 0; i < SortedBones.Num(); ++i)
+	if (SortBones)
 	{
-		SortedBones[i].Index = i;
-	}
+		SortedBones.Sort();
 
+		for (int i = 0; i < SortedBones.Num(); ++i)
+		{
+			SortedBones[i].Index = i;
+		}
+	}
 	Bones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
