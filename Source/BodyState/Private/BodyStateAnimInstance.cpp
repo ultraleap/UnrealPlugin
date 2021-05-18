@@ -148,7 +148,7 @@ TArray<int32> UBodyStateAnimInstance::SelectBones(const TArray<FString>& Definit
 
 	for (auto& Definition : Definitions)
 	{
-		for (auto& Bone : BoneLookupList.Bones)
+		for (auto& Bone : BoneLookupList.SortedBones)
 		{
 			const FString& CompareString = Bone.BoneName.ToString().ToLower();
 			if (CompareString.Contains(Definition))
@@ -193,7 +193,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	WristBone = SelectFirstBone(WristNames);
 	LowerArmBone = SelectFirstBone(ArmNames);
 	// Get all the child bones with that parent index
-	for (auto& Bone : BoneLookupList.Bones)
+	for (auto& Bone : BoneLookupList.SortedBones)
 	{
 		const FString& CompareString = Bone.BoneName.ToString().ToLower();
 
@@ -218,7 +218,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			PinkyBone = Bone.Index;
 		}
 	}
-	int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(IndexBone);
+	int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(BoneLookupList.TreeIndexFromSortedIndex(IndexBone));
 	int32 BonesPerFinger = LongestChildTraverse + 1;
 
 	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
@@ -228,12 +228,12 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	{
 		if (LowerArmBone >= 0)
 		{
-			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.Bones[LowerArmBone]);
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.SortedBones[LowerArmBone]);
 		}
 
 		if (WristBone >= 0)
 		{
-			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[WristBone]);
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.SortedBones[WristBone]);
 		}
 
 		if (ThumbBone >= 0)
@@ -291,11 +291,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	{
 		if (LowerArmBone >= 0)
 		{
-			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.Bones[LowerArmBone]);
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.SortedBones[LowerArmBone]);
 		}
 		if (WristBone >= 0)
 		{
-			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[WristBone]);
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.SortedBones[WristBone]);
 		}
 		if (ThumbBone >= 0)
 		{
@@ -666,12 +666,12 @@ void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, in
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
 {
 	int32 FingerRoot = (int32) BoneType;
-	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), BoneLookupList.Bones[BoneIndex]);
-	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), BoneLookupList.Bones[BoneIndex + 1]);
-	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), BoneLookupList.Bones[BoneIndex + 2]);
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), BoneLookupList.SortedBones[BoneIndex]);
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), BoneLookupList.SortedBones[BoneIndex + 1]);
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), BoneLookupList.SortedBones[BoneIndex + 2]);
 	if (InBonesPerFinger > 3)
 	{
-		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), BoneLookupList.Bones[BoneIndex + 3]);
+		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), BoneLookupList.SortedBones[BoneIndex + 3]);
 	}
 }
 
@@ -850,6 +850,21 @@ TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 
 void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton)
 {
+	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
+	{
+		FBodyStateIndexedBone Bone;
+		Bone.BoneName = RefSkeleton.GetBoneName(i);
+		Bone.ParentIndex = RefSkeleton.GetParentIndex(i);
+		Bone.Index = i;
+		SortedBones.Add(Bone);
+	}
+	SortedBones.Sort();
+
+	for (int i = 0; i < SortedBones.Num(); ++i)
+	{
+		SortedBones[i].Index = i;
+	}
+
 	Bones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
@@ -871,7 +886,18 @@ void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& Ref
 		}
 	}
 }
-
+int32 FBodyStateIndexedBoneList::TreeIndexFromSortedIndex(int32 SortedIndex)
+{
+	auto& Bone = SortedBones[SortedIndex];
+	for (auto& BoneTreeBone : Bones)
+	{
+		if (BoneTreeBone.BoneName == Bone.BoneName)
+		{
+			return BoneTreeBone.Index;
+		}
+	}
+	return 0;
+}
 int32 FBodyStateIndexedBoneList::LongestChildTraverseForBone(int32 BoneIndex)
 {
 	auto& Bone = Bones[BoneIndex];
@@ -892,4 +918,8 @@ int32 FBodyStateIndexedBoneList::LongestChildTraverseForBone(int32 BoneIndex)
 		}
 		return Count + 1;
 	}
+}
+FORCEINLINE bool FBodyStateIndexedBone::operator<(const FBodyStateIndexedBone& Other) const
+{
+	return BoneName < Other.BoneName;
 }

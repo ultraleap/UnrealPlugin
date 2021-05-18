@@ -31,11 +31,13 @@ struct BODYSTATE_API FBodyStateIndexedBone
 		Index = -1;
 		Children.Empty();
 	}
+	FORCEINLINE bool operator<(const FBodyStateIndexedBone& other) const;
 };
 
 struct FBodyStateIndexedBoneList
 {
 	TArray<FBodyStateIndexedBone> Bones;
+	TArray<FBodyStateIndexedBone> SortedBones;
 	int32 RootBoneIndex;
 
 	// run after filling our index
@@ -47,6 +49,7 @@ struct FBodyStateIndexedBoneList
 	{
 		RootBoneIndex = 0;
 	}
+	int32 TreeIndexFromSortedIndex(int32 SortedIndex);
 };
 
 // C++ only struct used for cached bone lookup
