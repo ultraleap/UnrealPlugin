@@ -144,6 +144,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bDetectHandRotationDuringAutoMapping;
 
+	/** Whether the anim instance should map the skeleton rotation on auto map*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	bool bIncludeMetaCarpels;
+
 	/** Sort the bone names alphabetically when auto mapping rather than by bone order*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bUseSortedBoneNames;

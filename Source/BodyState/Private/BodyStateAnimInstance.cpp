@@ -17,6 +17,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	// Defaults
 	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
+	bIncludeMetaCarpels = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 }
@@ -225,6 +226,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	}
 	int32 BonesPerFinger = LongestChildTraverse + 1;
 
+	// allow the user to turn off metacarpels
+	if (!bIncludeMetaCarpels)
+	{
+		BonesPerFinger = 3;
+	}
 	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
 
 	// Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
