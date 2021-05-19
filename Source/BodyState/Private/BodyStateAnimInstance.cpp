@@ -188,9 +188,6 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	int32 WristBone = InvalidBone;
 	int32 LowerArmBone = InvalidBone;
 
-	TArray<FString> WristNames = {"wrist", "hand", "palm"};
-	TArray<FString> ArmNames = {"elbow", "upperArm"};
-
 	WristBone = SelectFirstBone(SearchNames.WristNames);
 	LowerArmBone = SelectFirstBone(SearchNames.ArmNames);
 	ThumbBone = SelectFirstBone(SearchNames.ThumbNames);
