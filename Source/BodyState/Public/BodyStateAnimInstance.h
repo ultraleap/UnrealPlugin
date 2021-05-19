@@ -180,7 +180,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bDetectHandRotationDuringAutoMapping;
 
-	/** Whether the anim instance should map the skeleton rotation on auto map*/
+	/** Whether to include the metacarpels bones when auto mapping (this can distort the palm mesh)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bIncludeMetaCarpels;
 
