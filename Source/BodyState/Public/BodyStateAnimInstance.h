@@ -125,7 +125,43 @@ struct FMappedBoneAnimData
 	bool BoneHasValidTags(const UBodyStateBone* QueryBone);
 	bool SkeletonHasValidTags();
 };
+USTRUCT(BlueprintType)
+struct FBoneSearchNames
+{
+	GENERATED_BODY()
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> ArmNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> WristNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> ThumbNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> IndexNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> MiddleNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> RingNames;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<FString> PinkyNames;
+
+	FBoneSearchNames()
+	{
+		ArmNames = {"elbow", "upperArm"};
+		WristNames = {"wrist", "hand", "palm"};
+		ThumbNames = {"thumb"};
+		IndexNames = {"index"};
+		MiddleNames = {"middle"};
+		RingNames = {"ring"};
+		PinkyNames = {"pinky", "little"};
+	}
+};
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
 class UBodyStateAnimInstance : public UAnimInstance
 {
@@ -151,6 +187,10 @@ public:
 	/** Sort the bone names alphabetically when auto mapping rather than by bone order*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bUseSortedBoneNames;
+
+	/** Auto detection names (e.g. index thumb etc.)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	FBoneSearchNames SearchNames;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	EBodyStateAutoRigType AutoMapTarget;
@@ -229,5 +269,7 @@ protected:
 
 	static void CreateEmptyBoneMap(
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType);
+
 	static const int32 InvalidBone = -1;
+	static const int32 NoMetaCarpelsFingerBoneCount = 3;
 };

@@ -191,35 +191,15 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	TArray<FString> WristNames = {"wrist", "hand", "palm"};
 	TArray<FString> ArmNames = {"elbow", "upperArm"};
 
-	WristBone = SelectFirstBone(WristNames);
-	LowerArmBone = SelectFirstBone(ArmNames);
-	// Get all the child bones with that parent index
-	for (auto& Bone : BoneLookupList.SortedBones)
-	{
-		const FString& CompareString = Bone.BoneName.ToString().ToLower();
+	WristBone = SelectFirstBone(SearchNames.WristNames);
+	LowerArmBone = SelectFirstBone(SearchNames.ArmNames);
+	ThumbBone = SelectFirstBone(SearchNames.ThumbNames);
+	IndexBone = SelectFirstBone(SearchNames.IndexNames);
+	MiddleBone = SelectFirstBone(SearchNames.MiddleNames);
+	RingBone = SelectFirstBone(SearchNames.RingNames);
+	PinkyBone = SelectFirstBone(SearchNames.PinkyNames);
 
-		if ((ThumbBone == InvalidBone) && CompareString.Contains(TEXT("thumb")))
-		{
-			ThumbBone = Bone.Index;
-		}
-		if ((IndexBone == InvalidBone) && CompareString.Contains(TEXT("index")))
-		{
-			IndexBone = Bone.Index;
-		}
-		if ((MiddleBone == InvalidBone) && CompareString.Contains(TEXT("middle")))
-		{
-			MiddleBone = Bone.Index;
-		}
-		if ((RingBone == InvalidBone) && CompareString.Contains(TEXT("ring")))
-		{
-			RingBone = Bone.Index;
-		}
-		if ((PinkyBone == InvalidBone) && (CompareString.Contains(TEXT("pinky")) || CompareString.Contains(TEXT("little"))))
-		{
-			PinkyBone = Bone.Index;
-		}
-	}
-	int32 LongestChildTraverse = 3;
+	int32 LongestChildTraverse = NoMetaCarpelsFingerBoneCount;
 	if (IndexBone > InvalidBone)
 	{
 		LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(BoneLookupList.TreeIndexFromSortedIndex(IndexBone));
@@ -229,7 +209,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// allow the user to turn off metacarpels
 	if (!bIncludeMetaCarpels)
 	{
-		BonesPerFinger = 3;
+		BonesPerFinger = NoMetaCarpelsFingerBoneCount;
 	}
 	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
 
@@ -253,7 +233,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (IndexBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_L, IndexBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -264,7 +244,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (MiddleBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L, MiddleBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -275,7 +255,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (RingBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_L, RingBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -286,7 +266,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (PinkyBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_L, PinkyBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -314,7 +294,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (IndexBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_R, IndexBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -325,7 +305,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (MiddleBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R, MiddleBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -336,7 +316,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (RingBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_R, RingBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -347,7 +327,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (PinkyBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R, PinkyBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -714,7 +694,7 @@ void UBodyStateAnimInstance::AddEmptyFingerToMap(EBodyStateBasicBoneType BoneTyp
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), FBodyStateIndexedBone());
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), FBodyStateIndexedBone());
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), FBodyStateIndexedBone());
-	if (InBonesPerFinger > 3)
+	if (InBonesPerFinger > NoMetaCarpelsFingerBoneCount)
 	{
 		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), FBodyStateIndexedBone());
 	}
@@ -727,7 +707,7 @@ void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, in
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), BoneLookupList.SortedBones[BoneIndex]);
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), BoneLookupList.SortedBones[BoneIndex + 1]);
 	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), BoneLookupList.SortedBones[BoneIndex + 2]);
-	if (InBonesPerFinger > 3)
+	if (InBonesPerFinger > NoMetaCarpelsFingerBoneCount)
 	{
 		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), BoneLookupList.SortedBones[BoneIndex + 3]);
 	}
