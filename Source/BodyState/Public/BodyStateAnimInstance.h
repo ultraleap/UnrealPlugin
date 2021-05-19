@@ -117,6 +117,7 @@ struct FMappedBoneAnimData
 		OffsetTransform.SetScale3D(FVector(1.f));
 		PreBaseRotation = FRotator(ForceInitToZero);
 		TrackingTagLimit.Empty();
+		AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 	}
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);

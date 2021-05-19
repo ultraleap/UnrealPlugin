@@ -672,8 +672,11 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 	}
 	if (bDetectHandRotationDuringAutoMapping)
 	{
-		FRotator WristRotation = EstimateAutoMapRotation(ForMap, RigTargetType);
-		//	ForMap.OffsetTransform.SetRotation(FQuat(WristRotation));
+		EstimateAutoMapRotation(ForMap, RigTargetType);
+	}
+	else
+	{
+		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 	}
 	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
