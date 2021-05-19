@@ -562,6 +562,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 
 	// In unity, this came from the wrist in the world/scene coords
 	FQuat WristPoseQuat(WristPose.GetRotation());
+
 	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
 
 	// In unreal this is the reference direction for the anim system
@@ -589,6 +590,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 			WristRotation += FRotator(0, -90, 90);
 		}
 	}
+	ForMap.AutoCorrectRotation = FQuat(WristRotation);
 	ForMap.IsFlippedByScale = IsFlippedModel;
 	ForMap.bShouldDeformMesh = !IsFlippedModel;
 	return WristRotation;
@@ -671,7 +673,7 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 	if (bDetectHandRotationDuringAutoMapping)
 	{
 		FRotator WristRotation = EstimateAutoMapRotation(ForMap, RigTargetType);
-		ForMap.OffsetTransform.SetRotation(FQuat(WristRotation));
+		//	ForMap.OffsetTransform.SetRotation(FQuat(WristRotation));
 	}
 	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults

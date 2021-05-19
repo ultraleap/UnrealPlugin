@@ -50,8 +50,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
 
-	// use original quat calc one liner
-	static const bool UseOldQuat = true;
 	// used to be in the event graph for the anim blueprints
 	// do nothing if not tracking
 	bool IsTracking = false;
@@ -124,16 +122,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
 		{
-			if (UseOldQuat)
-			{
-				BoneQuat =
-					MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
-			}
-			else
-			{
-				BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
-				BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
-			}
+			BoneQuat = MappedBoneAnimData.AutoCorrectRotation * (MappedBoneAnimData.OffsetTransform.GetRotation() *
+																	(BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion()));
 		}
 
 		NewBoneTM.SetRotation(BoneQuat);
@@ -141,8 +131,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		if (MappedBoneAnimData.bShouldDeformMesh)
 		{
 			const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
-			// const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
-			NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+			const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+			NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 		}
 		// wrist only, removes the need for a wrist modify node in the anim blueprint
 		else
@@ -154,9 +144,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 				{
 					BoneTranslation.X = -BoneTranslation.X;
 				}
-				// const FVector RotatedTranslation =
-				// MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
-				NewBoneTM.SetTranslation(BoneTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+				const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+				NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
 		}
 
@@ -201,16 +190,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		// Apply pre and post adjustment (Post * (Input * Pre) )
 		if (!MappedBoneAnimData.PreBaseRotation.ContainsNaN())
 		{
-			if (UseOldQuat)
-			{
-				BoneQuat =
-					MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
-			}
-			else
-			{
-				BoneQuat *= MappedBoneAnimData.PreBaseRotation.Quaternion();
-				BoneQuat *= MappedBoneAnimData.OffsetTransform.GetRotation();
-			}
+			BoneQuat =
+				MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
 		}
 
 		NewBoneTM.SetRotation(BoneQuat);

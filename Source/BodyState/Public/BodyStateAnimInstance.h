@@ -105,6 +105,9 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	bool IsFlippedByScale;
 
+	/** auto calculated rotation to correct/normalize model rotation*/
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "BS Anim Instance - Auto Map")
+	FQuat AutoCorrectRotation;
 	// Data structure containing a parent -> child ordered bone list
 	TArray<CachedBoneLink> CachedBoneList;
 
