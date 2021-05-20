@@ -802,7 +802,11 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		BodyStateSkeleton->bTrackingActive = !bFreezeTracking;
 	}
 }
-
+// static
+const FName& UBodyStateAnimInstance::GetMeshBoneNameFromCachedBoneLink(const FCachedBoneLink& CachedBoneLink)
+{
+	return CachedBoneLink.MeshBone.BoneName;
+}
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
 	// Clear our current list
@@ -823,7 +827,7 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 
 	for (auto Pair : BoneMap)
 	{
-		CachedBoneLink TraverseResult;
+		FCachedBoneLink TraverseResult;
 
 		TraverseResult.MeshBone = Pair.Value.MeshBone;
 		TraverseResult.MeshBone.Initialize(LinkedSkeleton);
@@ -836,7 +840,7 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 	}
 
 	// 2) reorder according to shortest traverse list
-	CachedBoneList.Sort([](const CachedBoneLink& One, const CachedBoneLink& Two) {
+	CachedBoneList.Sort([](const FCachedBoneLink& One, const FCachedBoneLink& Two) {
 		// return One.TraverseCount < Two.TraverseCount;
 		return One.MeshBone.BoneIndex < Two.MeshBone.BoneIndex;
 	});

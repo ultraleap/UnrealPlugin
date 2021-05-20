@@ -53,9 +53,14 @@ struct FBodyStateIndexedBoneList
 };
 
 // C++ only struct used for cached bone lookup
-struct CachedBoneLink
+USTRUCT(BlueprintType)
+struct FCachedBoneLink
 {
+	GENERATED_USTRUCT_BODY()
+
 	FBoneReference MeshBone;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
 	UBodyStateBone* BSBone;
 };
 
@@ -109,7 +114,8 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "BS Anim Instance - Auto Map")
 	FQuat AutoCorrectRotation;
 	// Data structure containing a parent -> child ordered bone list
-	TArray<CachedBoneLink> CachedBoneList;
+	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
+	TArray<FCachedBoneLink> CachedBoneList;
 
 	FMappedBoneAnimData()
 	{
@@ -237,6 +243,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	static FName GetBoneNameFromRef(const FBPBoneReference& BoneRef);
+
+	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
+	static const FName& GetMeshBoneNameFromCachedBoneLink(const FCachedBoneLink& CachedBoneLink);
 
 protected:
 	// traverse a bone index node until you hit -1, count the hops

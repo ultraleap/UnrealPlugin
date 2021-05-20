@@ -78,8 +78,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		BlendWeight = 0;
 	}
 
-	CachedBoneLink ArmCachedBone;
-	CachedBoneLink WristCachedBone;
+	FCachedBoneLink ArmCachedBone;
+	FCachedBoneLink WristCachedBone;
 
 	// SN: there should be an array re-ordered by hierarchy (parents -> children order)
 	for (auto CachedBone : MappedBoneAnimData.CachedBoneList)
@@ -131,7 +131,9 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		if (MappedBoneAnimData.bShouldDeformMesh)
 		{
 			const FVector& BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
-			const FVector RotatedTranslation = MappedBoneAnimData.OffsetTransform.GetRotation().RotateVector(BoneTranslation);
+			FQuat AdditionalRotation = MappedBoneAnimData.AutoCorrectRotation * MappedBoneAnimData.OffsetTransform.GetRotation();
+
+			const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
 			NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 		}
 		// wrist only, removes the need for a wrist modify node in the anim blueprint
