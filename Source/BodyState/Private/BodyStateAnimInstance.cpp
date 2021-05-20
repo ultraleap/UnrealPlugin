@@ -335,7 +335,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 	}
 	// create empty skeleton for easy config
-	if (AutoBoneMap.Num() == 0)
+	if (AutoBoneMap.Num() < 2)
 	{
 		CreateEmptyBoneMap(AutoBoneMap, HandType);
 	}
@@ -468,11 +468,18 @@ void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
 }
 
 FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
-	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems)
+	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound)
 {
 	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
 	int Index = Names.Find(Bone.BoneName);
-	return NodeItems[Index].Transform;
+
+	BoneFound = false;
+	if (Index > InvalidBone)
+	{
+		BoneFound = true;
+		return NodeItems[Index].Transform;
+	}
+	return FTransform();
 }
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
@@ -505,12 +512,21 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_R;
 		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
 	}
-	FBoneReference IndexBone = ForMap.BoneMap.Find(Index)->MeshBone;
+
+	auto RefIndex = ForMap.BoneMap.Find(Index);
+
+	if (!RefIndex)
+	{
+		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+
+		return FRotator(ForceInitToZero);
+	}
+	FBoneReference IndexBone = RefIndex->MeshBone;
 
 	EBodyStateAutoRigType RigMeshType = EBodyStateAutoRigType::HAND_LEFT;
 
 	FString IndexName(IndexBone.BoneName.ToString().ToLower());
-	if (IndexName.Contains("_r") || IndexName.Contains("r_"))
+	if (IndexName.Contains("_r") || IndexName.Contains("r_") || IndexName.Contains("r-") || IndexName.Contains("-r"))
 	{
 		RigMeshType = EBodyStateAutoRigType::HAND_RIGHT;
 	}
@@ -518,11 +534,22 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		IsFlippedModel = true;
 	}
+	bool IndexBoneFound = false;
+	bool MiddleBoneFound = false;
+	bool PinkyBoneFound = false;
+	bool WristBoneFound = false;
 
-	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems);
-	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems);
-	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems);
-	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems);
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems, MiddleBoneFound);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
+
+	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
+	{
+		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+
+		return FRotator(ForceInitToZero);
+	}
 
 	// Calculate the Model's rotation
 	// direct port from c# Unity version HandBinderAutoBinder.cs
@@ -653,14 +680,7 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 			ForMap.PreBaseRotation = FRotator(0, 180, 90);
 		}
 	}
-	if (bDetectHandRotationDuringAutoMapping)
-	{
-		EstimateAutoMapRotation(ForMap, RigTargetType);
-	}
-	else
-	{
-		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
-	}
+
 	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
@@ -768,6 +788,42 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 
 			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
 			AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+		}
+	}
+
+	// One hand mapping
+	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
+	{
+		if (MappedBoneList.Num() > 0)
+		{
+			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(OneHandMap, AutoMapTarget);
+			}
+			else
+			{
+				//	OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+	else
+	{
+		// Make two maps if missing
+		if (MappedBoneList.Num() > 1)
+		{
+			// Map one hand each
+			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
+			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+				EstimateAutoMapRotation(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+			}
+			else
+			{
+				// RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
 		}
 	}
 

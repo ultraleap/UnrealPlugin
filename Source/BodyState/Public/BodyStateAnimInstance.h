@@ -88,11 +88,11 @@ struct FMappedBoneAnimData
 	TArray<FString> TrackingTagLimit;
 
 	/** Offset rotation base applied before given rotation (will rotate input) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance", meta = (MakeEditWidget = true))
 	FRotator PreBaseRotation;
 
 	/** Transform applied after rotation changes to all bones in map. Consider this an offset */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance", meta = (MakeEditWidget = true))
 	FTransform OffsetTransform;
 
 	/** Matching list of body state bone keys mapped to local mesh bone names */
@@ -111,7 +111,7 @@ struct FMappedBoneAnimData
 	bool IsFlippedByScale;
 
 	/** auto calculated rotation to correct/normalize model rotation*/
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "BS Anim Instance - Auto Map")
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
 	FQuat AutoCorrectRotation;
 	// Data structure containing a parent -> child ordered bone list
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
@@ -267,7 +267,7 @@ protected:
 	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
-		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems);
+		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound);
 
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);
