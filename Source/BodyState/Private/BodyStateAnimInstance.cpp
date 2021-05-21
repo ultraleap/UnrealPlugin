@@ -586,6 +586,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		else
 		{
 			WristRotation += FRotator(0, 90, -90);
+			Component->SetRelativeScale3D(FVector(1, 1, 1));
 		}
 	}
 	else
@@ -598,6 +599,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		else
 		{
 			WristRotation += FRotator(0, -90, 90);
+			Component->SetRelativeScale3D(FVector(1, 1, 1));
 		}
 	}
 	ForMap.AutoCorrectRotation = FQuat(WristRotation);
@@ -656,6 +658,8 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 		FTransform WristPose = NodeItems[WristBoneIndex].Transform;
 
 		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
+		// only bone space nodes have the scale set if scale on import is modified
+		ElbowLength *= Component->BoneSpaceTransforms[0].GetScale3D().X;
 	}
 	return ElbowLength;
 }

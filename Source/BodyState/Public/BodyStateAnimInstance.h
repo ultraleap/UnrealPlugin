@@ -104,14 +104,14 @@ struct FMappedBoneAnimData
 	class UBodyStateSkeleton* BodyStateSkeleton;
 
 	/** Skeleton driving mapped data */
-	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
 	float ElbowLength;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
 	bool IsFlippedByScale;
 
 	/** auto calculated rotation to correct/normalize model rotation*/
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
 	FQuat AutoCorrectRotation;
 	// Data structure containing a parent -> child ordered bone list
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
