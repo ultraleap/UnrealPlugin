@@ -40,7 +40,9 @@ protected:
 	const UBodyStateAnimInstance* BSAnimInstance;
 
 private:
+	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM);
 	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM);
 	bool CalcIsTracking();
 	bool CheckInitEvaulate();
+	bool CacheArmOrWrist(const FCachedBoneLink& CachedBone, FCachedBoneLink& ArmCachedBone, FCachedBoneLink& WristCachedBone);
 };
