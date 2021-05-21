@@ -38,4 +38,9 @@ protected:
 	bool WorldIsGame;
 	AActor* OwningActor;
 	const UBodyStateAnimInstance* BSAnimInstance;
+
+private:
+	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM);
+	bool CalcIsTracking();
+	bool CheckInitEvaulate();
 };
