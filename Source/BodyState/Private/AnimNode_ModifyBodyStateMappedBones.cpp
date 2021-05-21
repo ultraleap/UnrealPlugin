@@ -29,6 +29,16 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 {
 	Super::EvaluateComponentPose_AnyThread(Output);
 
+	if (!BSAnimInstance)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow,
+				TEXT("Ultraleap Modify Mapped Bones - No Bodystate Anim Instance - Reparent your anim instance to "
+					 "BodyStateAnimInstance"));
+		}
+		return;
+	}
 	if (BSAnimInstance->MappedBoneList.Num() == 0)
 	{
 		return;
