@@ -803,7 +803,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				//	OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
 		}
 	}
@@ -822,7 +822,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				// RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
 		}
 	}
