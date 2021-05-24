@@ -659,7 +659,7 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 
 		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
 		// only bone space nodes have the scale set if scale on import is modified
-		ElbowLength *= Component->BoneSpaceTransforms[0].GetScale3D().X;
+		ElbowLength *= Component->GetBoneSpaceTransforms()[0].GetScale3D().X;
 	}
 	return ElbowLength;
 }
