@@ -132,24 +132,18 @@ bool FAnimNode_ModifyBodyStateMappedBones::CheckInitEvaulate()
 	}
 	return true;
 }
-bool FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
+void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 	const FCachedBoneLink& CachedBone, FCachedBoneLink& ArmCachedBone, FCachedBoneLink& WristCachedBone)
 {
-	bool SkipBone = false;
-	// based on the unity version, we use an offset from the wrist for the elbow
-	// so skip, wait for wrist to be cached, then calc outside this loop
 	// these names are constant as they're the bodystate names
 	if (CachedBone.BSBone->Name.Contains("lowerarm"))
 	{
 		ArmCachedBone = CachedBone;
-		SkipBone = true;
 	}
 	if (CachedBone.BSBone->Name.Contains("wrist"))
 	{
 		WristCachedBone = CachedBone;
 	}
-
-	return SkipBone;
 }
 
 void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComponentSpacePoseContext& Output)
