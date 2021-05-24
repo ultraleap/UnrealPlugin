@@ -468,7 +468,7 @@ void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
 }
 
 FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
-	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound)
+	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const
 {
 	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
 	int Index = Names.Find(Bone.BoneName);
@@ -480,6 +480,54 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 		return NodeItems[Index].Transform;
 	}
 	return FTransform();
+}
+// useful for comparing with Unity when debugging (unused)
+void Normalize360(FRotator& InPlaceRot)
+{
+	if (InPlaceRot.Yaw < 0)
+	{
+		InPlaceRot.Yaw += 360;
+	}
+	if (InPlaceRot.Pitch < 0)
+	{
+		InPlaceRot.Pitch += 360;
+	}
+	if (InPlaceRot.Roll < 0)
+	{
+		InPlaceRot.Roll += 360;
+	}
+}
+FTransform UBodyStateAnimInstance::GetCurrentWristPose(
+	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
+{
+	FTransform Ret;
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
+		return Ret;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	bool IsFlippedModel = false;
+
+	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
+	}
+	bool WristBoneFound = false;
+	Ret = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
+	return Ret;
 }
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
@@ -567,13 +615,10 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
 	ModelRotation = LookRotation(Up, Forward);
-	// Calculate the difference between the Calculated hand basis and the wrist's rotation
-	FQuat ModelQuat(ModelRotation);
 
 	// In unity, this came from the wrist in the world/scene coords
 	FQuat WristPoseQuat(WristPose.GetRotation());
-
-	FRotator WristRotation = (ModelQuat.Inverse() * WristPoseQuat).Rotator();
+	FRotator WristRotation = (ModelRotation.Inverse() * WristPoseQuat).Rotator();
 
 	// In unreal this is the reference direction for the anim system
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)

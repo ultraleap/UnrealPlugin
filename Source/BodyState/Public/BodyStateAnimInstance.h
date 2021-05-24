@@ -247,6 +247,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	static const FName& GetMeshBoneNameFromCachedBoneLink(const FCachedBoneLink& CachedBoneLink);
 
+	UFUNCTION()
+	FTransform GetCurrentWristPose(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const;
+
 protected:
 	// traverse a bone index node until you hit -1, count the hops
 	int32 TraverseLengthForIndex(int32 Index);
@@ -267,7 +270,7 @@ protected:
 	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
-		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound);
+		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;
 
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);
