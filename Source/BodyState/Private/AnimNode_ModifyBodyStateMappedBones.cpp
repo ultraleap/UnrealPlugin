@@ -58,6 +58,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(
 
 				const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
 
+				// this deals with the case where the component's scale has been messed with to flip hands left to right or right to
+				// left
 				const FVector CorrectTranslation = ComponentTransform.InverseTransformVector(RotatedTranslation);
 				NewBoneTM.SetTranslation(CorrectTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
