@@ -268,7 +268,7 @@ protected:
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(
 		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 
-	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	void EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;

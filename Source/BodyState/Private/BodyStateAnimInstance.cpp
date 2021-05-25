@@ -528,7 +528,7 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	return Ret;
 }
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
-FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	FTransform ComponentTransform = Component->GetRelativeTransform();
@@ -542,7 +542,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	if (!INodeMapping)
 	{
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
-		return FRotator();
+		return;
 	}
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
@@ -565,7 +565,7 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 
-		return FRotator(ForceInitToZero);
+		return;
 	}
 	FBoneReference IndexBone = RefIndex->MeshBone;
 	bool IndexBoneFound = false;
@@ -582,9 +582,8 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 
-		return FRotator(ForceInitToZero);
+		return;
 	}
-
 	// IndexPose.SetLocation(ComponentTransform.InverseTransformVector(IndexPose.GetLocation()));
 	// MiddlePose.SetLocation(ComponentTransform.InverseTransformVector(MiddlePose.GetLocation()));
 	// PinkyPose.SetLocation(ComponentTransform.InverseTransformVector(PinkyPose.GetLocation()));
@@ -620,9 +619,8 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		WristRotation += FRotator(0, -90, 90);
 	}
-	ForMap.AutoCorrectRotation = FQuat(WristRotation);
 
-	return WristRotation;
+	ForMap.AutoCorrectRotation = FQuat(WristRotation);
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -842,7 +840,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				//	OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
 		}
 	}
