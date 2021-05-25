@@ -518,8 +518,6 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
-	bool IsFlippedModel = false;
-
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
