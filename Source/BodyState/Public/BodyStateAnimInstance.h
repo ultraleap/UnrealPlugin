@@ -120,6 +120,7 @@ struct FMappedBoneAnimData
 	FMappedBoneAnimData()
 	{
 		bShouldDeformMesh = true;
+		FlipModelLeftRight = false;
 		OffsetTransform.SetScale3D(FVector(1.f));
 		PreBaseRotation = FRotator(ForceInitToZero);
 		TrackingTagLimit.Empty();

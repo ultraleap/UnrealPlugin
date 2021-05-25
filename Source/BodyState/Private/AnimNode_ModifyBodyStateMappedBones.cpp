@@ -29,42 +29,42 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(
 {
 	FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
 
-	if (MappedBoneAnimData.bShouldDeformMesh)
+	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
+	// if (CachedBone.BSBone->Name.Contains("wrist") || CachedBone.BSBone->Name.Contains("arm"))
+	{
+		FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
+
+		if (CachedBone.BSBone->Name.Contains("arm") && WristCachedBone.MeshBone.BoneIndex > -1)
+		{
+			auto WristPosition = WristCachedBone.BSBone->BoneData.Transform.GetLocation();
+			auto ElbowForward = FRotationMatrix(CachedBone.BSBone->BoneData.Transform.Rotator()).GetScaledAxis(EAxis::X);
+			auto ElbowPosition = WristPosition - ((MappedBoneAnimData.ElbowLength * ElbowForward) +
+													 MappedBoneAnimData.OffsetTransform.GetLocation());
+
+			const FVector CorrectTranslation =
+				ComponentTransform.InverseTransformVector(ElbowPosition + MappedBoneAnimData.OffsetTransform.GetLocation());
+
+			NewBoneTM.SetTranslation(CorrectTranslation);
+		}
+		else
+		{
+			FQuat AdditionalRotation = MappedBoneAnimData.OffsetTransform.GetRotation();
+
+			const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
+
+			// this deals with the case where the component's scale has been messed with to flip hands left to right or right to
+			// left
+			const FVector CorrectTranslation =
+				ComponentTransform.InverseTransformVector(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+			NewBoneTM.SetTranslation(CorrectTranslation);
+		}
+	}
+	else if (MappedBoneAnimData.bShouldDeformMesh)
 	{
 		FQuat AdditionalRotation = MappedBoneAnimData.AutoCorrectRotation * MappedBoneAnimData.OffsetTransform.GetRotation();
 
 		const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
 		NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
-	}
-	// wrist only, removes the need for a wrist modify node in the anim blueprint
-	else
-	{
-		if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
-		// if (CachedBone.BSBone->Name.Contains("wrist") || CachedBone.BSBone->Name.Contains("arm"))
-		{
-			if (CachedBone.BSBone->Name.Contains("arm") && WristCachedBone.MeshBone.BoneIndex > -1)
-			{
-				auto WristPosition = WristCachedBone.BSBone->BoneData.Transform.GetLocation();
-				auto ElbowForward = FRotationMatrix(CachedBone.BSBone->BoneData.Transform.Rotator()).GetScaledAxis(EAxis::X);
-				auto ElbowPosition = WristPosition - ((MappedBoneAnimData.ElbowLength * ElbowForward) +
-														 MappedBoneAnimData.OffsetTransform.GetLocation());
-
-				NewBoneTM.SetTranslation(ElbowPosition);
-			}
-			else
-			{
-				FQuat AdditionalRotation = MappedBoneAnimData.OffsetTransform.GetRotation();
-				FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
-
-				const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
-
-				// this deals with the case where the component's scale has been messed with to flip hands left to right or right to
-				// left
-				const FVector CorrectTranslation = ComponentTransform.InverseTransformVector(
-					RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
-				NewBoneTM.SetTranslation(CorrectTranslation);
-			}
-		}
 	}
 }
 void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM)
