@@ -758,7 +758,22 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	}
 	return ReferenceMap;
 }
+void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForMap)
+{
+	// the user can manually specify that the model is flipped (left to right or right to left)
+	// Setting the scale on the component flips the view
+	// if we do this here, the anim preview works as well as in scene and in actors
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
+	if (Component && ForMap.FlipModelLeftRight)
+	{
+		Component->SetRelativeScale3D(FVector(1, 1, -1));
+	}
+	else
+	{
+		Component->SetRelativeScale3D(FVector(1, 1, 1));
+	}
+}
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
@@ -816,6 +831,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			{
 				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
+			HandleLeftRightFlip(OneHandMap);
 		}
 	}
 	else
@@ -835,6 +851,8 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			{
 				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
+			HandleLeftRightFlip(LeftHandMap);
+			HandleLeftRightFlip(RightHandMap);
 		}
 	}
 

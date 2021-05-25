@@ -279,6 +279,8 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	void HandleLeftRightFlip(const FMappedBoneAnimData& ForMap);
+
 	static void CreateEmptyBoneMap(
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType);
 
