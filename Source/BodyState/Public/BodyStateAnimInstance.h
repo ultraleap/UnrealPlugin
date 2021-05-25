@@ -108,7 +108,7 @@ struct FMappedBoneAnimData
 	float ElbowLength;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
-	bool IsFlippedByScale;
+	bool FlipModelLeftRight;
 
 	/** auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))

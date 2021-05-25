@@ -50,19 +50,16 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(
 														 MappedBoneAnimData.OffsetTransform.GetLocation());
 
 				NewBoneTM.SetTranslation(ElbowPosition);
-
-				//	UE_LOG(LogTemp, Log, TEXT("Wrist pos %f %f %f"), WristPosition.X, WristPosition.Y, WristPosition.Z );
 			}
 			else
 			{
-				if (MappedBoneAnimData.IsFlippedByScale)
-				{
-					BoneTranslation.X = -BoneTranslation.X;
-				}
 				FQuat AdditionalRotation = MappedBoneAnimData.OffsetTransform.GetRotation();
+				FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
 
 				const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
-				NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+
+				const FVector CorrectTranslation = ComponentTransform.InverseTransformVector(RotatedTranslation);
+				NewBoneTM.SetTranslation(CorrectTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
 			}
 		}
 	}

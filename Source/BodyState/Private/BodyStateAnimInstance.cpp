@@ -545,8 +545,6 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
-	bool IsFlippedModel = false;
-
 	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_L;
@@ -568,18 +566,6 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 		return FRotator(ForceInitToZero);
 	}
 	FBoneReference IndexBone = RefIndex->MeshBone;
-
-	EBodyStateAutoRigType RigMeshType = EBodyStateAutoRigType::HAND_LEFT;
-
-	FString IndexName(IndexBone.BoneName.ToString().ToLower());
-	if (IndexName.Contains("_r") || IndexName.Contains("r_") || IndexName.Contains("r-") || IndexName.Contains("-r"))
-	{
-		RigMeshType = EBodyStateAutoRigType::HAND_RIGHT;
-	}
-	if (RigMeshType != RigTargetType)
-	{
-		IsFlippedModel = true;
-	}
 	bool IndexBoneFound = false;
 	bool MiddleBoneFound = false;
 	bool PinkyBoneFound = false;
@@ -621,33 +607,13 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	// In unreal this is the reference direction for the anim system
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		if (IsFlippedModel)
-		{
-			WristRotation += FRotator(0, -90, 90);
-			Component->SetRelativeScale3D(FVector(-1, 1, 1));
-		}
-		else
-		{
-			WristRotation += FRotator(0, 90, -90);
-			Component->SetRelativeScale3D(FVector(1, 1, 1));
-		}
+		WristRotation += FRotator(0, 90, -90);
 	}
 	else
 	{
-		if (IsFlippedModel)
-		{
-			WristRotation += FRotator(0, 90, -90);
-			Component->SetRelativeScale3D(FVector(-1, 1, 1));
-		}
-		else
-		{
-			WristRotation += FRotator(0, -90, 90);
-			Component->SetRelativeScale3D(FVector(1, 1, 1));
-		}
+		WristRotation += FRotator(0, -90, 90);
 	}
 	ForMap.AutoCorrectRotation = FQuat(WristRotation);
-	ForMap.IsFlippedByScale = IsFlippedModel;
-	ForMap.bShouldDeformMesh = !IsFlippedModel;
 	return WristRotation;
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
@@ -667,8 +633,6 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
-
-	bool IsFlippedModel = false;
 
 	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
