@@ -765,7 +765,11 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForM
 	// if we do this here, the anim preview works as well as in scene and in actors
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
-	if (Component && ForMap.FlipModelLeftRight)
+	if (!Component)
+	{
+		return;
+	}
+	if (ForMap.FlipModelLeftRight)
 	{
 		Component->SetRelativeScale3D(FVector(1, 1, -1));
 	}
