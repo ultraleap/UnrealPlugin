@@ -119,7 +119,7 @@ struct FMappedBoneAnimData
 
 	FMappedBoneAnimData()
 	{
-		bShouldDeformMesh = true;
+		bShouldDeformMesh = false;
 		FlipModelLeftRight = false;
 		OffsetTransform.SetScale3D(FVector(1.f));
 		PreBaseRotation = FRotator(ForceInitToZero);
@@ -270,8 +270,14 @@ protected:
 
 	void EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+
+	// using node items
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;
+
+	// using component space transforms array
+	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
+		const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms, bool& BoneFound) const;
 
 	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);

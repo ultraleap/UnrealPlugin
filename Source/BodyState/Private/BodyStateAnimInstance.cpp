@@ -481,6 +481,22 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	}
 	return FTransform();
 }
+FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
+	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
+	bool& BoneFound) const
+{
+	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
+	int Index = Names.Find(Bone.BoneName);
+
+	BoneFound = false;
+	if (Index > InvalidBone && Index < ComponentSpaceTransforms.Num())
+	{
+		BoneFound = true;
+		return ComponentSpaceTransforms[Index];
+	}
+	return FTransform();
+}
+
 // useful for comparing with Unity when debugging (unused)
 void Normalize360(FRotator& InPlaceRot)
 {
@@ -531,9 +547,8 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
 	FTransform ComponentTransform = Component->GetRelativeTransform();
-	FTransform ComponentToWorld = Component->GetComponentToWorld();
-
 	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	TArray<FName> Names;
@@ -574,10 +589,15 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	bool PinkyBoneFound = false;
 	bool WristBoneFound = false;
 
-	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
+	/*FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
 	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems, MiddleBoneFound);
 	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
-	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);*/
+
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, ComponentSpaceTransforms, IndexBoneFound);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, ComponentSpaceTransforms, MiddleBoneFound);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, ComponentSpaceTransforms, PinkyBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, ComponentSpaceTransforms, WristBoneFound);
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
@@ -604,18 +624,37 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	// In unity, this came from the wrist in the world/scene coords
 	FQuat WristPoseQuat(WristPose.GetRotation());
+
+	// debug
+	FRotator WristSourceRotation = WristPose.GetRotation().Rotator();
+
+	WristPoseQuat = FQuat(WristSourceRotation);
+	Normalize360(WristSourceRotation);
+
+	FRotator ModelDebugRotation = ModelRotation.Rotator();
+	Normalize360(ModelDebugRotation);
+	// end debug
 	FRotator WristRotation = (ModelRotation.Inverse() * WristPoseQuat).Rotator();
+	FRotator WristDebugRotation = WristRotation;
+	Normalize360(WristDebugRotation);
 
 	// In unreal this is the reference direction for the anim system
-	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	/*if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
 		WristRotation += FRotator(0, 90, -90);
 	}
 	else
 	{
 		WristRotation += FRotator(0, -90, 90);
-	}
+	}*/
 
+	if (ForMap.FlipModelLeftRight)
+	{
+		WristRotation += FRotator(0, -90, -90);
+	}
+	WristDebugRotation = WristRotation;
+	Normalize360(WristDebugRotation);
+	//	WristRotation = ComponentTransform.TransformRotation(FQuat(WristRotation)).Rotator();
 	ForMap.AutoCorrectRotation = FQuat(WristRotation);
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
