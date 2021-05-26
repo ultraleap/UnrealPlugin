@@ -69,7 +69,7 @@ public:
 
 	//Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
-
+	void SetTrackingMode(ELeapMode Flag);
 	//BodyState
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;
 	virtual void OnDeviceDetach();
@@ -174,6 +174,9 @@ private:
 	//SVE
 	bool bSceneViewExtensionSet;
 
+
+	// v5 Tracking mode API
+	static bool bUseNewTrackingModeAPI;
 	//Wrapper link
 	FLeapWrapper Leap;
 
@@ -188,6 +191,7 @@ private:
 	virtual void OnFrame(const LEAP_TRACKING_EVENT *frame) override;
 	virtual void OnImage(const LEAP_IMAGE_EVENT *image_event) override;
 	virtual void OnPolicy(const uint32_t current_policies) override;
+	virtual void OnTrackingMode(const eLeapTrackingMode current_tracking_mode) override;
 	virtual void OnLog(
 		const eLeapLogSeverity severity,
 		const int64_t timestamp,

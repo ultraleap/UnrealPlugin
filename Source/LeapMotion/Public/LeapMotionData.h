@@ -14,8 +14,9 @@ enum EHandType
 UENUM(BlueprintType)
 enum ELeapMode
 {
-	LEAP_MODE_VR,
-	LEAP_MODE_DESKTOP
+	LEAP_MODE_VR,			//The tracking mode optimised for head-mounted devices.
+	LEAP_MODE_DESKTOP,		//The tracking mode optimised for desktop devices. Also known as 'Below'
+	LEAP_MODE_SCREENTOP	//The tracking mode optimised for screen top-mounted devices. Also know as 'Above Facing User'
 };
 
 UENUM(BlueprintType)
@@ -44,6 +45,8 @@ enum ELeapPolicyFlag
 	LEAP_POLICY_ALLOW_PAUSE_RESUME, //The policy allowing an application to pause or resume service tracking
 	LEAP_POLICY_MAP_POINTS			//The policy allowing an application to receive per-frame map points
 };
+
+
 
 UENUM(BlueprintType)
 enum ELeapServiceLogLevel

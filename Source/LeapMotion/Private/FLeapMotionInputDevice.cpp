@@ -17,6 +17,7 @@ DECLARE_CYCLE_STAT(TEXT("Leap Game Input and Events"), STAT_LeapInputTick, STATG
 DECLARE_CYCLE_STAT(TEXT("Leap BodyState Tick"), STAT_LeapBodyStateTick, STATGROUP_LeapMotion);
 
 #pragma region Utility
+bool FLeapMotionInputDevice::bUseNewTrackingModeAPI = true;
 //Function call Utility
 void FLeapMotionInputDevice::CallFunctionOnComponents(TFunction< void(ULeapComponent*)> InFunction)
 {
@@ -267,7 +268,22 @@ void FLeapMotionInputDevice::OnPolicy(const uint32_t CurrentPolicies)
 		Component->OnLeapPoliciesUpdated.Broadcast(Flags);
 	});
 }
-
+void FLeapMotionInputDevice::OnTrackingMode(const eLeapTrackingMode CurrentMode)
+{
+	switch (CurrentMode)
+	{
+		case eLeapTrackingMode_Desktop: Options.Mode = LEAP_MODE_DESKTOP; break;
+		case eLeapTrackingMode_HMD: Options.Mode = LEAP_MODE_VR; break;
+		case eLeapTrackingMode_ScreenTop: Options.Mode = LEAP_MODE_SCREENTOP; break;
+	}
+	ELeapMode UpdatedMode = Options.Mode;
+	//Update mode for each component and broadcast current policies
+	CallFunctionOnComponents([&, UpdatedMode](ULeapComponent* Component)
+		{
+			Component->TrackingMode = UpdatedMode;
+			Component->OnLeapTrackingModeUpdated.Broadcast(UpdatedMode);
+		});
+}
 void FLeapMotionInputDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Timestamp, const char* Message)
 {
 	if (!Message)
@@ -491,8 +507,8 @@ void FLeapMotionInputDevice::ParseEvents()
 		LastLeapTime = LeapGetNow();
 
 	CheckHandVisibility();
-	CheckPinchGesture();
 	CheckGrabGesture();
+	CheckPinchGesture();
 
 	//Emit tracking data if it is being captured
 	CallFunctionOnComponents([this](ULeapComponent* Component)
@@ -508,50 +524,60 @@ void FLeapMotionInputDevice::ParseEvents()
 	LastLeapTime = LeapGetNow();
 }
 
-void FLeapMotionInputDevice::CheckHandVisibility() {
-	if (UseTimeBasedVisibilityCheck) {
+void FLeapMotionInputDevice::CheckHandVisibility()
+{
+	if (UseTimeBasedVisibilityCheck)
+	{
 		//Update visible hand list, must happen first
-		if (IsLeftVisible) {
+		if (IsLeftVisible)
+		{
 			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (LeapGetNow() - LastLeapTime);
 		}
-		if (IsRightVisible) {
+		if (IsRightVisible)
+		{
 			TimeSinceLastRightVisible = TimeSinceLastRightVisible + (LeapGetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT) {
-				if (CurrentFrame.LeftHandVisible) {
+			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+			{
+				if (CurrentFrame.LeftHandVisible)
+				{
 					TimeSinceLastLeftVisible = 0;
 					LastLeftHand = Hand;
-					if (!IsLeftVisible) {
+					if (!IsLeftVisible)
+					{
 						IsLeftVisible = true;
 						const bool LeftVisible = true;
 						CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-						{
-							Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-						});
+							{
+								Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+							});
 						CallFunctionOnComponents([Hand](ULeapComponent* Component)
-						{
-							Component->OnHandBeginTracking.Broadcast(Hand);
-						});
+							{
+								Component->OnHandBeginTracking.Broadcast(Hand);
+							});
 					}
 				}
 			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT) {
-				if (CurrentFrame.RightHandVisible) {
+			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+			{
+				if (CurrentFrame.RightHandVisible)
+				{
 					TimeSinceLastRightVisible = 0;
 					LastRightHand = Hand;
-					if (!IsRightVisible) {
+					if (!IsRightVisible)
+					{
 						IsRightVisible = true;
 						const bool RightVisible = true;
 						CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-						{
-							Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-						});
+							{
+								Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+							});
 						CallFunctionOnComponents([Hand](ULeapComponent* Component)
-						{
-							Component->OnHandBeginTracking.Broadcast(Hand);
-						});
+							{
+								Component->OnHandBeginTracking.Broadcast(Hand);
+							});
 					}
 				}
 
@@ -561,34 +587,37 @@ void FLeapMotionInputDevice::CheckHandVisibility() {
 		}
 
 		//Check if hands should no longer be visible
-		if (IsLeftVisible && TimeSinceLastLeftVisible > VisibilityTimeout) {
+		if (IsLeftVisible && TimeSinceLastLeftVisible > VisibilityTimeout)
+		{
 			IsLeftVisible = false;
 			const FLeapHandData EndHand = LastLeftHand;
 			CallFunctionOnComponents([EndHand](ULeapComponent* Component)
-			{
-				Component->OnHandEndTracking.Broadcast(EndHand);
-			});
+				{
+					Component->OnHandEndTracking.Broadcast(EndHand);
+				});
 			const bool LeftVisible = false;
 			CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-			{
-				Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-			});
+				{
+					Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+				});
 		}
-		if (IsRightVisible && TimeSinceLastRightVisible > VisibilityTimeout) {
+		if (IsRightVisible && TimeSinceLastRightVisible > VisibilityTimeout)
+		{
 			IsRightVisible = false;
 			const FLeapHandData EndHand = LastRightHand;
 			CallFunctionOnComponents([EndHand](ULeapComponent* Component)
-			{
-				Component->OnHandEndTracking.Broadcast(EndHand);
-			});
+				{
+					Component->OnHandEndTracking.Broadcast(EndHand);
+				});
 			const bool RightVisible = false;
 			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-			{
-				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-			});
+				{
+					Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+				});
 		}
 	}
-	else { //Use old, frame based checking
+	else
+	{ //Use old, frame based checking
 		//Compare past to present visible hands to determine hand enums.
 		//== change can happen when chirality is incorrect and changes
 		//Hand end tracking must be called first before we call begin tracking
@@ -601,9 +630,9 @@ void FLeapMotionInputDevice::CheckHandVisibility() {
 				{
 					const FLeapHandData Hand = PastFrame.HandForId(HandId);
 					CallFunctionOnComponents([Hand](ULeapComponent* Component)
-					{
-						Component->OnHandEndTracking.Broadcast(Hand);
-					});
+						{
+							Component->OnHandEndTracking.Broadcast(Hand);
+						});
 				}
 			}
 		}
@@ -613,17 +642,17 @@ void FLeapMotionInputDevice::CheckHandVisibility() {
 		{
 			const bool LeftVisible = CurrentFrame.LeftHandVisible;
 			CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
-			{
-				Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-			});
+				{
+					Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
+				});
 		}
 		if (PastFrame.RightHandVisible != CurrentFrame.RightHandVisible)
 		{
 			const bool RightVisible = CurrentFrame.RightHandVisible;
 			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
-			{
-				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-			});
+				{
+					Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
+				});
 		}
 
 		for (auto& Hand : CurrentFrame.Hands)
@@ -644,71 +673,84 @@ void FLeapMotionInputDevice::CheckHandVisibility() {
 			{
 				//New hand
 				CallFunctionOnComponents([Hand](ULeapComponent* Component)
-				{
-					Component->OnHandBeginTracking.Broadcast(Hand);
-				});
+					{
+						Component->OnHandBeginTracking.Broadcast(Hand);
+					});
 			}
 		}
 	}
 }
 
-void FLeapMotionInputDevice::CheckPinchGesture() {
-	if (UseTimeBasedGestureCheck) {
-		if (IsLeftPinching) {
+void FLeapMotionInputDevice::CheckPinchGesture()
+{
+	if (UseTimeBasedGestureCheck)
+	{
+		if (IsLeftPinching)
+		{
 			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
 		}
-		if (IsRightPinching) {
+		if (IsRightPinching)
+		{
 			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (LeapGetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
 			const FLeapHandData& FinalHandData = Hand;
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT) {
-				if ((!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold)) || (IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold))) {
+			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+			{
+				if (!IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold)) || (IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold)))
+				{
 					TimeSinceLastLeftPinch = 0;
-					if (!IsLeftPinching) {
+					if (!IsLeftPinching)
+					{
 						IsLeftPinching = true;
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
 						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-						{
-							Component->OnHandPinched.Broadcast(FinalHandData);
-						});
+							{
+								Component->OnHandPinched.Broadcast(FinalHandData);
+							});
 					}
 				}
-				else if (IsLeftPinching && (TimeSinceLastLeftPinch > PinchTimeout)) {
+				else if (IsLeftPinching && (TimeSinceLastLeftPinch > PinchTimeout))
+				{
 					IsLeftPinching = false;
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
 					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-					{
-						Component->OnHandUnpinched.Broadcast(FinalHandData);
-					});
+						{
+							Component->OnHandUnpinched.Broadcast(FinalHandData);
+						});
 				}
 			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT) {
-				if ((!IsRightPinching && (Hand.PinchStrength > StartPinchThreshold)) || (IsRightPinching && (Hand.PinchStrength > EndPinchThreshold))) {
+			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+			{
+				if (!IsRightGrabbing && (!IsRightPinching && (Hand.PinchStrength > StartPinchThreshold)) || (IsRightPinching && (Hand.PinchStrength > EndPinchThreshold)))
+				{
 					TimeSinceLastRightPinch = 0;
-					if (!IsRightPinching) {
+					if (!IsRightPinching)
+					{
 						IsRightPinching = true;
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
 						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-						{
-							Component->OnHandPinched.Broadcast(FinalHandData);
-						});
+							{
+								Component->OnHandPinched.Broadcast(FinalHandData);
+							});
 					}
 				}
-				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout)) {
+				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout))
+				{
 					IsRightPinching = false;
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
 					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-					{
-						Component->OnHandUnpinched.Broadcast(FinalHandData);
-					});
+						{
+							Component->OnHandUnpinched.Broadcast(FinalHandData);
+						});
 				}
 
 			}
 		}
 	}
-	else {
+	else
+	{
 		for (auto& Hand : CurrentFrame.Hands)
 		{
 			FLeapHandData PastHand;
@@ -725,7 +767,7 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 
 			const FLeapHandData& FinalHandData = Hand;
 			//Pinch
-			if (Hand.PinchStrength > StartPinchThreshold&& PastHand.PinchStrength <= StartPinchThreshold)
+			if (Hand.PinchStrength > StartPinchThreshold && PastHand.PinchStrength <= StartPinchThreshold)
 			{
 				if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
 				{
@@ -736,9 +778,9 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 					EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
 				}
 				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-				{
-					Component->OnHandPinched.Broadcast(FinalHandData);
-				});
+					{
+						Component->OnHandPinched.Broadcast(FinalHandData);
+					});
 			}
 			//Unpinch (TODO: Adjust values)
 			else if (Hand.PinchStrength <= EndPinchThreshold && PastHand.PinchStrength > EndPinchThreshold)
@@ -752,71 +794,83 @@ void FLeapMotionInputDevice::CheckPinchGesture() {
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
 				}
 				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-				{
-					Component->OnHandUnpinched.Broadcast(FinalHandData);
-				});
+					{
+						Component->OnHandUnpinched.Broadcast(FinalHandData);
+					});
 			}
 		}
 	}
 }
 
-void FLeapMotionInputDevice::CheckGrabGesture() {
-	if (UseTimeBasedGestureCheck) {
-		if (IsLeftGrabbing) {
+void FLeapMotionInputDevice::CheckGrabGesture()
+{
+	if (UseTimeBasedGestureCheck)
+	{
+		if (IsLeftGrabbing)
+		{
 			TimeSinceLastLeftGrab = TimeSinceLastLeftGrab + (LeapGetNow() - LastLeapTime);
 		}
-		if (IsRightGrabbing) {
+		if (IsRightGrabbing)
+		{
 			TimeSinceLastRightGrab = TimeSinceLastRightGrab + (LeapGetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
 			const FLeapHandData& FinalHandData = Hand;
-			if (Hand.HandType == EHandType::LEAP_HAND_LEFT) {
-				if ((!IsLeftGrabbing && (Hand.GrabStrength > StartGrabThreshold)) || (IsLeftGrabbing && (Hand.GrabStrength > EndGrabThreshold))) {
+			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
+			{
+				if ((!IsLeftGrabbing && (Hand.GrabStrength > StartGrabThreshold)) || (IsLeftGrabbing && (Hand.GrabStrength > EndGrabThreshold)))
+				{
 					TimeSinceLastLeftGrab = 0;
-					if (!IsLeftGrabbing) {
+					if (!IsLeftGrabbing)
+					{
 						IsLeftGrabbing = true;
 						EmitKeyDownEventForKey(EKeysLeap::LeapGrabL);
 						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-						{
-							Component->OnHandGrabbed.Broadcast(FinalHandData);
-						});
+							{
+								Component->OnHandGrabbed.Broadcast(FinalHandData);
+							});
 					}
 				}
-				else if (IsLeftGrabbing && (TimeSinceLastLeftGrab > GrabTimeout)) {
+				else if (IsLeftGrabbing && (TimeSinceLastLeftGrab > GrabTimeout))
+				{
 					IsLeftGrabbing = false;
 					EmitKeyUpEventForKey(EKeysLeap::LeapGrabL);
 					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-					{
-						Component->OnHandReleased.Broadcast(FinalHandData);
-					});
+						{
+							Component->OnHandReleased.Broadcast(FinalHandData);
+						});
 				}
 			}
-			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT) {
-				if ((!IsRightGrabbing && (Hand.GrabStrength > StartGrabThreshold)) || (IsRightGrabbing && (Hand.GrabStrength > EndGrabThreshold))) {
+			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+			{
+				if ((!IsRightGrabbing && (Hand.GrabStrength > StartGrabThreshold)) || (IsRightGrabbing && (Hand.GrabStrength > EndGrabThreshold)))
+				{
 					TimeSinceLastRightGrab = 0;
-					if (!IsRightGrabbing) {
+					if (!IsRightGrabbing)
+					{
 						IsRightGrabbing = true;
 						EmitKeyDownEventForKey(EKeysLeap::LeapGrabR);
 						CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-						{
-							Component->OnHandGrabbed.Broadcast(FinalHandData);
-						});
+							{
+								Component->OnHandGrabbed.Broadcast(FinalHandData);
+							});
 					}
 				}
-				else if (IsRightGrabbing && (TimeSinceLastRightGrab > GrabTimeout)) {
+				else if (IsRightGrabbing && (TimeSinceLastRightGrab > GrabTimeout))
+				{
 					IsRightGrabbing = false;
 					EmitKeyUpEventForKey(EKeysLeap::LeapGrabR);
 					CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-					{
-						Component->OnHandReleased.Broadcast(FinalHandData);
-					});
+						{
+							Component->OnHandReleased.Broadcast(FinalHandData);
+						});
 				}
-
 			}
 		}
 	}
-	else {
+	else
+	{
 		for (auto& Hand : CurrentFrame.Hands)
 		{
 			FLeapHandData PastHand;
@@ -833,7 +887,7 @@ void FLeapMotionInputDevice::CheckGrabGesture() {
 
 			const FLeapHandData& FinalHandData = Hand;
 
-			if (Hand.GrabStrength > StartGrabThreshold&& PastHand.GrabStrength <= StartGrabThreshold)
+			if (Hand.GrabStrength > StartGrabThreshold && PastHand.GrabStrength <= StartGrabThreshold)
 			{
 				if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
 				{
@@ -844,9 +898,9 @@ void FLeapMotionInputDevice::CheckGrabGesture() {
 					EmitKeyDownEventForKey(EKeysLeap::LeapGrabR);
 				}
 				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-				{
-					Component->OnHandGrabbed.Broadcast(FinalHandData);
-				});
+					{
+						Component->OnHandGrabbed.Broadcast(FinalHandData);
+					});
 			}
 			//Release
 			else if (Hand.GrabStrength <= EndGrabThreshold && PastHand.GrabStrength > EndGrabThreshold)
@@ -860,9 +914,9 @@ void FLeapMotionInputDevice::CheckGrabGesture() {
 					EmitKeyUpEventForKey(EKeysLeap::LeapGrabR);
 				}
 				CallFunctionOnComponents([FinalHandData](ULeapComponent* Component)
-				{
-					Component->OnHandReleased.Broadcast(FinalHandData);
-				});
+					{
+						Component->OnHandReleased.Broadcast(FinalHandData);
+					});
 			}
 		}
 	}
@@ -965,6 +1019,7 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 	case LEAP_POLICY_IMAGES:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
 		break;
+	// legacy 3.0 implementation superseded by SetTrackingMode
 	case LEAP_POLICY_OPTIMIZE_HMD:
 		Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
 		break;
@@ -977,7 +1032,16 @@ void FLeapMotionInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 		break;
 	}
 }
-
+// v5 implementation of tracking mode
+void FLeapMotionInputDevice::SetTrackingMode(ELeapMode Flag)
+{
+	switch (Flag)
+	{
+		case LEAP_MODE_DESKTOP: Leap.SetTrackingMode(eLeapTrackingMode_Desktop); break;
+		case LEAP_MODE_VR: Leap.SetTrackingMode(eLeapTrackingMode_HMD); break;
+		case LEAP_MODE_SCREENTOP: Leap.SetTrackingMode(eLeapTrackingMode_ScreenTop); break;
+	}
+}
 #pragma endregion Leap Input Device
 
 #pragma region BodyState
@@ -1165,8 +1229,16 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 	//Did we change the mode?
 	if (Options.Mode != InOptions.Mode)
 	{
-		bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
-		SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
+		if (bUseNewTrackingModeAPI)
+		{
+			SetTrackingMode(InOptions.Mode);
+		}
+		else
+		{
+			bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
+
+			SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
+		}
 	}
 
 	//Set main options

@@ -98,7 +98,14 @@ void FLeapWrapper::CloseConnection()
 	UE_LOG(LeapMotionLog, Log, TEXT("Connection successfully closed."));
 	//CloseConnectionHandle(&connectionHandle);
 }
-
+void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
+{
+	eLeapRS Result = LeapSetTrackingMode(ConnectionHandle, TrackingMode);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(LeapMotionLog, Log, TEXT("SetTrackingMode failed in  FLeapWrapper::SetTrackingMode."));
+	}
+}
 void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {
 	eLeapRS Result = LeapSetPolicyFlags(ConnectionHandle, Flags, ClearFlags);
@@ -106,6 +113,7 @@ void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 	{
 		UE_LOG(LeapMotionLog, Log, TEXT("LeapSetPolicyFlags failed in  FLeapWrapper::SetPolicy."));
 	}
+
 }
 
 void FLeapWrapper::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
@@ -442,6 +450,24 @@ void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent)
 	}
 }
 
+/** Called by ServiceMessageLoop() when a policy event is returned by LeapPollConnection(). */
+void FLeapWrapper::HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingModeEvent)
+{
+	if (CallbackDelegate)
+	{
+		// this is always coming back as 0, this means either the Leap service refused to set any flags?
+		// or there's a bug in the policy notification system with Leap Motion V4.
+		const uint32_t CurrentMode = TrackingModeEvent->current_tracking_mode;
+		TaskRefPolicy = FLeapAsync::RunShortLambdaOnGameThread([CurrentMode, this]
+			{
+				if (CallbackDelegate)
+				{
+					CallbackDelegate->OnTrackingMode((eLeapTrackingMode)CurrentMode);
+				}
+			});
+	}
+}
+
 /** Called by ServiceMessageLoop() when a config change event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent)
 {
@@ -535,6 +561,9 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 			break;
 		case eLeapEventType_Policy:
 			HandlePolicyEvent(Msg.policy_event);
+			break;
+		case eLeapEventType_TrackingMode:
+			HandleTrackingModeEvent(Msg.tracking_mode_event);
 			break;
 		case eLeapEventType_ConfigChange:
 			HandleConfigChangeEvent(Msg.config_change_event);
