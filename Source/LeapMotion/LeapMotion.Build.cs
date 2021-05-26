@@ -185,7 +185,7 @@ namespace UnrealBuildTool.Rules
 		{
 			bool IsLibrarySupported = false;
 
-			if ((Target.Platform == UnrealTargetPlatform.Win64) || (Target.Platform == UnrealTargetPlatform.Win32))
+			if ((Target.Platform == UnrealTargetPlatform.Win64))
 			{
 				IsLibrarySupported = true;
 

@@ -161,7 +161,7 @@ private:
 	FLeapFrameData PastFrame;
 	
 	TArray<FString> AttachedDevices;
-	TArray<int32> VisibleHands;
+	
 	TArray<int32> PastVisibleHands;
 
 	//Time warp support
