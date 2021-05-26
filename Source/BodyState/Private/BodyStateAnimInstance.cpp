@@ -512,7 +512,7 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 
 	if (!INodeMapping)
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetCurrentWristPose INodeMapping is NULL so cannot proceed"));
 		return Ret;
 	}
 
@@ -528,9 +528,12 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	return Ret;
 }
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
-FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	FTransform ComponentTransform = Component->GetRelativeTransform();
+	FTransform ComponentToWorld = Component->GetComponentToWorld();
+
 	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	TArray<FName> Names;
@@ -540,12 +543,10 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	if (!INodeMapping)
 	{
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
-		return FRotator();
+		return;
 	}
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
-
-	bool IsFlippedModel = false;
 
 	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
@@ -565,21 +566,9 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 
-		return FRotator(ForceInitToZero);
+		return;
 	}
 	FBoneReference IndexBone = RefIndex->MeshBone;
-
-	EBodyStateAutoRigType RigMeshType = EBodyStateAutoRigType::HAND_LEFT;
-
-	FString IndexName(IndexBone.BoneName.ToString().ToLower());
-	if (IndexName.Contains("_r") || IndexName.Contains("r_") || IndexName.Contains("r-") || IndexName.Contains("-r"))
-	{
-		RigMeshType = EBodyStateAutoRigType::HAND_RIGHT;
-	}
-	if (RigMeshType != RigTargetType)
-	{
-		IsFlippedModel = true;
-	}
 	bool IndexBoneFound = false;
 	bool MiddleBoneFound = false;
 	bool PinkyBoneFound = false;
@@ -594,9 +583,8 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	{
 		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 
-		return FRotator(ForceInitToZero);
+		return;
 	}
-
 	// Calculate the Model's rotation
 	// direct port from c# Unity version HandBinderAutoBinder.cs
 	FVector Forward = MiddlePose.GetLocation() - WristPose.GetLocation();
@@ -621,34 +609,14 @@ FRotator UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& Fo
 	// In unreal this is the reference direction for the anim system
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		if (IsFlippedModel)
-		{
-			WristRotation += FRotator(0, -90, 90);
-			Component->SetRelativeScale3D(FVector(-1, 1, 1));
-		}
-		else
-		{
-			WristRotation += FRotator(0, 90, -90);
-			Component->SetRelativeScale3D(FVector(1, 1, 1));
-		}
+		WristRotation += FRotator(0, 90, -90);
 	}
 	else
 	{
-		if (IsFlippedModel)
-		{
-			WristRotation += FRotator(0, 90, -90);
-			Component->SetRelativeScale3D(FVector(-1, 1, 1));
-		}
-		else
-		{
-			WristRotation += FRotator(0, -90, 90);
-			Component->SetRelativeScale3D(FVector(1, 1, 1));
-		}
+		WristRotation += FRotator(0, -90, 90);
 	}
+
 	ForMap.AutoCorrectRotation = FQuat(WristRotation);
-	ForMap.IsFlippedByScale = IsFlippedModel;
-	ForMap.bShouldDeformMesh = !IsFlippedModel;
-	return WristRotation;
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -667,8 +635,6 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 
 	INodeMapping->GetMappableNodeData(Names, NodeItems);
-
-	bool IsFlippedModel = false;
 
 	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
@@ -794,7 +760,26 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	}
 	return ReferenceMap;
 }
+void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForMap)
+{
+	// the user can manually specify that the model is flipped (left to right or right to left)
+	// Setting the scale on the component flips the view
+	// if we do this here, the anim preview works as well as in scene and in actors
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
+	if (!Component)
+	{
+		return;
+	}
+	if (ForMap.FlipModelLeftRight)
+	{
+		Component->SetRelativeScale3D(FVector(1, 1, -1));
+	}
+	else
+	{
+		Component->SetRelativeScale3D(FVector(1, 1, 1));
+	}
+}
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
@@ -844,6 +829,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 		if (MappedBoneList.Num() > 0)
 		{
 			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+			HandleLeftRightFlip(OneHandMap);
 			if (bDetectHandRotationDuringAutoMapping)
 			{
 				EstimateAutoMapRotation(OneHandMap, AutoMapTarget);
@@ -862,6 +848,10 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			// Map one hand each
 			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
 			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+
+			HandleLeftRightFlip(LeftHandMap);
+			HandleLeftRightFlip(RightHandMap);
+
 			if (bDetectHandRotationDuringAutoMapping)
 			{
 				EstimateAutoMapRotation(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);

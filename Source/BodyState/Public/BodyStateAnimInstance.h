@@ -108,7 +108,7 @@ struct FMappedBoneAnimData
 	float ElbowLength;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
-	bool IsFlippedByScale;
+	bool FlipModelLeftRight;
 
 	/** auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
@@ -120,6 +120,7 @@ struct FMappedBoneAnimData
 	FMappedBoneAnimData()
 	{
 		bShouldDeformMesh = true;
+		FlipModelLeftRight = false;
 		OffsetTransform.SetScale3D(FVector(1.f));
 		PreBaseRotation = FRotator(ForceInitToZero);
 		TrackingTagLimit.Empty();
@@ -267,7 +268,7 @@ protected:
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(
 		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
 
-	FRotator EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	void EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;
@@ -278,6 +279,8 @@ protected:
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+	void HandleLeftRightFlip(const FMappedBoneAnimData& ForMap);
 
 	static void CreateEmptyBoneMap(
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType);
