@@ -28,12 +28,11 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(
 	const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink& WristCachedBone)
 {
 	FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
+	FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
 
 	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
 	// if (CachedBone.BSBone->Name.Contains("wrist") || CachedBone.BSBone->Name.Contains("arm"))
 	{
-		FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
-
 		if (CachedBone.BSBone->Name.Contains("arm") && WristCachedBone.MeshBone.BoneIndex > -1)
 		{
 			auto WristPosition = WristCachedBone.BSBone->BoneData.Transform.GetLocation();
@@ -64,7 +63,10 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(
 		FQuat AdditionalRotation = MappedBoneAnimData.AutoCorrectRotation * MappedBoneAnimData.OffsetTransform.GetRotation();
 
 		const FVector RotatedTranslation = AdditionalRotation.RotateVector(BoneTranslation);
-		NewBoneTM.SetTranslation(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+		const FVector CorrectTranslation =
+			ComponentTransform.InverseTransformVector(RotatedTranslation + MappedBoneAnimData.OffsetTransform.GetLocation());
+
+		NewBoneTM.SetTranslation(CorrectTranslation);
 	}
 }
 void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM)

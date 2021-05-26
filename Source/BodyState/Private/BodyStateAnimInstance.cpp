@@ -585,11 +585,6 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 		return;
 	}
-	//	IndexPose.SetLocation(ComponentToWorld.TransformVector(IndexPose.GetLocation()));
-	//	MiddlePose.SetLocation(ComponentToWorld.TransformVector(MiddlePose.GetLocation()));
-	//	PinkyPose.SetLocation(ComponentToWorld.TransformVector(PinkyPose.GetLocation()));
-	//	WristPose.SetLocation(ComponentToWorld.TransformVector(WristPose.GetLocation()));
-	//	WristPose.SetRotation(ComponentToWorld.TransformRotation(WristPose.GetRotation()));
 	// Calculate the Model's rotation
 	// direct port from c# Unity version HandBinderAutoBinder.cs
 	FVector Forward = MiddlePose.GetLocation() - WristPose.GetLocation();
@@ -615,11 +610,9 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
 		WristRotation += FRotator(0, 90, -90);
-		//		WristRotation = (ComponentToWorld.TransformRotation(FQuat(FRotator(0, 90, -90))) * FQuat(WristRotation)).Rotator();
 	}
 	else
 	{
-		//	WristRotation = (ComponentToWorld.TransformRotation(FQuat(FRotator(0, -90, 90))) * FQuat(WristRotation)).Rotator();
 		WristRotation += FRotator(0, -90, 90);
 	}
 
