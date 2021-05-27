@@ -42,7 +42,6 @@ protected:
 private:
 	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink& WristCachedBone);
 	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM);
-	bool CalcIsTracking();
 	bool CheckInitEvaulate();
 	void CacheArmOrWrist(const FCachedBoneLink& CachedBone, FCachedBoneLink& ArmCachedBone, FCachedBoneLink& WristCachedBone);
 };

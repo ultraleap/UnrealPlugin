@@ -133,6 +133,12 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
 	float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
+	// set in the UI thread based on the skeleton status
+	if (!BSAnimInstance->IsTracking)
+	{
+		BlendWeight = 0;
+	}
+
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
 
 	// cached for elbow position

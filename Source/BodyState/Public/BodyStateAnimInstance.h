@@ -257,6 +257,8 @@ public:
 	UFUNCTION()
 	bool CalcIsTracking();
 
+	FThreadSafeBool IsTracking;
+
 protected:
 	// traverse a bone index node until you hit -1, count the hops
 	int32 TraverseLengthForIndex(int32 Index);

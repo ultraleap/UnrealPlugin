@@ -930,6 +930,7 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (BodyStateSkeleton)
 	{
 		BodyStateSkeleton->bTrackingActive = !bFreezeTracking;
+		IsTracking = CalcIsTracking();
 	}
 }
 // static
@@ -945,27 +946,26 @@ bool UBodyStateAnimInstance::CalcIsTracking()
 		return false;
 	}
 
-	bool IsTracking = false;
+	bool Ret = false;
 	switch (AutoMapTarget)
 	{
 		case EBodyStateAutoRigType::HAND_LEFT:
 		{
-			IsTracking = BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked();
+			Ret = BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked();
 		}
 		break;
 		case EBodyStateAutoRigType::HAND_RIGHT:
 		{
-			IsTracking = BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+			Ret = BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
 		}
 		break;
 		case EBodyStateAutoRigType::BOTH_HANDS:
 		{
-			IsTracking =
-				BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked() || BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+			Ret = BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked() || BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
 		}
 		break;
 	}
-	return IsTracking;
+	return Ret;
 }
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
