@@ -527,7 +527,7 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	Ret = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
 	return Ret;
 }
-// for debugging only, calcs rotations and Unity (has no effect on the main path through the code)
+// for debugging only, calcs debug rotations normalized for Unity (has no effect on the main path through the code)
 #define DEBUG_ROTATIONS_AS_UNITY 0
 #if DEBUG_ROTATIONS_AS_UNITY
 // useful for comparing with Unity when debugging (unused)
