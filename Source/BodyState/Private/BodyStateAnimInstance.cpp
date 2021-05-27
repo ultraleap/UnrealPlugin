@@ -548,7 +548,6 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 {
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
-	FTransform ComponentTransform = Component->GetRelativeTransform();
 	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	TArray<FName> Names;
@@ -695,8 +694,6 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 		FTransform WristPose = NodeItems[WristBoneIndex].Transform;
 
 		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
-		// only bone space nodes have the scale set if scale on import is modified
-		//	ElbowLength *= Component->GetBoneSpaceTransforms()[0].GetScale3D().X;
 	}
 	return ElbowLength;
 }
@@ -721,7 +718,6 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 			ForMap.PreBaseRotation = FRotator(0, 180, 90);
 		}
 	}
-
 	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
