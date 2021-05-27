@@ -235,6 +235,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	TArray<FMappedBoneAnimData> MappedBoneList;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
+	FRotator DebugAddRotation;
+
 	UFUNCTION(BlueprintPure, Category = "BS Anim Instance")
 	FString BoneMapSummary();
 

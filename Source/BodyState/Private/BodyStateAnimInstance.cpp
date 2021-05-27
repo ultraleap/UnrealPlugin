@@ -589,11 +589,6 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	bool PinkyBoneFound = false;
 	bool WristBoneFound = false;
 
-	/*FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
-	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems, MiddleBoneFound);
-	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
-	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);*/
-
 	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, ComponentSpaceTransforms, IndexBoneFound);
 	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, ComponentSpaceTransforms, MiddleBoneFound);
 	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, ComponentSpaceTransforms, PinkyBoneFound);
@@ -638,23 +633,17 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	FRotator WristDebugRotation = WristRotation;
 	Normalize360(WristDebugRotation);
 
-	// In unreal this is the reference direction for the anim system
-	/*if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	// correct to UE space as defined by control hands
+	if (ForMap.FlipModelLeftRight)
 	{
-		WristRotation += FRotator(0, 90, -90);
+		WristRotation += FRotator(-90, 0, -180);
 	}
 	else
 	{
-		WristRotation += FRotator(0, -90, 90);
-	}*/
-
-	if (ForMap.FlipModelLeftRight)
-	{
-		WristRotation += FRotator(0, -90, -90);
+		WristRotation += FRotator(90, 0, 0);
 	}
 	WristDebugRotation = WristRotation;
 	Normalize360(WristDebugRotation);
-	//	WristRotation = ComponentTransform.TransformRotation(FQuat(WristRotation)).Rotator();
 	ForMap.AutoCorrectRotation = FQuat(WristRotation);
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
@@ -707,7 +696,7 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 
 		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
 		// only bone space nodes have the scale set if scale on import is modified
-		ElbowLength *= Component->GetBoneSpaceTransforms()[0].GetScale3D().X;
+		//	ElbowLength *= Component->GetBoneSpaceTransforms()[0].GetScale3D().X;
 	}
 	return ElbowLength;
 }
