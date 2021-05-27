@@ -937,6 +937,36 @@ const FName& UBodyStateAnimInstance::GetMeshBoneNameFromCachedBoneLink(const FCa
 {
 	return CachedBoneLink.MeshBone.BoneName;
 }
+// do not call this from the anim thread
+bool UBodyStateAnimInstance::CalcIsTracking()
+{
+	if (!BodyStateSkeleton)
+	{
+		return false;
+	}
+
+	bool IsTracking = false;
+	switch (AutoMapTarget)
+	{
+		case EBodyStateAutoRigType::HAND_LEFT:
+		{
+			IsTracking = BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked();
+		}
+		break;
+		case EBodyStateAutoRigType::HAND_RIGHT:
+		{
+			IsTracking = BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+		}
+		break;
+		case EBodyStateAutoRigType::BOTH_HANDS:
+		{
+			IsTracking =
+				BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked() || BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+		}
+		break;
+	}
+	return IsTracking;
+}
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
 	// Clear our current list

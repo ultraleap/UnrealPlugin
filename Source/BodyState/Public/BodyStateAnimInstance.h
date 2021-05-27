@@ -254,6 +254,9 @@ public:
 	UFUNCTION()
 	FTransform GetCurrentWristPose(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const;
 
+	UFUNCTION()
+	bool CalcIsTracking();
+
 protected:
 	// traverse a bone index node until you hit -1, count the hops
 	int32 TraverseLengthForIndex(int32 Index);

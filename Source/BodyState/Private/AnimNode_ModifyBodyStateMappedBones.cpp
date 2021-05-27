@@ -78,30 +78,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(const FCachedBoneLink& 
 			   (MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion()));
 	NewBoneTM.SetRotation(BoneQuat);
 }
-bool FAnimNode_ModifyBodyStateMappedBones::CalcIsTracking()
-{
-	bool IsTracking = false;
-	switch (BSAnimInstance->AutoMapTarget)
-	{
-		case EBodyStateAutoRigType::HAND_LEFT:
-		{
-			IsTracking = MappedBoneAnimData.BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked();
-		}
-		break;
-		case EBodyStateAutoRigType::HAND_RIGHT:
-		{
-			IsTracking = MappedBoneAnimData.BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
-		}
-		break;
-		case EBodyStateAutoRigType::BOTH_HANDS:
-		{
-			IsTracking = MappedBoneAnimData.BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked() ||
-						 MappedBoneAnimData.BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
-		}
-		break;
-	}
-	return IsTracking;
-}
+
 bool FAnimNode_ModifyBodyStateMappedBones::CheckInitEvaulate()
 {
 	if (!BSAnimInstance)
@@ -157,13 +134,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
-
-	// used to be in the event graph for the anim blueprints
-	// do nothing if not tracking
-	if (!CalcIsTracking())
-	{
-		BlendWeight = 0;
-	}
 
 	// cached for elbow position
 	FCachedBoneLink ArmCachedBone;
