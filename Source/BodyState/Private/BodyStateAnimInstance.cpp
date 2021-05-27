@@ -614,7 +614,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
-	ModelRotation = LookRotation(Up, Forward);
+	ModelRotation = LookRotation(Forward, Up);
 
 	// In unity, this came from the wrist in the world/scene coords
 	FQuat WristPoseQuat(WristPose.GetRotation());
