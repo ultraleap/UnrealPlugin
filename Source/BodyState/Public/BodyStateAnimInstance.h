@@ -274,7 +274,7 @@ protected:
 	void EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 
-	// using node items
+	// using node items, beware node items are NOT in component space
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;
 
