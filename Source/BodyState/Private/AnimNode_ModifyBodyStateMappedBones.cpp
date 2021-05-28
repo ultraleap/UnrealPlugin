@@ -68,7 +68,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 		NewBoneTM.SetTranslation(CorrectTranslation);
 	}
 }
-void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM)
+void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
+	const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink& CachedWristBone)
 {
 	FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
 
@@ -107,20 +108,20 @@ bool FAnimNode_ModifyBodyStateMappedBones::CheckInitEvaulate()
 	return true;
 }
 void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
-	const FCachedBoneLink& CachedBone, FCachedBoneLink& ArmCachedBone, FCachedBoneLink& WristCachedBone)
+	const FCachedBoneLink& CachedBone, const FCachedBoneLink** ArmCachedBone, const FCachedBoneLink** WristCachedBone)
 {
 	switch (CachedBone.BSBone->BoneType)
 	{
 		case EBodyStateBasicBoneType::BONE_LOWERARM_L:
 		case EBodyStateBasicBoneType::BONE_LOWERARM_R:
 		{
-			ArmCachedBone = CachedBone;
+			*ArmCachedBone = &CachedBone;
 			break;
 		}
 		case EBodyStateBasicBoneType::BONE_HAND_WRIST_L:
 		case EBodyStateBasicBoneType::BONE_HAND_WRIST_R:
 		{
-			WristCachedBone = CachedBone;
+			*WristCachedBone = &CachedBone;
 			break;
 		}
 	}
@@ -147,12 +148,12 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
 
 	// cached for elbow position
-	FCachedBoneLink ArmCachedBone;
-	FCachedBoneLink WristCachedBone;
+	const FCachedBoneLink* ArmCachedBone = nullptr;
+	const FCachedBoneLink* WristCachedBone = nullptr;
 
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
-		CacheArmOrWrist(CachedBone, ArmCachedBone, WristCachedBone);
+		CacheArmOrWrist(CachedBone, &ArmCachedBone, &WristCachedBone);
 	}
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
@@ -166,8 +167,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
-		ApplyRotation(CachedBone, NewBoneTM);
-		ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
+		ApplyRotation(CachedBone, NewBoneTM, *WristCachedBone);
+		ApplyTranslation(CachedBone, NewBoneTM, *WristCachedBone, *ArmCachedBone);
 
 		// Set the transform back into the anim system
 		TArray<FBoneTransform> TempTransform;
