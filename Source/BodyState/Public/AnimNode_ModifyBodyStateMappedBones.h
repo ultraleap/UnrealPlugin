@@ -40,7 +40,8 @@ protected:
 	const UBodyStateAnimInstance* BSAnimInstance;
 
 private:
-	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink& WristCachedBone);
+	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink& WristCachedBone,
+		const FCachedBoneLink& ArmCachedBone);
 	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM);
 	bool CheckInitEvaulate();
 	void CacheArmOrWrist(const FCachedBoneLink& CachedBone, FCachedBoneLink& ArmCachedBone, FCachedBoneLink& WristCachedBone);

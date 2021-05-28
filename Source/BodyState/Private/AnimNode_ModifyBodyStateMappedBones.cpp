@@ -24,16 +24,15 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(
 {
 	EvaluateComponentPose_AnyThread(Output);
 }
-void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(
-	const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink& WristCachedBone)
+void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM,
+	const FCachedBoneLink& WristCachedBone, const FCachedBoneLink& ArmCachedBone)
 {
 	FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
 	FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
 
 	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
-	// if (CachedBone.BSBone->Name.Contains("wrist") || CachedBone.BSBone->Name.Contains("arm"))
 	{
-		if (CachedBone.BSBone->Name.Contains("arm") && WristCachedBone.MeshBone.BoneIndex > -1)
+		if (&CachedBone == &ArmCachedBone && WristCachedBone.MeshBone.BoneIndex > -1)
 		{
 			auto WristPosition = WristCachedBone.BSBone->BoneData.Transform.GetLocation();
 			auto ElbowForward = FRotationMatrix(CachedBone.BSBone->BoneData.Transform.Rotator()).GetScaledAxis(EAxis::X);
@@ -110,14 +109,20 @@ bool FAnimNode_ModifyBodyStateMappedBones::CheckInitEvaulate()
 void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 	const FCachedBoneLink& CachedBone, FCachedBoneLink& ArmCachedBone, FCachedBoneLink& WristCachedBone)
 {
-	// these names are constant as they're the bodystate names
-	if (CachedBone.BSBone->Name.Contains("lowerarm"))
+	switch (CachedBone.BSBone->BoneType)
 	{
-		ArmCachedBone = CachedBone;
-	}
-	if (CachedBone.BSBone->Name.Contains("wrist"))
-	{
-		WristCachedBone = CachedBone;
+		case EBodyStateBasicBoneType::BONE_LOWERARM_L:
+		case EBodyStateBasicBoneType::BONE_LOWERARM_R:
+		{
+			ArmCachedBone = CachedBone;
+			break;
+		}
+		case EBodyStateBasicBoneType::BONE_HAND_WRIST_L:
+		case EBodyStateBasicBoneType::BONE_HAND_WRIST_R:
+		{
+			WristCachedBone = CachedBone;
+			break;
+		}
 	}
 }
 
@@ -162,7 +167,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
 		ApplyRotation(CachedBone, NewBoneTM);
-		ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone);
+		ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
 
 		// Set the transform back into the anim system
 		TArray<FBoneTransform> TempTransform;
