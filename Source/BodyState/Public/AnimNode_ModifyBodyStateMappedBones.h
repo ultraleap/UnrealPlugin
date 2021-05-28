@@ -4,7 +4,11 @@
 
 #include "BodyStateAnimInstance.h"
 #include "CoreMinimal.h"
+#if ENGINE_MAJOR_VERSION >= 5
+#include "AnimNode_SkeletalControlBase.h"
+#else
 #include "Runtime/AnimGraphRuntime/Public/BoneControllers/AnimNode_SkeletalControlBase.h"
+#endif
 #include "Skeleton/BodyStateSkeleton.h"
 
 #include "AnimNode_ModifyBodyStateMappedBones.generated.h"
