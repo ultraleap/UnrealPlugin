@@ -5,7 +5,7 @@
 #include "LeapC.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "Engine/Texture2D.h"
-#if ENGINE_MAJOR_VERSION >=4 && ENGINE_MINOR_VERSION >= 26
+#if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 26)
 #include "Engine/Public/Rendering/Texture2DResource.h"
 #endif
 #include "RHI.h"
