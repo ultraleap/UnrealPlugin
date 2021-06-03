@@ -1,21 +1,29 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateAnimInstance.h"
-#include "BodyStateUtility.h"
+
 #include "BodyStateBPLibrary.h"
+#include "BodyStateUtility.h"
+#include "Kismet/KismetMathLibrary.h"
 
-
-UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+// static
+FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {
-	//Defaults
+	return BoneRef.MeshBone.BoneName;
+}
+
+UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+	// Defaults
 	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
-	BonesPerFinger = -1;
+	bIncludeMetaCarpels = true;
+
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 }
 
-void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(UPARAM(ref) FMappedBoneAnimData& InMappedBoneData, EBodyStateBasicBoneType BSBone, FName MeshBone)
+void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(
+	UPARAM(ref) FMappedBoneAnimData& InMappedBoneData, EBodyStateBasicBoneType BSBone, FName MeshBone)
 {
 	FBoneReference BoneRef;
 	BoneRef.BoneName = MeshBone;
@@ -38,12 +46,13 @@ void UBodyStateAnimInstance::SetAnimSkeleton(UBodyStateSkeleton* InSkeleton)
 	for (auto& Map : MappedBoneList)
 	{
 		Map.BodyStateSkeleton = InSkeleton;
-		//Re-cache our results
+		// Re-cache our results
 		SyncMappedBoneDataCache(Map);
 	}
 }
 
-TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
 {
 	auto IndexedMap = AutoDetectHandIndexedBones(Component, RigTargetType);
 	return ToBoneReferenceMap(IndexedMap);
@@ -64,11 +73,12 @@ FString UBodyStateAnimInstance::BoneMapSummary()
 {
 	FString Result = TEXT("+== Bone Summary ==+");
 
-	//Concatenate indexed bones
+	// Concatenate indexed bones
 	for (auto Bone : IndexedBoneMap)
 	{
 		FBodyStateIndexedBone& IndexedBone = Bone.Value;
-		Result += FString::Printf(TEXT("BoneString: %s:%d(%d)\n"), *IndexedBone.BoneName.ToString(), IndexedBone.Index, IndexedBone.ParentIndex);
+		Result += FString::Printf(
+			TEXT("BoneString: %s:%d(%d)\n"), *IndexedBone.BoneName.ToString(), IndexedBone.Index, IndexedBone.ParentIndex);
 	}
 	return Result;
 }
@@ -81,7 +91,7 @@ void UBodyStateAnimInstance::SyncMappedBoneDataCache(UPARAM(ref) FMappedBoneAnim
 //////////////
 /////Protected
 
-//Local data only used for auto-mapping algorithm
+// Local data only used for auto-mapping algorithm
 struct FChildIndices
 {
 	int32 Index;
@@ -105,7 +115,7 @@ struct FIndexParentsCount
 		return DidFindIndex;
 	}
 
-	//run after filling our index
+	// run after filling our index
 	TArray<int32> FindParentsWithCount(int32 Count)
 	{
 		TArray<int32> ResultArray;
@@ -121,7 +131,38 @@ struct FIndexParentsCount
 	}
 };
 
-TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+int32 UBodyStateAnimInstance::SelectFirstBone(const TArray<FString>& Definitions)
+{
+	TArray<int32> IndicesFound = SelectBones(Definitions);
+	if (IndicesFound.Num())
+	{
+		return IndicesFound[0];
+	}
+	else
+	{
+		return -1;
+	}
+}
+TArray<int32> UBodyStateAnimInstance::SelectBones(const TArray<FString>& Definitions)
+{
+	TArray<int32> BoneIndicesFound;
+
+	for (auto& Definition : Definitions)
+	{
+		for (auto& Bone : BoneLookupList.SortedBones)
+		{
+			const FString& CompareString = Bone.BoneName.ToString().ToLower();
+			if (CompareString.Contains(Definition))
+			{
+				BoneIndicesFound.Add(Bone.Index);
+			}
+		}
+	}
+	return BoneIndicesFound;
+}
+
+TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
 {
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoBoneMap;
 
@@ -130,158 +171,66 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		return AutoBoneMap;
 	}
 
-	//Get bones and parent indices
+	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->RefSkeleton;
 
-	//Root bone
-	int32 RootBone = -2;
+	// Finger roots
+	int32 ThumbBone = InvalidBone;
+	int32 IndexBone = InvalidBone;
+	int32 MiddleBone = InvalidBone;
+	int32 RingBone = InvalidBone;
+	int32 PinkyBone = InvalidBone;
 
-	//Palm bone
-	int32 PalmBone = -2;
+	// Re-organize our bone information
+	BoneLookupList.SetFromRefSkeleton(RefSkeleton, bUseSortedBoneNames);
 
-	//Finger roots
-	int32 ThumbBone = -2;
-	int32 IndexBone = -2;
-	int32 MiddleBone = -2;
-	int32 RingBone = -2;
-	int32 PinkyBone = -2;
+	int32 WristBone = InvalidBone;
+	int32 LowerArmBone = InvalidBone;
 
-	//Re-organize our bone information
-	BoneLookupList.SetFromRefSkeleton(RefSkeleton);
+	WristBone = SelectFirstBone(SearchNames.WristNames);
+	LowerArmBone = SelectFirstBone(SearchNames.ArmNames);
+	ThumbBone = SelectFirstBone(SearchNames.ThumbNames);
+	IndexBone = SelectFirstBone(SearchNames.IndexNames);
+	MiddleBone = SelectFirstBone(SearchNames.MiddleNames);
+	RingBone = SelectFirstBone(SearchNames.RingNames);
+	PinkyBone = SelectFirstBone(SearchNames.PinkyNames);
 
-	//Find our palm bone
-	TArray<int32> HandParents = BoneLookupList.FindBoneWithChildCount(5);
-
-	//Multiple hand parent bones found, let's pick the closest type
-	if (HandParents.Num() > 1)
+	int32 LongestChildTraverse = NoMetaCarpelsFingerBoneCount;
+	if (IndexBone > InvalidBone)
 	{
-		FString SearchString;
-		FString AltSearchString;
-		if (HandType == EBodyStateAutoRigType::HAND_RIGHT)
-		{
-			SearchString = SearchStrings.RightSearchString;
-			AltSearchString = SearchStrings.RightSearchStringAlt;
-		}
-		else
-		{
-			SearchString = SearchStrings.LeftSearchString;
-			AltSearchString = SearchStrings.LeftSearchStringAlt;
-		}
-
-		//Check the multiple bones for L/R (or lowercase) match
-		for (int32 Index : HandParents)
-		{
-			FBodyStateIndexedBone& IndexedBone = BoneLookupList.Bones[Index];
-			bool HasSearchString = IndexedBone.BoneName.ToString().Contains(SearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-			HasSearchString = HasSearchString || IndexedBone.BoneName.ToString().Contains(AltSearchString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-
-			if (HasSearchString)
-			{
-				PalmBone = Index;
-				break;
-			}
-		}
-		//Palm bone still not set?
-		if (PalmBone == -2)
-		{
-			//Pick the first one
-			PalmBone = HandParents[0];
-		}
+		LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(BoneLookupList.TreeIndexFromSortedIndex(IndexBone));
 	}
-	//Single bone of this type found, set that one
-	else if (HandParents.Num() == 1)
+	int32 BonesPerFinger = LongestChildTraverse + 1;
+
+	// allow the user to turn off metacarpels
+	if (!bIncludeMetaCarpels)
 	{
-		PalmBone = HandParents[0];
+		BonesPerFinger = NoMetaCarpelsFingerBoneCount;
 	}
-	else
-	{
-		//We couldn't figure out where the palm is, return an empty map
-		return AutoBoneMap;
-	}
+	// UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
 
-	int32 WristBone = RefSkeleton.GetParentIndex(PalmBone);
-	int32 LowerArmBone = -1;
-	bool bWristIsValid = BoneLookupList.Bones[WristBone].BoneName.ToString().ToLower().Contains(SearchStrings.WristSearchString);
-	
-	//We likely got the lower arm
-	if (!bWristIsValid)
-	{
-		LowerArmBone = WristBone;
-		WristBone = -1;
-	}
-
-	//Get all the child bones with that parent index
-	for (auto& Bone : BoneLookupList.Bones)
-	{
-		bool IsPalmChild = (Bone.ParentIndex == PalmBone);
-
-		if (IsPalmChild)
-		{
-			const FString& CompareString = Bone.BoneName.ToString().ToLower();
-
-			if((ThumbBone == -2) && CompareString.Contains(TEXT("thumb")))
-			{
-				ThumbBone = Bone.Index;
-			}
-			else if ((IndexBone == -2) && CompareString.Contains(TEXT("index")))
-			{
-				IndexBone = Bone.Index;
-			}
-			else if ((MiddleBone == -2) && CompareString.Contains(TEXT("middle")))
-			{
-				MiddleBone = Bone.Index;
-			}
-			else if ((RingBone == -2) && CompareString.Contains(TEXT("ring")))
-			{
-				RingBone = Bone.Index;
-			}
-			else if ((PinkyBone == -2) && CompareString.Contains(TEXT("pinky")))
-			{
-				PinkyBone = Bone.Index;
-			}
-		}
-	}
-
-	//Test the index finger to determine bones per finger
-	if (BonesPerFinger == -1)
-	{
-		int32 LongestChildTraverse = BoneLookupList.LongestChildTraverseForBone(IndexBone);
-		BonesPerFinger = LongestChildTraverse + 1;
-	}
-
-	//UE_LOG(LogTemp, Log, TEXT("Palm: %d"), PalmBone);
-	//UE_LOG(LogTemp, Log, TEXT("T:%d, I:%d, M: %d, R: %d, P: %d"), ThumbBone, IndexBone, MiddleBone, RingBone, PinkyBone);
-
-	//Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
+	// Based on the passed hand type map the indexed bones to our EBodyStateBasicBoneType enums
 	if (HandType == EBodyStateAutoRigType::HAND_LEFT)
 	{
-		if (bWristIsValid)
+		if (LowerArmBone >= 0)
 		{
-			if (WristBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[WristBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.SortedBones[LowerArmBone]);
 		}
-		else
+
+		if (WristBone >= 0)
 		{
-			if (PalmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.Bones[PalmBone]);
-			}
-			if (LowerArmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, BoneLookupList.Bones[LowerArmBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.SortedBones[WristBone]);
 		}
+
 		if (ThumbBone >= 0)
 		{
-			//Thumbs will always be ~ 3 bones
+			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_L, ThumbBone, AutoBoneMap);
 		}
 		if (IndexBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_L, IndexBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -292,7 +241,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (MiddleBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L, MiddleBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -303,7 +252,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (RingBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_L, RingBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -314,7 +263,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (PinkyBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_L, PinkyBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -324,35 +273,25 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			}
 		}
 	}
-	//Right Hand
+	// Right Hand
 	else
 	{
-		if (bWristIsValid)
+		if (LowerArmBone >= 0)
 		{
-			if (WristBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[WristBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.SortedBones[LowerArmBone]);
 		}
-		else
+		if (WristBone >= 0)
 		{
-			if (PalmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.Bones[PalmBone]);
-			}
-			if (LowerArmBone >= 0)
-			{
-				AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, BoneLookupList.Bones[LowerArmBone]);
-			}
+			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.SortedBones[WristBone]);
 		}
 		if (ThumbBone >= 0)
 		{
-			//Thumbs will always be ~ 3 bones
+			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, ThumbBone, AutoBoneMap);
 		}
 		if (IndexBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_R, IndexBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -363,7 +302,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (MiddleBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R, MiddleBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -374,7 +313,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (RingBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_R, RingBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -385,7 +324,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		}
 		if (PinkyBone >= 0)
 		{
-			if (BonesPerFinger > 3)
+			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
 			{
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R, PinkyBone, AutoBoneMap, BonesPerFinger);
 			}
@@ -395,20 +334,392 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			}
 		}
 	}
-
+	// create empty skeleton for easy config
+	if (AutoBoneMap.Num() < 2)
+	{
+		CreateEmptyBoneMap(AutoBoneMap, HandType);
+	}
 	return AutoBoneMap;
 }
+void UBodyStateAnimInstance::CreateEmptyBoneMap(
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType)
+{
+	static const int BonesPerFinger = 4;
+	if (HandType == EBodyStateAutoRigType::HAND_LEFT)
+	{
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_L, FBodyStateIndexedBone());
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, FBodyStateIndexedBone());
 
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_L, AutoBoneMap);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_L, AutoBoneMap, BonesPerFinger);
+	}
+	else
+	{
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_LOWERARM_R, FBodyStateIndexedBone());
+		AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, FBodyStateIndexedBone());
+
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, AutoBoneMap);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
+	}
+}
+FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
+{
+	FVector forward = lookAt;
+	FVector up = upDirection;
+
+	forward = forward.GetSafeNormal();
+	up = up - (forward * FVector::DotProduct(up, forward));
+	up = up.GetSafeNormal();
+
+	///////////////////////
+
+	FVector vector = forward.GetSafeNormal();
+	FVector vector2 = FVector::CrossProduct(up, vector);
+	FVector vector3 = FVector::CrossProduct(vector, vector2);
+	float m00 = vector2.X;
+	float m01 = vector2.Y;
+	float m02 = vector2.Z;
+	float m10 = vector3.X;
+	float m11 = vector3.Y;
+	float m12 = vector3.Z;
+	float m20 = vector.X;
+	float m21 = vector.Y;
+	float m22 = vector.Z;
+
+	float num8 = (m00 + m11) + m22;
+	FQuat quaternion = FQuat();
+	if (num8 > 0.0f)
+	{
+		float num = (float) FMath::Sqrt(num8 + 1.0f);
+		quaternion.W = num * 0.5f;
+		num = 0.5f / num;
+		quaternion.X = (m12 - m21) * num;
+		quaternion.Y = (m20 - m02) * num;
+		quaternion.Z = (m01 - m10) * num;
+		return (quaternion);
+	}
+	if ((m00 >= m11) && (m00 >= m22))
+	{
+		float num7 = (float) FMath::Sqrt(((1.0f + m00) - m11) - m22);
+		float num4 = 0.5f / num7;
+		quaternion.X = 0.5f * num7;
+		quaternion.Y = (m01 + m10) * num4;
+		quaternion.Z = (m02 + m20) * num4;
+		quaternion.W = (m12 - m21) * num4;
+		return (quaternion);
+	}
+	if (m11 > m22)
+	{
+		float num6 = (float) FMath::Sqrt(((1.0f + m11) - m00) - m22);
+		float num3 = 0.5f / num6;
+		quaternion.X = (m10 + m01) * num3;
+		quaternion.Y = 0.5f * num6;
+		quaternion.Z = (m21 + m12) * num3;
+		quaternion.W = (m20 - m02) * num3;
+		return (quaternion);
+	}
+	float num5 = (float) FMath::Sqrt(((1.0f + m22) - m00) - m11);
+	float num2 = 0.5f / num5;
+	quaternion.X = (m20 + m02) * num2;
+	quaternion.Y = (m21 + m12) * num2;
+	quaternion.Z = 0.5f * num5;
+	quaternion.W = (m01 - m10) * num2;
+
+	return quaternion;
+}
+/* Find an orthonormal basis for the set of vectors q
+ * using the Gram-Schmidt Orthogonalization process */
+void OrthoNormalize2(TArray<FVector>& Vectors)
+{
+	int i, j;
+
+	for (i = 1; i < Vectors.Num(); ++i)
+	{
+		for (j = 0; j < i; ++j)
+		{
+			double scaling_factor = FVector::DotProduct(Vectors[j], Vectors[i]) / FVector::DotProduct(Vectors[j], Vectors[j]);
+
+			/* Subtract each scaled component of q_j from q_i */
+			Vectors[i] -= scaling_factor * Vectors[j];
+		}
+	}
+
+	/* Now normalize all the 'n' orthogonal vectors */
+	for (i = 0; i < Vectors.Num(); ++i)
+	{
+		Vectors[i].Normalize();
+	}
+}
+void OrthNormalize2(FVector& Normal, FVector& Tangent, FVector& Binormal)
+{
+	TArray<FVector> Vectors = {Normal, Tangent, Binormal};
+
+	OrthoNormalize2(Vectors);
+
+	Normal = Vectors[0];
+	Tangent = Vectors[1];
+	Binormal = Vectors[2];
+}
+
+FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
+	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const
+{
+	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
+	int Index = Names.Find(Bone.BoneName);
+
+	BoneFound = false;
+	if (Index > InvalidBone)
+	{
+		BoneFound = true;
+		return NodeItems[Index].Transform;
+	}
+	return FTransform();
+}
+FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
+	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
+	bool& BoneFound) const
+{
+	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
+	int Index = Names.Find(Bone.BoneName);
+
+	BoneFound = false;
+	if (Index > InvalidBone && Index < ComponentSpaceTransforms.Num())
+	{
+		BoneFound = true;
+		return ComponentSpaceTransforms[Index];
+	}
+	return FTransform();
+}
+
+FTransform UBodyStateAnimInstance::GetCurrentWristPose(
+	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
+{
+	FTransform Ret;
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetCurrentWristPose INodeMapping is NULL so cannot proceed"));
+		return Ret;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
+	}
+	bool WristBoneFound = false;
+	Ret = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
+	return Ret;
+}
+// for debugging only, calcs debug rotations normalized for Unity (has no effect on the main path through the code)
+#define DEBUG_ROTATIONS_AS_UNITY 0
+#if DEBUG_ROTATIONS_AS_UNITY
+// useful for comparing with Unity when debugging (unused)
+void Normalize360(FRotator& InPlaceRot)
+{
+	if (InPlaceRot.Yaw < 0)
+	{
+		InPlaceRot.Yaw += 360;
+	}
+	if (InPlaceRot.Pitch < 0)
+	{
+		InPlaceRot.Pitch += 360;
+	}
+	if (InPlaceRot.Roll < 0)
+	{
+		InPlaceRot.Roll += 360;
+	}
+}
+#endif	  // DEBUG_ROTATIONS_AS_UNITY
+
+// based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
+void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
+		return;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
+	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
+	EBodyStateBasicBoneType Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_L;
+	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R;
+		Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R;
+		Pinky = EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_R;
+		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
+	}
+
+	auto RefIndex = ForMap.BoneMap.Find(Index);
+
+	if (!RefIndex)
+	{
+		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+
+		return;
+	}
+	FBoneReference IndexBone = RefIndex->MeshBone;
+	bool IndexBoneFound = false;
+	bool MiddleBoneFound = false;
+	bool PinkyBoneFound = false;
+	bool WristBoneFound = false;
+
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, ComponentSpaceTransforms, IndexBoneFound);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, ComponentSpaceTransforms, MiddleBoneFound);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, ComponentSpaceTransforms, PinkyBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, ComponentSpaceTransforms, WristBoneFound);
+
+	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
+	{
+		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+
+		return;
+	}
+	FBoneReference Bone = ForMap.BoneMap.Find(Wrist)->MeshBone;
+
+	// Calculate the Model's rotation
+	// direct port from c# Unity version HandBinderAutoBinder.cs
+	FVector Forward = MiddlePose.GetLocation() - WristPose.GetLocation();
+	FVector Right = IndexPose.GetLocation() - PinkyPose.GetLocation();
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		Right = -Right;
+	}
+	FVector Up = FVector::CrossProduct(Forward, Right);
+	// we need a three param version of this.
+	OrthNormalize2(Forward, Up, Right);
+
+	// in Unity this was Quat.LookRotation(forward,up).
+	FQuat ModelRotation;
+	ModelRotation = LookRotation(Forward, Up);
+
+	// In unity, this came from the wrist in the world/scene coords
+	FQuat WristPoseQuat(WristPose.GetRotation());
+
+#if DEBUG_ROTATIONS_AS_UNITY
+	// debug
+	FRotator WristSourceRotation = WristPose.GetRotation().Rotator();
+	Normalize360(WristSourceRotation);
+
+	FRotator ModelDebugRotation = ModelRotation.Rotator();
+	Normalize360(ModelDebugRotation);
+	// end debug
+#endif	  // DEBUG_ROTATIONS_AS_UNITY
+
+	FRotator WristRotation = (ModelRotation.Inverse() * WristPoseQuat).Rotator();
+
+#if DEBUG_ROTATIONS_AS_UNITY
+	FRotator WristDebugRotation = WristRotation;
+	Normalize360(WristDebugRotation);
+#endif	  // DEBUG_ROTATIONS_AS_UNITY
+
+	// correct to UE space as defined by control hands
+	if (ForMap.FlipModelLeftRight)
+	{
+		WristRotation += FRotator(-90, 0, -180);
+	}
+	else
+	{
+		WristRotation += FRotator(90, 0, 0);
+	}
+#if DEBUG_ROTATIONS_AS_UNITY
+	WristDebugRotation = WristRotation;
+	Normalize360(WristDebugRotation);
+#endif	  // DEBUG_ROTATIONS_AS_UNITY
+	ForMap.AutoCorrectRotation = FQuat(WristRotation);
+}
+float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	float ElbowLength = 0;
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
+		return 0;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
+	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_R;
+		Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_R;
+	}
+	FBoneReference LowerArmBone;
+
+	const FBPBoneReference* MapRef = ForMap.BoneMap.Find(LowerArm);
+	if (MapRef)
+	{
+		LowerArmBone = MapRef->MeshBone;
+	}
+	FBoneReference WristBone;
+
+	MapRef = ForMap.BoneMap.Find(Wrist);
+	if (MapRef)
+	{
+		WristBone = MapRef->MeshBone;
+	}
+	int32 LowerArmBoneIndex = Names.Find(LowerArmBone.BoneName);
+	int32 WristBoneIndex = Names.Find(WristBone.BoneName);
+
+	if (LowerArmBoneIndex > InvalidBone && WristBoneIndex > InvalidBone)
+	{
+		FTransform LowerArmPose = NodeItems[LowerArmBoneIndex].Transform;
+		FTransform WristPose = NodeItems[WristBoneIndex].Transform;
+
+		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
+	}
+	return ElbowLength;
+}
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
 {
-	//Grab our skel mesh component
+	// Grab our skel mesh component
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
 	IndexedBoneMap = AutoDetectHandIndexedBones(Component, RigTargetType);
 	auto OldMap = ForMap.BoneMap;
 	ForMap.BoneMap = ToBoneReferenceMap(IndexedBoneMap);
 
-	//Default preset rotations - Note order is different than in BP
+	// Default preset rotations - Note order is different than in BP
 	if (ForMap.PreBaseRotation.IsNearlyZero())
 	{
 		if (RigTargetType == EBodyStateAutoRigType::HAND_LEFT)
@@ -420,8 +731,8 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 			ForMap.PreBaseRotation = FRotator(0, 180, 90);
 		}
 	}
-
-	//Reset specified keys from defaults
+	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
+	// Reset specified keys from defaults
 	for (auto Pair : OldMap)
 	{
 		Pair.Value.MeshBone.Initialize(CurrentSkeleton);
@@ -431,32 +742,46 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 
 int32 UBodyStateAnimInstance::TraverseLengthForIndex(int32 Index)
 {
-	if (Index == -1 || Index>= BoneLookupList.Bones.Num())
+	if (Index == InvalidBone || Index >= BoneLookupList.Bones.Num())
 	{
-		return 0;	//this is the root or invalid bone
+		return 0;	 // this is the root or invalid bone
 	}
 	else
 	{
 		FBodyStateIndexedBone& Bone = BoneLookupList.Bones[Index];
-		
-		//Add our parent traversal + 1
+
+		// Add our parent traversal + 1
 		return TraverseLengthForIndex(Bone.ParentIndex) + 1;
 	}
 }
-
-void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex, TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
+void UBodyStateAnimInstance::AddEmptyFingerToMap(EBodyStateBasicBoneType BoneType,
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
 {
-	int32 FingerRoot = (int32)BoneType;
-	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), BoneLookupList.Bones[BoneIndex]);
-	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), BoneLookupList.Bones[BoneIndex + 1]);
-	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), BoneLookupList.Bones[BoneIndex + 2]);
-	if (InBonesPerFinger > 3)
+	int32 FingerRoot = (int32) BoneType;
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), FBodyStateIndexedBone());
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), FBodyStateIndexedBone());
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), FBodyStateIndexedBone());
+	if (InBonesPerFinger > NoMetaCarpelsFingerBoneCount)
 	{
-		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), BoneLookupList.Bones[BoneIndex + 3]);
+		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), FBodyStateIndexedBone());
 	}
 }
 
-TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneReferenceMap(TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap)
+void UBodyStateAnimInstance::AddFingerToMap(EBodyStateBasicBoneType BoneType, int32 BoneIndex,
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& BoneMap, int32 InBonesPerFinger /*= BonesPerFinger*/)
+{
+	int32 FingerRoot = (int32) BoneType;
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot), BoneLookupList.SortedBones[BoneIndex]);
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 1), BoneLookupList.SortedBones[BoneIndex + 1]);
+	BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 2), BoneLookupList.SortedBones[BoneIndex + 2]);
+	if (InBonesPerFinger > NoMetaCarpelsFingerBoneCount)
+	{
+		BoneMap.Add(EBodyStateBasicBoneType(FingerRoot + 3), BoneLookupList.SortedBones[BoneIndex + 3]);
+	}
+}
+
+TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneReferenceMap(
+	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap)
 {
 	TMap<EBodyStateBasicBoneType, FBPBoneReference> ReferenceMap;
 
@@ -472,23 +797,41 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	}
 	return ReferenceMap;
 }
+void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForMap)
+{
+	// the user can manually specify that the model is flipped (left to right or right to left)
+	// Setting the scale on the component flips the view
+	// if we do this here, the anim preview works as well as in scene and in actors
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
-
+	if (!Component)
+	{
+		return;
+	}
+	if (ForMap.FlipModelLeftRight)
+	{
+		Component->SetRelativeScale3D(FVector(1, 1, -1));
+	}
+	else
+	{
+		Component->SetRelativeScale3D(FVector(1, 1, 1));
+	}
+}
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	//Get our default bodystate skeleton
+	// Get our default bodystate skeleton
 	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 	SetAnimSkeleton(Skeleton);
 
-	//Try to auto-detect our bones
+	// Try to auto-detect our bones
 	if (bAutoDetectBoneMapAtInit)
 	{
-		//One hand mapping
+		// One hand mapping
 		if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
 		{
-			//Make one map if missing
+			// Make one map if missing
 			if (MappedBoneList.Num() < 1)
 			{
 				FMappedBoneAnimData Map;
@@ -499,16 +842,16 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 
 			AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget);
 		}
-		//Two hand mapping
+		// Two hand mapping
 		else
 		{
-			//Make two maps if missing
+			// Make two maps if missing
 			while (MappedBoneList.Num() < 2)
 			{
 				FMappedBoneAnimData Map;
 				MappedBoneList.Add(Map);
 			}
-			//Map one hand each
+			// Map one hand each
 			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
 			AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
 
@@ -517,11 +860,52 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 		}
 	}
 
-	//Cache all results
+	// One hand mapping
+	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
+	{
+		if (MappedBoneList.Num() > 0)
+		{
+			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+			HandleLeftRightFlip(OneHandMap);
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(OneHandMap, AutoMapTarget);
+			}
+			else
+			{
+				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+	else
+	{
+		// Make two maps if missing
+		if (MappedBoneList.Num() > 1)
+		{
+			// Map one hand each
+			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
+			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+
+			HandleLeftRightFlip(LeftHandMap);
+			HandleLeftRightFlip(RightHandMap);
+
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+				EstimateAutoMapRotation(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+			}
+			else
+			{
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+
+	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
 		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-		SetAnimSkeleton(BodyStateSkeleton);	//this will sync all the bones
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
 	{
@@ -536,51 +920,88 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	//SN: may want to optimize this at some pt
+	// SN: may want to optimize this at some pt
 	if (BodyStateSkeleton == nullptr)
 	{
 		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
-		SetAnimSkeleton(BodyStateSkeleton);  
+		SetAnimSkeleton(BodyStateSkeleton);
 	}
 
 	if (BodyStateSkeleton)
 	{
 		BodyStateSkeleton->bTrackingActive = !bFreezeTracking;
+		IsTracking = CalcIsTracking();
 	}
 }
+// static
+const FName& UBodyStateAnimInstance::GetMeshBoneNameFromCachedBoneLink(const FCachedBoneLink& CachedBoneLink)
+{
+	return CachedBoneLink.MeshBone.BoneName;
+}
+// do not call this from the anim thread
+bool UBodyStateAnimInstance::CalcIsTracking()
+{
+	if (!BodyStateSkeleton)
+	{
+		return false;
+	}
 
+	bool Ret = false;
+	switch (AutoMapTarget)
+	{
+		case EBodyStateAutoRigType::HAND_LEFT:
+		{
+			Ret = BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked();
+		}
+		break;
+		case EBodyStateAutoRigType::HAND_RIGHT:
+		{
+			Ret = BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+		}
+		break;
+		case EBodyStateAutoRigType::BOTH_HANDS:
+		{
+			Ret = BodyStateSkeleton->LeftArm()->Hand->Wrist->IsTracked() || BodyStateSkeleton->RightArm()->Hand->Wrist->IsTracked();
+		}
+		break;
+	}
+	return Ret;
+}
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
-	//Clear our current list
+	// Clear our current list
 	CachedBoneList.Empty();
 
-	//We require a bodystate skeleton to do the mapping
+	// We require a bodystate skeleton to do the mapping
 	if (BodyStateSkeleton == nullptr)
 	{
 		return;
 	}
 
-	//Todo: optimize multiple calls with no / small changes
+	// Todo: optimize multiple calls with no / small changes
 
-	//1) traverse indexed bone list, store all the traverse lengths
+	// 1) traverse indexed bone list, store all the traverse lengths
+	// this can happen on an animation worker thread
+	// set bUseMultiThreadedAnimationUpdate = false if we want to do everything on engine tick
+	FScopeLock ScopeLock(&BodyStateSkeleton->BoneDataLock);
 
 	for (auto Pair : BoneMap)
 	{
-		CachedBoneLink TraverseResult;
+		FCachedBoneLink TraverseResult;
 
 		TraverseResult.MeshBone = Pair.Value.MeshBone;
 		TraverseResult.MeshBone.Initialize(LinkedSkeleton);
 		TraverseResult.BSBone = BodyStateSkeleton->BoneForEnum(Pair.Key);
 
-		//Costly function and we don't need it after all, and it won't work anymore now that it depends on external data
-		//TraverseResult.TraverseCount = TraverseLengthForIndex(TraverseResult.MeshBone.BoneIndex);
+		// Costly function and we don't need it after all, and it won't work anymore now that it depends on external data
+		// TraverseResult.TraverseCount = TraverseLengthForIndex(TraverseResult.MeshBone.BoneIndex);
 
 		CachedBoneList.Add(TraverseResult);
 	}
 
-	//2) reorder according to shortest traverse list
-	CachedBoneList.Sort([](const CachedBoneLink& One, const CachedBoneLink& Two) {
-		//return One.TraverseCount < Two.TraverseCount;
+	// 2) reorder according to shortest traverse list
+	CachedBoneList.Sort([](const FCachedBoneLink& One, const FCachedBoneLink& Two) {
+		// return One.TraverseCount < Two.TraverseCount;
 		return One.MeshBone.BoneIndex < Two.MeshBone.BoneIndex;
 	});
 
@@ -589,13 +1010,13 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 
 bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
 {
-	//Early exit optimization
+	// Early exit optimization
 	if (TrackingTagLimit.Num() == 0)
 	{
 		return true;
 	}
 
-	FBodyStateBoneMeta UniqueMeta = ((UBodyStateBone*)QueryBone)->UniqueMeta();
+	FBodyStateBoneMeta UniqueMeta = ((UBodyStateBone*) QueryBone)->UniqueMeta();
 
 	for (FString& LimitTag : TrackingTagLimit)
 	{
@@ -626,8 +1047,25 @@ TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 	return ResultArray;
 }
 
-void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton)
+void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones)
 {
+	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
+	{
+		FBodyStateIndexedBone Bone;
+		Bone.BoneName = RefSkeleton.GetBoneName(i);
+		Bone.ParentIndex = RefSkeleton.GetParentIndex(i);
+		Bone.Index = i;
+		SortedBones.Add(Bone);
+	}
+	if (SortBones)
+	{
+		SortedBones.Sort();
+
+		for (int i = 0; i < SortedBones.Num(); ++i)
+		{
+			SortedBones[i].Index = i;
+		}
+	}
 	Bones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
@@ -638,7 +1076,7 @@ void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& Ref
 
 		Bones.Add(Bone);
 
-		//If we're not the root bone, add ourselves to the parent's child list
+		// If we're not the root bone, add ourselves to the parent's child list
 		if (Bone.ParentIndex != -1)
 		{
 			Bones[Bone.ParentIndex].Children.Add(Bone.Index);
@@ -649,7 +1087,18 @@ void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& Ref
 		}
 	}
 }
-
+int32 FBodyStateIndexedBoneList::TreeIndexFromSortedIndex(int32 SortedIndex)
+{
+	auto& Bone = SortedBones[SortedIndex];
+	for (auto& BoneTreeBone : Bones)
+	{
+		if (BoneTreeBone.BoneName == Bone.BoneName)
+		{
+			return BoneTreeBone.Index;
+		}
+	}
+	return 0;
+}
 int32 FBodyStateIndexedBoneList::LongestChildTraverseForBone(int32 BoneIndex)
 {
 	auto& Bone = Bones[BoneIndex];
@@ -671,4 +1120,7 @@ int32 FBodyStateIndexedBoneList::LongestChildTraverseForBone(int32 BoneIndex)
 		return Count + 1;
 	}
 }
-
+FORCEINLINE bool FBodyStateIndexedBone::operator<(const FBodyStateIndexedBone& Other) const
+{
+	return BoneName < Other.BoneName;
+}

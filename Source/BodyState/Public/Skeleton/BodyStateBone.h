@@ -1,9 +1,9 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
+#include "BodyStateEnums.h"
 
 #include "BodyStateBone.generated.h"
-
 
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FBodyStateBoneMeta
@@ -33,7 +33,6 @@ struct BODYSTATE_API FBodyStateBoneMeta
 	/** Time when this value was sampled */
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Bone Data")
 	float TimeStamp;
-
 
 	FBodyStateBoneMeta()
 	{
@@ -146,7 +145,7 @@ class BODYSTATE_API UBodyStateBone : public UObject
 	/** Add a child with this as parent link to bone */
 	void AddChild(UBodyStateBone* InChild);
 
-	//Convenience Functions
+	// Convenience Functions
 	UFUNCTION(BlueprintCallable, Category = "BodyState Bone")
 	virtual bool Enabled();
 
@@ -162,6 +161,8 @@ class BODYSTATE_API UBodyStateBone : public UObject
 	UFUNCTION(BlueprintPure, Category = "BodyState Bone")
 	virtual bool IsTracked();
 
+	UPROPERTY()
+	EBodyStateBasicBoneType BoneType;
 	/** Main method to update tracking status */
 	void SetTrackingConfidenceRecursively(float InConfidence);
 };
