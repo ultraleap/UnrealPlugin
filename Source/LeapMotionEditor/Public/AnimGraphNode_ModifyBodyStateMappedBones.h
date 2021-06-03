@@ -23,6 +23,7 @@ public:
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
 	virtual FLinearColor GetNodeTitleColor() const override;
 	virtual FString GetNodeCategory() const override;
+	virtual FText GetTooltipText() const override;
 	// End of UEdGraphNode interface
 
 protected:
