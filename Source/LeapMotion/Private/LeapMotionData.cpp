@@ -353,7 +353,8 @@ FLeapOptions::FLeapOptions()
 	//bEnableImageStreaming = false;		//default image streaming to off
 }
 
-FLeapStats::FLeapStats()
+FLeapStats::FLeapStats() :
+	FrameExtrapolationInMS(0)
 {
 	
 }

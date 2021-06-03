@@ -77,7 +77,7 @@ struct FBPBoneReference
 USTRUCT(BlueprintType)
 struct FMappedBoneAnimData
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
 	/** Whether the mesh should deform to match the tracked data */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
@@ -101,7 +101,7 @@ struct FMappedBoneAnimData
 
 	/** Skeleton driving mapped data */
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
-	class UBodyStateSkeleton* BodyStateSkeleton;
+	UBodyStateSkeleton* BodyStateSkeleton;
 
 	/** Skeleton driving mapped data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
@@ -117,7 +117,9 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	TArray<FCachedBoneLink> CachedBoneList;
 
-	FMappedBoneAnimData()
+	FMappedBoneAnimData() : 
+		BodyStateSkeleton(nullptr),
+		ElbowLength(0.0f)
 	{
 		bShouldDeformMesh = false;
 		FlipModelLeftRight = false;

@@ -1122,5 +1122,5 @@ int32 FBodyStateIndexedBoneList::LongestChildTraverseForBone(int32 BoneIndex)
 }
 FORCEINLINE bool FBodyStateIndexedBone::operator<(const FBodyStateIndexedBone& Other) const
 {
-	return BoneName < Other.BoneName;
+	return BoneName.FastLess(Other.BoneName);
 }
