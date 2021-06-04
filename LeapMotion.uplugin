@@ -26,7 +26,7 @@
 		},
 		{
 			"Name": "LeapMotionEditor",
-			"Type": "Developer",
+			"Type": "UncookedOnly",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
