@@ -26,7 +26,7 @@ public:
 	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) override;
 	virtual void GetAttachedDevices(TArray<FString>& Devices) override;
 	
-		virtual void ShutdownLeap() override;
+	virtual void ShutdownLeap() override;
 
 	bool IsActive();
 
