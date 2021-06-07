@@ -41,6 +41,10 @@ void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 {
 	ILeapMotionPlugin::Get().SetLeapPolicy(Flag, Enable);
 }
+void ULeapBlueprintFunctionLibrary::GetAttachedLeapDevices(TArray<FString>& Devices)
+{
+	ILeapMotionPlugin::Get().GetAttachedDevices(Devices);
+}
 
 //Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()

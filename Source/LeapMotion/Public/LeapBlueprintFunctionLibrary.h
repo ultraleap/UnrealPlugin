@@ -34,6 +34,8 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "Leap Motion Functions")
 	static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
+	UFUNCTION(BlueprintCallable, Category = "Leap Motion Functions")
+	static void GetAttachedLeapDevices(TArray<FString>& Devices);
 	//Debug functions, remove completely when no longer needed
 	static void ShutdownLeap();
 };

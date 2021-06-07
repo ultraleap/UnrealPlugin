@@ -24,8 +24,9 @@ public:
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
 	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) override;
-
-	virtual void ShutdownLeap() override;
+	virtual void GetAttachedDevices(TArray<FString>& Devices) override;
+	
+		virtual void ShutdownLeap() override;
 
 	bool IsActive();
 

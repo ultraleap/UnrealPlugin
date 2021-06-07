@@ -125,7 +125,14 @@ void FLeapMotionPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 		LeapInputDevice->SetLeapPolicy(Flag, Enable);
 	}
 }
+void FLeapMotionPlugin::GetAttachedDevices(TArray<FString>& Devices)
+{
+	if (bActive)
+	{
+		Devices = LeapInputDevice->GetAttachedDevices();
+	}
 
+}
 void FLeapMotionPlugin::ShutdownLeap()
 {
 	if (bActive)

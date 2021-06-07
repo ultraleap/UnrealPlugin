@@ -87,7 +87,7 @@ public:
 	void SetOptions(const FLeapOptions& Options);
 	FLeapOptions GetOptions();
 	FLeapStats GetStats();
-
+	const TArray<FString>& GetAttachedDevices() { return AttachedDevices; }
 private:
 	bool UseTimeBasedVisibilityCheck = false;
 	bool UseTimeBasedGestureCheck = false;
