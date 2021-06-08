@@ -3,6 +3,20 @@ LeapUnreal - Change Log
 
 Versions
 
+### Version 3.7.1
+
+* Adds Support for new "ScreenTop" Tracking Mode: Compatible with 4.9+ Services. This is a feature preview only.
+* Tracking mode APIs and notifications now replace Policy flag APIs and notifications
+* Fixed: Failure to compile in UE 4.26.x
+* Fixed: Pinch and grab events both received on grab (grab now overrides pinch)
+* Fixed: Hands tracked/not tracked notifications events being fired even when no change has occurred
+* Fixed: Hands not tracked when run in Stand Alone mode from the editor
+* Fixed: Intermittent crashes when using body state animation instance based blueprints in editor
+* Fixed: Right pinch leap component event not sent
+* Removed 32bit Leap DLL and 32bit support.
+* Fixed: Live Link hand bone positions are incorrect (spread out in space)
+* This version will still re-compile and run with UE 4.25.x
+
 ### Version 3.6.0
 * Now supports Unreal 4.25. Tracking tested for HMD based hand tracking. However, desktop mode hand tracking still has some bugs/performance issues.
 * Improved performance/stability (due to LeapC.dll change / use of the FastTrack Animation System for Hands).
