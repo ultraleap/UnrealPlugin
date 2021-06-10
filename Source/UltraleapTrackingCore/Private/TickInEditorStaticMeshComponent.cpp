@@ -8,5 +8,4 @@ UTickInEditorStaticMeshComponent::UTickInEditorStaticMeshComponent(const FObject
 	bTickInEditor = true;
 	bAutoActivate = true;
 	bHiddenInGame = true;
-	bVisualizeComponent = false;
 }
