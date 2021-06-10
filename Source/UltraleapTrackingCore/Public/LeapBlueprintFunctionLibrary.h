@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include "UltraleapTrackingData.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "UltraleapTrackingData.h"
+
 #include "LeapBlueprintFunctionLibrary.generated.h"
 
 /**
-* Useful global blueprint functions for Ultraleap Tracking
-*/
+ * Useful global blueprint functions for Ultraleap Tracking
+ */
 UCLASS()
 class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
@@ -34,6 +35,10 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
 	static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
-	//Debug functions, remove completely when no longer needed
+	/** List the attached (plugged in) devices */
+	UFUNCTION(BlueprintCallable, Category = "Leap Motion Functions")
+	static void GetAttachedLeapDevices(TArray<FString>& Devices);
+
+	// Debug functions, remove completely when no longer needed
 	static void ShutdownLeap();
 };

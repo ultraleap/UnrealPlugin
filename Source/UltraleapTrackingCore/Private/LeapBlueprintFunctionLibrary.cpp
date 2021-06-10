@@ -3,19 +3,17 @@
 #pragma once
 
 #include "LeapBlueprintFunctionLibrary.h"
+
 #include "IUltraleapTrackingPlugin.h"
 
-
-ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer)
-	: Super(Initializer)
+ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer) : Super(Initializer)
 {
-
 }
 
 void ULeapBlueprintFunctionLibrary::SetLeapMode(ELeapMode InMode, ELeapTrackingFidelity InTrackingFidelity)
 {
 	FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions();
-	
+
 	Options.Mode = InMode;
 	Options.TrackingFidelity = InTrackingFidelity;
 
@@ -41,8 +39,12 @@ void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 {
 	IUltraleapTrackingPlugin::Get().SetLeapPolicy(Flag, Enable);
 }
+void ULeapBlueprintFunctionLibrary::GetAttachedLeapDevices(TArray<FString>& Devices)
+{
+	IUltraleapTrackingPlugin::Get().GetAttachedDevices(Devices);
+}
 
-//Debug Functions
+// Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 {
 	IUltraleapTrackingPlugin::Get().ShutdownLeap();

@@ -1,11 +1,12 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "FUltraleapTrackingPlugin.h"
-#include "FUltraleapTrackingInputDevice.h"
+
 #include "BodyStateBPLibrary.h"
+#include "BodyStateDeviceConfig.h"
+#include "FUltraleapTrackingInputDevice.h"
 #include "IInputDeviceModule.h"
 #include "Interfaces/IPluginManager.h"
-#include "BodyStateDeviceConfig.h"
 #include "Modules/ModuleManager.h"
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
@@ -17,16 +18,16 @@ void FUltraleapTrackingPlugin::StartupModule()
 
 	// IMPORTANT: This line registers our input device module with the engine.
 	//	      If we do not register the input device module with the engine,
-	//	      the engine won't know about our existence. Which means 
+	//	      the engine won't know about our existence. Which means
 	//	      CreateInputDevice never gets called, which means the engine
 	//	      will never try to poll for events from our custom input device.
 
-	//Load the dll from appropriate location
+	// Load the dll from appropriate location
 	LeapDLLHandle = GetLeapHandle();
 
 	IModularFeatures::Get().RegisterModularFeature(IInputDeviceModule::GetModularFeatureName(), this);
 
-	//Get and display our plugin version in the log for debugging
+	// Get and display our plugin version in the log for debugging
 	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
 	const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("Leap Plugin started v%s"), *PluginDescriptor.VersionName);
@@ -46,20 +47,18 @@ void FUltraleapTrackingPlugin::ShutdownModule()
 	IModularFeatures::Get().UnregisterModularFeature(IInputDeviceModule::GetModularFeatureName(), this);
 }
 
-
 void FUltraleapTrackingPlugin::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
 	if (bActive)
 	{
 		LeapInputDevice->AddEventDelegate(EventDelegate);
 	}
-	else 
+	else
 	{
-		//Delay load it until it is ready
-		DeferredComponentList.Add((ULeapComponent*)EventDelegate);
+		// Delay load it until it is ready
+		DeferredComponentList.Add((ULeapComponent*) EventDelegate);
 	}
 }
-
 
 void FUltraleapTrackingPlugin::RemoveEventDelegate(const ULeapComponent* EventDelegate)
 {
@@ -103,7 +102,7 @@ FLeapOptions FUltraleapTrackingPlugin::GetOptions()
 
 void FUltraleapTrackingPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
 {
-	if (bActive) 
+	if (bActive)
 	{
 		LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible);
 	}
@@ -111,7 +110,7 @@ void FUltraleapTrackingPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& Ri
 
 void FUltraleapTrackingPlugin::GetLatestFrameData(FLeapFrameData& OutData)
 {
-	//Copies data
+	// Copies data
 	if (bActive)
 	{
 		LeapInputDevice->LatestFrame(OutData);
@@ -125,7 +124,13 @@ void FUltraleapTrackingPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 		LeapInputDevice->SetLeapPolicy(Flag, Enable);
 	}
 }
-
+void FUltraleapTrackingPlugin::GetAttachedDevices(TArray<FString>& Devices)
+{
+	if (bActive)
+	{
+		Devices = LeapInputDevice->GetAttachedDevices();
+	}
+}
 void FUltraleapTrackingPlugin::ShutdownLeap()
 {
 	if (bActive)
@@ -152,25 +157,27 @@ void* FUltraleapTrackingPlugin::GetLeapHandle()
 
 	if (NewLeapDLLHandle != nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(BinariesPath / "LeapC.dll"));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"),
+			*FPaths::ConvertRelativePathToFull(BinariesPath / "LeapC.dll"));
 	}
 	return NewLeapDLLHandle;
 }
 
-TSharedPtr< class IInputDevice > FUltraleapTrackingPlugin::CreateInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler)
+TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
+	const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 {
 	FUltraleapTrackingPlugin::LeapInputDevice = MakeShareable(new FUltraleapTrackingInputDevice(InMessageHandler));
 
 	bActive = true;
 
-	//Add all the deferred components and empty it
+	// Add all the deferred components and empty it
 	for (int i = 0; i < DeferredComponentList.Num(); i++)
 	{
 		AddEventDelegate(DeferredComponentList[i]);
 	}
 	DeferredComponentList.Empty();
 
-	return TSharedPtr< class IInputDevice >(LeapInputDevice);
+	return TSharedPtr<class IInputDevice>(LeapInputDevice);
 }
 
 IMPLEMENT_MODULE(FUltraleapTrackingPlugin, UltraleapTracking)
