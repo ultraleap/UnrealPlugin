@@ -1,23 +1,24 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "UltraleapTrackingData.h"
+
 #include "LeapC.h"
 #include "LeapUtility.h"
 
-#define MAX_DIGITS 5	//almost all humans have 5?
-#define MAX_DIGIT_BONES 4	//some bones don't have all bones, see Leap documentation
+#define MAX_DIGITS 5		 // almost all humans have 5?
+#define MAX_DIGIT_BONES 4	 // some bones don't have all bones, see Leap documentation
 
 FLeapHandData FLeapFrameData::HandForId(int32 HandId)
 {
 	for (auto& Hand : Hands)
 	{
-		//if found return hand
+		// if found return hand
 		if (Hand.Id == HandId)
 		{
 			return Hand;
 		}
 	}
-	//not found? return an empty hand
+	// not found? return an empty hand
 	FLeapHandData EmptyHand;
 	return EmptyHand;
 }
@@ -29,14 +30,14 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 		return;
 	}
 
-	//Copy basics
+	// Copy basics
 	NumberOfHandsVisible = frame->nHands;
 	FrameRate = frame->framerate;
 
 	TimeStamp = frame->info.timestamp;
 
-	//Copy hand data
-	if (Hands.Num() != NumberOfHandsVisible)	//always clear the hand data if number of hands changed
+	// Copy hand data
+	if (Hands.Num() != NumberOfHandsVisible)	// always clear the hand data if number of hands changed
 	{
 		Hands.Empty();
 	}
@@ -46,15 +47,15 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 
 	for (int i = 0; i < NumberOfHandsVisible; i++)
 	{
-		//Expand as necessary to fit
-		if (Hands.Num() <= i) 
+		// Expand as necessary to fit
+		if (Hands.Num() <= i)
 		{
 			FLeapHandData HandData;
 			Hands.Add(HandData);
 		}
 
 		const LEAP_HAND& LeapHand = frame->pHands[i];
-		Hands[i].SetFromLeapHand((_LEAP_HAND*)&LeapHand);
+		Hands[i].SetFromLeapHand((_LEAP_HAND*) &LeapHand);
 
 		if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT)
 		{
@@ -62,7 +63,7 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 		}
 		else if (Hands[i].HandType == EHandType::LEAP_HAND_RIGHT)
 		{
-			RightHandVisible= true;
+			RightHandVisible = true;
 		}
 	}
 
@@ -84,7 +85,7 @@ void FLeapFrameData::SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_
 	for (int i = 0; i < NumberOfHandsVisible; i++)
 	{
 		const LEAP_HAND& LeapHand = frame->pHands[i];
-		Hands[i].SetArmPartialsFromLeapHand((_LEAP_HAND*)&LeapHand);
+		Hands[i].SetArmPartialsFromLeapHand((_LEAP_HAND*) &LeapHand);
 	}
 
 	TimeStamp = frame->info.timestamp;
@@ -116,7 +117,7 @@ void FLeapFrameData::TranslateFrame(const FVector& InTranslation)
 
 void FLeapHandData::SetFromLeapHand(struct _LEAP_HAND* hand)
 {
-	Arm.SetFromLeapBone((_LEAP_BONE*)&hand->arm);
+	Arm.SetFromLeapBone((_LEAP_BONE*) &hand->arm);
 	Confidence = hand->confidence;
 	GrabAngle = hand->grab_angle;
 	GrabStrength = hand->grab_strength;
@@ -124,45 +125,45 @@ void FLeapHandData::SetFromLeapHand(struct _LEAP_HAND* hand)
 
 	for (int i = 0; i < MAX_DIGITS; i++)
 	{
-		if (Digits.Num() <= i) //will only pay the cost of filling once
+		if (Digits.Num() <= i)	  // will only pay the cost of filling once
 		{
 			FLeapDigitData DigitData;
 			Digits.Add(DigitData);
 		}
-		Digits[i].SetFromLeapDigit((_LEAP_DIGIT*)&hand->digits[i]);
+		Digits[i].SetFromLeapDigit((_LEAP_DIGIT*) &hand->digits[i]);
 	}
 
 	Flags = hand->flags;
 
-	Index.SetFromLeapDigit((_LEAP_DIGIT*)&hand->index);
-	Middle.SetFromLeapDigit((_LEAP_DIGIT*)&hand->middle);
-	Pinky.SetFromLeapDigit((_LEAP_DIGIT*)&hand->pinky);
-	Ring.SetFromLeapDigit((_LEAP_DIGIT*)&hand->ring);
-	Thumb.SetFromLeapDigit((_LEAP_DIGIT*)&hand->thumb);
+	Index.SetFromLeapDigit((_LEAP_DIGIT*) &hand->index);
+	Middle.SetFromLeapDigit((_LEAP_DIGIT*) &hand->middle);
+	Pinky.SetFromLeapDigit((_LEAP_DIGIT*) &hand->pinky);
+	Ring.SetFromLeapDigit((_LEAP_DIGIT*) &hand->ring);
+	Thumb.SetFromLeapDigit((_LEAP_DIGIT*) &hand->thumb);
 
 	PinchDistance = FLeapUtility::ScaleLeapFloatToUE(hand->pinch_distance);
 	PinchStrength = hand->pinch_strength;
 
-	HandType = (EHandType)hand->type;
+	HandType = (EHandType) hand->type;
 
-	Palm.SetFromLeapPalm((_LEAP_PALM*)&hand->palm);
+	Palm.SetFromLeapPalm((_LEAP_PALM*) &hand->palm);
 
-	VisibleTime = ((double)hand->visible_time / 1000000.0);	//convert to seconds
+	VisibleTime = ((double) hand->visible_time / 1000000.0);	// convert to seconds
 }
 
 void FLeapHandData::SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand)
 {
-	//Arm Partial
+	// Arm Partial
 	Arm.NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->arm.next_joint);
 	Arm.PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->arm.prev_joint);
 
-	//Palm Partial
+	// Palm Partial
 	Palm.Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->palm.position);
 
-	//Debug - Set Orientation
-	//Palm.Direction = ConvertLeapVectorToFVector(hand->palm.direction);
-	//Palm.Normal = ConvertLeapVectorToFVector(hand->palm.normal);
-	//Palm.Orientation = FRotationMatrix::MakeFromXZ(Palm.Direction, -Palm.Normal).Rotator();
+	// Debug - Set Orientation
+	// Palm.Direction = ConvertLeapVectorToFVector(hand->palm.direction);
+	// Palm.Normal = ConvertLeapVectorToFVector(hand->palm.normal);
+	// Palm.Orientation = FRotationMatrix::MakeFromXZ(Palm.Direction, -Palm.Normal).Rotator();
 }
 
 void FLeapHandData::ScaleHand(float InScale)
@@ -233,22 +234,22 @@ void FLeapBoneData::TranslateBone(const FVector& InTranslation)
 
 void FLeapDigitData::SetFromLeapDigit(struct _LEAP_DIGIT* digit)
 {
-	//set bone data
+	// set bone data
 	for (int i = 0; i < MAX_DIGIT_BONES; i++)
 	{
-		if (Bones.Num() <= i)  //will only pay the cost of filling once
+		if (Bones.Num() <= i)	 // will only pay the cost of filling once
 		{
 			FLeapBoneData BoneData;
 			Bones.Add(BoneData);
 		}
-		Bones[i].SetFromLeapBone((_LEAP_BONE*)&digit->bones[i]);
+		Bones[i].SetFromLeapBone((_LEAP_BONE*) &digit->bones[i]);
 	}
 
-	Distal.SetFromLeapBone((_LEAP_BONE*)&digit->distal);
-	Intermediate.SetFromLeapBone((_LEAP_BONE*)&digit->intermediate);
-	Metacarpal.SetFromLeapBone((_LEAP_BONE*)&digit->metacarpal);
-	Proximal.SetFromLeapBone((_LEAP_BONE*)&digit->proximal);
-	
+	Distal.SetFromLeapBone((_LEAP_BONE*) &digit->distal);
+	Intermediate.SetFromLeapBone((_LEAP_BONE*) &digit->intermediate);
+	Metacarpal.SetFromLeapBone((_LEAP_BONE*) &digit->metacarpal);
+	Proximal.SetFromLeapBone((_LEAP_BONE*) &digit->proximal);
+
 	FingerId = digit->finger_id;
 	IsExtended = digit->is_extended == 1;
 }
@@ -293,7 +294,7 @@ void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)
 
 	Normal = FLeapUtility::ConvertLeapVectorToFVector(palm->normal);
 
-	Orientation = FRotationMatrix::MakeFromXZ(Direction, -Normal).Rotator();	//normal*-1.f
+	Orientation = FRotationMatrix::MakeFromXZ(Direction, -Normal).Rotator();	// normal*-1.f
 
 	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->position);
 
@@ -325,15 +326,15 @@ void FLeapPalmData::TranslatePalm(const FVector& InTranslation)
 {
 	Position += InTranslation;
 	StabilizedPosition += InTranslation;
-	//Velocity += InTranslation;
+	// Velocity += InTranslation;
 }
 
 FLeapOptions::FLeapOptions()
 {
-	//Good Vive settings used as defaults
+	// Good Vive settings used as defaults
 	Mode = LEAP_MODE_DESKTOP;
 	TrackingFidelity = LEAP_NORMAL;
-	LeapServiceLogLevel = LEAP_LOG_INFO;	//most verbose by default
+	LeapServiceLogLevel = LEAP_LOG_INFO;	// most verbose by default
 	bUseTimeWarp = true;
 	bUseInterpolation = true;
 	bTransformOriginToHMD = true;
@@ -341,8 +342,8 @@ FLeapOptions::FLeapOptions()
 	TimewarpFactor = 1.f;
 	HandInterpFactor = 0.f;
 	FingerInterpFactor = 0.f;
-	HMDPositionOffset = FVector(9.0, 0, 0);		//Vive default, for oculus use 8,0,0
-	HMDRotationOffset = FRotator(0, 0, 0);		//If imperfectly mounted it might need to sag
+	HMDPositionOffset = FVector(9.0, 0, 0);	   // Vive default, for oculus use 8,0,0
+	HMDRotationOffset = FRotator(0, 0, 0);	   // If imperfectly mounted it might need to sag
 	bUseFrameBasedGestureDetection = false;
 	StartGrabThreshold = .8f;
 	EndGrabThreshold = .5f;
@@ -350,12 +351,11 @@ FLeapOptions::FLeapOptions()
 	EndPinchThreshold = .5f;
 	GrabTimeout = 100000;
 	PinchTimeout = 100000;
-	//bEnableImageStreaming = false;		//default image streaming to off
+	// bEnableImageStreaming = false;		//default image streaming to off
 }
 
-FLeapStats::FLeapStats()
+FLeapStats::FLeapStats() : FrameExtrapolationInMS(0)
 {
-	
 }
 
 void FLeapDevice::SetFromLeapDevice(struct _LEAP_DEVICE_INFO* LeapInfo)
