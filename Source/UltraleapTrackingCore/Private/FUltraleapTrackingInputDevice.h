@@ -76,6 +76,10 @@ public:
 	void SetOptions(const FLeapOptions& Options);
 	FLeapOptions GetOptions();
 	FLeapStats GetStats();
+	const TArray<FString>& GetAttachedDevices()
+	{
+		return AttachedDevices;
+	}
 
 private:
 	bool UseTimeBasedVisibilityCheck = false;
@@ -150,7 +154,6 @@ private:
 	FLeapFrameData PastFrame;
 
 	TArray<FString> AttachedDevices;
-
 	TArray<int32> PastVisibleHands;
 
 	// Time warp support
