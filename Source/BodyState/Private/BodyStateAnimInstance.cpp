@@ -733,11 +733,11 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 	}
 	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
-	for (auto Pair : OldMap)
+	/* for (auto Pair : OldMap)
 	{
 		Pair.Value.MeshBone.Initialize(CurrentSkeleton);
 		ForMap.BoneMap.Add(Pair.Key, Pair.Value);
-	}
+	}*/
 }
 
 int32 UBodyStateAnimInstance::TraverseLengthForIndex(int32 Index)
