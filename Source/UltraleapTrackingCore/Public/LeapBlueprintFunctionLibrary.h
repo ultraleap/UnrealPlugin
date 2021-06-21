@@ -39,6 +39,9 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "Leap Motion Functions")
 	static void GetAttachedLeapDevices(TArray<FString>& Devices);
 
+	/**Get the app version from the game.ini file */
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
+	static FString GetAppVersion();
 	// Debug functions, remove completely when no longer needed
 	static void ShutdownLeap();
 };

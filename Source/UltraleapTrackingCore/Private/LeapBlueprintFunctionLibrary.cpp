@@ -43,7 +43,13 @@ void ULeapBlueprintFunctionLibrary::GetAttachedLeapDevices(TArray<FString>& Devi
 {
 	IUltraleapTrackingPlugin::Get().GetAttachedDevices(Devices);
 }
+FString ULeapBlueprintFunctionLibrary::GetAppVersion()
+{
+	FString AppVersion;
+	GConfig->GetString(TEXT("/Script/EngineSettings.GeneralProjectSettings"), TEXT("ProjectVersion"), AppVersion, GGameIni);
 
+	return AppVersion;
+}
 // Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 {
