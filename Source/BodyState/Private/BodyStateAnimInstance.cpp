@@ -337,6 +337,8 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	// create empty skeleton for easy config
 	if (AutoBoneMap.Num() < 2)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find bones, please manually map them"));
+
 		CreateEmptyBoneMap(AutoBoneMap, HandType);
 	}
 	return AutoBoneMap;
@@ -584,6 +586,8 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	if (!RefIndex)
 	{
 		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+	
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find the index bone"));
 
 		return;
 	}
@@ -601,6 +605,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
 		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find all finger bones"));
 
 		return;
 	}
