@@ -143,22 +143,24 @@ void FUltraleapTrackingPlugin::ShutdownLeap()
 void* FUltraleapTrackingPlugin::GetLeapHandle()
 {
 	void* NewLeapDLLHandle = nullptr;
+	// Load LeapC DLL
+	FString LeapCLibraryPath;
 
 #if PLATFORM_WINDOWS
-#if PLATFORM_64BITS
-	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/UltraleapTracking/Win64"));
-#else
-	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/UltraleapTracking/Win32"));
-#endif
-	FPlatformProcess::PushDllDirectory(*BinariesPath);
-	NewLeapDLLHandle = FPlatformProcess::GetDllHandle(*(BinariesPath / "LeapC.dll"));
-	FPlatformProcess::PopDllDirectory(*BinariesPath);
-#endif
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
+
+	if (Plugin != nullptr)
+	{
+		FString BaseDir = Plugin->GetBaseDir();
+		LeapCLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/Win64/LeapC.dll"));
+
+		NewLeapDLLHandle = !LeapCLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LeapCLibraryPath) : nullptr;
+	}
+#endif	  // PLATFORM_WINDOWS
 
 	if (NewLeapDLLHandle != nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"),
-			*FPaths::ConvertRelativePathToFull(BinariesPath / "LeapC.dll"));
+		UE_LOG(LeapMotionLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(LeapCLibraryPath));
 	}
 	return NewLeapDLLHandle;
 }
