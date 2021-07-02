@@ -160,7 +160,8 @@ void* FUltraleapTrackingPlugin::GetLeapHandle()
 
 	if (NewLeapDLLHandle != nullptr)
 	{
-		UE_LOG(LeapMotionLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(LeapCLibraryPath));
+		UE_LOG(
+			UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(LeapCLibraryPath));
 	}
 	return NewLeapDLLHandle;
 }
