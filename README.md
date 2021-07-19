@@ -257,7 +257,11 @@ If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https:
 
 ![setting wireless fidelity](https://i.imgur.com/v0yOqaL.png)
 
-## A note on Unreal's FBX import settings
+
+
+## Custom Rigging
+
+### A note on Unreal's FBX import settings
 
 When importing FBX hand models, if the model imports with the skeleton separated from the mesh as below, turn on **Use T0 as Ref pose**
 
@@ -269,9 +273,11 @@ When importing FBX hand models, if the model imports with the skeleton separated
 
 ![](https://i.imgur.com/T6F72vX.png)
 
-## Custom Rigging
-
 Using the *Body State* system, the plugin supports basic auto-mapping of tracked data to skeletal mesh bones for 1 or 2 hands in single or multiple meshes. The auto-mapping function should work on 3,4, or 5 bones per mesh and will auto-detect this setup in your rig. This should eliminate most of the tedium of rigging hand bones and should make it easy to switch to new skeletal meshes with even different skeletal naming schemes.
+
+To get started with a newly imported model, right click on the model and choose **Create->Anim Blueprint**
+
+![](https://i.imgur.com/Nl5cx8t.png)
 
 To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyStateAnimInstance```
 
@@ -284,13 +290,19 @@ Once done, turn on **Auto Detect Bone Map at Init** and **Detect Hand Rotation D
 
 After the compile you'll also see a lot of values auto-filled in your ```anim preview editor``` window
 
-![](https://i.imgur.com/eAD1TfI.png)
+![](https://i.imgur.com/maOONaP.png)
 
-By default auto-mapping is enabled and set to your left hand, simply changing the type to right will change the targeting, hit compile to affect changes after changing type. 
 
-![](https://i.imgur.com/fYXUgPG.png)
 
-To use this auto-mapped data set you drag a single node called ```Modify Mapped Bones``` in your anim graph. It expects a blend alpha and a single parameter which takes a ```Mapped Bone Anim Data``` struct. If you mapped a single hand, you can grab the 0 index from your ```Mapped Bone List``` array and pass that in. If you have a hand that properly deforms, that is it. You're done! The tracking is live in the editor so you should be able to place your hand in front of your leap and press *F* to center on the tracked location and preview how the rigging behaves with real data.
+To enable the hand animation, add an **Ultraleap Modify Mapped Bones** node to the **AnimGraph** and connect it to the output pose. This maps incoming Leap hand data to the hand skeleton at runtime.
+
+![](https://i.imgur.com/V3t3NWg.png)
+
+
+
+By default auto mapping is set to your left hand, simply changing the type to right will change the targeting, hit compile to affect changes after changing type. 
+
+The tracking is now live in the editor so you should be able to place your hand in front of your leap and press *F* to center on the tracked location and preview how the rigging behaves with real data.
 
 
 ### Modifying Auto-map results
@@ -299,7 +311,7 @@ To use this auto-mapped data set you drag a single node called ```Modify Mapped 
 
 If you don't have a mesh setup that deforms well you can turn that off by adding an entry to your ```Mapped Bone List``` array and unchecking *Should Deform Mesh*. Any changes done to this ```Mapped Bone Anim Data``` entry will be applied after your auto-map fills it. Check your *Anim Preview Editor* to see all the mapped bone entries and final settings.
 
-![](https://i.imgur.com/8Axysda.png)
+![](https://i.imgur.com/4sjji8b.png)
 
 If you turn off deformation, only rotations will be applied to the mapped bones. To ensure the hand is still placed at the correct location you may need to fill your *anim graph* with appropriate custom changes. In this example we modify our *L_wrist* bone to translate to our BodyState wrist position. With this node active before all of our other rotations, we can now toggle the deform mesh to see how it changes the mesh hand.
 
@@ -319,6 +331,12 @@ You can save your auto-map results to stop it from re-mapping each time an insta
 
 ![](https://i.imgur.com/WQSXpPN.gif)
 
+### Flipped chirality (left to right or right to left mapped models)
+
+Often a single mesh is used as the model for both hands. In this case the hand that is not the same chirality (left or right) needs to have its rendering flipped. This is done in code by setting the scale to -1 on the X-axis. To flip the chirality of the model, enable **Flip Model Left Right** in the Mapped Bone list.
+
+![](https://i.imgur.com/VH9vUDh.png)
+
 ### Two handed meshes
 
 While it is recommended to separate your hand meshes into their own skeletal meshes to make hiding un-tracked hands easy, the auto-mapping system supports two handed meshes for e.g. characters and other atypical setups.
@@ -330,7 +348,11 @@ Start by changing the auto-mapping target to ```Both Hands``` which will make tw
 Since you have two entries of ```Mapped Bone Anim Data``` you should add another ```Modify Mapped Bones``` node in your anim graph so both positions and rotations are set.
 
 #### Modifying Search Parameters
-In the above example the mesh also had a different naming scheme, by changing left/right search string to ```lf_``` and ```rt_``` the auto-mapping system was able to correctly detect the bones. In that example we also replaced the wrist bone mapping because of the particularly unusual number of wrist parents used in the skeletal mesh. This was done via a single bonemap change for each hand, everything else left the same.
+When auto mapping bone names, fixed strings are used to detect which bone is which in the skeleton. These can be modified in the **Search Names** parameter which is initially populated with the most common bone names.
+
+![](https://i.imgur.com/i2ri6q3.png)
+
+ 
 
 #### Character meshes
 
