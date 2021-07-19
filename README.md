@@ -154,7 +154,7 @@ FLeapHandSignature OnHandBeginTracking;
 Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandEndTracking;
-```  
+```
 
 #### On Left Hand Visibility Changed
 
@@ -187,7 +187,7 @@ From the component you can also access functions to retrieve the latest frame da
 Utility function to check if a left/right hand is visible and tracked at this moment
 ```c++
 void AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible);
-```  
+```
 
 #### Get Latest Frame Data
 
@@ -257,6 +257,16 @@ If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https:
 
 ![setting wireless fidelity](https://i.imgur.com/v0yOqaL.png)
 
+## A note on Unreal's FBX import settings
+
+When importing FBX hand models, if the model imports with the skeleton separated from the mesh as below, turn on **Use T0 as Ref pose**
+
+![](Documentation\Images\HandModules\SkeletonSeparated.PNG)
+
+
+
+![](Documentation\Images\HandModules\T0AsRefPose.PNG)
+
 ## Custom Rigging
 
 Using the *Body State* system, the plugin supports basic auto-mapping of tracked data to skeletal mesh bones for 1 or 2 hands in single or multiple meshes. The auto-mapping function should work on 3,4, or 5 bones per mesh and will auto-detect this setup in your rig. This should eliminate most of the tedium of rigging hand bones and should make it easy to switch to new skeletal meshes with even different skeletal naming schemes.
@@ -265,9 +275,9 @@ To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyState
 
 ![](https://i.imgur.com/TbZfr59.png)
 
-Once done hit compile and you should see some new class defaults.
+Once done, turn on **Auto Detect Bone Map at Init** and **Detect Hand Rotation During Auto Mapping**, hit compile and you should see some new class defaults.
 
-![](https://i.imgur.com/VGRI0nw.png)
+![](Documentation\Images\HandModules\AutomapCheckBoxes.PNG)
 
 
 After the compile you'll also see a lot of values auto-filled in your ```anim preview editor``` window
