@@ -261,11 +261,13 @@ If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https:
 
 When importing FBX hand models, if the model imports with the skeleton separated from the mesh as below, turn on **Use T0 as Ref pose**
 
-![](Documentation\Images\HandModules\SkeletonSeparated.PNG)
+![](https://i.imgur.com/JdynkEl.png)
 
 
 
-![](Documentation\Images\HandModules\T0AsRefPose.PNG)
+
+
+![](https://i.imgur.com/T6F72vX.png)
 
 ## Custom Rigging
 
@@ -277,7 +279,7 @@ To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyState
 
 Once done, turn on **Auto Detect Bone Map at Init** and **Detect Hand Rotation During Auto Mapping**, hit compile and you should see some new class defaults.
 
-![](Documentation\Images\HandModules\AutomapCheckBoxes.PNG)
+![](https://i.imgur.com/k3hVhqp.png)
 
 
 After the compile you'll also see a lot of values auto-filled in your ```anim preview editor``` window
