@@ -34,14 +34,19 @@ Use one of the following methods
 ### Option 1. VR Mode- Example Pawn
 After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
-[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
+[![Desktop hands Quickstart, Click me to see higher resolution](https://imgur.com/vz1xzdD)
+
+[](https://youtu.be/iUYnRpG7btU)
 
 *NB: click the gif for a higher resolution video*
 
 ### Option 2. Desktop Mode - Example Actor
 After the plugin is enabled, find *Leap Desktop Actor* in your content browser (plugin content enabled) and place it anywhere in your scene. When you hit play your hands will be tracked from the actor center with the sensor expected to be facing upwards.
 
+![](https://imgur.com/vz1xzdD)
+
 ## Gestures
+
 Version 3.6.0 introduces a new gesture detection system, which is no longer based on frames. This reduces the likelihood that gestures will be dropped, particularly when hands are rotated. Users have the option to use the new or the old system.
 
 ### Grab and Pinch
