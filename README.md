@@ -370,6 +370,14 @@ While we needed to do some custom work in this instance, there was no need to ma
 
 For characters, don't forget to use the alpha value to blend out of tracked data when tracking stops and e.g. resume your idle animations.
 
+### Adding hands to an actor
+
+Once the anim blueprint is set up for each hand, the hands can be added to an Actor as Child Actor Components. See the example hands in the **HandModules/Hands** folder in the LeapMotion plugin content.
+
+![](https://i.imgur.com/RG6zsKz.png)
+
+This actor can then be dragged into the scene to use the mapped hands at runtime.
+
 # Packaging
 
 ### Windows
