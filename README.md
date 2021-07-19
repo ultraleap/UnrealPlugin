@@ -36,16 +36,14 @@ After the plugin is enabled you can change your default pawn to *LeapHandsPawn* 
 
 
 
-
-
-[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
+[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/vnTnCrB.gif)](https://youtu.be/YMq9xoRquyc)
 
 *NB: click the gif for a higher resolution video*
 
 ### Option 2. Desktop Mode - Example Actor
 After the plugin is enabled, find *Leap Desktop Actor* in your content browser (plugin content enabled) and place it anywhere in your scene. When you hit play your hands will be tracked from the actor center with the sensor expected to be facing upwards.
 
-![](https://imgur.com/vz1xzdD.gif)
+![Desktop quick start](https://imgur.com/vz1xzdD.gif)
 
 ## Gestures
 
@@ -76,7 +74,9 @@ Leap Options (see below) exposes new settings that allow the sensitivity of the 
 
 Common use cases and examples will be found here:
 
-https://github.com/leapmotion/LeapUnrealModules
+TODO: on pushing to github this needs updating
+
+[Creative / UHI / Unreal / UnrealTrackingSamples · GitLab (ultrahaptics.com)](https://gitlab.ultrahaptics.com/creative/uhi/unreal/unrealtrackingsamples)
 
 e.g. basic interaction with physics actors
 
@@ -116,49 +116,49 @@ FLeapEventSignature OnLeapConnected;
 
 #### On Leap Tracking Data
 
-Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```. See See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L331).
+Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```. See See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L331). TODO: change reference when new public github repo ready
 ```c++
 FLeapFrameSignature OnLeapTrackingData;
 ```
 
 #### On Hand Grabbed
 
-Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
 ```c++
 FLeapHandSignature OnHandGrabbed;
 ```
 
 #### On Hand Released
 
-Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
 ```c++
 FLeapHandSignature OnHandReleased;
 ```
 
 #### On Hand Pinched
 
-Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData ](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)TODO: change reference when new public github repo ready
 ```c++
 FLeapHandSignature OnHandPinched;
 ```
 
 #### On Hand Unpinched
 
-Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
 ```c++
 FLeapHandSignature OnHandUnpinched;
 ```
 
 #### On Hand Begin Tracking
 
-Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
 ```c++
 FLeapHandSignature OnHandBeginTracking;
 ```
 
 #### On Hand End Tracking
 
-Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
+Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
 ```c++
 FLeapHandSignature OnHandEndTracking;
 ```
@@ -179,11 +179,21 @@ FLeapVisibilityBoolSignature OnRightHandVisibilityChanged;
 
 #### On Leap Policies Updated
 
-Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L29)
+Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L29) TODO: change reference when new public github repo ready
 
 ```c++
 FLeapPolicySignature OnLeapPoliciesUpdated;
 ```
+
+#### On Leap Tracking Mode Updated
+
+Event called when the tracking mode has changed. Signature: an enum for the current tracking mode. See ELeapTrackingMode TODO: add reference when new public github repo ready
+
+```c++
+FLeapTrackingModeSignature OnLeapTrackingModeUpdated;
+```
+
+
 
 ### Leap Component Function List
 
@@ -211,7 +221,7 @@ Some settings and options are global, these will affect all tracking properties 
 
 #### Adjusting Global Offset
 
-By default some offsets are added for Oculus/Vive which should be good enough for majority of use cases. Vive rotation offset assumes natural sag of 10 degrees.
+By default some offsets are added for Oculus/Vive which should be good enough for the majority of use cases. Vive rotation offset assumes natural sag of 10 degrees.
 
 If however these defaults don't work for your setup, use ```Get Leap Options``` and ```Set Leap Options``` along with ```Set members``` to adjust the global tracking offsets such that they match your physical mount distance and rotation to achieve your 1:1 tracking. A good way to test the adjustments is to look at your hand and lift your headset slightly and see that your overall hand shapes line up within ~ 1cm.
 
@@ -384,6 +394,18 @@ Once the anim blueprint is set up for each hand, the hands can be added to an Ac
 ![](https://i.imgur.com/RG6zsKz.png)
 
 This actor can then be dragged into the scene to use the mapped hands at runtime.
+
+# UIInput Modules
+
+The UIInput Modules enable hand interaction with Unreal's UMG 2D UI system. Both direct and distance based interaction is supported in VR and Desktop modes.
+
+ ![](https://imgur.com/v0max0k.gif)
+
+The UIInput module blueprints are part of the Ultraleap Tracking Plugin. Four basic example scenes are included to get up and running quickly:
+
+![](https://i.imgur.com/ffegX3k.png)
+
+
 
 # Packaging
 
