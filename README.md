@@ -3,11 +3,11 @@ LeapUnreal
 
 [![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/leapmotion/leapunreal/releases)
 
-The official [Leap Motion](http://www.leapmotion.com) plugin for the Unreal Engine 4. 
+The official [Ultraleap Tracking]([World-leading Hand Tracking: Small. Fast. Accurate. | Ultraleap](https://www.ultraleap.com/tracking/)) plugin for the Unreal Engine 4. 
 
-You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
+Use convenience blueprints to add to the scene and play in editor or use a custom approach via blueprints or C++.
 
-Additionally, further Leap UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
+Additionally, further Ultraleap Tracking for Unreal modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules TODO:Replace with new github ref.
 
 ### Problems & Questions
 Reach out at https://forums.leapmotion.com/
@@ -25,14 +25,14 @@ If you want to use multiple devices at the same time, see the experimental https
 5. The plugin should be enabled and ready to use, if not enable it.
 
 #### Quick setup video, get up and running in 41 seconds!
-[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/z4HIqr-5kWQ)
+[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/YMq9xoRqu)
 
 # How to use it - Convenience Rigged Pawn
 
 Use one of the following methods
 
 ### Option 1. VR Mode- Example Pawn
-After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
+After the plugin is enabled, change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If using the tracking device with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
 
 
@@ -213,7 +213,7 @@ Polling function to get latest data. See [FLeapFrameData](https://github.com/lea
 void GetLatestFrameData(FLeapFrameData& OutData);
 ```
 
-# Blueprint - Leap Blueprint Function Library
+# Blueprint - Leap Blueprint Function Library TODO change all github refs on pushing to new public repos
 
 Some settings and options are global, these will affect all tracking properties and are set via global functions available to any blueprint.
 
@@ -389,7 +389,7 @@ For characters, don't forget to use the alpha value to blend out of tracked data
 
 ### Adding hands to an actor
 
-Once the anim blueprint is set up for each hand, the hands can be added to an Actor as Child Actor Components. See the example hands in the **HandModules/Hands** folder in the LeapMotion plugin content.
+Once the anim blueprint is set up for each hand, the hands can be added to an Actor as Child Actor Components. See the example hands in the **HandModules/Hands** folder in the UltraleapTracking plugin content.
 
 ![](https://i.imgur.com/RG6zsKz.png)
 
