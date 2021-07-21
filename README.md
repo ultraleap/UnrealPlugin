@@ -407,7 +407,7 @@ The UIInput module blueprints are part of the Ultraleap Tracking Plugin. Four ba
 
 Buttons, sliders, check boxes and drop downs are supported with the pinch event mapping to the mouse down and up equivalent in UMG. The cursor changes size based on the pinch amount with the button action triggered when fully pinched.
 
-To add an interactable cursor to any UMG widget, add the **DistanceCursor** widget to the a canvas. This will track the hand interaction for that widget with the variable size cursor. This is only needed for distance interaction where the user isn't touching UMG UI controls directly.
+To add an interactable cursor to any UMG widget, add the **DistanceCursor** widget to the main canvas. This will track the hand interaction for that widget with the variable size cursor. This is only needed for distance interaction where the user isn't touching UMG UI controls directly.
 
 NOTE: it's important to use **Pressed** events rather than *Clicked* events as the UMG button event handlers. This is because the widget interaction IDs aren't handled correctly by UE with *clicked* events if there's more than one player controller (for example in multiplayer). 
 
