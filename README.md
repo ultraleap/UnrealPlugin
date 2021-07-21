@@ -1,4 +1,4 @@
-LeapUnreal
+UltraleapTracking for Unreal
 ====================
 
 [![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/leapmotion/leapunreal/releases)
