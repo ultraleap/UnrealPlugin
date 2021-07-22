@@ -3,7 +3,7 @@
 
 #include "AnimGraphDefinitions.h"
 #include "Kismet2/BlueprintEditorUtils.h"
-#include "Editor/AnimGraph/Classes/AnimGraphNode_SkeletalControlBase.h"
+#include "AnimGraphNode_SkeletalControlBase.h"
 
 #include "AnimNode_ModifyBodyStateMappedBones.h"
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
