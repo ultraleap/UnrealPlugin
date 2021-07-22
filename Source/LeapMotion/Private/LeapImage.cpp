@@ -2,6 +2,7 @@
 
 #include "LeapImage.h"
 #include "LeapAsync.h"
+#include "Rendering/Texture2DResource.h"
 
 FLeapImage::FLeapImage()
 {
