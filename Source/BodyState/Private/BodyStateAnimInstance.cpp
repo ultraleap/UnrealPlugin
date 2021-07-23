@@ -1001,6 +1001,22 @@ bool UBodyStateAnimInstance::CalcIsTracking()
 	}
 	return Ret;
 }
+#if WITH_EDITOR
+void UBodyStateAnimInstance::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	if (PropertyChangedEvent.GetPropertyName() == "BoneName")
+	{
+		// turn off auto mapping if the user has customized the bone map
+		// otherwise the user's changes will get overwritten on the next compile
+		bAutoDetectBoneMapAtInit = false;
+	}
+}
+#endif //WITH_EDITOR
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
 	// Clear our current list

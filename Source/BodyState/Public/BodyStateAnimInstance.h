@@ -303,4 +303,20 @@ protected:
 
 	static const int32 InvalidBone = -1;
 	static const int32 NoMetaCarpelsFingerBoneCount = 3;
+
+	public:
+#if WITH_EDITOR
+		/**
+	 * Called when a property on this object has been modified externally
+	 *
+	 * @param PropertyThatChanged the property that was modified
+	 */
+		virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent);
+
+		/**
+		 * This alternate version of PostEditChange is called when properties inside structs are modified.  The property that was actually modified
+		 * is located at the tail of the list.  The head of the list of the FStructProperty member variable that contains the property that was modified.
+		 */
+		virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent);
+#endif //WITH_EDITOR
 };
