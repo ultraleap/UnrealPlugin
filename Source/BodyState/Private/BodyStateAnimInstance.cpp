@@ -284,11 +284,21 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		{
 			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.SortedBones[WristBone]);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Wrist bone, please manually map it"));
+		}
+
 		if (ThumbBone >= 0)
 		{
 			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, ThumbBone, AutoBoneMap);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Thumb bone, please manually map it"));
+		}
+
 		if (IndexBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -300,6 +310,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R, IndexBone, AutoBoneMap);
 			}
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Index finger bone, please manually map it"));
+		}
+
 		if (MiddleBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -311,6 +326,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R, MiddleBone, AutoBoneMap);
 			}
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Middle finger bone, please manually map it"));
+		}
+
 		if (RingBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -322,6 +342,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_1_PROXIMAL_R, RingBone, AutoBoneMap);
 			}
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Ring finger bone, please manually map it"));
+		}
+
 		if (PinkyBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -333,11 +358,15 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_R, PinkyBone, AutoBoneMap);
 			}
 		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the pinky finger bone, please manually map it"));
+		}
 	}
 	// create empty skeleton for easy config
 	if (AutoBoneMap.Num() < 2)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find bones, please manually map them"));
+		UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find any bones, please manually map them"));
 
 		CreateEmptyBoneMap(AutoBoneMap, HandType);
 	}
