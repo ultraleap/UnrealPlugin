@@ -7,7 +7,6 @@ public class BodyState : ModuleRules
 	public BodyState(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
 		PublicIncludePaths.AddRange(
 			new string[] {
 			}
@@ -42,9 +41,14 @@ public class BodyState : ModuleRules
 				"SlateCore"
 			}
 			);
-		
-		
-		DynamicallyLoadedModuleNames.AddRange(
+			if (Target.bBuildEditor)
+			{
+				PrivateDependencyModuleNames.Add("Persona");
+			}
+
+
+
+			DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
 			}

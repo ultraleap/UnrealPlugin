@@ -6,6 +6,9 @@
 #include "BodyStateUtility.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#if WITH_EDITOR
+#include "PersonaUtils.h"
+#endif
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {
@@ -1053,6 +1056,13 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			SyncMappedBoneDataCache(BoneMap);
 		}
 	}
+
+	//NativeInitializeAnimation();
+#if WITH_EDITOR
+	// this is what happens when the user clicks apply in the property previewer
+	PersonaUtils::CopyPropertiesToCDO(this);
+#endif
+
 }
 #if WITH_EDITOR
 void UBodyStateAnimInstance::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
