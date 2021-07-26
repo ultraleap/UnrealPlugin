@@ -416,7 +416,7 @@ Buttons, sliders, check boxes and drop downs are supported with the pinch event 
 
 To add an interactable cursor to any UMG widget, add the **DistanceCursor** widget to the main canvas and implement **InteractableWidgetInterface** on your UMG Widget. The distance cursor will track the hand interaction for that widget with the variable size cursor.
 
-See the **InteractableWidgetActor** for how to place UMG widgets in the scene and how to setup an widget for distance interaction.
+See the **InteractableWidgetActor** for how to place UMG widgets in the scene and how to setup a widget for distance interaction.
 
 NOTE: it's important to use **Pressed** events rather than *Clicked* events as the UMG button event handlers. This is because the widget interaction IDs aren't handled correctly by UE with *clicked* events if there's more than one player controller (for example in multiplayer). 
 
