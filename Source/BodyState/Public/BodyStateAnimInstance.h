@@ -209,7 +209,7 @@ public:
 
 	// UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
 	TMap<EBodyStateBasicBoneType, FBPBoneReference> AutoDetectHandBones(
-		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
+		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones);
 
 	/** Adjust rotation by currently defines offset base rotators */
 	UFUNCTION(BlueprintPure, Category = "BS Anim Instance")
@@ -276,7 +276,7 @@ protected:
 	TMap<EBodyStateBasicBoneType, FBPBoneReference> ToBoneReferenceMap(
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> InIndexedMap);
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoDetectHandIndexedBones(
-		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType = EBodyStateAutoRigType::HAND_LEFT);
+		USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones);
 
 	void EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
@@ -289,7 +289,7 @@ protected:
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms, bool& BoneFound) const;
 
-	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType);
+	void AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);
 	int32 SelectFirstBone(const TArray<FString>& Definitions);
 

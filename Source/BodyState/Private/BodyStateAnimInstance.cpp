@@ -1,13 +1,14 @@
 // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "BodyStateAnimInstance.h"
-
 #include "BodyStateBPLibrary.h"
 #include "BodyStateUtility.h"
 #include "Kismet/KismetMathLibrary.h"
 
+
 #if WITH_EDITOR
 #include "PersonaUtils.h"
+#include "Misc/MessageDialog.h"
 #endif
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
@@ -54,9 +55,9 @@ void UBodyStateAnimInstance::SetAnimSkeleton(UBodyStateSkeleton* InSkeleton)
 }
 
 TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(
-	USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
 {
-	auto IndexedMap = AutoDetectHandIndexedBones(Component, RigTargetType);
+	auto IndexedMap = AutoDetectHandIndexedBones(Component, RigTargetType, Success, FailedBones);
 	return ToBoneReferenceMap(IndexedMap);
 }
 
@@ -164,10 +165,10 @@ TArray<int32> UBodyStateAnimInstance::SelectBones(const TArray<FString>& Definit
 }
 
 TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(
-	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType, bool& Success, TArray<FString>& FailedBones)
 {
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoBoneMap;
-
+	Success = true;
 	if (Component == nullptr)
 	{
 		return AutoBoneMap;
@@ -224,7 +225,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		{
 			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_L, BoneLookupList.SortedBones[WristBone]);
 		}
-
+		
 		if (ThumbBone >= 0)
 		{
 			// Thumbs will always be ~ 3 bones
@@ -286,21 +287,13 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		{
 			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.SortedBones[WristBone]);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Wrist bone, please manually map it"));
-		}
-
+		
 		if (ThumbBone >= 0)
 		{
 			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, ThumbBone, AutoBoneMap);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Thumb bone, please manually map it"));
-		}
-
+		
 		if (IndexBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -312,11 +305,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R, IndexBone, AutoBoneMap);
 			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Index finger bone, please manually map it"));
-		}
-
+		
 		if (MiddleBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -328,11 +317,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R, MiddleBone, AutoBoneMap);
 			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Middle finger bone, please manually map it"));
-		}
-
+		
 		if (RingBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -344,11 +329,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_1_PROXIMAL_R, RingBone, AutoBoneMap);
 			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the Ring finger bone, please manually map it"));
-		}
-
+	
 		if (PinkyBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -360,15 +341,43 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_R, PinkyBone, AutoBoneMap);
 			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find the pinky finger bone, please manually map it"));
-		}
 	}
+	// failure states, it's common not find an arm so don't flag that as fail to map
+	if (IndexBone < 0 || RingBone < 0 || PinkyBone < 0 || MiddleBone < 0 || ThumbBone < 0 || WristBone < 0)
+	{
+		if (IndexBone < 0)
+		{
+			FailedBones.Add("Index");
+		}
+		if (RingBone < 0)
+		{
+			FailedBones.Add("Ring");
+		}
+		if (MiddleBone < 0)
+		{
+			FailedBones.Add("Middle");
+		}
+		if (PinkyBone < 0)
+		{
+			FailedBones.Add("Pinky");
+		}
+		if (ThumbBone < 0)
+		{
+			FailedBones.Add("Thumb");
+		}
+		if (WristBone < 0)
+		{
+			FailedBones.Add("Wrist");
+		}
+
+
+	}
+
 	// create empty skeleton for easy config
 	if (AutoBoneMap.Num() < 2)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find any bones, please manually map them"));
+		Success = false;
 
 		CreateEmptyBoneMap(AutoBoneMap, HandType);
 	}
@@ -746,12 +755,12 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 	return ElbowLength;
 }
-void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
+void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
 {
 	// Grab our skel mesh component
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
-	IndexedBoneMap = AutoDetectHandIndexedBones(Component, RigTargetType);
+	IndexedBoneMap = AutoDetectHandIndexedBones(Component, RigTargetType, Success, FailedBones);
 	auto OldMap = ForMap.BoneMap;
 	ForMap.BoneMap = ToBoneReferenceMap(IndexedBoneMap);
 
@@ -970,6 +979,8 @@ bool UBodyStateAnimInstance::CalcIsTracking()
 }
 void UBodyStateAnimInstance::ExecuteAutoMapping()
 {
+	bool AutoMapSuccess = false;
+	TArray<FString> FailedBones;
 	// One hand mapping
 	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
 	{
@@ -982,7 +993,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 
 		FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
 
-		AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget);
+		AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget, AutoMapSuccess, FailedBones);
 	}
 	// Two hand mapping
 	else
@@ -995,10 +1006,10 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 		}
 		// Map one hand each
 		FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
-		AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+		AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT, AutoMapSuccess, FailedBones);
 
 		FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
-		AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+		AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT, AutoMapSuccess, FailedBones);
 	}
 
 
@@ -1057,12 +1068,29 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 		}
 	}
 
-	//NativeInitializeAnimation();
 #if WITH_EDITOR
 	// this is what happens when the user clicks apply in the property previewer
 	PersonaUtils::CopyPropertiesToCDO(this);
-#endif
 
+	FString Title("Ultraleap auto bone mapping");
+	FText TitleText = FText::FromString(*Title);
+	FString Message("Auto mapping succeeded! Compile to continue");
+
+	if (!AutoMapSuccess)
+	{
+		Message = "We couldn't automatically map all bones.\n\nThe following bones couldn't be auto mapped:\n\n";
+
+		for (auto BoneName : FailedBones)
+		{
+			Message += BoneName;
+			Message += "\n";
+		}
+		Message += "\n\nEdit the mappings manually in 'Mapped Bone List -> Bone Map' in the preview panel to continue.";
+	}
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), &TitleText);
+
+#endif
+	
 }
 #if WITH_EDITOR
 void UBodyStateAnimInstance::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
