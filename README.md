@@ -398,7 +398,15 @@ This actor can then be dragged into the scene to use the mapped hands at runtime
 
 The UIInput Modules enable hand interaction with Unreal's UMG 2D UI system. Both direct and distance based interaction is supported in VR and Desktop modes.
 
+**Distance interaction:**
+
  ![](https://imgur.com/v0max0k.gif)
+
+**Close interaction**
+
+![](https://imgur.com/W8Yyue8.gif)
+
+
 
 The UIInput module blueprints are part of the Ultraleap Tracking Plugin. Four basic example scenes are included to get up and running quickly:
 
@@ -406,7 +414,9 @@ The UIInput module blueprints are part of the Ultraleap Tracking Plugin. Four ba
 
 Buttons, sliders, check boxes and drop downs are supported with the pinch event mapping to the mouse down and up equivalent in UMG. The cursor changes size based on the pinch amount with the button action triggered when fully pinched.
 
-To add an interactable cursor to any UMG widget, add the **DistanceCursor** widget to the main canvas. This will track the hand interaction for that widget with the variable size cursor. This is only needed for distance interaction where the user isn't touching UMG UI controls directly.
+To add an interactable cursor to any UMG widget, add the **DistanceCursor** widget to the main canvas and implement **InteractableWidgetInterface** on your UMG Widget. The distance cursor will track the hand interaction for that widget with the variable size cursor.
+
+See the **InteractableWidgetActor** for how to place UMG widgets in the scene and how to setup an widget for distance interaction.
 
 NOTE: it's important to use **Pressed** events rather than *Clicked* events as the UMG button event handlers. This is because the widget interaction IDs aren't handled correctly by UE with *clicked* events if there's more than one player controller (for example in multiplayer). 
 
