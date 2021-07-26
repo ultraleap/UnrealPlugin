@@ -379,6 +379,50 @@ Once the anim blueprint is set up for each hand, the hands can be added to an Ac
 
 This actor can then be dragged into the scene to use the mapped hands at runtime.
 
+# FAQ
+
+#### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
+
+This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Leap plugin, the project must be converted to a C++ project. To convert the project:
+
+- Rename the **Plugins** folder to **Plugin** to prevent it being used on loading the project
+
+- Open your project (.uproject) file
+
+- Go to **File->Add C++ class** and add an empty C++ class to the project. It doesn't matter what it's named
+
+  ![](https://i.imgur.com/FFCM0ge.png)
+
+- Now, exit your project, rename the **Plugin** folder to **Plugins**
+
+- Right click on your project .uproject file and choose **Generate Visual Studio Project Files**
+
+- Open the generated solution (.sln) and build it
+
+- You'll now be able to open your .uproject file and edit it as normal.
+
+
+
+### How do I set up the hand meshes so that the fingers collide with other objects in the scene?
+
+Create a **Physics Asset** on the hand mesh. A guide on how to do this is at [Skeletal Mesh Actors | Unreal Engine Documentation](https://docs.unrealengine.com/4.26/en-US/Basics/Actors/SkeletalMeshActors/). See the **Collision** section for details.
+
+### How do I modify a single joint/bone that has been mapped slightly wrong?
+
+In the anim graph of your anim blueprint, drag a connection out of the **Ultraleap Modify Mapped Bones** node and add a **Transform ( Modify bone** node. Now edit the **Transform** node settings to change whichever bone you want to modify in the skeleton.
+
+![](https://i.imgur.com/fYomt8w.png)
+
+### How do I clear a bone mapping back to *none* in the details view?
+
+Go to the **Edit defaults** tab and click the yellow reset arrow next to the bone you want to reset.
+
+![](https://i.imgur.com/dIjhFEO.png)
+
+### Why don't the different hand meshes line up perfectly?
+
+This is due to differences in each imported rigged model and whether or not metacarpal joints are included/mapped.
+
 # Packaging
 
 ### Windows
