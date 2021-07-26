@@ -424,7 +424,7 @@ NOTE: it's important to use **Pressed** events rather than *Clicked* events as t
 
 #### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
 
-This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Leap plugin, the project must be converted to a C++ project. To convert the project:
+This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Ultraleap Tracking plugin, the project must be converted to a C++ project. To convert the project:
 
 - Rename the **Plugins** folder to **Plugin** to prevent it being used on loading the project
 
