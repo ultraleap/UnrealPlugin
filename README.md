@@ -283,12 +283,11 @@ To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyState
 
 ![](https://i.imgur.com/TbZfr59.png)
 
-Once done, turn on **Detect Hand Rotation During Auto Mapping**, hit the **Auto map** button. New class defaults will now be created if bones were mapped successfully.
+Once done, turn on **Detect Hand Rotation During Auto Mapping** and hit the **Auto map** button. New class defaults will now be created if bones were mapped successfully.
 
 ![](https://i.imgur.com/DcQhRXX.png)
 
-
-Once auto mapped, compile the blueprint to see the results. After the compile you'll also see a lot of values auto-filled in your ```anim preview editor``` window
+Once auto mapped, compile the blueprint to see the results. After the compile you'll see a lot of values auto-filled in your ```anim preview editor``` window
 
 ![](https://i.imgur.com/rRBsReU.png)
 
