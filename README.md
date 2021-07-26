@@ -300,16 +300,15 @@ To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyState
 
 ![](https://i.imgur.com/TbZfr59.png)
 
-Once done, turn on **Auto Detect Bone Map at Init** and **Detect Hand Rotation During Auto Mapping**, hit compile and you should see some new class defaults.
-
-![](https://i.imgur.com/k3hVhqp.png)
 
 
-After the compile you'll also see a lot of values auto-filled in your ```anim preview editor``` window
+Once done, turn on **Detect Hand Rotation During Auto Mapping** and hit the **Auto map** button. New class defaults will now be created if bones were mapped successfully.
 
-![](https://i.imgur.com/maOONaP.png)
+![](https://i.imgur.com/DcQhRXX.png)
 
+Once auto mapped, compile the blueprint to see the results. After the compile you'll see a lot of values auto-filled in your ```anim preview editor``` window
 
+![](https://i.imgur.com/rRBsReU.png)
 
 To enable the hand animation, add an **Ultraleap Modify Mapped Bones** node to the **AnimGraph** and connect it to the output pose. This maps incoming Leap hand data to the hand skeleton at runtime.
 
@@ -411,7 +410,49 @@ To add an interactable cursor to any UMG widget, add the **DistanceCursor** widg
 
 NOTE: it's important to use **Pressed** events rather than *Clicked* events as the UMG button event handlers. This is because the widget interaction IDs aren't handled correctly by UE with *clicked* events if there's more than one player controller (for example in multiplayer). 
 
+# FAQ
 
+#### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
+
+This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Leap plugin, the project must be converted to a C++ project. To convert the project:
+
+- Rename the **Plugins** folder to **Plugin** to prevent it being used on loading the project
+
+- Open your project (.uproject) file
+
+- Go to **File->Add C++ class** and add an empty C++ class to the project. It doesn't matter what it's named
+
+  ![](https://i.imgur.com/FFCM0ge.png)
+
+- Now, exit your project, rename the **Plugin** folder to **Plugins**
+
+- Right click on your project .uproject file and choose **Generate Visual Studio Project Files**
+
+- Open the generated solution (.sln) and build it
+
+- You'll now be able to open your .uproject file and edit it as normal.
+
+
+
+### How do I set up the hand meshes so that the fingers collide with other objects in the scene?
+
+Create a **Physics Asset** on the hand mesh. A guide on how to do this is at [Skeletal Mesh Actors | Unreal Engine Documentation](https://docs.unrealengine.com/4.26/en-US/Basics/Actors/SkeletalMeshActors/). See the **Collision** section for details.
+
+### How do I modify a single joint/bone that has been mapped slightly wrong?
+
+In the anim graph of your anim blueprint, drag a connection out of the **Ultraleap Modify Mapped Bones** node and add a **Transform ( Modify bone** node. Now edit the **Transform** node settings to change whichever bone you want to modify in the skeleton.
+
+![](https://i.imgur.com/fYomt8w.png)
+
+### How do I clear a bone mapping back to *none* in the details view?
+
+Go to the **Edit defaults** tab and click the yellow reset arrow next to the bone you want to reset.
+
+![](https://i.imgur.com/dIjhFEO.png)
+
+### Why don't the different hand meshes line up perfectly?
+
+This is due to differences in each imported rigged model and whether or not metacarpal joints are included/mapped.
 
 # Packaging
 
