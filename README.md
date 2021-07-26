@@ -283,7 +283,7 @@ To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyState
 
 ![](https://i.imgur.com/TbZfr59.png)
 
-Once done, turn on **Detect Hand Rotation During Auto Mapping**, hit the **Auto map** button should see some new class defaults if bones were mapped successfully.
+Once done, turn on **Detect Hand Rotation During Auto Mapping**, hit the **Auto map** button. New class defaults will now be created if bones were mapped successfully.
 
 ![](https://i.imgur.com/DcQhRXX.png)
 
@@ -324,6 +324,8 @@ Note that the hand wrist position doesn't move since the deformed mesh position 
 If the auto-mapping got some things right, but some things wrong, you can override the results by adding a ```Mapped Bone Anim Data``` entry and then changing individual bone maps. These are applied after the auto-map procedure so they will take precedence. Hit compile after adding bones to see changes.
 
 ![](https://i.imgur.com/joLg6SU.gif)
+
+If the auto mapping process failed to find ones in the imported skeleton, the missing bones will be listed upon clicking the **Auto Map** button.
 
 #### Saving auto-map results
 
