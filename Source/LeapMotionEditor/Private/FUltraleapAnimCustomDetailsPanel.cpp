@@ -41,6 +41,7 @@ void FUltraleapAnimCustomDetailsPanel::CustomizeDetails(IDetailLayoutBuilder& De
 		.MaxDesiredWidth(250)[	  // With this operator we declare a new slate object inside our widget row
 								  // In this case the slate object is a button
 			SNew(SButton)
+				.ToolTipText(FText::FromString("Automatically maps tracked bones to the skeleton bones and optionally automatically corrects the model orientation"))
 				.VAlign(VAlign_Center)
 				.OnClicked(this, &FUltraleapAnimCustomDetailsPanel::ClickedOnButton)	// Binding the OnClick function we want to
 																						// execute when
@@ -65,7 +66,6 @@ FReply FUltraleapAnimCustomDetailsPanel::ClickedOnButton()
 				AnimInstance->ExecuteAutoMapping();
 			}
 		}
-		GLog->Log("Bones auto mapped or not!");
 	}
 	return FReply::Handled();
 }
