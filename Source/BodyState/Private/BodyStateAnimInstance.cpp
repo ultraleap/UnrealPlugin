@@ -15,7 +15,6 @@ FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef
 UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Defaults
-	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
 
@@ -859,41 +858,6 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 	SetAnimSkeleton(Skeleton);
 
-	// Try to auto-detect our bones
-	if (bAutoDetectBoneMapAtInit)
-	{
-		// One hand mapping
-		if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
-		{
-			// Make one map if missing
-			if (MappedBoneList.Num() < 1)
-			{
-				FMappedBoneAnimData Map;
-				MappedBoneList.Add(Map);
-			}
-
-			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
-
-			AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget);
-		}
-		// Two hand mapping
-		else
-		{
-			// Make two maps if missing
-			while (MappedBoneList.Num() < 2)
-			{
-				FMappedBoneAnimData Map;
-				MappedBoneList.Add(Map);
-			}
-			// Map one hand each
-			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
-			AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
-
-			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
-			AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
-		}
-	}
-
 	// One hand mapping
 	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
 	{
@@ -1001,6 +965,95 @@ bool UBodyStateAnimInstance::CalcIsTracking()
 	}
 	return Ret;
 }
+void UBodyStateAnimInstance::ExecuteAutoMapping()
+{
+	// One hand mapping
+	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
+	{
+		// Make one map if missing
+		if (MappedBoneList.Num() < 1)
+		{
+			FMappedBoneAnimData Map;
+			MappedBoneList.Add(Map);
+		}
+
+		FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+
+		AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget);
+	}
+	// Two hand mapping
+	else
+	{
+		// Make two maps if missing
+		while (MappedBoneList.Num() < 2)
+		{
+			FMappedBoneAnimData Map;
+			MappedBoneList.Add(Map);
+		}
+		// Map one hand each
+		FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
+		AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+
+		FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+		AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+	}
+
+
+	// One hand mapping
+	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
+	{
+		if (MappedBoneList.Num() > 0)
+		{
+			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+			HandleLeftRightFlip(OneHandMap);
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(OneHandMap, AutoMapTarget);
+			}
+			else
+			{
+				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+	else
+	{
+		// Make two maps if missing
+		if (MappedBoneList.Num() > 1)
+		{
+			// Map one hand each
+			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
+			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+
+			HandleLeftRightFlip(LeftHandMap);
+			HandleLeftRightFlip(RightHandMap);
+
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+				EstimateAutoMapRotation(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+			}
+			else
+			{
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+
+	// Cache all results
+	if (BodyStateSkeleton == nullptr)
+	{
+		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
+	}
+	else
+	{
+		for (auto& BoneMap : MappedBoneList)
+		{
+			SyncMappedBoneDataCache(BoneMap);
+		}
+	}
+}
 #if WITH_EDITOR
 void UBodyStateAnimInstance::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -1009,11 +1062,10 @@ void UBodyStateAnimInstance::PostEditChangeProperty(struct FPropertyChangedEvent
 void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	
+	// if we want to trigger an action when the user manually changed a bone mapping , do it in here
 	if (PropertyChangedEvent.GetPropertyName() == "BoneName")
 	{
-		// turn off auto mapping if the user has customized the bone map
-		// otherwise the user's changes will get overwritten on the next compile
-		bAutoDetectBoneMapAtInit = false;
 	}
 }
 #endif //WITH_EDITOR

@@ -32,6 +32,9 @@ namespace UnrealBuildTool.Rules
 					"Core",
 					"CoreUObject",
 					"LeapMotion",
+					"PropertyEditor",
+					"Slate",
+					"SlateCore"
 				}
 				);
 

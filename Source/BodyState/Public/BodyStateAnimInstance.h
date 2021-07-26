@@ -172,7 +172,7 @@ struct FBoneSearchNames
 	}
 };
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
-class UBodyStateAnimInstance : public UAnimInstance
+class BODYSTATE_API UBodyStateAnimInstance : public UAnimInstance
 {
 public:
 	GENERATED_UCLASS_BODY()
@@ -180,10 +180,6 @@ public:
 	/** Toggle to freeze the tracking at current state. Useful for debugging your anim instance*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BS Anim Instance - Debug")
 	bool bFreezeTracking;
-
-	/** Whether the anim instance should autodetect and fill the bonemap on anim init*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
-	bool bAutoDetectBoneMapAtInit;
 
 	/** Whether the anim instance should map the skeleton rotation on auto map*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
@@ -260,6 +256,10 @@ public:
 	bool CalcIsTracking();
 
 	FThreadSafeBool IsTracking;
+
+
+	UFUNCTION()
+	void ExecuteAutoMapping();
 
 protected:
 	// traverse a bone index node until you hit -1, count the hops
