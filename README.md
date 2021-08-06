@@ -420,7 +420,68 @@ See the **InteractableWidgetActor** for how to place UMG widgets in the scene an
 
 NOTE: it's important to use **Pressed** events rather than *Clicked* events as the UMG button event handlers. This is because the widget interaction IDs aren't handled correctly by UE with *clicked* events if there's more than one player controller (for example in multiplayer). 
 
-# FAQ
+# Interaction Engine
+
+The Interaction Engine allows users to work with your application by interacting with *physical* or *pseudo-physical* objects. Whether a baseball, a [block](https://www.youtube.com/watch?v=oZ_53T2jBGg&t=1m11s), a virtual trackball, a button on an interface panel, or a hologram with more complex affordances, if there are objects in your application you need your user to be able to **hover** near, **touch**, or **grasp** in some way, the Interaction Engine can do some or all of that work for you.
+
+You can find the Interaction Engine in the UltraleapTracking plugin at [ultraleap/uhi-unreal-tracking (github.com)](https://github.com/ultraleap/uhi-unreal-tracking)
+
+For a quick look at what the Interaction Engine can do, we recommend adding the UltraleapTracking plugin to your project and checking out the included example scenes documented further down below. For an in-depth review of features in the Interaction Engine, keep reading.
+
+## The basic components of interaction
+
+- "Interaction objects" are StaticMesh/Primitive Components with an attached **IEGrabComponent**. ![](https://i.imgur.com/Qfrtilt.png)
+- An **IEGrabberComponent** attaches to anything that is used to interact with items in the scene (for example a Hand SkeletelMeshComponent or a MotionControllerComponent).
+  ![](https://i.imgur.com/Op7lClc.png)
+
+
+
+Interaction objects can live anywhere in your scene, all that's needed is to attach the IEGrabComponent. In addition, for re-use, IEGrabComponents can easily be attached as part of a StaticMeshActor child blueprint. The **GrabCube** above is an example of this.
+
+# Just add IEGrabComponent!
+
+When you add an IEGrabComponent to an object, a couple of things happen automatically:
+
+- Assuming you have a hand SkeletelMeshComponent or MotionControllerComponent with an IEGrabberComponent attached to it, you'll be able to pick up, poke, and smack the object with your hands or XR controller.
+
+The first example in the Interaction Engine package showcases the default behavior of a handful of different objects when they first become interaction objects.
+
+# First steps with the Interaction Engine
+
+If you haven't already, add the UltraleapTrackingPlugin to your project:
+
+- Download the latest UltraleapTrackingPlugin from 
+- Download the latest Interaction Engine package from [our developer site]([ultraleap/uhi-unreal-tracking (github.com)](https://github.com/ultraleap/uhi-unreal-tracking)).
+- Copy the plugin to the Plugins folder beneath your Unreal Project (create a Plugins folder if it doesn't already exist)
+- Open your project and make sure 'Show Plugin Content' is enabled in the view options of your Content Browser.
+
+## Add the Interaction Engine Pawn to your scene
+
+Either
+
+- Add/Drag the **IEPawnHands** actor directly into the scene, and set it's **Auto Possess Player** property to 0
+
+Or
+
+- Set the **IEPawnHands** class as the Default Pawn Class in your Game Mode (this requires a custom Game Mode to already be selected in World Settings or Project Settings)
+
+That's it, you will now be able to interact in the scene with your Motion Controllers in VR, the Mouse in desktop mode and with Tracked Hands if an Ultraleap Tracking Device is connected.
+
+# Check out the examples
+
+The examples folder (`UltraleapTracking Content/InteractionEngine/ExampleScenes`) contains a series of example scenes that demonstrate the features of the Interaction Engine.
+
+All of the examples can be used with Ultraleap tracked hands with and Ultraleap Tracking Device *or* with any XR controller that Unreal provides built-in support for, such as Oculus Touch controllers or Vive controllers.
+
+## Example 1: Interaction Objects 101
+
+![](https://i.imgur.com/ZbfWYZB.png)
+
+The Interaction Objects example shows the behaviour of interaction objects when IEGrabComponents are attached.
+
+Reach out with your hands or your motion controller and play around with the objects in front of you to get a sense of how the default physics of interaction objects feels. In particular, you should see that objects don't jitter or explode, even if you attempt to crush them or pull on the constrained objects in various directions.
+
+On the right side of this scene are floating objects that have been marked **kinematic** and that have `ignoreGrasping` and `ignoreContact` set to `true` on their InteractionBehaviours. These objects have a material set on them that causes them to glow when hands are nearby – but due to their interaction settings, they will only receive hover information, and cannot be grasped. In general, we use **Contact** to refer specifically to the contact-handling subsystem in the Interaction Engine between interaction controllers (e.g. hands) and interaction objects (e.g. cubes).
 
 #### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
 
