@@ -483,6 +483,14 @@ Reach out with your hands or your motion controller and play around with the obj
 
 On the right side of this scene are floating objects that have been marked **kinematic** and that have `ignoreGrasping` and `ignoreContact` set to `true` on their InteractionBehaviours. These objects have a material set on them that causes them to glow when hands are nearby – but due to their interaction settings, they will only receive hover information, and cannot be grasped. In general, we use **Contact** to refer specifically to the contact-handling subsystem in the Interaction Engine between interaction controllers (e.g. hands) and interaction objects (e.g. cubes).
 
+## Example 2: Basic UI in the Interaction Engine
+
+![](https://i.imgur.com/jlEEZVv.png)
+
+Interacting with interface elements is a very particular *kind* of interaction, but in VR or AR, we find these interactions to make the most sense to users when they are provided physical metaphors and familiar mechanisms. We've built a small set of fine-tuned Interactions (that will continue to grow!) that deal with this extremely common use-case: The IEButton, and the IESlider.
+
+Try manipulating this interface in various ways, including ways that it doesn't expect to be used. You should find that even clumsy users will be able to push only one button at a time: Fundamentally, *user interfaces in the Interaction Engine only allow the 'primary hovered' interaction object to be manipulated or triggered at any one time*. This is a soft constraint; primary hover data is exposed through the IEGrabComponent's API for any and all interaction objects for which **hovering** is enabled, and the IEButton enforces the constraint by disabling contact when it is not 'the primary hover' of an interaction controller.
+
 #### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
 
 This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Ultraleap Tracking plugin, the project must be converted to a C++ project. To convert the project:
