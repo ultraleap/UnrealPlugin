@@ -491,6 +491,18 @@ Interacting with interface elements is a very particular *kind* of interaction, 
 
 Try manipulating this interface in various ways, including ways that it doesn't expect to be used. You should find that even clumsy users will be able to push only one button at a time: Fundamentally, *user interfaces in the Interaction Engine only allow the 'primary hovered' interaction object to be manipulated or triggered at any one time*. This is a soft constraint; primary hover data is exposed through the IEGrabComponent's API for any and all interaction objects for which **hovering** is enabled, and the IEButton enforces the constraint by disabling contact when it is not 'the primary hover' of an interaction controller.
 
+In this scene, a hand attached menu is also included. Applications may want to attach an interface directly to a user's hand so that certain important functionalities are always within arm's reach. This part of the example demonstrates this concept by animating one such interface into view when the user looks at their left palm.
+
+## Example 3: Interaction Callbacks for Handle-type Interfaces
+
+![](https://i.imgur.com/CE91HOB.png)
+
+
+
+The Interaction Callbacks example features a set of interaction objects that collectively form a basic **TransformTool** Actor the user may use at runtime to manipulate the position and rotation of an object. These interaction objects ignore contact, reacting only to grasping controllers and controller proximity through hovering. Instead of allowing themselves to be moved directly by grasping hands, these objects cancel out and report the grasped movement from controllers to their managing TransformTool object. As the transform tool object is attached to the cube it transforms, the handles move with when a transformation takes place.
+
+## FAQs
+
 #### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
 
 This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Ultraleap Tracking plugin, the project must be converted to a C++ project. To convert the project:
