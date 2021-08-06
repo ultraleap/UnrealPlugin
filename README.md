@@ -491,7 +491,9 @@ Interacting with interface elements is a very particular *kind* of interaction, 
 
 Try manipulating this interface in various ways, including ways that it doesn't expect to be used. You should find that even clumsy users will be able to push only one button at a time: Fundamentally, *user interfaces in the Interaction Engine only allow the 'primary hovered' interaction object to be manipulated or triggered at any one time*. This is a soft constraint; primary hover data is exposed through the IEGrabComponent's API for any and all interaction objects for which **hovering** is enabled, and the IEButton enforces the constraint by disabling contact when it is not 'the primary hover' of an interaction controller.
 
-In this scene, a hand attached menu is also included. Applications may want to attach an interface directly to a user's hand so that certain important functionalities are always within arm's reach. This part of the example demonstrates this concept by animating one such interface into view when the user looks at their left palm.
+![](https://i.imgur.com/Wp81b57.png)
+
+In this scene, a hand attached menu is included. Applications may want to attach an interface directly to a user's hand so that certain important functionalities are always within arm's reach. This part of the example demonstrates this concept by animating one such interface into view when the user looks at their left palm.
 
 ## Example 3: Interaction Callbacks for Handle-type Interfaces
 
@@ -500,6 +502,48 @@ In this scene, a hand attached menu is also included. Applications may want to a
 
 
 The Interaction Callbacks example features a set of interaction objects that collectively form a basic **TransformTool** Actor the user may use at runtime to manipulate the position and rotation of an object. These interaction objects ignore contact, reacting only to grasping controllers and controller proximity through hovering. Instead of allowing themselves to be moved directly by grasping hands, these objects cancel out and report the grasped movement from controllers to their managing TransformTool object. As the transform tool object is attached to the cube it transforms, the handles move with when a transformation takes place.
+
+## Example 5: Building on Interaction Objects with Anchors
+
+![](https://i.imgur.com/BF03fio.png)
+
+The IEAnchorableComponent and IEAnchorComponent build on the basic interactivity afforded by interaction objects. IEAnchorableComponents integrate well with IEGrabComponents (they are designed to sit on the same StaticMeshComponent or PrimitiveComponent) and allow an interaction object to be placed in Anchor points that can be defined anywhere in your scene.
+
+# Custom behaviors for interaction objects
+
+Be sure to take a look at examples 2 through 6 to see how interaction objects can have their behavior fine-tuned to meet the specific needs of your application. The standard workflow for writing custom blueprints for interaction objects goes something like this:
+
+- Be sure your object has an IEGrabComponent (or an IEButtonGrabComponent which inherits from IEGrabComponent)
+- Add your own custom SceneComponent or ActorComponent derived Component and reference the IEGrabComponent
+- Bind to the events the IEGrabComponent of IEGrabberComponent exposes to customise and extend the behaviour
+
+- Check out the tooltips for the IEGrabComponent and IEGrabberComponent's properties and events to see what behavior you can modify
+
+# Interaction types in-depth
+
+## Hovering
+
+Hover functionality in the Interaction Engine consists of two inter-related subsystems, referred to as 'Hover' and 'Primary Hover' respectively.
+
+### Proximity feedback ("Hover")
+
+Any interaction object within the Hover Activity Radius (defined in your Interaction Manager) around an interaction controller's hover point will receive the OnHoverBegin, OnHoverStay, and OnHoverEnd callbacks and have its `isHovered` state set to true, as long as both the hovering controller and the interaction object have their hover settings enabled. Interaction objects provide a public getter for getting the closest hovering interaction controller as well. In general, hover information is useful when scripting visual and audio feedback related to proximity.
+
+## Grasping
+
+When working with XR controllers, grasping is a pretty basic feature to implement: simply define which button should be used to grab objects, and use the motion of the grasp point to move any grasped object. However, when working with Leap hands, we no longer have the simplicity of dealing in digital buttons. Instead, we've implemented a finely-tuned heuristic for detecting when a user has intended to grasp an interaction object. Whether you're working with XR controllers or hands, the grasping API in the Interaction Engine provides a common interface for constructing logic around grasping, releasing, and throwing.
+
+### Grasped pose & object movement
+
+When an interaction controller picks up an object, the default implementation of all interaction controllers assumes that the intended behavior is for the object to follow the grasp point. Grasp points are explicitly defined by setting up Attach and Proximity SceneComponents on the IEGrabComponent (as references).
+
+While grasped, interaction objects are moved under one of two mutually-exclusive modes: Kinematic or Nonkinematic. By default, kinematic interaction objects will move [kinematically](https://docs.unity3d.com/ScriptReference/Rigidbody-isKinematic.html) when grasped, and nonkinematic interaction objects will move nonkinematically when grasped. When moving kinematically, an interaction object's position and rotation *are set explicitly*, effectively teleporting the object to the new position and rotation. This allows the grasped object to clip through colliders it otherwise would not be able to penetrate. Nonkinematic grasping motions, however, cause an interaction object to instead *receive a velocity and angular velocity* that will move it to its new target position and rotation on the next physics engine update, which allows the object to collide against objects in the scene before reaching its target grasped position. Kinematic/Non Kinematic is the same as turning on and off 'Simulate Physics' on an Unreal primitive.
+
+When an object is moved because it is being grapsed by a moving controller, the OnGraspedMovement is fired right after the object is moved, which you should subscribe to if you wish to modify how the object moves while it is grasped. Alternatively, you can disable the `moveObjectWhenGrasped` setting on interaction objects to prevent their grasped motion entirely (which will no longer cause the callback to fire).
+
+### Throwing
+
+When a Non-Kinematic grasped object is released, its velocity and angular velocity are implied by the direction of throw by adding an impulse after release.
 
 ## FAQs
 
