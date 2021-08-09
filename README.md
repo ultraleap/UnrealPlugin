@@ -439,7 +439,7 @@ For a quick look at what the Interaction Engine can do, we recommend adding the 
 
 
 
-Interaction objects can live anywhere in your scene, all that's needed is to attach the IEGrabComponent. In addition, for re-use, IEGrabComponents can easily be attached as part of a StaticMeshActor child blueprint. The **GrabCube** above is an example of this.
+Interaction objects can live anywhere in your scene, all that's needed is to attach the IEGrabComponent. In addition, for re-use, IEGrabComponents can easily be attached as part of a blueprint derived from StaticMeshActor . The **GrabCube** above is an example of this.
 
 # Just add IEGrabComponent!
 
@@ -453,8 +453,7 @@ The first example in the Interaction Engine package showcases the default behavi
 
 If you haven't already, add the UltraleapTrackingPlugin to your project:
 
-- Download the latest UltraleapTrackingPlugin from 
-- Download the latest Interaction Engine package from [our developer site]([ultraleap/uhi-unreal-tracking (github.com)](https://github.com/ultraleap/uhi-unreal-tracking)).
+- Download the latest UltraleapTrackingPlugin from [ultraleap/uhi-unreal-tracking (github.com)](https://github.com/ultraleap/uhi-unreal-tracking)
 - Copy the plugin to the Plugins folder beneath your Unreal Project (create a Plugins folder if it doesn't already exist)
 - Open your project and make sure 'Show Plugin Content' is enabled in the view options of your Content Browser.
 
@@ -474,7 +473,7 @@ That's it, you will now be able to interact in the scene with your Motion Contro
 
 The examples folder (`UltraleapTracking Content/InteractionEngine/ExampleScenes`) contains a series of example scenes that demonstrate the features of the Interaction Engine.
 
-All of the examples can be used with Ultraleap tracked hands with and Ultraleap Tracking Device *or* with any XR controller that Unreal provides built-in support for, such as Oculus Touch controllers or Vive controllers.
+All of the examples can be used with Ultraleap tracked hands using an Ultraleap Tracking Device *or* with any XR controller that Unreal provides built-in support for, such as Oculus Touch controllers or Vive controllers.
 
 ## Example 1: Interaction Objects 101
 
