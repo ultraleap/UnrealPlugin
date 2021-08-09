@@ -214,6 +214,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	{
 		bWristIsValid = BoneLookupList.Bones[WristBone].BoneName.ToString().ToLower().Contains(SearchStrings.WristSearchString);
 	}
+	
 	//We likely got the lower arm
 	if (!bWristIsValid)
 	{
