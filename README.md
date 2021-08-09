@@ -7,12 +7,12 @@ The official [Ultraleap Tracking]([World-leading Hand Tracking: Small. Fast. Acc
 
 Use convenience blueprints to add to the scene and play in editor or use a custom approach via blueprints or C++.
 
-Additionally, further Ultraleap Tracking for Unreal modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules TODO:Replace with new github ref.
+Additionally, further Ultraleap Tracking for Unreal modules and examples can be found at [ultraleap/uhi-unreal-tracking-examples (github.com)](https://github.com/ultraleap/uhi-unreal-tracking-examples)
 
 ### Problems & Questions
 Reach out at https://forums.leapmotion.com/
 
-## Multiple Devices
+## Multiple Devices - TODO: do we still want to support this?
 
 If you want to use multiple devices at the same time, see the experimental https://github.com/leapmotion/LeapUnreal/tree/feat-multi-device branch and https://github.com/leapmotion/LeapUnreal/releases/tag/v3.4.0 release.
 
@@ -76,7 +76,7 @@ Common use cases and examples will be found here:
 
 TODO: on pushing to github this needs updating
 
-[Creative / UHI / Unreal / UnrealTrackingSamples · GitLab (ultrahaptics.com)](https://gitlab.ultrahaptics.com/creative/uhi/unreal/unrealtrackingsamples)
+[ultraleap/uhi-unreal-tracking-examples (github.com)](https://github.com/ultraleap/uhi-unreal-tracking-examples)
 
 e.g. basic interaction with physics actors
 
@@ -116,49 +116,52 @@ FLeapEventSignature OnLeapConnected;
 
 #### On Leap Tracking Data
 
-Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```. See See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L331). TODO: change reference when new public github repo ready
+Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```.
+
+[FLeapFrameData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L356)
+
 ```c++
 FLeapFrameSignature OnLeapTrackingData;
 ```
 
 #### On Hand Grabbed
 
-Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
+Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandGrabbed;
 ```
 
 #### On Hand Released
 
-Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
+Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see  [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandReleased;
 ```
 
 #### On Hand Pinched
 
-Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData ](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)TODO: change reference when new public github repo ready
+Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandPinched;
 ```
 
 #### On Hand Unpinched
 
-Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
+Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandUnpinched;
 ```
 
 #### On Hand Begin Tracking
 
-Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
+Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandBeginTracking;
 ```
 
 #### On Hand End Tracking
 
-Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243) TODO: change reference when new public github repo ready
+Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandEndTracking;
 ```
@@ -179,7 +182,7 @@ FLeapVisibilityBoolSignature OnRightHandVisibilityChanged;
 
 #### On Leap Policies Updated
 
-Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L29) TODO: change reference when new public github repo ready
+Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L39)
 
 ```c++
 FLeapPolicySignature OnLeapPoliciesUpdated;
@@ -187,7 +190,7 @@ FLeapPolicySignature OnLeapPoliciesUpdated;
 
 #### On Leap Tracking Mode Updated
 
-Event called when the tracking mode has changed. Signature: an enum for the current tracking mode. See ELeapTrackingMode TODO: add reference when new public github repo ready
+Event called when the tracking mode has changed. Signature: an enum for the current tracking mode. See [ELeapMode](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L14)
 
 ```c++
 FLeapTrackingModeSignature OnLeapTrackingModeUpdated;
@@ -208,12 +211,12 @@ void AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible);
 
 #### Get Latest Frame Data
 
-Polling function to get latest data. See [FLeapFrameData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L331).
+Polling function to get latest data. See [FLeapFrameData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L356).
 ```c++
 void GetLatestFrameData(FLeapFrameData& OutData);
 ```
 
-# Blueprint - Leap Blueprint Function Library TODO change all github refs on pushing to new public repos
+# Blueprint - Leap Blueprint Function Library
 
 Some settings and options are global, these will affect all tracking properties and are set via global functions available to any blueprint.
 
@@ -231,14 +234,14 @@ Note that these blueprint nodes are global and available everywhere; a good plac
 
 #### Set Leap Mode
 
-Set basic global leap tracking options. Useful for switching tracking fidelity or desktop/vr tracking mode. See [ELeapMode](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L13) and [ELeapTrackingFidelity](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L20)
+Set basic global leap tracking options. Useful for switching tracking fidelity or desktop/vr tracking mode. See [ELeapMode](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L13) and [ELeapTrackingFidelity](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L30)
 ```c++
 static void SetLeapMode(ELeapMode Mode, ELeapTrackingFidelity Fidelity = ELeapTrackingFidelity::LEAP_NORMAL);
 ```
 
 #### Set Leap Options
 
-Set global leap options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L119).
+Set global leap options. See [FLeapOptions](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L122).
 ```c++
 static void SetLeapOptions(const FLeapOptions& Options);
 ```
@@ -246,7 +249,7 @@ If tracking fidelity is set to custom, passed in ```TimewarpOffset```, ```Timewa
 
 #### Get Leap Options
 
-Gets currently set global options. See [FLeapOptions](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L119).
+Gets currently set global options. See [FLeapOptions](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L122)
 
 ```c++
 static void GetLeapOptions(FLeapOptions& OutOptions);
@@ -254,7 +257,7 @@ static void GetLeapOptions(FLeapOptions& OutOptions);
 
 #### Get Leap Stats
 
-Gets Leap read only stats such as api version, frame lookup and device information. See [FLeapStats](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L92)
+Gets Leap read only stats such as api version, frame lookup and device information. See [FLeapStats](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L105)
 
 ```c++
 static void GetLeapStats(FLeapStats& OutStats);
@@ -513,7 +516,7 @@ The IEAnchorableComponent and IEAnchorComponent build on the basic interactivity
 
 Be sure to take a look at examples 2 through 6 to see how interaction objects can have their behavior fine-tuned to meet the specific needs of your application. The standard workflow for writing custom blueprints for interaction objects goes something like this:
 
-- Be sure your object has an IEGrabComponent (or an IEButtonGrabComponent which inherits from IEGrabComponent)
+- Be sure your object has an IEGrabComponent (or an IEButtonGrabComponent which inherits from IEGrabComponent) attached
 - Add your own custom SceneComponent or ActorComponent derived Component and reference the IEGrabComponent
 - Bind to the events the IEGrabComponent of IEGrabberComponent exposes to customise and extend the behaviour
 
@@ -537,7 +540,7 @@ When working with XR controllers, grasping is a pretty basic feature to implemen
 
 When an interaction controller picks up an object, the default implementation of all interaction controllers assumes that the intended behavior is for the object to follow the grasp point. Grasp points are explicitly defined by setting up Attach and Proximity SceneComponents on the IEGrabComponent (as references).
 
-While grasped, interaction objects are moved under one of two mutually-exclusive modes: Kinematic or Nonkinematic. By default, kinematic interaction objects will move [kinematically](https://docs.unity3d.com/ScriptReference/Rigidbody-isKinematic.html) when grasped, and nonkinematic interaction objects will move nonkinematically when grasped. When moving kinematically, an interaction object's position and rotation *are set explicitly*, effectively teleporting the object to the new position and rotation. This allows the grasped object to clip through colliders it otherwise would not be able to penetrate. Nonkinematic grasping motions, however, cause an interaction object to instead *receive a velocity and angular velocity* that will move it to its new target position and rotation on the next physics engine update, which allows the object to collide against objects in the scene before reaching its target grasped position. Kinematic/Non Kinematic is the same as turning on and off 'Simulate Physics' on an Unreal primitive.
+While grasped, interaction objects are moved under one of two mutually-exclusive modes: Kinematic or Nonkinematic. By default, kinematic interaction objects will move kinematically when grasped, and nonkinematic interaction objects will move nonkinematically when grasped. When moving kinematically, an interaction object's position and rotation *are set explicitly*, effectively teleporting the object to the new position and rotation. This allows the grasped object to clip through colliders it otherwise would not be able to penetrate. Nonkinematic grasping motions, however, cause an interaction object to instead *receive a velocity and angular velocity* that will move it to its new target position and rotation on the next physics engine update, which allows the object to collide against objects in the scene before reaching its target grasped position. Kinematic/Non Kinematic is the same as turning on and off 'Simulate Physics' on an Unreal primitive.
 
 When an object is moved because it is being grapsed by a moving controller, the OnGraspedMovement is fired right after the object is moved, which you should subscribe to if you wish to modify how the object moves while it is grasped. Alternatively, you can disable the `moveObjectWhenGrasped` setting on interaction objects to prevent their grasped motion entirely (which will no longer cause the callback to fire).
 
