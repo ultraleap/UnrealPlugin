@@ -577,7 +577,7 @@ Create a **Physics Asset** on the hand mesh. A guide on how to do this is at [Sk
 
 ### How do I modify a single joint/bone that has been mapped slightly wrong?
 
-In the anim graph of your anim blueprint, drag a connection out of the **Ultraleap Modify Mapped Bones** node and add a **Transform ( Modify bone** node. Now edit the **Transform** node settings to change whichever bone you want to modify in the skeleton.
+In the anim graph of your anim blueprint, drag a connection out of the **Ultraleap Modify Mapped Bones** node and add a **Transform (Modify) bone** node. Now edit the **Transform** node settings to change whichever bone you want to modify in the skeleton.
 
 ![](https://i.imgur.com/fYomt8w.png)
 
