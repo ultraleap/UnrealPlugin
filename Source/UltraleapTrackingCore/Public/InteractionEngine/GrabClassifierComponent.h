@@ -1,0 +1,94 @@
+// // Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include "Components/ActorComponent.h"
+#include "CoreMinimal.h"
+
+#include "GrabClassifierComponent.generated.h"
+
+USTRUCT(BlueprintType)
+struct FGrabClassifierParams
+{
+	GENERATED_BODY()
+	FGrabClassifierParams()
+	{
+	}
+	/** <summary> The amount of curl hysteresis on each finger type </summary> */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float FingerStickiness;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float ThumbStickiness;
+	/** <summary> The minimum and maximum curl values fingers are allowed to "Grab" within </summary> */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float MaximumCurl;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float MinimumCurl;
+	/** <summary> The radius considered for intersection around the fingertips </summary> */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float FingerTipRadius;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float ThumbTipRadius;
+	/** <summary> The minimum amount of time between repeated grabs of a single object </summary> */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float GrabCooldown;
+	/** <summary> The maximum rate that the fingers are extending where grabs are considered. </summary> */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float MaximumCurlVelocity;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float GrabbedMaximumCurlVelocity;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float MaximumDistanceFromHand;
+};
+
+UCLASS(BlueprintType, Blueprintable, meta = (BlueprintSpawnableComponent))
+class UGrabClassifierProbe : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	FVector Location;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	FVector Direction;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float Curl;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float PrevCurl;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	bool IsInside;
+};
+
+UCLASS(BlueprintType, Blueprintable, meta = (BlueprintSpawnableComponent))
+class UIEGrabClassifierComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this component's properties
+	UIEGrabClassifierComponent();
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+public:
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	FGrabClassifierParams Params;
+
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes,
+		const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal);
+};
