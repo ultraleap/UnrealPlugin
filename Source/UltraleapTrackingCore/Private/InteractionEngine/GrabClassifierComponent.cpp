@@ -5,8 +5,7 @@
 // Sets default values for this component's properties
 UIEGrabClassifierComponent::UIEGrabClassifierComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
+	// no need for tick, this is driven by calls from the IEGrabberComponent tick
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
@@ -16,14 +15,6 @@ UIEGrabClassifierComponent::UIEGrabClassifierComponent()
 void UIEGrabClassifierComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-}
-
-// Called every frame
-void UIEGrabClassifierComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
 }

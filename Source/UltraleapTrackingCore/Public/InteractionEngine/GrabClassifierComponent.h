@@ -85,9 +85,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	// Grab classifier behavior, initialised in blueprint
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierParams Params;
 
@@ -103,9 +101,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	float CoolDownProgress;
 
+	// called when the grab state has changed
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
 
+	// Logic for grabbing, called from blueprint, implemented in C++ for simplicity and parity with C#
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes,
 		const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal, const bool IsLeftHand,
