@@ -88,7 +88,20 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierParams Params;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	bool IsGrabbed;
+
+	UPROPERTY()
+	bool IsThisControllerGrabbing;
+
+	UPROPERTY()
+	bool PrevThisControllerGrabbing;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float CoolDownProgress;
+
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes,
-		const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal);
+		const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal, const bool IsLeftHand,
+		const float DeltaTime);
 };
