@@ -141,4 +141,29 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 	{
 		Params.MinimumCurl = TempMinCurl;
 	}
+	NotifyControllerGrabbing();
+}
+void UIEGrabClassifierComponent::NotifyControllerGrabbing()
+{
+	// Determine whether there was a state change.
+	bool DidStateChange = false;
+	if (!PrevThisControllerGrabbing && IsThisControllerGrabbing /* && graspMode == GraspUpdateMode.BeginGrasp*/)
+	{
+		DidStateChange = true;
+
+		PrevThisControllerGrabbing = IsThisControllerGrabbing;
+	}
+	else if (PrevThisControllerGrabbing && !IsThisControllerGrabbing /* &&
+			 interactionHand.graspedObject == behaviour && graspMode == GraspUpdateMode.ReleaseGrasp*/)
+	{
+		DidStateChange = true;
+
+		CoolDownProgress = 0.0f;
+		PrevThisControllerGrabbing = IsThisControllerGrabbing;
+	}
+
+	if (DidStateChange)
+	{
+		OnIsGrabbingChanged.Broadcast(this, IsThisControllerGrabbing);
+	}
 }

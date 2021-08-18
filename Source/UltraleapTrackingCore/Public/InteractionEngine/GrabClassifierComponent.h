@@ -7,6 +7,9 @@
 
 #include "GrabClassifierComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FGrabClassifierGrabStateChanged, UIEGrabClassifierComponent*, Source, bool, IsGrabbing);
+
 USTRUCT(BlueprintType)
 struct FGrabClassifierParams
 {
@@ -100,8 +103,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	float CoolDownProgress;
 
+	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
+	FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
+
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes,
 		const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal, const bool IsLeftHand,
 		const float DeltaTime);
+
+private:
+	// notify if changed
+	void NotifyControllerGrabbing();
 };
