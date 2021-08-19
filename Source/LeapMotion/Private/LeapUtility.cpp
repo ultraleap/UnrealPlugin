@@ -65,7 +65,12 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 	Quat.Y = Quaternion.x;
 	Quat.Z = Quaternion.z;
 	Quat.W = Quaternion.w;
-
+	
+	if (Quat.ContainsNaN())
+	{
+		Quat = FQuat::MakeFromEuler(FVector(0, 0, 0));
+		UE_LOG(LeapMotionLog, Log, TEXT("FLeapUtility::ConvertLeapQuatToFQuat() Warning - NAN received from tracking device"));
+	}
 	return Quat * FLeapUtility::LeapRotationOffset;
 }
 
@@ -112,7 +117,11 @@ FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEA
 {
 	//Scale from mm to cm (ue default)
 	FVector ConvertedVector = (ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
-
+	if (ConvertedVector.ContainsNaN())
+	{
+		ConvertedVector = FVector::ZeroVector;
+		UE_LOG(LeapMotionLog, Log, TEXT("FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets Warning - NAN received from tracking device"));
+	}
 	//Rotate our vector to adjust for any global rotation offsets
 	return LeapMountRotationOffset.RotateVector(ConvertedVector);
 }
