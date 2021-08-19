@@ -81,7 +81,7 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 			{
 				Probe->IsInside = CollidingWithObject;
 			}
-		};
+		}
 		ProbeIndex++;
 	}
 
