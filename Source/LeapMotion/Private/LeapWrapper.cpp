@@ -54,7 +54,6 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 	Config.server_namespace = "Leap Service";
 	Config.size = sizeof(Config);
 	Config.flags = 0;
-	Config.server_namespace = nullptr;
 
 	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
