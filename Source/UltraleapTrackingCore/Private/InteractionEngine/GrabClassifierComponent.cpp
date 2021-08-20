@@ -20,7 +20,7 @@ void UIEGrabClassifierComponent::BeginPlay()
 }
 
 void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes,
-	const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal, const bool IsLeftHand, const float DeltaTime)
+	const bool IgnoreTemporal, const bool IsLeftHand, const float DeltaTime, const bool IsGrabbed)
 {
 	// Store actual minimum curl in case we override it with the ignoreTemporal flag.
 	float TempMinCurl = Params.MinimumCurl;
@@ -41,8 +41,10 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 
 		// Determine if this probe is intersecting an object
 		bool CollidingWithObject = false;
-		for (auto Collider : CollidingCandidates)
+		for (auto Collider : Probe->CandidateColliders)
 		{
+			// UE_LOG(UltraleapTrackingLog, Log, TEXT("Candidate Collider Probe %d. %s"), ProbeIndex, *Collider->GetName());
+
 			auto PrimitiveComponent = Cast<UPrimitiveComponent>(Collider);
 			if (!PrimitiveComponent)
 			{
@@ -61,9 +63,9 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 
 		// Nullify above findings if fingers are extended
 		float ConditionalMaxCurlVelocity = (IsGrabbed ? Params.GrabbedMaximumCurlVelocity : Params.MaximumCurlVelocity);
+
 		CollidingWithObject = CollidingWithObject && (TempCurl < Params.MaximumCurl) && (TempCurl > Params.MinimumCurl) &&
 							  (IgnoreTemporal || CurlVelocity < ConditionalMaxCurlVelocity);
-
 		// Probes go inside when they intersect, probes come out when they uncurl
 		if (!Probe->IsInside)
 		{
@@ -72,7 +74,7 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 
 			if (IgnoreTemporal)
 			{
-				Probe->Curl = 0.0f + (ProbeIndex == 0 ? Params.ThumbStickiness : Params.FingerStickiness);
+				Probe->Curl = (ProbeIndex == 0 ? Params.ThumbStickiness : Params.FingerStickiness);
 			}
 		}
 		else

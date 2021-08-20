@@ -69,6 +69,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	bool IsInside;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	TArray<USceneComponent*> CandidateColliders;
 };
 
 UCLASS(BlueprintType, Blueprintable, meta = (BlueprintSpawnableComponent))
@@ -89,9 +92,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierParams Params;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
-	bool IsGrabbed;
-
 	UPROPERTY()
 	bool IsThisControllerGrabbing;
 
@@ -107,9 +107,8 @@ public:
 
 	// Logic for grabbing, called from blueprint, implemented in C++ for simplicity and parity with C#
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
-	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes,
-		const TArray<USceneComponent*>& CollidingCandidates, const bool IgnoreTemporal, const bool IsLeftHand,
-		const float DeltaTime);
+	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes, const bool IgnoreTemporal,
+		const bool IsLeftHand, const float DeltaTime, const bool IsGrabbed);
 
 private:
 	// notify if changed
