@@ -29,6 +29,7 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 		Params.MinimumCurl = -1.0f;
 	}
 	int32 ProbeIndex = 0;
+
 	// For each probe (fingertip)
 	for (auto Probe : Probes)
 	{
@@ -91,6 +92,9 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 	// This is the trick!
 	IsThisControllerGrabbing =
 		(Probes[0]->IsInside && (Probes[1]->IsInside || Probes[2]->IsInside || Probes[3]->IsInside || Probes[4]->IsInside));
+
+	AnyInside = Probes[0]->IsInside || Probes[1]->IsInside || Probes[2]->IsInside || Probes[3]->IsInside || Probes[4]->IsInside;
+
 	// If grabbing within 10 frames of releasing, discard grab.
 	// Suppresses spurious regrabs and makes throws work better.
 	if (CoolDownProgress <= Params.GrabCooldown && !IgnoreTemporal)

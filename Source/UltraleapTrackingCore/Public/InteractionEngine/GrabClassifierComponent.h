@@ -101,6 +101,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	float CoolDownProgress;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Ultraleap IE")
+	bool AnyInside;
+
 	// called when the grab state has changed
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
