@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "3.7",
+	"VersionName": "3.7.12",
 	"FriendlyName": "Leap Motion Plugin",
 	"Description": "Support for the Leap Motion input device.",
 	"Category": "Input Devices",
@@ -26,7 +26,7 @@
 		},
 		{
 			"Name": "LeapMotionEditor",
-			"Type": "Developer",
+			"Type": "UncookedOnly",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
