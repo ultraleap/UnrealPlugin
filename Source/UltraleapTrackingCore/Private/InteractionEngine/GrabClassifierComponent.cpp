@@ -93,7 +93,7 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 	IsThisControllerGrabbing =
 		(Probes[0]->IsInside && (Probes[1]->IsInside || Probes[2]->IsInside || Probes[3]->IsInside || Probes[4]->IsInside));
 
-	AnyInside = Probes[0]->IsInside || Probes[1]->IsInside || Probes[2]->IsInside || Probes[3]->IsInside || Probes[4]->IsInside;
+	NumInside = Probes[0]->IsInside + Probes[1]->IsInside + Probes[2]->IsInside + Probes[3]->IsInside + Probes[4]->IsInside;
 
 	// If grabbing within 10 frames of releasing, discard grab.
 	// Suppresses spurious regrabs and makes throws work better.

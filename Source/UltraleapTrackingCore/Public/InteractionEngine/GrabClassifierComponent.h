@@ -102,7 +102,7 @@ public:
 	float CoolDownProgress;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ultraleap IE")
-	bool AnyInside;
+	int NumInside;
 
 	// called when the grab state has changed
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
