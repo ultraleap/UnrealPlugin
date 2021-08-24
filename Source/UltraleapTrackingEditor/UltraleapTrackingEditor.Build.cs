@@ -34,7 +34,7 @@ namespace UnrealBuildTool.Rules
 					"UltraleapTracking",
 					"PropertyEditor",
 					"Slate",
-					"SlateCore"
+					"SlateCore",
 				}
 				);
 

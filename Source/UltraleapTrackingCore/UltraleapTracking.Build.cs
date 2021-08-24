@@ -79,7 +79,7 @@ namespace UnrealBuildTool.Rules
 		public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-			//OptimizeCode = CodeOptimization.Never;
+			OptimizeCode = CodeOptimization.Never;
 			PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
@@ -110,7 +110,8 @@ namespace UnrealBuildTool.Rules
 					"Projects",
 					"LiveLinkInterface",
 					"LiveLinkMessageBusFramework",
-					"BodyState"
+					"BodyState",
+					"PhysicsCore"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
