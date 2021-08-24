@@ -15,6 +15,16 @@ struct FGrabClassifierParams
 {
 	GENERATED_BODY()
 	FGrabClassifierParams()
+		: FingerStickiness(0.0f)
+		, ThumbStickiness(0.04f)
+		, MaximumCurl(0.65f)
+		, MinimumCurl(-0.1f)
+		, FingerTipRadius(1.2f)
+		, ThumbTipRadius(1.7f)
+		, GrabCooldown(0.2f)
+		, MaximumCurlVelocity(0.0f)
+		, GrabbedMaximumCurlVelocity(-0.025f)
+		, MaximumDistanceFromHand(10.0f)
 	{
 	}
 	/** <summary> The amount of curl hysteresis on each finger type </summary> */
