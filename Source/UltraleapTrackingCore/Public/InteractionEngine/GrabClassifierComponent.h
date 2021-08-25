@@ -24,7 +24,7 @@ struct FGrabClassifierParams
 		, GrabCooldown(0.2f)
 		, MaximumCurlVelocity(0.0f)
 		, GrabbedMaximumCurlVelocity(-0.025f)
-		, MaximumDistanceFromHand(10.0f)
+		, MaximumDistanceFromHand(5.0f)
 	{
 	}
 	/** <summary> The amount of curl hysteresis on each finger type </summary> */
@@ -102,7 +102,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierParams Params;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Ultraleap IE")
 	bool IsThisControllerGrabbing;
 
 	UPROPERTY()
