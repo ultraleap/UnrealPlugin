@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
@@ -14,13 +14,13 @@ enum EHandType
 UENUM(BlueprintType)
 enum ELeapMode
 {
-	LEAP_MODE_VR,			//The tracking mode optimised for head-mounted devices.
-	LEAP_MODE_DESKTOP,		//The tracking mode optimised for desktop devices. Also known as 'Below'
-	LEAP_MODE_SCREENTOP	//The tracking mode optimised for screen top-mounted devices. Also know as 'Above Facing User'
+	LEAP_MODE_VR,		   // The tracking mode optimised for head-mounted devices.
+	LEAP_MODE_DESKTOP,	   // The tracking mode optimised for desktop devices. Also known as 'Below'
+	LEAP_MODE_SCREENTOP	   // The tracking mode optimised for screen top-mounted devices. Also know as 'Above Facing User'
 };
 
 UENUM(BlueprintType)
-enum class ELeapImageType :uint8
+enum class ELeapImageType : uint8
 {
 	LEAP_IMAGE_LEFT,
 	LEAP_IMAGE_RIGHT
@@ -39,14 +39,12 @@ enum ELeapTrackingFidelity
 UENUM(BlueprintType)
 enum ELeapPolicyFlag
 {
-	LEAP_POLICY_BACKGROUND_FRAMES,	//The policy allowing an application to receive frames in the background.
-	LEAP_POLICY_IMAGES,				//The policy specifying whether to automatically stream images from the device.
-	LEAP_POLICY_OPTIMIZE_HMD,		//The policy specifying whether to optimize tracking for head-mounted device.
-	LEAP_POLICY_ALLOW_PAUSE_RESUME, //The policy allowing an application to pause or resume service tracking
-	LEAP_POLICY_MAP_POINTS			//The policy allowing an application to receive per-frame map points
+	LEAP_POLICY_BACKGROUND_FRAMES,	   // The policy allowing an application to receive frames in the background.
+	LEAP_POLICY_IMAGES,				   // The policy specifying whether to automatically stream images from the device.
+	LEAP_POLICY_OPTIMIZE_HMD,		   // The policy specifying whether to optimize tracking for head-mounted device.
+	LEAP_POLICY_ALLOW_PAUSE_RESUME,	   // The policy allowing an application to pause or resume service tracking
+	LEAP_POLICY_MAP_POINTS			   // The policy allowing an application to receive per-frame map points
 };
-
-
 
 UENUM(BlueprintType)
 enum ELeapServiceLogLevel
@@ -63,11 +61,11 @@ struct ULTRALEAPTRACKING_API FLeapDevice
 	GENERATED_USTRUCT_BODY()
 
 	/** A combination of eLeapDeviceStatus flags. */
-	//UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
+	// UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
 	int32 Status;
 
 	/** A combination of eLeapDeviceCaps flags. */
-	//UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
+	// UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
 	int32 Caps;
 
 	/** One of the eLeapDevicePID members as a string. */
@@ -75,11 +73,11 @@ struct ULTRALEAPTRACKING_API FLeapDevice
 	FString PID;
 
 	/**
-	* The device baseline, in micrometers.
-	*
-	* The baseline is defined as the distance between the center axis of each lens in a stereo camera
-	* system.  For other camera systems, this value is set to zero.
-	*/
+	 * The device baseline, in micrometers.
+	 *
+	 * The baseline is defined as the distance between the center axis of each lens in a stereo camera
+	 * system.  For other camera systems, this value is set to zero.
+	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
 	int32 Baseline;
 
@@ -130,7 +128,8 @@ struct ULTRALEAPTRACKING_API FLeapOptions
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	TEnumAsByte<ELeapMode> Mode;
 
-	/** Set your tracking fidelity from low latency to smooth. If not set to custom, some of the low level settings may be overwritten */
+	/** Set your tracking fidelity from low latency to smooth. If not set to custom, some of the low level settings may be
+	 * overwritten */
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	TEnumAsByte<ELeapTrackingFidelity> TrackingFidelity;
 
@@ -149,7 +148,7 @@ struct ULTRALEAPTRACKING_API FLeapOptions
 	/** Should all leap data be transported to HMD space? */
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	bool bTransformOriginToHMD;
-	
+
 	/** Timewarp offset sampling in microseconds. The higher, the further back in time. */
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	float TimewarpOffset;
@@ -284,8 +283,6 @@ struct ULTRALEAPTRACKING_API FLeapDigitData
 	void TranslateDigit(const FVector& InTranslation);
 };
 
-
-
 USTRUCT(BlueprintType)
 struct ULTRALEAPTRACKING_API FLeapHandData
 {
@@ -346,8 +343,8 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	void SetFromLeapHand(struct _LEAP_HAND* hand);
 
 	/** Used in interpolation*/
-	void SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand);	
-	
+	void SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand);
+
 	void ScaleHand(float Scale);
 	void RotateHand(const FRotator& InRotation);
 	void TranslateHand(const FVector& InTranslation);
@@ -376,7 +373,7 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	bool RightHandVisible;
 
-	//int64 not supported by blueprint, so this will only be accessible inside c++
+	// int64 not supported by blueprint, so this will only be accessible inside c++
 	UPROPERTY()
 	int64 TimeStamp;
 

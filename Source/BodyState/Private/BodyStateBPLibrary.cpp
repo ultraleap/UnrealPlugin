@@ -1,28 +1,28 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "BodyStateBPLibrary.h"
+
+#include "Animation/AnimInstance.h"
 #include "BodyStateUtility.h"
-#include "FBodyState.h"
-#include "Runtime/Launch/Resources/Version.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
-#include "Animation/AnimInstance.h"
-#include "Components/SkeletalMeshComponent.h"
+#include "FBodyState.h"
+#include "Runtime/Launch/Resources/Version.h"
 
-UBodyStateBPLibrary::UBodyStateBPLibrary(const FObjectInitializer& ObjectInitializer)
-: Super(ObjectInitializer)
+UBodyStateBPLibrary::UBodyStateBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
 }
 
-int32 UBodyStateBPLibrary::AttachDevice(const FBodyStateDeviceConfig& Configuration, TScriptInterface<IBodyStateInputInterface> InputCallbackDelegate)
+int32 UBodyStateBPLibrary::AttachDevice(
+	const FBodyStateDeviceConfig& Configuration, TScriptInterface<IBodyStateInputInterface> InputCallbackDelegate)
 {
 	UE_LOG(BodyStateLog, Warning, TEXT("Not implemented yet, use raw for now."));
 	return -1;
 }
 
-
-int32 UBodyStateBPLibrary::AttachDeviceNative(const FBodyStateDeviceConfig& Configuration, IBodyStateInputRawInterface* InputCallbackDelegate)
+int32 UBodyStateBPLibrary::AttachDeviceNative(
+	const FBodyStateDeviceConfig& Configuration, IBodyStateInputRawInterface* InputCallbackDelegate)
 {
 	return IBodyState::Get().AttachDevice(Configuration, InputCallbackDelegate);
 }
@@ -52,8 +52,7 @@ UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContext
 		return nullptr;
 	}
 
-	if (IBodyState::IsAvailable() && 
-		(World->IsGameWorld() || World->IsPreviewWorld()))
+	if (IBodyState::IsAvailable() && (World->IsGameWorld() || World->IsPreviewWorld()))
 	{
 		return IBodyState::Get().SkeletonForDevice(DeviceID);
 	}
@@ -78,9 +77,8 @@ FTransform UBodyStateBPLibrary::TransformForBoneNamedInAnimInstance(const FName&
 	}
 }
 
-bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction< void(UBodyStateSkeleton*, float)> InFunction)
+bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction<void(UBodyStateSkeleton*, float)> InFunction)
 {
 	IBodyState::Get().AttachMergingFunctionForSkeleton(InFunction);
 	return true;
 }
-

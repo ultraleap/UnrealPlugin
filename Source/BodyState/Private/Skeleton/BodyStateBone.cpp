@@ -1,20 +1,17 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "Skeleton/BodyStateBone.h"
+
 #include "BodyStateUtility.h"
 
-
-UBodyStateBone::UBodyStateBone(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UBodyStateBone::UBodyStateBone(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
 }
 
 FVector UBodyStateBone::Position()
 {
 	return BoneData.Transform.GetTranslation();
 }
-
 
 void UBodyStateBone::SetPosition(const FVector& InPosition)
 {
@@ -26,7 +23,6 @@ FRotator UBodyStateBone::Orientation()
 	return BoneData.Transform.GetRotation().Rotator();
 }
 
-
 void UBodyStateBone::SetOrientation(const FRotator& InOrientation)
 {
 	BoneData.Transform.SetRotation(InOrientation.Quaternion());
@@ -36,7 +32,6 @@ FVector UBodyStateBone::Scale()
 {
 	return BoneData.Transform.GetScale3D();
 }
-
 
 FTransform UBodyStateBone::Transform()
 {
@@ -48,22 +43,21 @@ void UBodyStateBone::SetScale(const FVector& InScale)
 	BoneData.Transform.SetScale3D(InScale);
 }
 
-
 FBodyStateBoneMeta UBodyStateBone::UniqueMeta()
 {
-	//Is our meta unique?
+	// Is our meta unique?
 	if (Meta.ParentDistinctMeta)
 	{
 		return Meta;
 	}
 
-	//Valid parent? go up the chain
+	// Valid parent? go up the chain
 	if (Parent != nullptr)
 	{
 		return Parent->UniqueMeta();
 	}
 
-	//No unique meta found
+	// No unique meta found
 	FBodyStateBoneMeta InvalidMeta;
 	InvalidMeta.ParentDistinctMeta = true;
 	return InvalidMeta;
@@ -71,25 +65,23 @@ FBodyStateBoneMeta UBodyStateBone::UniqueMeta()
 
 void UBodyStateBone::InitializeFromBoneData(const FBodyStateBoneData& InData)
 {
-	//Set the bone data
+	// Set the bone data
 	BoneData = InData;
 
-	//Re-initialize default values
+	// Re-initialize default values
 	Initialize();
 }
-
 
 void UBodyStateBone::Initialize()
 {
 }
 
-
 void UBodyStateBone::AddChild(UBodyStateBone* InChild)
 {
-	//Add child
+	// Add child
 	Children.Add(InChild);
 
-	//Set parent link
+	// Set parent link
 	InChild->Parent = this;
 }
 
@@ -100,7 +92,7 @@ bool UBodyStateBone::Enabled()
 
 void UBodyStateBone::SetEnabled(bool enable)
 {
-	enable ? BoneData.Alpha = 1.f: BoneData.Alpha = 0.f;
+	enable ? BoneData.Alpha = 1.f : BoneData.Alpha = 0.f;
 }
 
 void UBodyStateBone::ShiftBone(FVector Shift)
@@ -110,11 +102,11 @@ void UBodyStateBone::ShiftBone(FVector Shift)
 
 void UBodyStateBone::ChangeBasis(const FRotator& PreBase, const FRotator& PostBase, bool AdjustVectors /*= true*/)
 {
-	//Adjust the orientation
+	// Adjust the orientation
 	FRotator PostCombine = FBodyStateUtility::CombineRotators(Orientation(), PostBase);
 	BoneData.Transform.SetRotation(FQuat(FBodyStateUtility::CombineRotators(PreBase, PostCombine)));
 
-	//Rotate our vector/s
+	// Rotate our vector/s
 	if (AdjustVectors)
 	{
 		BoneData.Transform.SetTranslation(PostBase.RotateVector(Position()));

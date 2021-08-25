@@ -1,14 +1,15 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
-#include "UObject/CoreNet.h"
-#include "Skeleton/BodyStateBone.h"
-#include "Skeleton/BodyStateArm.h"
 #include "BodyStateEnums.h"
+#include "Skeleton/BodyStateArm.h"
+#include "Skeleton/BodyStateBone.h"
+#include "UObject/CoreNet.h"
+
 #include "BodyStateSkeleton.generated.h"
 
-//Used for replication
+// Used for replication
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FNamedBoneData
 {
@@ -21,7 +22,7 @@ struct BODYSTATE_API FNamedBoneData
 	EBodyStateBasicBoneType Name;
 };
 
-//Used for replication
+// Used for replication
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FKeyedTransform
 {
@@ -34,7 +35,7 @@ struct BODYSTATE_API FKeyedTransform
 	EBodyStateBasicBoneType Name;
 };
 
-//Used for replication
+// Used for replication
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FNamedBoneMeta
 {
@@ -47,7 +48,7 @@ struct BODYSTATE_API FNamedBoneMeta
 	EBodyStateBasicBoneType Name;
 };
 
-//Used for replication
+// Used for replication
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FNamedSkeletonData
 {
@@ -76,33 +77,33 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	/** If tracking is active or frozen (useful for debugging)*/
 	UPROPERTY(BlueprintReadWrite, Category = "BodyState Skeleton")
 	bool bTrackingActive;
-	
+
 	/** Id issued to this skeleton, useful for getting device information */
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	int32 SkeletonId;
 
-	//Note: Storage of actual bone data should be here
+	// Note: Storage of actual bone data should be here
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
-	TArray<UBodyStateBone*> Bones;		//All bones stored here
+	TArray<UBodyStateBone*> Bones;	  // All bones stored here
 
-	//internal lookup for the bones
+	// internal lookup for the bones
 	TMap<EBodyStateBasicBoneType, UBodyStateBone*> BoneMap;
 
 	/** Tracking Tags that this skeleton has currently inherited. */
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	TArray<FString> TrackingTags;
 
-	//Used for reference point calibration e.g. hydra base origin
+	// Used for reference point calibration e.g. hydra base origin
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Skeleton")
 	FTransform RootOffset;
 
-	//Convenience bone getters
+	// Convenience bone getters
 
-	//Root
+	// Root
 	UFUNCTION(BlueprintPure, Category = "BodyState Skeleton")
 	UBodyStateBone* RootBone();
 
-	//Arms & Hands
+	// Arms & Hands
 
 	/** Get a structured convenience wrapper around left arm bones*/
 	UFUNCTION(BlueprintPure, Category = "BodyState Skeleton")
@@ -112,7 +113,7 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	UFUNCTION(BlueprintPure, Category = "BodyState Skeleton")
 	UBodyStateArm* RightArm();
 
-	//Spine & Head
+	// Spine & Head
 	UFUNCTION(BlueprintPure, Category = "BodyState Skeleton")
 	UBodyStateBone* Head();
 
@@ -124,9 +125,9 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	UFUNCTION(BlueprintPure, Category = "BodyState Skeleton")
 	class UBodyStateBone* BoneNamed(const FString& InName);
 
-	//Replication and Setting Data
+	// Replication and Setting Data
 
-	//Setting Bone Data
+	// Setting Bone Data
 	UFUNCTION(BlueprintCallable, Category = "BodyState Skeleton Setting")
 	void ResetToDefaultSkeleton();
 
@@ -142,12 +143,12 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 	UFUNCTION(BlueprintCallable, Category = "BodyState Skeleton Setting")
 	void ChangeBasis(const FRotator& PreBase, const FRotator& PostBase, bool AdjustVectors = true);
 
-	//Conversion
+	// Conversion
 	UFUNCTION(BlueprintCallable, Category = "BodyState Skeleton Setting")
-	FNamedSkeletonData GetMinimalNamedSkeletonData();	//key replication getter
+	FNamedSkeletonData GetMinimalNamedSkeletonData();	 // key replication getter
 
 	UFUNCTION(BlueprintCallable, Category = "BodyState Skeleton Setting")
-	void SetFromNamedSkeletonData(const FNamedSkeletonData& NamedSkeletonData);	//key replication setter
+	void SetFromNamedSkeletonData(const FNamedSkeletonData& NamedSkeletonData);	   // key replication setter
 
 	UFUNCTION(BlueprintCallable, Category = "BodyState Skeleton Setting")
 	void SetFromOtherSkeleton(UBodyStateSkeleton* Other);
@@ -164,7 +165,7 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 
 	void ClearConfidence();
 
-	//Replication
+	// Replication
 	UFUNCTION(Unreliable, Server, WithValidation)
 	void ServerUpdateBodyState(const FNamedSkeletonData InBodyStateSkeleton);
 
@@ -179,11 +180,10 @@ protected:
 	TArray<FNamedBoneData> TrackedAdvancedBones();
 	TArray<FNamedBoneMeta> UniqueBoneMetas();
 
-
 private:
 	UPROPERTY()
 	UBodyStateArm* PrivateLeftArm;
-	
+
 	UPROPERTY()
 	UBodyStateArm* PrivateRightArm;
 };
