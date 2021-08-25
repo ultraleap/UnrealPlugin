@@ -34,8 +34,10 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 	for (auto Probe : Probes)
 	{
 		// Calculate how extended the finger is
+		//	float TempCurl = FVector::DotProduct(Probe->Direction, (ProbeIndex != 0) ? Hand->GetForwardVector() : (IsLeftHand ? 1.0f
+		//: -1.0f) * Hand->GetRightVector());
 		float TempCurl =
-			FVector::DotProduct(Probe->Direction, (ProbeIndex != 0) ? Hand->GetForwardVector() : -1.0f * Hand->GetRightVector());
+			FVector::DotProduct(Probe->Direction, (ProbeIndex != 0) ? Hand->GetForwardVector() : (-1.0f) * Hand->GetRightVector());
 
 		float CurlVelocity = TempCurl - Probe->PrevCurl;
 		Probe->PrevCurl = TempCurl;
