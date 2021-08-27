@@ -44,24 +44,32 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 
 		// Determine if this probe is intersecting an object
 		bool CollidingWithObject = false;
-		for (auto Collider : Probe->CandidateColliders)
+		if (Probe->CandidateColliders.Num())
 		{
-			// UE_LOG(UltraleapTrackingLog, Log, TEXT("Candidate Collider Probe %d. %s"), ProbeIndex, *Collider->GetName());
-
-			auto PrimitiveComponent = Cast<UPrimitiveComponent>(Collider);
-			if (!PrimitiveComponent)
+			for (auto Collider : Probe->CandidateColliders)
 			{
-				PrimitiveComponent = Cast<UPrimitiveComponent>(Collider->GetAttachParent());
-			}
-
-			if (PrimitiveComponent != nullptr)
-			{
-				if (PrimitiveComponent->GetCollisionEnabled() != ECollisionEnabled::NoCollision)
+				// UE_LOG(UltraleapTrackingLog, Log, TEXT("Candidate Collider Probe %d. %s"), ProbeIndex, *Collider->GetName());
+				auto PrimitiveComponent = Cast<UPrimitiveComponent>(Collider);
+				if (!PrimitiveComponent)
 				{
-					CollidingWithObject = true;
-					break;
+					PrimitiveComponent = Cast<UPrimitiveComponent>(Collider->GetAttachParent());
+				}
+
+				if (PrimitiveComponent != nullptr)
+				{
+					if (PrimitiveComponent->GetCollisionEnabled() != ECollisionEnabled::NoCollision)
+					{
+						CollidingWithObject = true;
+						break;
+					}
 				}
 			}
+		}
+		// if were grabbed in multigrasp, there may be no collision candidates, but we still want to keep grabbing
+		// until uncurl occurs
+		else if (IsThisControllerGrabbing)
+		{
+			CollidingWithObject = true;
 		}
 
 		// Nullify above findings if fingers are extended
@@ -103,7 +111,7 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 	{
 		if (IsThisControllerGrabbing)
 		{
-			IsThisControllerGrabbing = false;
+			//	IsThisControllerGrabbing = false;
 		}
 		CoolDownProgress += DeltaTime;
 	}
