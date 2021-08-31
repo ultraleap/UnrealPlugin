@@ -107,11 +107,11 @@ void UIEGrabClassifierComponent::UpdateClassifier(const USceneComponent* Hand, c
 
 	// If grabbing within 10 frames of releasing, discard grab.
 	// Suppresses spurious regrabs and makes throws work better.
-	if (CoolDownProgress <= Params.GrabCooldown && !IgnoreTemporal)
+	if (CoolDownProgress <= Params.GrabCooldown && !IgnoreTemporal && Params.UseGrabCooldown)
 	{
 		if (IsThisControllerGrabbing)
 		{
-			//	IsThisControllerGrabbing = false;
+			IsThisControllerGrabbing = false;
 		}
 		CoolDownProgress += DeltaTime;
 	}

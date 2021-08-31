@@ -25,6 +25,7 @@ struct FGrabClassifierParams
 		, MaximumCurlVelocity(0.0f)
 		, GrabbedMaximumCurlVelocity(-0.025f)
 		, MaximumDistanceFromHand(5.0f)
+		, UseGrabCooldown(false)
 	{
 	}
 	/** <summary> The amount of curl hysteresis on each finger type </summary> */
@@ -57,6 +58,9 @@ struct FGrabClassifierParams
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	float MaximumDistanceFromHand;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	bool UseGrabCooldown;
 };
 
 UCLASS(BlueprintType, Blueprintable, meta = (BlueprintSpawnableComponent))
