@@ -244,7 +244,7 @@ bool FLeapMotionPlugin::IsLeapServiceVersionGemini()
 
 
 		UE_LOG(LeapMotionLog, Log, TEXT("Leap Service Found Version %d.%d.%d.%d"), VersionMajorMSW, VersionMajorLSW, VersionMinorMSW, VersionMinorLSW);
-		// Greater than version 4?, somehow windows versions are hex encoded?
+		// Greater than version 4?
 		if (VersionMajorMSW > LEAP_ORION_VERSION)
 		{
 			UE_LOG(LeapMotionLog, Log, TEXT("Leap Service is greater than v4"));
