@@ -39,6 +39,4 @@ private:
 	void *LeapDLLHandle;
 
 	void* GetLeapHandle();
-
-	bool IsLeapServiceVersionGemini();
 };

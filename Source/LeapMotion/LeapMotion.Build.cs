@@ -79,7 +79,7 @@ namespace UnrealBuildTool.Rules
 		public LeapMotion(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
+			
 			PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
@@ -166,21 +166,26 @@ namespace UnrealBuildTool.Rules
 					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
 
 					PublicDelayLoadDLLs.Add("LeapC.dll");
+				//	PublicDelayLoadDLLs.Add("LeapCOrion.dll");
 					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/LeapMotion/" + PlatformString + "/LeapC.dll");
-					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
+				//	RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
+					//RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCOrion.dll"));
 				}
 				//Engine plugin, just add the dependency path
 				else
 				{
 					//DLL
 					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
-
+					//string OrionPluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapCOrion.dll");
 					System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
 
-					RuntimeDependencies.Add(PluginDLLPath);
+				//	RuntimeDependencies.Add(PluginDLLPath);
+					//RuntimeDependencies.Add(OrionPluginDLLPath);
+
 					if (!Target.bBuildEditor)
 					{
 						PublicDelayLoadDLLs.Add("LeapC.dll");
+						//PublicDelayLoadDLLs.Add("LeapCOrion.dll");
 					}
 				}
 			}

@@ -38,6 +38,11 @@
 			"WhitelistPlatforms": [
 				"Win64"
 			]
+		},
+{
+			"Name": "LeapVersionSwitcher",
+			"Type": "Runtime",
+			"LoadingPhase": "EarliestPossible"
 		}
 	]
 }

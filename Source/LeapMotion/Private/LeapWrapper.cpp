@@ -53,6 +53,7 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface
 	LEAP_CONNECTION_CONFIG Config;
 	Config.server_namespace = "Leap Service";
 	Config.size = sizeof(Config);
+	Config.flags = 0;
 
 	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success) {
@@ -524,7 +525,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 			//UE_LOG(LeapMotionLog, Log, TEXT("LeapC PollConnection unsuccessful result %s.\n"), UTF8_TO_TCHAR(ResultString(result)));
 			if (!bIsConnected)
 			{
-				FPlatformProcess::Sleep(5.f);
+				FPlatformProcess::Sleep(0.5f);
 				continue;
 			}
 			else
