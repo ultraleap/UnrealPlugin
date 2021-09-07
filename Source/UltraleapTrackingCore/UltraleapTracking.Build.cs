@@ -164,12 +164,16 @@ namespace UnrealBuildTool.Rules
 				{
 					PublicDelayLoadDLLs.Add("LeapC.dll");
 					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCOrion.dll"));
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCGemini.dll"));
 				}
 				//Engine plugin, just add the dependency path
 				else
 				{
 					//DLL
 					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCOrion.dll"));
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCGemini.dll"));
 
 					System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
 
