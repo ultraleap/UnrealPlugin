@@ -3,14 +3,10 @@
 #include "LeapVersionSwitcher.h"
 #include "Interfaces/IPluginManager.h"
 #include "HAL/FileManager.h"
+#include "Misc/Paths.h"
 
 #if PLATFORM_WINDOWS
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "Windows/PreWindowsApi.h"
-#include <objbase.h>
-#include <assert.h>
-#include <stdio.h>
-#include "Windows/PostWindowsApi.h"
 #include "Windows/MinWindows.h"
 #include "Windows/HideWindowsPlatformTypes.h"
 #endif
