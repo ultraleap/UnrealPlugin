@@ -157,17 +157,14 @@ namespace UnrealBuildTool.Rules
 				//Lib
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
-				//System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
-
 				if (IsEnginePlugin())
 				{
-					//string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
-
 					//System.Console.WriteLine("Engine plugin detected, using dll at " + PluginDLLPath);
 
 					PublicDelayLoadDLLs.Add("LeapC.dll");
-					//RuntimeDependencies.Add("$(EngineDir)/Binaries/ThirdParty/LeapMotion/" + PlatformString + "/LeapC.dll");
 					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCOrion.dll"));
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCGemini.dll"));
 				}
 				//Engine plugin, just add the dependency path
 				else
@@ -178,6 +175,9 @@ namespace UnrealBuildTool.Rules
 					System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
 
 					RuntimeDependencies.Add(PluginDLLPath);
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCOrion.dll"));
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapCGemini.dll"));
+
 					if (!Target.bBuildEditor)
 					{
 						PublicDelayLoadDLLs.Add("LeapC.dll");
