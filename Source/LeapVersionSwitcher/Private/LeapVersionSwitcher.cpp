@@ -16,6 +16,9 @@
 #endif
 #define LOCTEXT_NAMESPACE "FLeapVersionSwitcherModule"
 
+
+DEFINE_LOG_CATEGORY(LeapVersionSwitcherLog)
+
 void FLeapVersionSwitcherModule::StartupModule()
 {
 	FlipLeapDLLBasedOnServiceVersion();
@@ -71,17 +74,19 @@ bool FLeapVersionSwitcherModule::IsLeapServiceVersionGemini()
 
 		uint16 VersionMinorMSW = VersionMinor >> 16;
 		uint16 VersionMinorLSW = VersionMinor & (uint32)0xFFFF;
-
+		UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service Version is %d.%d.%d.%d"), VersionMajorMSW, VersionMajorLSW, VersionMinorMSW, VersionMinorLSW);
 
 		//UE_LOG(LeapMotionLog, Log, TEXT("Leap Service Found Version %d.%d.%d.%d"), VersionMajorMSW, VersionMajorLSW, VersionMinorMSW, VersionMinorLSW);
 		// Greater than version 4?
 		if (VersionMajorMSW > LEAP_ORION_VERSION)
 		{
-		//	UE_LOG(LeapMotionLog, Log, TEXT("Leap Service is greater than v4"));
+			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service is greater than v4 - Switching to Gemini LeapC.dll"));
 			return true;
 		}
 		else
 		{
+			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service is v4 - Switching to Orion LeapC.dll"));
+
 			return false;
 		}
 
@@ -113,7 +118,11 @@ void FLeapVersionSwitcherModule::FlipLeapDLLBasedOnServiceVersion()
 			LeapCLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/Win64/LeapCOrion.dll"));
 		}
 		bool Status = IFileManager::Get().Copy(*LeapCLibraryDstPath, *LeapCLibraryPath, true, true) == COPY_OK;
-
+		
+		if (!Status)
+		{
+			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Error: LeapC DLL failed to switch/copy LeapC.dll from %s to %s"), *LeapCLibraryDstPath, *LeapCLibraryPath);
+		}
 	}
 
 #endif //PLATFORM_WINDOWS

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+
+
 class FLeapVersionSwitcherModule : public IModuleInterface
 {
 public:
@@ -17,3 +19,4 @@ private:
 	bool IsLeapServiceVersionGemini();
 	void FlipLeapDLLBasedOnServiceVersion();
 };
+DECLARE_LOG_CATEGORY_EXTERN(LeapVersionSwitcherLog, Log, All);
