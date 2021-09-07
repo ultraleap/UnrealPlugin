@@ -25,7 +25,7 @@ If you want to use multiple devices at the same time, see the experimental https
 5. Drag the unzipped **LeapUnreal** plugin into the project's Plugins folder. 
 6. The plugin should be enabled and ready to use, if not enable it.
 
-#### Quick setup video, get up and running in 41 seconds!
+#### Quick setup video, get up and running fast!
 [![Install and Go](https://img.youtube.com/vi/xe3OWIJTMuY/0.jpg)](https://youtu.be/xe3OWIJTMuY)
 
 # How to use it - Convenience Rigged Pawn
