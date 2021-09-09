@@ -54,7 +54,6 @@ bool GetExecutablePathForService(const FString& ServiceName, FString& PathRet)
 #define LEAP_ORION_VERSION 4
 bool FLeapVersionSwitcherModule::IsLeapServiceVersionGemini()
 {
-	FString Ret;
 #if PLATFORM_WINDOWS
 	FString Path;
 	if (GetExecutablePathForService(FString("LeapService"), Path))
@@ -73,8 +72,6 @@ bool FLeapVersionSwitcherModule::IsLeapServiceVersionGemini()
 		UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service Version is %d.%d.%d.%d"), VersionMajorMSW, VersionMajorLSW,
 			VersionMinorMSW, VersionMinorLSW);
 
-		// UE_LOG(LeapMotionLog, Log, TEXT("Leap Service Found Version %d.%d.%d.%d"), VersionMajorMSW, VersionMajorLSW,
-		// VersionMinorMSW, VersionMinorLSW);
 		// Greater than version 4?
 		if (VersionMajorMSW > LEAP_ORION_VERSION)
 		{
