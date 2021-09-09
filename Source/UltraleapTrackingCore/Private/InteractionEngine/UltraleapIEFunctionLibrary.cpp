@@ -66,3 +66,14 @@ FName UUltraleapIEFunctionLibrary::GetBodyName(UPhysicsAsset* PhysicsAsset, cons
 
 	return PhysicsAsset->SkeletalBodySetups[BodyIndex]->BoneName;
 }
+void UUltraleapIEFunctionLibrary::InitPhysicsConstraint(UPhysicsConstraintComponent* PhysicsConstraintComponent)
+{
+	if (PhysicsConstraintComponent == nullptr)
+	{
+		return;
+	}
+	PhysicsConstraintComponent->ConstraintInstance.DisableProjection();
+
+	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.bSoftConstraint = true;
+	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.ContactDistance = 100.0f;
+}
