@@ -56,7 +56,16 @@ bool FLeapVersionSwitcherModule::IsLeapServiceVersionGemini()
 {
 #if PLATFORM_WINDOWS
 	FString Path;
-	if (GetExecutablePathForService(FString("LeapService"), Path))
+	bool ServiceFound = false;
+	if (!GetExecutablePathForService(FString("UltraleapTracking"), Path))
+	{
+		ServiceFound = GetExecutablePathForService(FString("LeapService"), Path);
+	}
+	else
+	{
+		ServiceFound = true;
+	}
+	if (ServiceFound)
 	{
 		uint64 FileVersion = FPlatformMisc::GetFileVersion(Path);
 
