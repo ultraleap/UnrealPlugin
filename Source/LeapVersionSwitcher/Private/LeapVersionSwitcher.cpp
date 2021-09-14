@@ -51,7 +51,8 @@ bool GetExecutablePathForService(const FString& ServiceName, FString& PathRet)
 }
 #endif	  // PLATFORM_WINDOWS
 
-#define LEAP_ORION_VERSION 4
+#define LEAP_GEN2_MAJOR_VERSION 5
+#define LEAP_GEN2_MINOR_VERSION 1
 bool FLeapVersionSwitcherModule::IsLeapServiceVersionGemini()
 {
 #if PLATFORM_WINDOWS
@@ -82,14 +83,14 @@ bool FLeapVersionSwitcherModule::IsLeapServiceVersionGemini()
 			VersionMinorMSW, VersionMinorLSW);
 
 		// Greater than version 4?
-		if (VersionMajorMSW > LEAP_ORION_VERSION)
+		if (VersionMajorMSW >= LEAP_GEN2_MAJOR_VERSION && VersionMajorLSW >= LEAP_GEN2_MINOR_VERSION)
 		{
-			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service is greater than v4 - Switching to Gemini LeapC.dll"));
+			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service is greater than v5.0 - Switching to Gen2 LeapC.dll"));
 			return true;
 		}
 		else
 		{
-			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service is v4 - Switching to Orion LeapC.dll"));
+			UE_LOG(LeapVersionSwitcherLog, Log, TEXT("Leap Service is less than v5.1 - Switching to Gen1 LeapC.dll"));
 
 			return false;
 		}
