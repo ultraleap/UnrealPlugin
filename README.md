@@ -20,12 +20,13 @@ If you want to use multiple devices at the same time, see the experimental https
 
 1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started). This plugin requires v4 SDK tracking or newer.
 2. Create new or open a project. 
-3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .7z link and https://www.7-zip.org/ to unzip it)
-4. Drag and drop Plugins into your project root folder
-5. The plugin should be enabled and ready to use, if not enable it.
+3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .zip link)
+4. Create a Plugins folder in your project root folder if one doesn't already exist
+5. Drag the unzipped **LeapUnreal** plugin into the project's Plugins folder. 
+6. The plugin should be enabled and ready to use, if not enable it.
 
-#### Quick setup video, get up and running in 41 seconds!
-[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/z4HIqr-5kWQ)
+#### Quick setup video, get up and running fast!
+[![Install and Go](https://img.youtube.com/vi/xe3OWIJTMuY/0.jpg)](https://youtu.be/xe3OWIJTMuY)
 
 # How to use it - Convenience Rigged Pawn
 
