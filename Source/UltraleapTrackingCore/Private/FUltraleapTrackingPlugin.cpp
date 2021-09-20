@@ -14,10 +14,15 @@
 // this forces the assembly context to use the LeapC.dll in the Plugin
 // without this, if OpenXR is enabled, the LeapC.dll in the OpenXR distribution will be loaded instead as it's
 // loaded earlier on in the boot process
+// This only works in the editor as Windows side by side expects the dll to be in either the same folder as the loading dll/exe
+// or a direct sub folder, the folder structure for packaged apps means that this is not possible without breaking Unreal's folder
+// structure.
 #if PLATFORM_WINDOWS
+#if WITH_EDITOR
 #pragma comment(linker, \
 	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.2.0.0' \
 processorArchitecture='*' publicKeyToken='0000000000000000' language='*'\"")
+#endif
 #endif	  // PLATFORM_WINDOWS
 
 void FUltraleapTrackingPlugin::StartupModule()
