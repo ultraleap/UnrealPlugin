@@ -382,7 +382,7 @@ void FUltraleapTrackingInputDevice::SendControllerEvents()
 void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
-
+	TestOpenXR.UpdateHandState();
 	// Did a device connect?
 	if (!Leap.bIsConnected || !Leap.CurrentDeviceInfo)
 	{

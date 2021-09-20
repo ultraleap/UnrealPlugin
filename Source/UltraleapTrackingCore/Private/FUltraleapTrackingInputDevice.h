@@ -13,9 +13,9 @@
 #include "LeapLiveLink.h"
 #include "LeapUtility.h"
 #include "LeapWrapper.h"
+#include "OpenXRToLeapWrapper.h"
 #include "SceneViewExtension.h"
 #include "UltraleapTrackingData.h"
-
 /**
  * Stores raw controller data and custom toggles
  */
@@ -167,6 +167,8 @@ private:
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
 	FLeapWrapper Leap;
+	// Test code
+	FOpenXRToLeapWrapper TestOpenXR;
 
 	// LeapWrapper Callbacks
 	virtual void OnConnect() override;
