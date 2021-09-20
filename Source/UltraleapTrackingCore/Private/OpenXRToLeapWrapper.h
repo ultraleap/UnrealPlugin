@@ -18,7 +18,14 @@ public:
 
 	void UpdateHandState();
 
+	// FLeapWrapperBase overrides (base stubs out old leap calls)
+	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override;
+
 private:
 	class IHandTracker* HandTracker;
 	void InitOpenXRHandTrackingModule();
+	LEAP_TRACKING_EVENT DummyLeapFrame;
+	LEAP_HAND DummyLeapHands[2];
+
+	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions, const TArray<FQuat>& Rotations);
 };
