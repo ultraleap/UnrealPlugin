@@ -11,6 +11,15 @@
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
 
+// this forces the assembly context to use the LeapC.dll in the Plugin
+// without this, if OpenXR is enabled, the LeapC.dll in the OpenXR distribution will be loaded instead as it's
+// loaded earlier on in the boot process
+#if PLATFORM_WINDOWS
+#pragma comment(linker, \
+	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.2.0.0' \
+processorArchitecture='*' publicKeyToken='0000000000000000' language='*'\"")
+#endif	  // PLATFORM_WINDOWS
+
 void FUltraleapTrackingPlugin::StartupModule()
 {
 	// This code will execute after your module is loaded into memory (but after global variables are initialized, of course.)
