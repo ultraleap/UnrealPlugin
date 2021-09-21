@@ -166,7 +166,8 @@ private:
 	// v5 Tracking mode API
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
-	FLeapWrapper Leap;
+	IHandTrackingWrapper* Leap;
+	FLeapWrapper LeapWrapper;
 	// Test code
 	FOpenXRToLeapWrapper TestOpenXR;
 

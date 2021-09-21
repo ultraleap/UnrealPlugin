@@ -324,8 +324,8 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
-
-	Leap.OpenConnection(this);	  // pass in the this as callback delegate
+	Leap = &LeapWrapper;
+	Leap->OpenConnection(this);	  // pass in the this as callback delegate
 
 	// Attach to bodystate
 	Config.DeviceName = "Leap Motion";
@@ -384,14 +384,14 @@ void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
 	TestOpenXR.UpdateHandState();
 	// Did a device connect?
-	if (!Leap.bIsConnected || !Leap.CurrentDeviceInfo)
+	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
 		return;
 	}
 
 	// Todo: get frame and parse for each device
 
-	_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame();
+	_LEAP_TRACKING_EVENT* Frame = Leap->GetFrame();
 
 	// Is the frame valid?
 	if (!Frame)
@@ -400,24 +400,28 @@ void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 	}
 
 	TimeWarpTimeStamp = Frame->info.timestamp;
-
-	int64 LeapTimeNow = LeapGetNow();
-	SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
-
+	int64 LeapTimeNow = 0;
+	if (!Options.bUseOpenXRAsSource)
+	{
+		LeapTimeNow = LeapGetNow();
+		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
+	}
+	
 	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
-	if (Options.bUseInterpolation)
+	// interpolation not supported in OpenXR
+	if (Options.bUseInterpolation && !Options.bUseOpenXRAsSource)
 	{
 		// Let's interpolate the frame using leap function
 
 		// Get the future interpolated finger frame
-		Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
+		Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
 		CurrentFrame.SetFromLeapFrame(Frame);
 
 		// Get the future interpolated hand frame, farther than fingers to provide
 		// lower latency
-		Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+		Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
 		CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
 
 		// Track our extrapolation time in stats
@@ -441,7 +445,8 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 	}
 
 	// Are we in HMD mode? add our HMD snapshot
-	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
+	// Note with Open XR, the data is already transformed for the HMD/player camera
+	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD && !Options.bUseOpenXRAsSource)
 	{
 		// Correction for HMD offset and rotation has already been applied in call
 		// to CaptureAndEvaluateInput through CurrentFrame->SetFromLeapFrame()
@@ -928,7 +933,7 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 	UBodyStateBPLibrary::DetachDevice(BodyStateDeviceId);
 
 	// This will kill the leap thread
-	Leap.CloseConnection();
+	Leap->CloseConnection();
 
 	LeapImageHandler->CleanupImageData();
 }
@@ -950,20 +955,20 @@ void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 	switch (Flag)
 	{
 		case LEAP_POLICY_BACKGROUND_FRAMES:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
 			break;
 		case LEAP_POLICY_IMAGES:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
 			break;
 		// legacy 3.0 implementation superseded by SetTrackingMode
 		case LEAP_POLICY_OPTIMIZE_HMD:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
 			break;
 		case LEAP_POLICY_ALLOW_PAUSE_RESUME:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
 			break;
 		case LEAP_POLICY_MAP_POINTS:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
 		default:
 			break;
 	}
@@ -974,13 +979,13 @@ void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag)
 	switch (Flag)
 	{
 		case LEAP_MODE_DESKTOP:
-			Leap.SetTrackingMode(eLeapTrackingMode_Desktop);
+			Leap->SetTrackingMode(eLeapTrackingMode_Desktop);
 			break;
 		case LEAP_MODE_VR:
-			Leap.SetTrackingMode(eLeapTrackingMode_HMD);
+			Leap->SetTrackingMode(eLeapTrackingMode_HMD);
 			break;
 		case LEAP_MODE_SCREENTOP:
-			Leap.SetTrackingMode(eLeapTrackingMode_ScreenTop);
+			Leap->SetTrackingMode(eLeapTrackingMode_ScreenTop);
 			break;
 	}
 }

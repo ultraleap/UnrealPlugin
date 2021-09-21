@@ -351,6 +351,7 @@ FLeapOptions::FLeapOptions()
 	EndPinchThreshold = .5f;
 	GrabTimeout = 100000;
 	PinchTimeout = 100000;
+	bUseOpenXRAsSource = false;
 	// bEnableImageStreaming = false;		//default image streaming to off
 }
 

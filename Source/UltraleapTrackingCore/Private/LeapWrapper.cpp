@@ -8,12 +8,9 @@
 
 #pragma region LeapC Wrapper
 
-// Static callback delegate pointer initialization
-LeapWrapperCallbackInterface* FLeapWrapper::CallbackDelegate = nullptr;
 
-FLeapWrapper::FLeapWrapper() : bIsRunning(false), bIsConnected(false)
+FLeapWrapper::FLeapWrapper() : bIsRunning(false)
 {
-	CallbackDelegate = nullptr;
 	InterpolatedFrame = nullptr;
 	InterpolatedFrameSize = 0;
 }
@@ -39,12 +36,12 @@ FLeapWrapper::~FLeapWrapper()
 	}
 }
 
-void FLeapWrapper::SetCallbackDelegate(const LeapWrapperCallbackInterface* InCallbackDelegate)
+void FLeapWrapper::SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
-	CallbackDelegate = (LeapWrapperCallbackInterface*) InCallbackDelegate;
+	CallbackDelegate = InCallbackDelegate;
 }
 
-LEAP_CONNECTION* FLeapWrapper::OpenConnection(const LeapWrapperCallbackInterface* InCallbackDelegate)
+LEAP_CONNECTION* FLeapWrapper::OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate)
 {
 	SetCallbackDelegate(InCallbackDelegate);
 

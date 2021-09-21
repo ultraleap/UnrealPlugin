@@ -28,7 +28,7 @@ class IHandTrackingWrapper
 {
 public:
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(const LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
+	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() = 0;
@@ -49,58 +49,71 @@ public:
 	virtual const char* ResultString(eLeapRS Result) = 0;
 
 	virtual void EnableImageStream(bool bEnable) = 0;
+
+	virtual bool IsConnected() = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
 {
 public:
+	LEAP_DEVICE_INFO* CurrentDeviceInfo = NULL;
+	bool bIsConnected = false;
+
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(const LeapWrapperCallbackInterface* InCallbackDelegate)
+	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate)
 	{
+		CallbackDelegate = InCallbackDelegate;
 		return nullptr;
 	}
 
 	/** Close the connection, it will nullify the callback delegate */
-	virtual void CloseConnection()
+	virtual void CloseConnection() override
 	{
 	}
 
-	virtual void SetPolicy(int64 Flags, int64 ClearFlags)
+	virtual void SetPolicy(int64 Flags, int64 ClearFlags) override
 	{
 	}
-	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
+	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override
 	{
 	}
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
-	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode)
+	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override
 	{
 	}
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
-	virtual LEAP_TRACKING_EVENT* GetFrame()
+	virtual LEAP_TRACKING_EVENT* GetFrame() override
 	{
 		return nullptr;
 	}
 
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
-	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp)
+	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override
 	{
 		return nullptr;
 	}
 
-	virtual LEAP_DEVICE_INFO* GetDeviceProperties()
+	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override
 	{
 		return nullptr;
 	}
-	virtual const char* ResultString(eLeapRS Result)
+	virtual const char* ResultString(eLeapRS Result) override
 	{
 		return nullptr;
 	}
 
-	virtual void EnableImageStream(bool bEnable)
+	virtual void EnableImageStream(bool bEnable) override
 	{
 	}
+	virtual bool IsConnected() override
+	{
+		return false;
+	}
+
+protected:
+	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 };
 /** Wraps LeapC API into a threaded and event driven delegate callback format */
 class FLeapWrapper : public FLeapWrapperBase
@@ -109,11 +122,11 @@ public:
 	// LeapC Vars
 	FThreadSafeBool bIsRunning;
 	FThreadSafeBool bHasFinished;
-	bool bIsConnected;
+	
 	LEAP_CONNECTION ConnectionHandle;
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
-	LEAP_DEVICE_INFO* CurrentDeviceInfo = NULL;
+	
 
 	FLeapWrapper();
 	virtual ~FLeapWrapper();
@@ -121,10 +134,10 @@ public:
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
 
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
-	void SetCallbackDelegate(const LeapWrapperCallbackInterface* InCallbackDelegate);
+	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate);
 
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(const LeapWrapperCallbackInterface* InCallbackDelegate) override;
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) override;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() override;
@@ -146,6 +159,10 @@ public:
 
 	virtual void EnableImageStream(bool bEnable) override;
 
+	virtual bool IsConnected() override
+	{
+		return bIsConnected;
+	}
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);
@@ -157,7 +174,7 @@ private:
 	// Threading variables
 	FCriticalSection DataLock;
 	TFuture<void> ProducerLambdaFuture;
-	static LeapWrapperCallbackInterface* CallbackDelegate;
+	
 
 	LEAP_TRACKING_EVENT* InterpolatedFrame;
 	uint64 InterpolatedFrameSize;

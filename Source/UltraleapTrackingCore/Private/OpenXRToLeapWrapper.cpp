@@ -9,6 +9,9 @@
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 {
+
+	CurrentDeviceInfo = &DummyDeviceInfo;
+	DummyDeviceInfo = {0};
 	DummyLeapHands[0] = {0};
 	DummyLeapHands[1] = {0};
 	DummyLeapFrame = {0};
@@ -16,6 +19,7 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 	DummyLeapFrame.framerate = 90;
 	DummyLeapFrame.pHands = DummyLeapHands;
 	InitOpenXRHandTrackingModule();
+
 }
 
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
@@ -37,7 +41,18 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 
 LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
-	
+	return GetFrame();
+}
+void FOpenXRToLeapWrapper::UpdateHandState()
+{
+
+}
+LEAP_DEVICE_INFO* FOpenXRToLeapWrapper::GetDeviceProperties()
+{
+	return CurrentDeviceInfo;
+}
+LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
+{
 	if (HandTracker == nullptr)
 	{
 		return &DummyLeapFrame;
@@ -47,7 +62,7 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetInterpolatedFrameAtTime(int64 Time
 	TArray<float> OutRadii[2];
 
 	// status only true when the hand is being tracked/visible to the tracking device
-	
+
 	bool StatusLeft = HandTracker->GetAllKeypointStates(EControllerHand::Left, OutPositions[0], OutRotations[0], OutRadii[0]);
 	bool StatusRight = HandTracker->GetAllKeypointStates(EControllerHand::Right, OutPositions[1], OutRotations[1], OutRadii[1]);
 
@@ -83,8 +98,4 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetInterpolatedFrameAtTime(int64 Time
 		ConvertToLeapSpace(DummyLeapHands[1], OutPositions[1], OutRotations[1]);
 	}
 	return &DummyLeapFrame;
-}
-void FOpenXRToLeapWrapper::UpdateHandState()
-{
-
 }

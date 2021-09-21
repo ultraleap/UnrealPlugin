@@ -194,6 +194,10 @@ struct ULTRALEAPTRACKING_API FLeapOptions
 
 	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
 	float PinchTimeout;
+
+	/** Pull tracking data from OpenXR instead of LeapC.dll  */
+	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
+	bool bUseOpenXRAsSource;
 };
 
 USTRUCT(BlueprintType)
