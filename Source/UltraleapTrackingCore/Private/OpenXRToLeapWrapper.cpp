@@ -7,6 +7,7 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "IHandTracker.h"
 #include "HeadMountedDisplayTypes.h"
+#include "LeapUtility.h"
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 {
@@ -24,12 +25,19 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 	DummyLeapFrame.framerate = 90;
 	DummyLeapFrame.pHands = DummyLeapHands;
 
-	InitOpenXRHandTrackingModule();
+	
 }
 
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
 {
 }
+LEAP_CONNECTION* FOpenXRToLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
+{
+	CallbackDelegate = InCallbackDelegate;
+	InitOpenXRHandTrackingModule();
+	return nullptr;
+}
+
 void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 {
 	IModuleInterface* ModuleInterface = FModuleManager::Get().LoadModule("OpenXRHandTracking");
@@ -37,21 +45,31 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	if (ModularFeatures.IsModularFeatureAvailable(IHandTracker::GetModularFeatureName()))
 	{
 		HandTracker = &IModularFeatures::Get().GetModularFeature<IHandTracker>(IHandTracker::GetModularFeatureName());
+		bIsConnected = true;
+
+		if (CallbackDelegate)
+		{
+			CallbackDelegate->OnDeviceFound(&DummyDeviceInfo);
+		}
 	}
 }
 LEAP_VECTOR ConvertPositionToLeap(const FVector& FromOpenXR)
 {
-	LEAP_VECTOR Ret = {0};
-
+	LEAP_VECTOR Ret = FLeapUtility::ConvertAndScaleUEToLeap(FromOpenXR);	
 	return Ret;
 }
 LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
 	LEAP_QUATERNION Ret = {0};
+		
+	Ret.x = -FromOpenXR.Y;
+	Ret.y = FromOpenXR.X;
+	Ret.z = FromOpenXR.Z;
+	Ret.w = FromOpenXR.W;
 
 	return Ret;
 }
-	// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
+// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
 void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
 {
 	
@@ -228,22 +246,16 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	TArray<float> OutRadii[2];
 
 	// status only true when the hand is being tracked/visible to the tracking device
-
+	// IMPORTANT: OpenXR tracking only works in VR mode, this will always return false in desktop mode
 	bool StatusLeft = HandTracker->GetAllKeypointStates(EControllerHand::Left, OutPositions[0], OutRotations[0], OutRadii[0]);
 	bool StatusRight = HandTracker->GetAllKeypointStates(EControllerHand::Right, OutPositions[1], OutRotations[1], OutRadii[1]);
 
 	DummyLeapFrame.nHands = StatusLeft + StatusRight;
 	DummyLeapFrame.info.frame_id++;
 	UWorld* World = nullptr;
-	if (GEngine)
-	{
-		World = GEngine->GetWorld();
-	}
+	
 	// time in microseconds
-	if (World)
-	{
-		DummyLeapFrame.info.timestamp = World->GetTimeSeconds() * 1000000.0f;
-	}
+	DummyLeapFrame.info.timestamp = GetDummyLeapTime();
 	DummyLeapFrame.tracking_frame_id++;
 
 	if (!StatusLeft)
@@ -264,4 +276,15 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 		ConvertToLeapSpace(DummyLeapHands[1], OutPositions[1], OutRotations[1]);
 	}
 	return &DummyLeapFrame;
+}
+int64_t FOpenXRToLeapWrapper::GetDummyLeapTime()
+{
+	// time in microseconds
+	if (!CurrentWorld)
+	{
+		return 0;
+	}
+	{
+		return CurrentWorld->GetTimeSeconds() * 1000000.0f;
+	}
 }

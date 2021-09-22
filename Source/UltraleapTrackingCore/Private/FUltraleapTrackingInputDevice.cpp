@@ -96,7 +96,7 @@ bool FUltraleapTrackingInputDevice::HandPinched(float Strength)
 
 int64 FUltraleapTrackingInputDevice::GetInterpolatedNow()
 {
-	return LeapGetNow() + HandInterpolationTimeOffset;
+	return Leap->GetNow() + HandInterpolationTimeOffset;
 }
 
 // comes from service message loop
@@ -141,8 +141,10 @@ void FUltraleapTrackingInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO* Props)
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*) Props);
 	SetOptions(Options);
 
-	LeapImageHandler->Reset();
-
+	if (LeapImageHandler)
+	{
+		LeapImageHandler->Reset();
+	}
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
 
 	AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
@@ -309,7 +311,7 @@ void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const
 #pragma region Leap Input Device
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
-
+#define OPEN_XR_MODE 1
 FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 	: MessageHandler(InMessageHandler)
 {
@@ -324,7 +326,11 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
+#if OPEN_XR_MODE
+	Leap = &TestOpenXR;
+#else
 	Leap = &LeapWrapper;
+#endif
 	Leap->OpenConnection(this);	  // pass in the this as callback delegate
 
 	// Attach to bodystate
@@ -382,7 +388,6 @@ void FUltraleapTrackingInputDevice::SendControllerEvents()
 void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
-	TestOpenXR.UpdateHandState();
 	// Did a device connect?
 	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
@@ -403,7 +408,7 @@ void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 	int64 LeapTimeNow = 0;
 	if (!Options.bUseOpenXRAsSource)
 	{
-		LeapTimeNow = LeapGetNow();
+		LeapTimeNow = Leap->GetNow();
 		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
 	}
 	
@@ -455,7 +460,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 
 		if (IsInGameThread())
 		{
-			SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(LeapGetNow());
+			SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(Leap->GetNow());
 		}
 
 		FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
@@ -486,7 +491,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 	}
 
 	if (LastLeapTime == 0)
-		LastLeapTime = LeapGetNow();
+		LastLeapTime = Leap->GetNow();
 
 	CheckHandVisibility();
 	CheckGrabGesture();
@@ -502,7 +507,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 
 	// It's now the past data
 	PastFrame = CurrentFrame;
-	LastLeapTime = LeapGetNow();
+	LastLeapTime = Leap->GetNow();
 }
 
 void FUltraleapTrackingInputDevice::CheckHandVisibility()
@@ -512,11 +517,11 @@ void FUltraleapTrackingInputDevice::CheckHandVisibility()
 		// Update visible hand list, must happen first
 		if (IsLeftVisible)
 		{
-			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (Leap->GetNow() - LastLeapTime);
 		}
 		if (IsRightVisible)
 		{
-			TimeSinceLastRightVisible = TimeSinceLastRightVisible + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightVisible = TimeSinceLastRightVisible + (Leap->GetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -651,11 +656,11 @@ void FUltraleapTrackingInputDevice::CheckPinchGesture()
 	{
 		if (IsLeftPinching)
 		{
-			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (Leap->GetNow() - LastLeapTime);
 		}
 		if (IsRightPinching)
 		{
-			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (Leap->GetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -762,11 +767,11 @@ void FUltraleapTrackingInputDevice::CheckGrabGesture()
 	{
 		if (IsLeftGrabbing)
 		{
-			TimeSinceLastLeftGrab = TimeSinceLastLeftGrab + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastLeftGrab = TimeSinceLastLeftGrab + (Leap->GetNow() - LastLeapTime);
 		}
 		if (IsRightGrabbing)
 		{
-			TimeSinceLastRightGrab = TimeSinceLastRightGrab + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightGrab = TimeSinceLastRightGrab + (Leap->GetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -907,6 +912,8 @@ void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* Event
 	{
 		return;
 	}
+	// needed for world time
+	Leap->SetWorld(ComponentWorld);
 	// only add delegates to world
 	if (ComponentWorld->WorldType == EWorldType::Game || ComponentWorld->WorldType == EWorldType::GamePreview ||
 		ComponentWorld->WorldType == EWorldType::PIE)
@@ -1162,8 +1169,9 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		HMDType = GEngine->XRSystem->GetSystemName();
 	}
 
+
 	// Did we change the mode?
-	if (Options.Mode != InOptions.Mode)
+	if (Options.Mode != InOptions.Mode && !OPEN_XR_MODE)
 	{
 		if (bUseNewTrackingModeAPI)
 		{
@@ -1179,7 +1187,9 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 
 	// Set main options
 	Options = InOptions;
-
+#if OPEN_XR_MODE
+	Options.bUseOpenXRAsSource = true;
+#endif
 	// Cache device type
 	FString DeviceType = Stats.DeviceInfo.PID;
 
@@ -1363,6 +1373,8 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	EndPinchThreshold = Options.EndPinchThreshold;
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
+
+
 }
 
 FLeapOptions FUltraleapTrackingInputDevice::GetOptions()

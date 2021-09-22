@@ -10,7 +10,7 @@
 /**
  *
  */
-class FOpenXRToLeapWrapper : FLeapWrapperBase
+class FOpenXRToLeapWrapper : public FLeapWrapperBase
 {
 public:
 	FOpenXRToLeapWrapper();
@@ -19,9 +19,14 @@ public:
 	void UpdateHandState();
 
 	// FLeapWrapperBase overrides (base stubs out old leap calls)
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) override;
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override;
 	virtual LEAP_TRACKING_EVENT* GetFrame() override;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override;
+	virtual int64_t GetNow() override
+	{
+		return GetDummyLeapTime();
+	}
 
 private:
 	class IHandTracker* HandTracker;
@@ -31,4 +36,5 @@ private:
 	LEAP_DEVICE_INFO DummyDeviceInfo;
 
 	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions, const TArray<FQuat>& Rotations);
+	int64_t GetDummyLeapTime();
 };

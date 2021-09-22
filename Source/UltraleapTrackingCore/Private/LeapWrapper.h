@@ -51,6 +51,10 @@ public:
 	virtual void EnableImageStream(bool bEnable) = 0;
 
 	virtual bool IsConnected() = 0;
+
+	virtual void SetWorld(UWorld* World) = 0;
+
+	virtual int64_t GetNow() = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -109,11 +113,17 @@ public:
 	}
 	virtual bool IsConnected() override
 	{
-		return false;
+		return bIsConnected;
+	}
+
+	virtual void SetWorld(UWorld* World) override
+	{
+		CurrentWorld = World;
 	}
 
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
+	UWorld* CurrentWorld = nullptr;
 };
 /** Wraps LeapC API into a threaded and event driven delegate callback format */
 class FLeapWrapper : public FLeapWrapperBase
@@ -158,11 +168,11 @@ public:
 	virtual const char* ResultString(eLeapRS Result) override;
 
 	virtual void EnableImageStream(bool bEnable) override;
-
-	virtual bool IsConnected() override
+	virtual int64_t GetNow() override
 	{
-		return bIsConnected;
+		return LeapGetNow();
 	}
+
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);
