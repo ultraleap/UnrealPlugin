@@ -27,6 +27,8 @@ public:
 	{
 		return GetDummyLeapTime();
 	}
+	virtual void SetWorld(UWorld* World) override;
+	
 
 private:
 	class IHandTracker* HandTracker;

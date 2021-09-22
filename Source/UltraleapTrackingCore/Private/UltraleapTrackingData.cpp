@@ -59,14 +59,16 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 
 		if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT)
 		{
+			
 			LeftHandVisible = true;
 		}
 		else if (Hands[i].HandType == EHandType::LEAP_HAND_RIGHT)
 		{
 			RightHandVisible = true;
+			
 		}
 	}
-
+	
 	FrameId = frame->tracking_frame_id;
 }
 

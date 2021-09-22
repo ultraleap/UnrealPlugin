@@ -8,6 +8,7 @@
 #include "IHandTracker.h"
 #include "HeadMountedDisplayTypes.h"
 #include "LeapUtility.h"
+#include "Kismet/GameplayStatics.h"
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 {
@@ -19,6 +20,10 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 	
 	DummyLeapHands[0].type = eLeapHandType::eLeapHandType_Left;
 	DummyLeapHands[1].type = eLeapHandType::eLeapHandType_Right;
+
+	DummyLeapHands[0].id = 1000;
+	DummyLeapHands[1].id = 2000;
+
 
 	DummyLeapFrame = {0};
 
@@ -55,18 +60,32 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 }
 LEAP_VECTOR ConvertPositionToLeap(const FVector& FromOpenXR)
 {
-	LEAP_VECTOR Ret = FLeapUtility::ConvertAndScaleUEToLeap(FromOpenXR);	
+	LEAP_VECTOR Ret = FLeapUtility::ConvertAndScaleUEToLeap(FromOpenXR);
+	
 	return Ret;
 }
 LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
 	LEAP_QUATERNION Ret = {0};
 		
-	Ret.x = -FromOpenXR.Y;
-	Ret.y = FromOpenXR.X;
-	Ret.z = FromOpenXR.Z;
-	Ret.w = FromOpenXR.W;
+	// we want inverse of this
+	/*
+	Quat.X = -Quaternion.y;
+	Quat.Y = Quaternion.x;
+	Quat.Z = Quaternion.z;
+	Quat.W = Quaternion.w;
 
+	* FQuat(FRotator(90.f, 0.f, 180.f));
+	*/
+
+	FQuat PreRot(FromOpenXR);
+
+	//PreRot *= FQuat(FRotator(-90.f, 0.f, -180.f));
+	Ret.x = -PreRot.Y;
+	Ret.y = PreRot.X;
+	Ret.z = PreRot.Z;
+	Ret.w = PreRot.W;
+	
 	return Ret;
 }
 // FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
@@ -89,9 +108,10 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				break;
 			case EHandKeypoint::Wrist:
 				// wrist comes from arm next joint in bodystate
-				LeapHand.arm.next_joint = ConvertPositionToLeap(Position);
+				LeapHand.arm.prev_joint = LeapHand.arm.next_joint = ConvertPositionToLeap(Position);
 				// set arm rotation from Wrist
 				LeapHand.arm.rotation = ConvertOrientationToLeap(Rotation);
+				LeapHand.arm.width = 10;
 				break;
 				// Thumb ////////////////////////////////////////////////////
 			case EHandKeypoint::ThumbMetacarpal:
@@ -104,7 +124,12 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				LeapHand.thumb.proximal.rotation = ConvertOrientationToLeap(Rotation);
 				break;
 			case EHandKeypoint::ThumbDistal:
+
 				LeapHand.thumb.distal.prev_joint = LeapHand.thumb.proximal.next_joint = ConvertPositionToLeap(Position);
+				
+				// no thumb intermediate in OpenXR, duplicate distal?
+				LeapHand.thumb.intermediate.prev_joint = LeapHand.thumb.intermediate.next_joint = ConvertPositionToLeap(Position);
+				
 				LeapHand.thumb.distal.rotation = ConvertOrientationToLeap(Rotation);
 				break;
 			case EHandKeypoint::ThumbTip:
@@ -275,6 +300,7 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	{
 		ConvertToLeapSpace(DummyLeapHands[1], OutPositions[1], OutRotations[1]);
 	}
+	
 	return &DummyLeapFrame;
 }
 int64_t FOpenXRToLeapWrapper::GetDummyLeapTime()
@@ -287,4 +313,16 @@ int64_t FOpenXRToLeapWrapper::GetDummyLeapTime()
 	{
 		return CurrentWorld->GetTimeSeconds() * 1000000.0f;
 	}
+}
+void FOpenXRToLeapWrapper::SetWorld(UWorld* World)
+{
+	FLeapWrapperBase::SetWorld(World);
+	/* no delta TODO: get world framerate from somewhere if (World)
+	{
+		float WorldDelta = World->GetDeltaSeconds();
+		if (WorldDelta)
+		{
+			DummyLeapFrame.framerate = 1.0f / WorldDelta;
+		}
+	}*/
 }
