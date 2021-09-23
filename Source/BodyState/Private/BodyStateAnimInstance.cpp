@@ -998,6 +998,8 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 
 		FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
 
+		// reset on auto map button, otherwise flipping left to right won't set this up
+		OneHandMap.PreBaseRotation = FRotator::ZeroRotator;
 		AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget, AutoMapSuccess, FailedBones);
 	}
 	// Two hand mapping
