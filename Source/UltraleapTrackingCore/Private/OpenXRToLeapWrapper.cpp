@@ -15,6 +15,11 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 
 	CurrentDeviceInfo = &DummyDeviceInfo;
 	DummyDeviceInfo = {0};
+	DummyDeviceInfo.size = sizeof(LEAP_DEVICE_INFO);
+	DummyDeviceInfo.serial = "OpenXRDummyDevice";
+	DummyDeviceInfo.serial_length = strlen(DummyDeviceInfo.serial) + 1;
+
+
 	DummyLeapHands[0] = {0};
 	DummyLeapHands[1] = {0};
 	
