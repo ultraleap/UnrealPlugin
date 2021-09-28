@@ -9,6 +9,7 @@
 #include "HeadMountedDisplayTypes.h"
 #include "LeapUtility.h"
 #include "Kismet/GameplayStatics.h"
+#include "LeapBlueprintFunctionLibrary.h"
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
 {
@@ -86,9 +87,11 @@ LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR)
 	FQuat PreRot(FromOpenXR);
 
 	//PreRot *= FQuat(FRotator(-90.f, 0.f, -180.f));
-	Ret.x = -PreRot.Y;
-	Ret.y = PreRot.X;
-	Ret.z = PreRot.Z;
+
+	PreRot *= FQuat(ULeapBlueprintFunctionLibrary::DebugRotator);
+	Ret.x = -PreRot.Z;
+	Ret.y = PreRot.Y;
+	Ret.z = PreRot.X;
 	Ret.w = PreRot.W;
 	
 	return Ret;
@@ -244,6 +247,8 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 
 				break;
 			default:
+				UE_LOG(UltraleapTrackingLog, Log,
+					TEXT("FOpenXRToLeapWrapper::ConvertToLeapSpace() - Unknown keypoint found in OpenXR data"));
 				break;
 		}
 		KeyPoint++;
@@ -276,6 +281,8 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	TArray<float> OutRadii[2];
 
 	// status only true when the hand is being tracked/visible to the tracking device
+	// these are in world space
+	// 
 	// IMPORTANT: OpenXR tracking only works in VR mode, this will always return false in desktop mode
 	bool StatusLeft = HandTracker->GetAllKeypointStates(EControllerHand::Left, OutPositions[0], OutRotations[0], OutRadii[0]);
 	bool StatusRight = HandTracker->GetAllKeypointStates(EControllerHand::Right, OutPositions[1], OutRotations[1], OutRadii[1]);

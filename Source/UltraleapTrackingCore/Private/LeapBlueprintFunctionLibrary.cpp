@@ -6,6 +6,8 @@
 
 #include "IUltraleapTrackingPlugin.h"
 
+
+FRotator ULeapBlueprintFunctionLibrary::DebugRotator;
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer) : Super(Initializer)
 {
 }
@@ -54,4 +56,8 @@ FString ULeapBlueprintFunctionLibrary::GetAppVersion()
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 {
 	IUltraleapTrackingPlugin::Get().ShutdownLeap();
+}
+void ULeapBlueprintFunctionLibrary::SetDebugRotation(const FRotator& Rotator)
+{
+	DebugRotator = Rotator;
 }
