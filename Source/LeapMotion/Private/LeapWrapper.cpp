@@ -509,7 +509,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 	LEAP_CONNECTION_MESSAGE Msg;
 	LEAP_CONNECTION Handle = ConnectionHandle; //copy handle so it doesn't get released from under us on game thread
 
-	unsigned int Timeout = 1000;
+	unsigned int Timeout = 200;
 	while (bIsRunning)
 	{
 		Result = LeapPollConnection(Handle, Timeout, &Msg);
@@ -525,7 +525,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 			//UE_LOG(LeapMotionLog, Log, TEXT("LeapC PollConnection unsuccessful result %s.\n"), UTF8_TO_TCHAR(ResultString(result)));
 			if (!bIsConnected)
 			{
-				FPlatformProcess::Sleep(5.f);
+				FPlatformProcess::Sleep(0.1f);
 				continue;
 			}
 			else
