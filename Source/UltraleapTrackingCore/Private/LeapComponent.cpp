@@ -35,7 +35,10 @@ void ULeapComponent::InitializeComponent()
 	// Attach delegate references
 	IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
 }
-
+void ULeapComponent::SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)	
+{
+	IUltraleapTrackingPlugin::Get().SetSwizzles(ToX, ToY, ToZ, ToW);
+}
 void ULeapComponent::UninitializeComponent()
 {
 	// remove ourselves from the delegates

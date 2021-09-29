@@ -70,11 +70,17 @@ LEAP_VECTOR ConvertPositionToLeap(const FVector& FromOpenXR)
 	
 	return Ret;
 }
-LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR)
+
+
+int Sign(const ELeapQuatSwizzleAxisB& QuatSwizzleAxis)
+{
+	return (QuatSwizzleAxis > ELeapQuatSwizzleAxisB::W) ? -1 : 1;
+}
+LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
 	LEAP_QUATERNION Ret = {0};
 		
-	// we want inverse of this
+	// we want the inverse of this
 	/*
 	Quat.X = -Quaternion.y;
 	Quat.Y = Quaternion.x;
@@ -84,19 +90,40 @@ LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR)
 	* FQuat(FRotator(90.f, 0.f, 180.f));
 	*/
 
-	FQuat PreRot(FromOpenXR);
+	/* FQuat PreRot(FromOpenXR);
 
 	//PreRot *= FQuat(FRotator(-90.f, 0.f, -180.f));
 
 	PreRot *= FQuat(ULeapBlueprintFunctionLibrary::DebugRotator);
-	Ret.x = -PreRot.Z;
-	Ret.y = PreRot.Y;
-	Ret.z = PreRot.X;
+	Ret.x = PreRot.X;
+	Ret.y = -PreRot.Y;
+	Ret.z = PreRot.Z;
 	Ret.w = PreRot.W;
+	*/
+	// based on OpenXR LiveLink;
+
+	FQuat NewRot;
+	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
 	
+	
+	
+
+	Ret.x = Sign(SwizzleX) * OldRotVector[StaticCast<uint8>(SwizzleX) % 4];
+	Ret.y = Sign(SwizzleY) * OldRotVector[StaticCast<uint8>(SwizzleY) % 4];
+	Ret.z = Sign(SwizzleZ) * OldRotVector[StaticCast<uint8>(SwizzleZ) % 4];
+	Ret.w = Sign(SwizzleW) * OldRotVector[StaticCast<uint8>(SwizzleW) % 4];
+
 	return Ret;
 }
-// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
+void LogRotation(const FString& Text, const FRotator& Rotation)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%s %f %f %f"), *Text, Rotation.Yaw, Rotation.Pitch,Rotation.Roll));
+	}
+}
+	// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
 void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
 {
 	

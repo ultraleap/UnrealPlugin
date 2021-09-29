@@ -63,7 +63,7 @@ public:
 	void ShutdownLeap();
 	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
 	void LatestFrame(FLeapFrameData& OutFrame);
-
+	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 	void SetTrackingMode(ELeapMode Flag);

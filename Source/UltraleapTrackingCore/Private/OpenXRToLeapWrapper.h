@@ -28,7 +28,14 @@ public:
 		return GetDummyLeapTime();
 	}
 	virtual void SetWorld(UWorld* World) override;
-	
+
+	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
+	{
+		SwizzleX = ToX;
+		SwizzleY = ToY;
+		SwizzleZ = ToZ;
+		SwizzleW = ToW;
+	}
 
 private:
 	class IHandTracker* HandTracker;
@@ -37,6 +44,12 @@ private:
 	LEAP_HAND DummyLeapHands[2];
 	LEAP_DEVICE_INFO DummyDeviceInfo;
 
+	LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR);
 	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions, const TArray<FQuat>& Rotations);
 	int64_t GetDummyLeapTime();
+
+	ELeapQuatSwizzleAxisB SwizzleX = ELeapQuatSwizzleAxisB::MinusY;
+	ELeapQuatSwizzleAxisB SwizzleY = ELeapQuatSwizzleAxisB::MinusZ;
+	ELeapQuatSwizzleAxisB SwizzleZ = ELeapQuatSwizzleAxisB::X;
+	ELeapQuatSwizzleAxisB SwizzleW = ELeapQuatSwizzleAxisB::W;
 };

@@ -138,6 +138,14 @@ void FUltraleapTrackingPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 		LeapInputDevice->SetLeapPolicy(Flag, Enable);
 	}
 }
+void FUltraleapTrackingPlugin::SetSwizzles(
+	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
+{
+	if (bActive)
+	{
+		LeapInputDevice->SetSwizzles(ToX, ToY, ToZ, ToW);
+	}
+}
 void FUltraleapTrackingPlugin::GetAttachedDevices(TArray<FString>& Devices)
 {
 	if (bActive)

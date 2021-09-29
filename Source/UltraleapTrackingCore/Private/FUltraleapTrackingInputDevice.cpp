@@ -955,7 +955,11 @@ void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame)
 {
 	OutFrame = CurrentFrame;
 }
-
+void FUltraleapTrackingInputDevice::SetSwizzles(
+	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
+{
+	Leap->SetSwizzles(ToX, ToY, ToZ, ToW);
+}
 // Policies
 void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {

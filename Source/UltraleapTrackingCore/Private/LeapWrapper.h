@@ -23,6 +23,18 @@ public:
 	virtual void OnConfigChange(const uint32_t RequestID, const bool Success){};
 	virtual void OnConfigResponse(const uint32_t RequestID, LEAP_VARIANT Value){};
 };
+UENUM()
+enum class ELeapQuatSwizzleAxisB : uint8
+{
+	X UMETA(DisplayName = "X"),
+	Y UMETA(DisplayName = "Y"),
+	Z UMETA(DisplayName = "Z"),
+	W UMETA(DisplayName = "W"),
+	MinusX UMETA(DisplayName = "-X"),
+	MinusY UMETA(DisplayName = "-Y"),
+	MinusZ UMETA(DisplayName = "-Z"),
+	MinusW UMETA(DisplayName = "-W")
+};
 
 class IHandTrackingWrapper
 {
@@ -55,6 +67,9 @@ public:
 	virtual void SetWorld(UWorld* World) = 0;
 
 	virtual int64_t GetNow() = 0;
+
+	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY,ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
+
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -121,6 +136,10 @@ public:
 		CurrentWorld = World;
 	}
 
+	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
+	{
+
+	}
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
