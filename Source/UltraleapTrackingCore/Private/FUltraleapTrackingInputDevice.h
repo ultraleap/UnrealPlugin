@@ -166,11 +166,8 @@ private:
 	// v5 Tracking mode API
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
-	IHandTrackingWrapper* Leap;
-	FLeapWrapper LeapWrapper;
-	// Test code
-	FOpenXRToLeapWrapper TestOpenXR;
-
+	TSharedPtr<IHandTrackingWrapper> Leap;
+	
 	// LeapWrapper Callbacks
 	virtual void OnConnect() override;
 	virtual void OnConnectionLost() override;

@@ -328,13 +328,9 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
-#if START_IN_OPEN_XR_MODE
-	Leap = &TestOpenXR;
-	Options.bUseOpenXRAsSource = true;
-#else
-	Leap = &LeapWrapper;
-#endif
-	Leap->OpenConnection(this);	  // pass in the this as callback delegate
+
+	SwitchTrackingSource(START_IN_OPEN_XR_MODE);
+	Options.bUseOpenXRAsSource = START_IN_OPEN_XR_MODE;
 	
 	// Attach to bodystate
 	Config.DeviceName = "Leap Motion";
@@ -1174,14 +1170,14 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 	{
 		Leap->CloseConnection();
 	}
-	// TODO: class factory it/dynamic allocation
+
 	if (UseOpenXRAsSource)
 	{
-		Leap = &TestOpenXR;
+		Leap = TSharedPtr<IHandTrackingWrapper>(new FOpenXRToLeapWrapper);
 	}
 	else
 	{
-		Leap = &LeapWrapper;
+		Leap = TSharedPtr<IHandTrackingWrapper>(new FLeapWrapper);
 	}
 	Leap->OpenConnection(this);
 }
