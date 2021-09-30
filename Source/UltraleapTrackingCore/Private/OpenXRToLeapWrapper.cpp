@@ -100,7 +100,7 @@ void LogRotation(const FString& Text, const FRotator& Rotation)
 			-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%s %f %f %f"), *Text, Rotation.Yaw, Rotation.Pitch,Rotation.Roll));
 	}
 }
-	// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
+// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
 void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
 {
 	

@@ -39,6 +39,9 @@ enum class ELeapQuatSwizzleAxisB : uint8
 class IHandTrackingWrapper
 {
 public:
+	virtual ~IHandTrackingWrapper()
+	{
+	}
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
 	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 
