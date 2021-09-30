@@ -79,29 +79,6 @@ int Sign(const ELeapQuatSwizzleAxisB& QuatSwizzleAxis)
 LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
 	LEAP_QUATERNION Ret = {0};
-		
-	// we want the inverse of this
-	/*
-	Quat.X = -Quaternion.y;
-	Quat.Y = Quaternion.x;
-	Quat.Z = Quaternion.z;
-	Quat.W = Quaternion.w;
-
-	* FQuat(FRotator(90.f, 0.f, 180.f));
-	*/
-
-	/* FQuat PreRot(FromOpenXR);
-
-	//PreRot *= FQuat(FRotator(-90.f, 0.f, -180.f));
-
-	PreRot *= FQuat(ULeapBlueprintFunctionLibrary::DebugRotator);
-	Ret.x = PreRot.X;
-	Ret.y = -PreRot.Y;
-	Ret.z = PreRot.Z;
-	Ret.w = PreRot.W;
-	*/
-	// based on OpenXR LiveLink;
-
 	FQuat NewRot;
 	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
 	
@@ -364,4 +341,19 @@ void FOpenXRToLeapWrapper::SetWorld(UWorld* World)
 			DummyLeapFrame.framerate = 1.0f / WorldDelta;
 		}
 	}*/
+}
+
+void FOpenXRToLeapWrapper::CloseConnection()
+{
+	if (!bIsConnected)
+	{
+		// Not connected, already done
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("FOpenXRToLeapWrapper Attempt at closing an already closed connection."));
+		return;
+	}
+	bIsConnected = false;
+	// Nullify the callback delegate. Any outstanding task graphs will not run if the delegate is nullified.
+	CallbackDelegate = nullptr;
+
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("FOpenXRToLeapWrapper Connection successfully closed."));
 }

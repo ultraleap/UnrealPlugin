@@ -120,6 +120,8 @@ void FUltraleapTrackingInputDevice::OnConnect()
 			// HMD is disabled on load, default to desktop
 			DefaultOptions.Mode = ELeapMode::LEAP_MODE_DESKTOP;
 		}
+		// carry across tracking source
+		DefaultOptions.bUseOpenXRAsSource = Options.bUseOpenXRAsSource;
 
 		SetOptions(DefaultOptions);
 
@@ -311,9 +313,9 @@ void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const
 #pragma region Leap Input Device
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
-#define OPEN_XR_MODE 1
+#define START_IN_OPEN_XR_MODE 1
 FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
-	: MessageHandler(InMessageHandler)
+	: MessageHandler(InMessageHandler), Leap(nullptr)
 {
 	// Link callbacks
 
@@ -326,13 +328,14 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
-#if OPEN_XR_MODE
+#if START_IN_OPEN_XR_MODE
 	Leap = &TestOpenXR;
+	Options.bUseOpenXRAsSource = true;
 #else
 	Leap = &LeapWrapper;
 #endif
 	Leap->OpenConnection(this);	  // pass in the this as callback delegate
-
+	
 	// Attach to bodystate
 	Config.DeviceName = "Leap Motion";
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
@@ -1165,7 +1168,23 @@ void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, 
 }
 
 #pragma endregion BodyState
-
+void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
+{
+	if (Leap != nullptr)
+	{
+		Leap->CloseConnection();
+	}
+	// TODO: class factory it/dynamic allocation
+	if (UseOpenXRAsSource)
+	{
+		Leap = &TestOpenXR;
+	}
+	else
+	{
+		Leap = &LeapWrapper;
+	}
+	Leap->OpenConnection(this);
+}
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 {
 	if (GEngine && GEngine->XRSystem.IsValid())
@@ -1173,9 +1192,15 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		HMDType = GEngine->XRSystem->GetSystemName();
 	}
 
-
+	// Did we change the data source
+	if (Options.bUseOpenXRAsSource != InOptions.bUseOpenXRAsSource)
+	{
+		SwitchTrackingSource(InOptions.bUseOpenXRAsSource);
+		// set this here as set options is re-called on connect
+		Options.bUseOpenXRAsSource = InOptions.bUseOpenXRAsSource;
+	}
 	// Did we change the mode?
-	if (Options.Mode != InOptions.Mode && !OPEN_XR_MODE)
+	if (Options.Mode != InOptions.Mode)
 	{
 		if (bUseNewTrackingModeAPI)
 		{
@@ -1191,9 +1216,7 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 
 	// Set main options
 	Options = InOptions;
-#if OPEN_XR_MODE
-	Options.bUseOpenXRAsSource = true;
-#endif
+
 	// Cache device type
 	FString DeviceType = Stats.DeviceInfo.PID;
 

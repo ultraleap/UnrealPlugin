@@ -20,6 +20,7 @@ public:
 
 	// FLeapWrapperBase overrides (base stubs out old leap calls)
 	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) override;
+	virtual void CloseConnection() override;
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override;
 	virtual LEAP_TRACKING_EVENT* GetFrame() override;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override;
