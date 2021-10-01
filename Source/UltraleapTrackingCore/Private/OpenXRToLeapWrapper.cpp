@@ -142,29 +142,35 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				LeapHand.arm.width = 10;
 				break;
 				// Thumb ////////////////////////////////////////////////////
+				/** From the leap data header
+				 * 
+				 * For thumbs, this bone is set to have zero length and width, an identity basis matrix,
+				 * and its joint positions are equal.
+				 * Note that this is anatomically incorrect; in anatomical terms, the intermediate phalange
+				 * is absent in a real thumb, rather than the metacarpal bone. In the Leap Motion model,
+				 * however, we use a "zero" metacarpal bone instead for ease of programming.
+				 * @since 3.0.0
+				 */
 			case EHandKeypoint::ThumbMetacarpal:
-				LeapHand.thumb.metacarpal.prev_joint = ConvertPositionToLeap(Position);
-				LeapHand.thumb.metacarpal.rotation = ConvertOrientationToLeap(Rotation);
+			//	LeapHand.thumb.metacarpal.next_joint = ConvertPositionToLeap(Position);
+			//	LeapHand.thumb.metacarpal.prev_joint
+
+				LeapHand.thumb.metacarpal.prev_joint = LeapHand.thumb.proximal.prev_joint = ConvertPositionToLeap(Position);
+				LeapHand.thumb.metacarpal.rotation = LeapHand.thumb.proximal.rotation = ConvertOrientationToLeap(Rotation);
 
 				break;
 			case EHandKeypoint::ThumbProximal:
-				LeapHand.thumb.proximal.prev_joint = LeapHand.thumb.metacarpal.next_joint = ConvertPositionToLeap(Position);
-				LeapHand.thumb.proximal.rotation = ConvertOrientationToLeap(Rotation);
+				LeapHand.thumb.intermediate.prev_joint = LeapHand.thumb.metacarpal.next_joint = LeapHand.thumb.proximal.next_joint =
+					ConvertPositionToLeap(Position);
+				LeapHand.thumb.intermediate.rotation = ConvertOrientationToLeap(Rotation);
 				break;
 			case EHandKeypoint::ThumbDistal:
-
-				LeapHand.thumb.distal.prev_joint = LeapHand.thumb.proximal.next_joint = ConvertPositionToLeap(Position);
-				
-				// no thumb intermediate in OpenXR, duplicate distal?
-				///LeapHand.thumb.intermediate.prev_joint = LeapHand.thumb.intermediate.next_joint = ConvertPositionToLeap(Position);
-				//LeapHand.thumb.intermediate.rotation = ConvertOrientationToLeap(Rotation);
+				LeapHand.thumb.distal.prev_joint = LeapHand.thumb.intermediate.next_joint = ConvertPositionToLeap(Position);
 				LeapHand.thumb.distal.rotation = ConvertOrientationToLeap(Rotation);
-
-				LeapHand.thumb.intermediate = LeapHand.thumb.distal;
 				break;
 			case EHandKeypoint::ThumbTip:
 				// tip is next of distal?
-				LeapHand.thumb.intermediate.next_joint = LeapHand.thumb.distal.next_joint = ConvertPositionToLeap(Position);	
+				LeapHand.thumb.distal.next_joint = ConvertPositionToLeap(Position);	
 				break;
 
 			// Index ////////////////////////////////////////////////////
