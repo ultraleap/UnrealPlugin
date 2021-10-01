@@ -6,6 +6,16 @@
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
 #include "Runtime/Engine/Public/Animation/AnimInstanceProxy.h"
 #include "Skeleton/BodyStateArm.h"
+
+
+void LogRotation(const FString& Text, const FRotator& Rotation)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%s %f %f %f"), *Text, Rotation.Yaw, Rotation.Pitch, Rotation.Roll));
+	}
+}
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones() : FAnimNode_SkeletalControlBase()
 {
 	WorldIsGame = false;
@@ -161,15 +171,22 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	{
 		CacheArmOrWrist(CachedBone, &ArmCachedBone, &WristCachedBone);
 	}
+	int LoopCount = 0;
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
+		LoopCount++;
 		if (CachedBone.MeshBone.BoneIndex == -1)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(),
 				CachedBone.MeshBone.BoneIndex);
 			continue;
 		}
-
+		/* if (LoopCount == 1)
+		{
+			LogRotation(FString::Printf(TEXT("%s rot "), *CachedBone.BSBone->Name),
+				CachedBone.BSBone->BoneData.Transform.GetRotation().Rotator());
+		}*/
+		
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 

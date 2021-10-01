@@ -79,7 +79,7 @@ int Sign(const ELeapQuatSwizzleAxisB& QuatSwizzleAxis)
 LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
 	LEAP_QUATERNION Ret = {0};
-	FQuat NewRot;
+	
 	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
 	
 	
@@ -90,8 +90,21 @@ LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& From
 	Ret.z = Sign(SwizzleZ) * OldRotVector[StaticCast<uint8>(SwizzleZ) % 4];
 	Ret.w = Sign(SwizzleW) * OldRotVector[StaticCast<uint8>(SwizzleW) % 4];
 
+	//+ inverse out leapration offset FQuat(FRotator(90.f, 0.f, 180.f));
 	return Ret;
 }
+LEAP_VECTOR ConvertFVectorToLeapVector(const FVector& UEVector)
+{
+	LEAP_VECTOR Ret;
+	// inverse of  FVector(LeapVector.y, -LeapVector.x, -LeapVector.z);
+
+	Ret.x = -UEVector.Y;
+	Ret.y = UEVector.X;
+	Ret.z = -UEVector.Z;
+
+	return Ret;
+}
+
 void LogRotation(const FString& Text, const FRotator& Rotation)
 {
 	if (GEngine)
@@ -104,7 +117,7 @@ void LogRotation(const FString& Text, const FRotator& Rotation)
 void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
 {
 	
-	// Enums for each bone are 
+	// Enums for each bone are in EHandKeypoint
 	uint8 KeyPoint = 0;
 	for (auto Position : Positions)
 	{
@@ -115,8 +128,11 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 		{
 			case EHandKeypoint::Palm:
 				// wrist orientation comes from palm orientation in bodystate
-				LeapHand.palm.orientation = ConvertOrientationToLeap(Rotation);
-				LeapHand.palm.position = ConvertPositionToLeap(Position);
+				// palm orientation is calculated from palm direction in LeapHandData
+				{
+					LeapHand.palm.orientation = ConvertOrientationToLeap(Rotation);
+					LeapHand.palm.position = ConvertPositionToLeap(Position);
+				}
 				break;
 			case EHandKeypoint::Wrist:
 				// wrist comes from arm next joint in bodystate
@@ -140,13 +156,15 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				LeapHand.thumb.distal.prev_joint = LeapHand.thumb.proximal.next_joint = ConvertPositionToLeap(Position);
 				
 				// no thumb intermediate in OpenXR, duplicate distal?
-				LeapHand.thumb.intermediate.prev_joint = LeapHand.thumb.intermediate.next_joint = ConvertPositionToLeap(Position);
-				
+				///LeapHand.thumb.intermediate.prev_joint = LeapHand.thumb.intermediate.next_joint = ConvertPositionToLeap(Position);
+				//LeapHand.thumb.intermediate.rotation = ConvertOrientationToLeap(Rotation);
 				LeapHand.thumb.distal.rotation = ConvertOrientationToLeap(Rotation);
+
+				LeapHand.thumb.intermediate = LeapHand.thumb.distal;
 				break;
 			case EHandKeypoint::ThumbTip:
 				// tip is next of distal?
-				LeapHand.thumb.distal.next_joint = ConvertPositionToLeap(Position);	
+				LeapHand.thumb.intermediate.next_joint = LeapHand.thumb.distal.next_joint = ConvertPositionToLeap(Position);	
 				break;
 
 			// Index ////////////////////////////////////////////////////

@@ -295,8 +295,8 @@ void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)
 	Direction = FLeapUtility::ConvertLeapVectorToFVector(palm->direction);
 
 	Normal = FLeapUtility::ConvertLeapVectorToFVector(palm->normal);
-
-	Orientation = FRotationMatrix::MakeFromXZ(Direction, -Normal).Rotator();	// normal*-1.f
+	
+	Orientation = FLeapUtility::ConvertLeapQuatToFQuat(palm->orientation).Rotator();
 
 	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->position);
 

@@ -402,34 +402,38 @@ void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 	{
 		return;
 	}
-
-	TimeWarpTimeStamp = Frame->info.timestamp;
-	int64 LeapTimeNow = 0;
 	if (!Options.bUseOpenXRAsSource)
 	{
+		TimeWarpTimeStamp = Frame->info.timestamp;
+		int64 LeapTimeNow = 0;
 		LeapTimeNow = Leap->GetNow();
 		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
-	}
-	
-	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
-	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
-	// interpolation not supported in OpenXR
-	if (Options.bUseInterpolation && !Options.bUseOpenXRAsSource)
-	{
-		// Let's interpolate the frame using leap function
+		HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
+		FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
-		// Get the future interpolated finger frame
-		Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
-		CurrentFrame.SetFromLeapFrame(Frame);
+		// interpolation not supported in OpenXR
+		if (Options.bUseInterpolation)
+		{
+			// Let's interpolate the frame using leap function
 
-		// Get the future interpolated hand frame, farther than fingers to provide
-		// lower latency
-		Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
-		CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+			// Get the future interpolated finger frame
+			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
+			CurrentFrame.SetFromLeapFrame(Frame);
 
-		// Track our extrapolation time in stats
-		Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
+			// Get the future interpolated hand frame, farther than fingers to provide
+			// lower latency
+			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+
+			// Track our extrapolation time in stats
+			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
+		}
+		else
+		{
+			CurrentFrame.SetFromLeapFrame(Frame);
+			Stats.FrameExtrapolationInMS = 0;
+		}
 	}
 	else
 	{
