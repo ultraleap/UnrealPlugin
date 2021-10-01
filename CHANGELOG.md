@@ -10,6 +10,9 @@ Versions
 	* New premapped example hand models - skeleton arms, ghost hands, UE Mannequin and outline hands, with example scenes.
 	* Streamlined auto rigging so no nodes are needed in the anim instance's event graph. 
 
+Known issues:
+	* Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
+
 ### Version 3.7.1
 
 * Adds Support for new "ScreenTop" Tracking Mode: Compatible with 4.9+ Services. This is a feature preview only.
