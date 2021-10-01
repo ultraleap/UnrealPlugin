@@ -39,7 +39,8 @@ public:
 	}
 
 private:
-	class IHandTracker* HandTracker;
+	class IXRTrackingSystem* XRTrackingSystem = nullptr;
+	class IHandTracker* HandTracker = nullptr;
 	void InitOpenXRHandTrackingModule();
 	LEAP_TRACKING_EVENT DummyLeapFrame;
 	LEAP_HAND DummyLeapHands[2];

@@ -11,7 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "LeapBlueprintFunctionLibrary.h"
 
-FOpenXRToLeapWrapper::FOpenXRToLeapWrapper() : HandTracker(nullptr)
+FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
 
 	CurrentDeviceInfo = &DummyDeviceInfo;
@@ -51,6 +51,25 @@ LEAP_CONNECTION* FOpenXRToLeapWrapper::OpenConnection(LeapWrapperCallbackInterfa
 
 void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 {
+	static FName SystemName(TEXT("OpenXR"));
+
+	if (!GEngine)
+	{
+		UE_LOG(UltraleapTrackingLog, Log,
+			TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
+	
+		return;
+	}
+	if (GEngine->XRSystem.IsValid() && (GEngine->XRSystem->GetSystemName() == SystemName))
+	{
+		XRTrackingSystem = GEngine->XRSystem.Get();
+	}
+	if (XRTrackingSystem == nullptr)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found"));
+		return;
+	}
+
 	IModuleInterface* ModuleInterface = FModuleManager::Get().LoadModule("OpenXRHandTracking");
 	IModularFeatures& ModularFeatures = IModularFeatures::Get();
 	if (ModularFeatures.IsModularFeatureAvailable(IHandTracker::GetModularFeatureName()))
@@ -63,6 +82,12 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 			CallbackDelegate->OnDeviceFound(&DummyDeviceInfo);
 		}
 	}
+	else
+	{
+		UE_LOG(
+			UltraleapTrackingLog, Log, TEXT(" FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - OpenXRHandTracking module not found, is the OpenXRHandTracking plugin enabled?"));
+	}
+	
 }
 LEAP_VECTOR ConvertPositionToLeap(const FVector& FromOpenXR)
 {
@@ -116,12 +141,20 @@ void LogRotation(const FString& Text, const FRotator& Rotation)
 // FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
 void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
 {
-	
+	if (!XRTrackingSystem)
+	{
+		return;
+	}
 	// Enums for each bone are in EHandKeypoint
 	uint8 KeyPoint = 0;
 	for (auto Position : Positions)
 	{
 		auto Rotation = Rotations[KeyPoint];
+
+		const FTransform& TrackingToWorldTransform = XRTrackingSystem->GetTrackingToWorldTransform();
+		Position = TrackingToWorldTransform.InverseTransformPosition(Position);
+		Rotation = TrackingToWorldTransform.InverseTransformRotation(Rotation);
+
 
 		EHandKeypoint eKeyPoint = (EHandKeypoint) KeyPoint;
 		switch (eKeyPoint)
