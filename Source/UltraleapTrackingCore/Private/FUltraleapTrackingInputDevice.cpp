@@ -1217,6 +1217,11 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	// Set main options
 	Options = InOptions;
 
+	// HMD offset not allowed in OpenXR (already corrected)
+	if (Options.bUseOpenXRAsSource)
+	{
+		Options.HMDPositionOffset = FVector(0, 0, 0);
+	}
 	// Cache device type
 	FString DeviceType = Stats.DeviceInfo.PID;
 
