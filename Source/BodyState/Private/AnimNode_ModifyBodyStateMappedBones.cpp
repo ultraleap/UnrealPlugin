@@ -8,14 +8,7 @@
 #include "Skeleton/BodyStateArm.h"
 
 
-void LogRotation(const FString& Text, const FRotator& Rotation)
-{
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%s %f %f %f"), *Text, Rotation.Yaw, Rotation.Pitch, Rotation.Roll));
-	}
-}
+
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones() : FAnimNode_SkeletalControlBase()
 {
 	WorldIsGame = false;
@@ -183,7 +176,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		}
 		/* if (LoopCount == 1)
 		{
-			LogRotation(FString::Printf(TEXT("%s rot "), *CachedBone.BSBone->Name),
+			FLeapUtility::LogRotation(FString::Printf(TEXT("%s rot "), *CachedBone.BSBone->Name),
 				CachedBone.BSBone->BoneData.Transform.GetRotation().Rotator());
 		}*/
 		

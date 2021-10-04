@@ -107,6 +107,7 @@ LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& From
 	
 	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
 	
+
 	
 	
 
@@ -130,14 +131,6 @@ LEAP_VECTOR ConvertFVectorToLeapVector(const FVector& UEVector)
 	return Ret;
 }
 
-void LogRotation(const FString& Text, const FRotator& Rotation)
-{
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%s %f %f %f"), *Text, Rotation.Yaw, Rotation.Pitch,Rotation.Roll));
-	}
-}
 // FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
 void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
 {

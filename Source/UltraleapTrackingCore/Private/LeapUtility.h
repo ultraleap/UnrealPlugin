@@ -11,6 +11,7 @@ class FLeapUtility
 {
 public:
 	// Rotation
+	static void LogRotation(const FString& Text, const FRotator& Rotation);
 	static FRotator CombineRotators(FRotator A, FRotator B);
 
 	static void SetLeapGlobalOffsets(const FVector& TranslationOffset, const FRotator& RotationOffset);

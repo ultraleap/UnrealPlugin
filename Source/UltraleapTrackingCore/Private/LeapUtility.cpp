@@ -20,6 +20,7 @@ FQuat FLeapUtility::LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
 FQuat FLeapUtility::FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
 FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 
+
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
 {
@@ -29,7 +30,14 @@ float LeapGetWorldScaleFactor()
 	}
 	return 1.f;
 }
-
+void FLeapUtility::LogRotation(const FString& Text, const FRotator& Rotation)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%s %f %f %f"), *Text, Rotation.Yaw, Rotation.Pitch, Rotation.Roll));
+	}
+}
 FRotator FLeapUtility::CombineRotators(FRotator A, FRotator B)
 {
 	FQuat AQuat = FQuat(A);
