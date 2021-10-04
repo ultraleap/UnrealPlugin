@@ -144,10 +144,19 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 	{
 		auto Rotation = Rotations[KeyPoint];
 
+		// Take out the player transform, this isn't valid as we want Leap Space which knows nothing about
+		// the player world position
 		const FTransform& TrackingToWorldTransform = XRTrackingSystem->GetTrackingToWorldTransform();
 		Position = TrackingToWorldTransform.InverseTransformPosition(Position);
 		Rotation = TrackingToWorldTransform.InverseTransformRotation(Rotation);
 
+		// additional rotate all to get into Leap rotation space
+		// see FLeapUtility::LeapRotationOffset()
+		FTransform RotateToLeap;
+		RotateToLeap.SetRotation(FRotator(90, 0, 180).Quaternion());
+
+		Position = RotateToLeap.TransformPosition(Position);
+		Rotation = RotateToLeap.TransformRotation(Rotation);
 
 		EHandKeypoint eKeyPoint = (EHandKeypoint) KeyPoint;
 		switch (eKeyPoint)
