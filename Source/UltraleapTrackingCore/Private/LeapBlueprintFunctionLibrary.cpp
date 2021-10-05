@@ -3,7 +3,7 @@
 #pragma once
 
 #include "LeapBlueprintFunctionLibrary.h"
-
+#include "Misc/ConfigCacheIni.h"
 #include "IUltraleapTrackingPlugin.h"
 
 
@@ -48,8 +48,10 @@ void ULeapBlueprintFunctionLibrary::GetAttachedLeapDevices(TArray<FString>& Devi
 FString ULeapBlueprintFunctionLibrary::GetAppVersion()
 {
 	FString AppVersion;
-	GConfig->GetString(TEXT("/Script/EngineSettings.GeneralProjectSettings"), TEXT("ProjectVersion"), AppVersion, GGameIni);
-
+	if (GConfig)
+	{
+		GConfig->GetString(TEXT("/Script/EngineSettings.GeneralProjectSettings"), TEXT("ProjectVersion"), AppVersion, GGameIni);
+	}
 	return AppVersion;
 }
 // Debug Functions

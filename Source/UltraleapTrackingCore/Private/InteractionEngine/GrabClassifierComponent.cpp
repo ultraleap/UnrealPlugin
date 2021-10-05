@@ -1,7 +1,7 @@
 //
 
 #include "InteractionEngine/GrabClassifierComponent.h"
-
+#include "Components/PrimitiveComponent.h"
 // Sets default values for this component's properties
 UIEGrabClassifierComponent::UIEGrabClassifierComponent()
 {
