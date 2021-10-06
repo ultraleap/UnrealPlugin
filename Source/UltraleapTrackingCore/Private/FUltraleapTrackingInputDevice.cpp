@@ -123,6 +123,8 @@ void FUltraleapTrackingInputDevice::OnConnect()
 		}
 		// carry across tracking source
 		DefaultOptions.bUseOpenXRAsSource = Options.bUseOpenXRAsSource;
+		DefaultOptions.HMDPositionOffset = Options.HMDPositionOffset;
+		DefaultOptions.HMDRotationOffset = Options.HMDRotationOffset;
 
 		SetOptions(DefaultOptions);
 
@@ -1230,6 +1232,7 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	if (Options.bUseOpenXRAsSource)
 	{
 		Options.HMDPositionOffset = FVector(0, 0, 0);
+		Options.HMDRotationOffset = FRotator(0, 0, 0);
 	}
 	// Cache device type
 	FString DeviceType = Stats.DeviceInfo.PID;

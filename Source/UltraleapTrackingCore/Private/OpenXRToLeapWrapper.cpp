@@ -416,3 +416,11 @@ void FOpenXRToLeapWrapper::CloseConnection()
 
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("FOpenXRToLeapWrapper Connection successfully closed."));
 }
+void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
+{
+	// needed to make sure delegates in BP get called back on mode change
+	if (CallbackDelegate)
+	{
+		CallbackDelegate->OnTrackingMode(TrackingMode);
+	}
+}

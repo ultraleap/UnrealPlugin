@@ -37,6 +37,7 @@ public:
 		SwizzleZ = ToZ;
 		SwizzleW = ToW;
 	}
+	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
 
 private:
 	class IXRTrackingSystem* XRTrackingSystem = nullptr;
