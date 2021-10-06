@@ -106,27 +106,9 @@ void FUltraleapTrackingInputDevice::OnConnect()
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapService: OnConnect."));
 
 		IsWaitingForConnect = false;
-		// Default to hmd mode if one is plugged in
-		FLeapOptions DefaultOptions;
+		
 
-		Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-
-		// if we have a valid engine pointer and hmd update the device type
-		if (GEngine && GEngine->XRSystem.IsValid())
-		{
-			DefaultOptions.Mode = ELeapMode::LEAP_MODE_VR;
-		}
-		else
-		{
-			// HMD is disabled on load, default to desktop
-			DefaultOptions.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-		}
-		// carry across tracking source
-		DefaultOptions.bUseOpenXRAsSource = Options.bUseOpenXRAsSource;
-		DefaultOptions.HMDPositionOffset = Options.HMDPositionOffset;
-		DefaultOptions.HMDRotationOffset = Options.HMDRotationOffset;
-
-		SetOptions(DefaultOptions);
+		SetOptions(Options);
 
 		CallFunctionOnComponents([&](ULeapComponent* Component) { Component->OnLeapServiceConnected.Broadcast(); });
 	});
@@ -1206,6 +1188,7 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	// Did we change the data source
 	if (Options.bUseOpenXRAsSource != InOptions.bUseOpenXRAsSource)
 	{
+		Options = InOptions;
 		SwitchTrackingSource(InOptions.bUseOpenXRAsSource);
 		// set this here as set options is re-called on connect
 		Options.bUseOpenXRAsSource = InOptions.bUseOpenXRAsSource;
