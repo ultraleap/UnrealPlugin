@@ -195,4 +195,6 @@ private:
 	void SetBSHandFromLeapHand(class UBodyStateHand* Hand, const FLeapHandData& LeapHand);
 
 	void SwitchTrackingSource(const bool UseOpenXRAsSource);
+
+	bool IsWaitingForConnect = false;
 };

@@ -105,6 +105,7 @@ void FUltraleapTrackingInputDevice::OnConnect()
 	FLeapAsync::RunShortLambdaOnGameThread([&] {
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapService: OnConnect."));
 
+		IsWaitingForConnect = false;
 		// Default to hmd mode if one is plugged in
 		FLeapOptions DefaultOptions;
 
@@ -1170,6 +1171,10 @@ void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, 
 #pragma endregion BodyState
 void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 {
+	if (IsWaitingForConnect)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempeted whilst async connect in progress"));
+	}
 	if (Leap != nullptr)
 	{
 		Leap->CloseConnection();
@@ -1182,6 +1187,10 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 	else
 	{
 		Leap = TSharedPtr<IHandTrackingWrapper>(new FLeapWrapper);
+	}
+	if (!UseOpenXRAsSource)
+	{
+		IsWaitingForConnect = true;
 	}
 	Leap->OpenConnection(this);
 }

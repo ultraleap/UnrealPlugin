@@ -94,7 +94,6 @@ void FLeapWrapper::CloseConnection()
 	CallbackDelegate = nullptr;
 
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("Connection successfully closed."));
-	// CloseConnectionHandle(&connectionHandle);
 }
 void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 {
