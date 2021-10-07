@@ -127,6 +127,11 @@ public:
 	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes, const bool IgnoreTemporal,
 		const bool IsLeftHand, const float DeltaTime, const bool IsGrabbed);
 
+	// Force reset of the grab state, used when grab state in BP is forced on tracking lost
+	// without this, a spurious ungrab event from the grab classifier will occur on tracking found
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void ForceReset();
+
 private:
 	// notify if changed
 	void NotifyControllerGrabbing();

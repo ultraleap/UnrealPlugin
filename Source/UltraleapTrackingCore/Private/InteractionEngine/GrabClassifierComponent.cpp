@@ -1,6 +1,7 @@
 //
 
 #include "InteractionEngine/GrabClassifierComponent.h"
+
 #include "Components/PrimitiveComponent.h"
 // Sets default values for this component's properties
 UIEGrabClassifierComponent::UIEGrabClassifierComponent()
@@ -173,4 +174,8 @@ void UIEGrabClassifierComponent::NotifyControllerGrabbing()
 	{
 		OnIsGrabbingChanged.Broadcast(this, IsThisControllerGrabbing);
 	}
+}
+void UIEGrabClassifierComponent::ForceReset()
+{
+	PrevThisControllerGrabbing = IsThisControllerGrabbing = false;
 }
