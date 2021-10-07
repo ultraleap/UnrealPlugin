@@ -176,7 +176,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
-	FReferenceSkeleton& RefSkeleton = SkeletalMesh->RefSkeleton;
+	FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetRefSkeleton();
 
 	// Finger roots
 	int32 ThumbBone = InvalidBone;

@@ -88,7 +88,6 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"UltraleapTracking/Private",
 					IncludePath,
 					// ... add other private include paths required here ...
 				}

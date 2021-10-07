@@ -19,7 +19,7 @@ struct BODYSTATE_API FBodyStateDevice
 	FBodyStateDeviceConfig Config;
 
 	UPROPERTY()
-	class UBodyStateSkeleton* Skeleton;
+	class UBodyStateSkeleton* Skeleton = nullptr;
 
 	IBodyStateInputRawInterface* InputCallbackDelegate;
 };

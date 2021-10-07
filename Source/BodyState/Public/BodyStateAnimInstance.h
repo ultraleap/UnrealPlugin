@@ -61,7 +61,7 @@ struct FCachedBoneLink
 	FBoneReference MeshBone;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
-	UBodyStateBone* BSBone;
+	UBodyStateBone* BSBone = nullptr;
 };
 
 /** Required struct since 4.17 to expose hotlinked mesh bone references*/
