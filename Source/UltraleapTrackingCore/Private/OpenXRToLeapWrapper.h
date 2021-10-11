@@ -7,6 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "LeapWrapper.h"
+#include "SceneManagement.h"
 /**
  *
  */
@@ -30,7 +31,8 @@ public:
 	}
 	virtual void SetWorld(UWorld* World) override;
 
-	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
 	{
 		SwizzleX = ToX;
 		SwizzleY = ToY;
