@@ -3,7 +3,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: none
   ErrorActionPreference: stop
 
-  PROJECT_NAME: "ULTrackingPlugin"
+  PROJECT_NAME: "ULtraleapTracking"
   PROJECT_PATH: "$CI_PROJECT_DIR"  
   
   ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
@@ -34,7 +34,7 @@ build:build-project:
     
     - echo "$ENGINE_PATH"
     - echo "$PROJECT_PATH"
-    - echo "$PROJECT_PATH/$PROJECT_NAME.uproject"
+    - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - echo "$ENGINE_UAT_PATH"
     - echo "Working dir"
     - pwd
@@ -45,19 +45,22 @@ build:build-project:
     - echo "==============================================="
     
     # Piped to a log file, remove at the end of this line if you want to see the output during build
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/UltraleapTracking/UltraleapTracking.uplugin -Package=[PathToOutput]/UltraleapTracking/BuildOutput -CreateSubFolder" > ./$PROJECT_NAME.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -Rocket" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
     
     - echo "Unreal build complete."
   after_script:
-     # Get the project/app version from the ini file
-     # this holds the project version
-    - $UNREAL_GAME_INI_FILE = "$PROJECT_PATH/Config/DefaultGame.ini"
-    - $BUILD_LOCATION = "$PROJECT_PATH/Saved/StagedBuilds"
-    - $VERSION =  Get-Content $UNREAL_GAME_INI_FILE | Where-Object {$_ -like '*ProjectVersion=*'}
-    - $VERSIONTRUNC = $VERSION.Replace('ProjectVersion=','') 
+     # Get the project/app version from the uplugin file
+     # this holds the plugin version
+    - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
+    - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
+    - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
+    - $VERSIONTRUNC = $VERSION.Replace('VersionName','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace(''"','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace(':','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace(','','')
 
     - echo "$UNREAL_VERSION"
     - echo "$VERSIONTRUNC"
