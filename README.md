@@ -9,7 +9,7 @@ Ultraleap's latest Unreal Tracking Plugin is designed and tested with version 4.
 
 ## Documentation
 
-You can find out out to use the Unreal Plugin [here](Documentation.md)
+You can find out how to use the Unreal Plugin [here](Documentation.md)
 
 ## License
 
