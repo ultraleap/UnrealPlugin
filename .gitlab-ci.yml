@@ -1,0 +1,77 @@
+variables:
+  # use the strategy set in the project CI settings GIT_STRATEGY: none
+  GIT_SUBMODULE_STRATEGY: none
+  ErrorActionPreference: stop
+
+  PROJECT_NAME: "ULTrackingPlugin"
+  PROJECT_PATH: "$CI_PROJECT_DIR"  
+  
+  ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
+  ENGINE_UAT_PATH: "$ENGINE_PATH/Engine/Build/BatchFiles/RunUAT.bat"
+  
+  # this holds the unreal version
+  UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
+  
+  
+  VERSIONTRUNC: "Unknown"
+stages:
+  - build
+
+build:build-project:
+  stage: build
+  tags:
+    - unreal
+    - windows
+  when: always
+  retry: 2
+  timeout: 1h
+  allow_failure: false
+  before_script:
+  script:   
+    # Get Unreal version and changeset from the project. from json
+    - $UNREAL_VERSION_CONTENT = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
+    - $UNREAL_VERSION = $UNREAL_VERSION_CONTENT.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT.PatchVersion.ToString()
+    
+    - echo "$ENGINE_PATH"
+    - echo "$PROJECT_PATH"
+    - echo "$PROJECT_PATH/$PROJECT_NAME.uproject"
+    - echo "$ENGINE_UAT_PATH"
+    - echo "Working dir"
+    - pwd
+   
+    # Build the project.
+    - echo "==============================================="
+    - echo "Build with UAT"
+    - echo "==============================================="
+    
+    # Piped to a log file, remove at the end of this line if you want to see the output during build
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/UltraleapTracking/UltraleapTracking.uplugin -Package=[PathToOutput]/UltraleapTracking/BuildOutput -CreateSubFolder" > ./$PROJECT_NAME.log" 
+    - echo $process.ExitCode
+    - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
+    
+    
+    - echo "Unreal build complete."
+  after_script:
+     # Get the project/app version from the ini file
+     # this holds the project version
+    - $UNREAL_GAME_INI_FILE = "$PROJECT_PATH/Config/DefaultGame.ini"
+    - $BUILD_LOCATION = "$PROJECT_PATH/Saved/StagedBuilds"
+    - $VERSION =  Get-Content $UNREAL_GAME_INI_FILE | Where-Object {$_ -like '*ProjectVersion=*'}
+    - $VERSIONTRUNC = $VERSION.Replace('ProjectVersion=','') 
+
+    - echo "$UNREAL_VERSION"
+    - echo "$VERSIONTRUNC"
+    
+    - $BUILD_FULL_VERSION = $VERSIONTRUNC
+    - $BUILD_PATH = "./build/$PROJECT_NAME-$BUILD_FULL_VERSION/"
+    - mkdir "$BUILD_PATH"  
+    - echo "$BUILD_PATH"
+    - echo "$BUILD_LOCATION"   
+    - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
+  artifacts:
+    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
+    paths:
+    - "./build/"
+    - "./$PROJECT_NAME.log"
+    when: always
+    expire_in: 2 weeks
