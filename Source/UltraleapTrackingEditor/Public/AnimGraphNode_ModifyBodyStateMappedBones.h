@@ -3,7 +3,11 @@
 
 #include "AnimGraphDefinitions.h"
 #include "AnimNode_ModifyBodyStateMappedBones.h"
-#include "Editor/AnimGraph/Classes/AnimGraphNode_SkeletalControlBase.h"
+#if ENGINE_MAJOR_VERSION >= 5
+#include "Editor/AnimGraph/Public/AnimGraphNode_SkeletalControlBase.h"
+#else
+#include "Runtime/AnimGraphRuntime/Public/BoneControllers/AnimNode_SkeletalControlBase.h"
+#endif
 #include "Kismet2/BlueprintEditorUtils.h"
 
 #include "AnimGraphNode_ModifyBodyStateMappedBones.generated.h"
