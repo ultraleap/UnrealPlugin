@@ -4,39 +4,35 @@
 // ******************************************************************************/
 
 #include "OpenXRToLeapWrapper.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
-#include "IHandTracker.h"
+
 #include "HeadMountedDisplayTypes.h"
-#include "LeapUtility.h"
+#include "IHandTracker.h"
 #include "Kismet/GameplayStatics.h"
 #include "LeapBlueprintFunctionLibrary.h"
+#include "LeapUtility.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
-
 	CurrentDeviceInfo = &DummyDeviceInfo;
 	DummyDeviceInfo = {0};
 	DummyDeviceInfo.size = sizeof(LEAP_DEVICE_INFO);
 	DummyDeviceInfo.serial = "OpenXRDummyDevice";
 	DummyDeviceInfo.serial_length = strlen(DummyDeviceInfo.serial) + 1;
 
-
 	DummyLeapHands[0] = {0};
 	DummyLeapHands[1] = {0};
-	
+
 	DummyLeapHands[0].type = eLeapHandType::eLeapHandType_Left;
 	DummyLeapHands[1].type = eLeapHandType::eLeapHandType_Right;
 
 	DummyLeapHands[0].id = 1000;
 	DummyLeapHands[1].id = 2000;
 
-
 	DummyLeapFrame = {0};
 
 	DummyLeapFrame.framerate = 90;
 	DummyLeapFrame.pHands = DummyLeapHands;
-
-	
 }
 
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
@@ -55,9 +51,8 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 
 	if (!GEngine)
 	{
-		UE_LOG(UltraleapTrackingLog, Log,
-			TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
-	
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
+
 		return;
 	}
 	if (GEngine->XRSystem.IsValid() && (GEngine->XRSystem->GetSystemName() == SystemName))
@@ -84,18 +79,17 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	}
 	else
 	{
-		UE_LOG(
-			UltraleapTrackingLog, Log, TEXT(" FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - OpenXRHandTracking module not found, is the OpenXRHandTracking plugin enabled?"));
+		UE_LOG(UltraleapTrackingLog, Log,
+			TEXT(" FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - OpenXRHandTracking module not found, is the "
+				 "OpenXRHandTracking plugin enabled?"));
 	}
-	
 }
 LEAP_VECTOR ConvertPositionToLeap(const FVector& FromOpenXR)
 {
 	LEAP_VECTOR Ret = FLeapUtility::ConvertAndScaleUEToLeap(FromOpenXR);
-	
+
 	return Ret;
 }
-
 
 int Sign(const ELeapQuatSwizzleAxisB& QuatSwizzleAxis)
 {
@@ -104,19 +98,14 @@ int Sign(const ELeapQuatSwizzleAxisB& QuatSwizzleAxis)
 LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
 	LEAP_QUATERNION Ret = {0};
-	
-	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
-	
 
-	
-	
+	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
 
 	Ret.x = Sign(SwizzleX) * OldRotVector[StaticCast<uint8>(SwizzleX) % 4];
 	Ret.y = Sign(SwizzleY) * OldRotVector[StaticCast<uint8>(SwizzleY) % 4];
 	Ret.z = Sign(SwizzleZ) * OldRotVector[StaticCast<uint8>(SwizzleZ) % 4];
 	Ret.w = Sign(SwizzleW) * OldRotVector[StaticCast<uint8>(SwizzleW) % 4];
 
-	//+ inverse out leapration offset FQuat(FRotator(90.f, 0.f, 180.f));
 	return Ret;
 }
 LEAP_VECTOR ConvertFVectorToLeapVector(const FVector& UEVector)
@@ -132,7 +121,8 @@ LEAP_VECTOR ConvertFVectorToLeapVector(const FVector& UEVector)
 }
 
 // FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
-void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions,const TArray<FQuat>& Rotations)
+void FOpenXRToLeapWrapper::ConvertToLeapSpace(
+	LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions, const TArray<FQuat>& Rotations)
 {
 	if (!XRTrackingSystem)
 	{
@@ -178,7 +168,7 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				break;
 				// Thumb ////////////////////////////////////////////////////
 				/** From the leap data header
-				 * 
+				 *
 				 * For thumbs, this bone is set to have zero length and width, an identity basis matrix,
 				 * and its joint positions are equal.
 				 * Note that this is anatomically incorrect; in anatomical terms, the intermediate phalange
@@ -187,9 +177,6 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				 * @since 3.0.0
 				 */
 			case EHandKeypoint::ThumbMetacarpal:
-			//	LeapHand.thumb.metacarpal.next_joint = ConvertPositionToLeap(Position);
-			//	LeapHand.thumb.metacarpal.prev_joint
-
 				LeapHand.thumb.metacarpal.prev_joint = LeapHand.thumb.proximal.prev_joint = ConvertPositionToLeap(Position);
 				LeapHand.thumb.metacarpal.rotation = LeapHand.thumb.proximal.rotation = ConvertOrientationToLeap(Rotation);
 
@@ -204,8 +191,8 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 				LeapHand.thumb.distal.rotation = ConvertOrientationToLeap(Rotation);
 				break;
 			case EHandKeypoint::ThumbTip:
-				// tip is next of distal?
-				LeapHand.thumb.distal.next_joint = ConvertPositionToLeap(Position);	
+				// tip is next of distal
+				LeapHand.thumb.distal.next_joint = ConvertPositionToLeap(Position);
 				break;
 
 			// Index ////////////////////////////////////////////////////
@@ -217,21 +204,21 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 			case EHandKeypoint::IndexProximal:
 				LeapHand.index.proximal.prev_joint = LeapHand.index.metacarpal.next_joint = ConvertPositionToLeap(Position);
 				LeapHand.index.proximal.rotation = ConvertOrientationToLeap(Rotation);
-		
+
 				break;
 			case EHandKeypoint::IndexIntermediate:
 				LeapHand.index.intermediate.prev_joint = LeapHand.index.proximal.next_joint = ConvertPositionToLeap(Position);
 				LeapHand.index.intermediate.rotation = ConvertOrientationToLeap(Rotation);
-		
+
 				break;
 			case EHandKeypoint::IndexDistal:
 				LeapHand.index.distal.prev_joint = LeapHand.index.intermediate.next_joint = ConvertPositionToLeap(Position);
 				LeapHand.index.distal.rotation = ConvertOrientationToLeap(Rotation);
-		
+
 				break;
 			case EHandKeypoint::IndexTip:
 				LeapHand.index.distal.next_joint = ConvertPositionToLeap(Position);
-			
+
 				break;
 			// Middle ////////////////////////////////////////////////////
 			case EHandKeypoint::MiddleMetacarpal:
@@ -316,16 +303,14 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOcclud
 		}
 		KeyPoint++;
 	}
-
 }
-	
+
 LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
 	return GetFrame();
 }
 void FOpenXRToLeapWrapper::UpdateHandState()
 {
-
 }
 LEAP_DEVICE_INFO* FOpenXRToLeapWrapper::GetDeviceProperties()
 {
@@ -345,7 +330,7 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 
 	// status only true when the hand is being tracked/visible to the tracking device
 	// these are in world space
-	// 
+	//
 	// IMPORTANT: OpenXR tracking only works in VR mode, this will always return false in desktop mode
 	bool StatusLeft = HandTracker->GetAllKeypointStates(EControllerHand::Left, OutPositions[0], OutRotations[0], OutRadii[0]);
 	bool StatusRight = HandTracker->GetAllKeypointStates(EControllerHand::Right, OutPositions[1], OutRotations[1], OutRadii[1]);
@@ -353,7 +338,7 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	DummyLeapFrame.nHands = StatusLeft + StatusRight;
 	DummyLeapFrame.info.frame_id++;
 	UWorld* World = nullptr;
-	
+
 	// time in microseconds
 	DummyLeapFrame.info.timestamp = GetDummyLeapTime();
 	DummyLeapFrame.tracking_frame_id++;
@@ -375,7 +360,7 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	{
 		ConvertToLeapSpace(DummyLeapHands[1], OutPositions[1], OutRotations[1]);
 	}
-	
+
 	return &DummyLeapFrame;
 }
 int64_t FOpenXRToLeapWrapper::GetDummyLeapTime()
