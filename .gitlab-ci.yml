@@ -58,7 +58,7 @@ build:build-project:
     - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
     - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
     - $VERSIONTRUNC = $VERSION.Replace('VersionName','')
-    - $VERSIONTRUNC = $VERSIONTRUNC.Replace(''"','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace('`"','')
     - $VERSIONTRUNC = $VERSIONTRUNC.Replace(':','')
     - $VERSIONTRUNC = $VERSIONTRUNC.Replace(','','')
 
