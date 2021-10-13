@@ -61,6 +61,8 @@ build:build-project:
     - $VERSIONTRUNC = $VERSIONTRUNC.Replace(':','')
     - $VERSIONTRUNC = $VERSIONTRUNC.Replace('",','')
     - $VERSIONTRUNC = $VERSIONTRUNC.Replace('"','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace('	','')
+    
 
     - echo "$UNREAL_VERSION"
     - echo "$VERSIONTRUNC"
