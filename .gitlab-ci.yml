@@ -51,11 +51,20 @@ build:build-project:
     
     
     - echo "Unreal build complete."
+
+    # Generate XML documentation using Doxygen
+    - echo "Generated docs"
+
+    # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
+    - doxygen
+
   after_script:
      # Get the project/app version from the uplugin file
      # this holds the plugin version
     - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
+    - $DOXY_LOCATION = "$BUILD_LOCATION/DoxyOutput"
+
     - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
     - $VERSIONTRUNC = $VERSION.Replace('VersionName','')
     - $VERSIONTRUNC = $VERSIONTRUNC.Replace(':','')
@@ -74,6 +83,7 @@ build:build-project:
     - echo "$BUILD_PATH"
     - echo "$BUILD_LOCATION"   
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
+    - mv "$DOXY_LOCATION/*" "$BUILD_PATH"
   artifacts:
     name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
     paths:
