@@ -1,0 +1,1 @@
+pandoc -s --toc -f commonmark -t rst documentation.md >> output.rst
