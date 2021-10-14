@@ -62,7 +62,7 @@ struct FGrabClassifierParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	bool UseGrabCooldown;
 };
-
+/** Represents the state of a contact probe, filled in in blueprint from skeleton bones */
 UCLASS(BlueprintType, Blueprintable, meta = (BlueprintSpawnableComponent))
 class UGrabClassifierProbe : public UObject
 {
@@ -88,6 +88,7 @@ public:
 	TArray<USceneComponent*> CandidateColliders;
 };
 
+/** Manages logic for Grabbing, based on the Unity Interaction Engine equivalent */
 UCLASS(BlueprintType, Blueprintable, meta = (BlueprintSpawnableComponent))
 class UIEGrabClassifierComponent : public UActorComponent
 {
@@ -102,7 +103,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Grab classifier behavior, initialised in blueprint
+	/**  Grab classifier behavior, initialised in blueprint */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierParams Params;
 
@@ -118,21 +119,21 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Ultraleap IE")
 	int NumInside;
 
-	// called when the grab state has changed
+	/**  called when the grab state has changed */
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
 
-	// Logic for grabbing, called from blueprint, implemented in C++ for simplicity and parity with C#
+	/**  Logic for grabbing, called from blueprint, implemented in C++ for simplicity and parity with C# */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void UpdateClassifier(const USceneComponent* Hand, const TArray<UGrabClassifierProbe*>& Probes, const bool IgnoreTemporal,
 		const bool IsLeftHand, const float DeltaTime, const bool IsGrabbed);
 
-	// Force reset of the grab state, used when grab state in BP is forced on tracking lost
-	// without this, a spurious ungrab event from the grab classifier will occur on tracking found
+	/**  Force reset of the grab state, used when grab state in BP is forced on tracking lost
+	 *  without this, a spurious ungrab event from the grab classifier will occur on tracking found */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void ForceReset();
 
 private:
-	// notify if changed
+	/**  notify if changed */
 	void NotifyControllerGrabbing();
 };

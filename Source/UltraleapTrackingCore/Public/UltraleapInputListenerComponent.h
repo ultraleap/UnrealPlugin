@@ -9,6 +9,9 @@
 
 DECLARE_DYNAMIC_DELEGATE(FOnInputActionUL);
 
+/**
+ * Customisable input event listener, used to dynamically subscribe to input events from blueprint
+ */
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class ULTRALEAPTRACKING_API UUltraleapInputListenerComponent : public USceneComponent
 {
