@@ -1,14 +1,10 @@
-.. contents::
-   :depth: 3
-..
-
 UltraleapTracking for Unreal
 ============================
 
-|GitHub release|
+|image1|
 
-The official [Ultraleap Tracking](`World-leading Hand Tracking: Small.
-Fast. Accurate. \| Ultraleap <https://www.ultraleap.com/tracking/>`__)
+The official `Ultraleap
+Tracking <[World-leading Hand Tracking: Small. Fast. Accurate. | Ultraleap](https://www.ultraleap.com/tracking/)>`__
 plugin for the Unreal Engine 4.
 
 Use convenience blueprints to add to the scene and play in editor or use
@@ -17,6 +13,8 @@ a custom approach via blueprints or C++.
 Additionally, further Ultraleap Tracking for Unreal modules and examples
 can be found at `ultraleap/uhi-unreal-tracking-examples
 (github.com) <https://github.com/ultraleap/uhi-unreal-tracking-examples>`__
+
+.. _problems--questions:
 
 Problems & Questions
 --------------------
@@ -38,25 +36,32 @@ Setup
 1. Ensure you have the latest `Leap Motion driver
    installed <https://developer.leapmotion.com/get-started>`__. This
    plugin requires v4 SDK tracking or newer.
+
 2. Create new or open a project.
+
 3. Download `latest
    release <https://github.com/leapmotion/LeapUnreal/releases>`__ (make
    sure to use the .zip link)
+
 4. Create a Plugins folder in your project root folder if one doesn't
    already exist
+
 5. Drag the unzipped **UltraleapTracking** plugin into the project's
    Plugins folder.
+
 6. The plugin should be enabled and ready to use, if not enable it.
 
 Quick setup video, get up and running fast!
 -------------------------------------------
 
-|Install and Go|
+|image2|
 
 How to use it - Convenience Rigged Pawn
 =======================================
 
 Use one of the following methods
+
+.. _option-1-vr-mode--example-pawn:
 
 Option 1. VR Mode- Example Pawn
 -------------------------------
@@ -66,9 +71,11 @@ or place it in the level with auto-posses set to player 0. If using the
 tracking device with the HTC Vive or Oculus Rift, it expects the pawn
 camera to be at the floor which is it's tracking origin.
 
-|VR Quickstart, Click me to see higher resolution|
+|image3|
 
 *NB: click the gif for a higher resolution video*
+
+.. _option-2-desktop-mode---example-actor:
 
 Option 2. Desktop Mode - Example Actor
 --------------------------------------
@@ -78,8 +85,8 @@ browser (plugin content enabled) and place it anywhere in your scene.
 When you hit play your hands will be tracked from the actor center with
 the sensor expected to be facing upwards.
 
-.. image:: https://imgur.com/vz1xzdD.gif
-   :alt: Desktop quick start
+.. figure:: https://imgur.com/vz1xzdD.gif
+   :alt: 
 
 Gestures
 --------
@@ -95,31 +102,38 @@ Grab and Pinch
 These should be globally available via Input Mapping. Look for keys
 *Leap (L)/(R) Pinch* and *Leap (L)/(R) Grab*
 
-.. image:: http://i.imgur.com/2oDQllv.png
-   :alt: direct input
+.. figure:: http://i.imgur.com/2oDQllv.png
+   :alt: 
 
-If you add input mapping to a non-input chain actor, ensure you override
-the default to receive the input |ensure input is received|
+| If you add input mapping to a non-input chain actor, ensure you
+  override the default to receive the input
+| |image4|
 
 Leap Options (see below) exposes new settings that allow the sensitivity
 of the gesture detection to be adjusted:
 
-.. image:: ./Resources/LeapOptions.PNG
-   :alt: image info
+.. figure:: C:\UnrealProjects\UHITracking\UnrealTrackingSamples\unrealtrackingsamples\Plugins\UltraleapTracking\Resources\LeapOptions.PNG
+   :alt: 
 
 -  Use Frame Based Gesture Detection - enables the older method of
    detecting pinch/grab gestures.
+
 -  Start Grab Threshold - specifies the minimum grab value that needs to
    be detected before a grab gesture is started.
+
 -  End Grab Threshold - specifies the minimum grab value that needs to
    be detected before a grab gesture is stopped.
+
 -  Start Pinch Threshold - specifies the minimum grab value that needs
    to be detected before a pinch gesture is started.
+
 -  End Pinch Threshold - specifies the minimum grab value that needs to
    be detected before a pinch gesture is stopped.
+
 -  Grab Timeout - the number of microseconds required to pass before an
    end grab is triggered, in which no values were detected above the end
    grab threshold during that time.
+
 -  Pinch Timeout - the number of microseconds required to pass before an
    end pinch is triggered, in which no values were detected above the
    end pinch threshold during that time.
@@ -136,7 +150,9 @@ TODO: on pushing to github this needs updating
 
 e.g. basic interaction with physics actors
 
-|VR pickup and drop|
+|image5|
+
+.. _custom-blueprint--c-the-leap-component:
 
 Custom Blueprint & C++, the Leap Component
 ==========================================
@@ -144,8 +160,8 @@ Custom Blueprint & C++, the Leap Component
 Add a *Leap Component* to any actor of choice to access events relating
 to the leap motion.
 
-.. image:: http://i.imgur.com/UOAexrc.png"
-   :alt: add component
+.. figure:: http://i.imgur.com/UOAexrc.png"
+   :alt: 
 
 The main API is the same in both languages, consult the following
 sections if you're not familiar with *Actor Components*.
@@ -174,9 +190,8 @@ data.
 For blueprint you add delegate events by selecting your Leap Component
 and hitting +
 
-.. raw:: html
-
-   <img src="http://i.imgur.com/sBldvwR.png">
+.. figure:: http://i.imgur.com/sBldvwR.png"
+   :alt: 
 
 For C++ consult how to bind `multicast
 delegates <https://docs.unrealengine.com/latest/INT/Programming/UnrealArchitecture/Delegates/Multicast/>`__
@@ -364,8 +379,8 @@ mount distance and rotation to achieve your 1:1 tracking. A good way to
 test the adjustments is to look at your hand and lift your headset
 slightly and see that your overall hand shapes line up within ~ 1cm.
 
-.. image:: https://i.imgur.com/6QaT61D.png
-   :alt: adjust offsets
+.. figure:: https://i.imgur.com/6QaT61D.png
+   :alt: 
 
 Note that these blueprint nodes are global and available everywhere; a
 good place to call them for a static option change is in begin play from
@@ -439,8 +454,8 @@ tracking Fidelity to ``Leap Wireless`` on e.g. begin play and then the
 plugin should correctly compensate for the increased latency from the
 wireless link.
 
-.. image:: https://i.imgur.com/v0yOqaL.png
-   :alt: setting wireless fidelity
+.. figure:: https://i.imgur.com/v0yOqaL.png
+   :alt: 
 
 Custom Rigging with the Hand Modules
 ------------------------------------
@@ -451,9 +466,11 @@ A note on Unreal's FBX import settings
 When importing FBX hand models, if the model imports with the skeleton
 separated from the mesh as below, turn on **Use T0 as Ref pose**
 
-.. image:: https://i.imgur.com/JdynkEl.png
+.. figure:: https://i.imgur.com/JdynkEl.png
+   :alt: 
 
-.. image:: https://i.imgur.com/T6F72vX.png
+.. figure:: https://i.imgur.com/T6F72vX.png
+   :alt: 
 
 Using the *Body State* system, the plugin supports basic auto-mapping of
 tracked data to skeletal mesh bones for 1 or 2 hands in single or
@@ -466,30 +483,35 @@ naming schemes.
 To get started with a newly imported model, right click on the model and
 choose **Create->Anim Blueprint**
 
-.. image:: https://i.imgur.com/Nl5cx8t.png
+.. figure:: https://i.imgur.com/Nl5cx8t.png
+   :alt: 
 
 To add auto-mapping to your own ``anim instance``, re-parent it a
 ``BodyStateAnimInstance``
 
-.. image:: https://i.imgur.com/TbZfr59.png
+.. figure:: https://i.imgur.com/TbZfr59.png
+   :alt: 
 
 Once done, turn on **Detect Hand Rotation During Auto Mapping** and hit
 the **Auto map** button. New class defaults will now be created if bones
 were mapped successfully.
 
-.. image:: https://i.imgur.com/DcQhRXX.png
+.. figure:: https://i.imgur.com/DcQhRXX.png
+   :alt: 
 
 Once auto mapped, compile the blueprint to see the results. After the
 compile you'll see a lot of values auto-filled in your
 ``anim preview editor`` window
 
-.. image:: https://i.imgur.com/rRBsReU.png
+.. figure:: https://i.imgur.com/rRBsReU.png
+   :alt: 
 
 To enable the hand animation, add an **Ultraleap Modify Mapped Bones**
 node to the **AnimGraph** and connect it to the output pose. This maps
 incoming Leap hand data to the hand skeleton at runtime.
 
-.. image:: https://i.imgur.com/V3t3NWg.png
+.. figure:: https://i.imgur.com/V3t3NWg.png
+   :alt: 
 
 By default auto mapping is set to your left hand, simply changing the
 type to right will change the targeting, hit compile to affect changes
@@ -511,7 +533,8 @@ by adding an entry to your ``Mapped Bone List`` array and unchecking
 entry will be applied after your auto-map fills it. Check your *Anim
 Preview Editor* to see all the mapped bone entries and final settings.
 
-.. image:: https://i.imgur.com/4sjji8b.png
+.. figure:: https://i.imgur.com/4sjji8b.png
+   :alt: 
 
 If you turn off deformation, only rotations will be applied to the
 mapped bones. To ensure the hand is still placed at the correct location
@@ -521,7 +544,8 @@ BodyState wrist position. With this node active before all of our other
 rotations, we can now toggle the deform mesh to see how it changes the
 mesh hand.
 
-.. image:: https://i.imgur.com/LhIu3JQ.gif
+.. figure:: https://i.imgur.com/LhIu3JQ.gif
+   :alt: 
 
 Note that the hand wrist position doesn't move since the deformed mesh
 position for the wrist is the same as the one we made in the graph.
@@ -535,7 +559,8 @@ then changing individual bone maps. These are applied after the auto-map
 procedure so they will take precedence. Hit compile after adding bones
 to see changes.
 
-.. image:: https://i.imgur.com/joLg6SU.gif
+.. figure:: https://i.imgur.com/joLg6SU.gif
+   :alt: 
 
 Saving auto-map results
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -546,7 +571,8 @@ an instance is spawned. To do this hit apply in your
 tracking still works as the same bones now show in your
 ``Mapped Bone List`` but in the class defaults section.
 
-.. image:: https://i.imgur.com/WQSXpPN.gif
+.. figure:: https://i.imgur.com/WQSXpPN.gif
+   :alt: 
 
 Flipped chirality (left to right or right to left mapped models)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -557,7 +583,8 @@ its rendering flipped. This is done in code by setting the scale to -1
 on the X-axis. To flip the chirality of the model, enable **Flip Model
 Left Right** in the Mapped Bone list.
 
-.. image:: https://i.imgur.com/VH9vUDh.png
+.. figure:: https://i.imgur.com/VH9vUDh.png
+   :alt: 
 
 Two handed meshes
 ~~~~~~~~~~~~~~~~~
@@ -574,7 +601,8 @@ basis to ensure positive rotation values close your hand. The
 auto-mapping compensates for this by using a different pre-base rotation
 for each cluster of bones related to each hand.
 
-.. image:: https://i.imgur.com/JGnmDSI.png
+.. figure:: https://i.imgur.com/JGnmDSI.png
+   :alt: 
 
 Since you have two entries of ``Mapped Bone Anim Data`` you should add
 another ``Modify Mapped Bones`` node in your anim graph so both
@@ -588,7 +616,8 @@ bone is which in the skeleton. These can be modified in the **Search
 Names** parameter which is initially populated with the most common bone
 names.
 
-.. image:: https://i.imgur.com/i2ri6q3.png
+.. figure:: https://i.imgur.com/i2ri6q3.png
+   :alt: 
 
 Character meshes
 ^^^^^^^^^^^^^^^^
@@ -597,7 +626,8 @@ The procedure for character meshes is the same as other two handed
 meshes, but may also need more custom nodes to compensate for lack of
 e.g. deformation.
 
-.. image:: https://i.imgur.com/17AkrEh.png
+.. figure:: https://i.imgur.com/17AkrEh.png
+   :alt: 
 
 The above anim graphs shows auto-mapping to the standard UE mannequin
 skeletal mesh. Similar to the earlier two hand example, we use two
@@ -606,7 +636,8 @@ weight painting on this mesh doesn't support deformation. With this
 setup only the rotations are tracked so you'll need to either use FK,
 FABRIK or you own setup to move the elbows to the correct places.
 
-.. image:: https://i.imgur.com/G6jqeYi.png
+.. figure:: https://i.imgur.com/G6jqeYi.png
+   :alt: 
 
 In the above example we use FABRIK to each elbow, and another fabrik to
 the head, using our HMD data which is auto-set in the body state system.
@@ -628,7 +659,8 @@ Once the anim blueprint is set up for each hand, the hands can be added
 to an Actor as Child Actor Components. See the example hands in the
 **HandModules/Hands** folder in the UltraleapTracking plugin content.
 
-.. image:: https://i.imgur.com/RG6zsKz.png
+.. figure:: https://i.imgur.com/RG6zsKz.png
+   :alt: 
 
 This actor can then be dragged into the scene to use the mapped hands at
 runtime.
@@ -642,16 +674,18 @@ and Desktop modes.
 
 **Distance interaction:**
 
-.. image:: https://imgur.com/v0max0k.gif
+|image6|
 
 **Close interaction**
 
-.. image:: https://imgur.com/W8Yyue8.gif
+.. figure:: https://imgur.com/W8Yyue8.gif
+   :alt: 
 
 The UIInput module blueprints are part of the Ultraleap Tracking Plugin.
 Four basic example scenes are included to get up and running quickly:
 
-.. image:: https://i.imgur.com/ffegX3k.png
+.. figure:: https://i.imgur.com/ffegX3k.png
+   :alt: 
 
 Buttons, sliders, check boxes and drop downs are supported with the
 pinch event mapping to the mouse down and up equivalent in UMG. The
@@ -698,10 +732,12 @@ The basic components of interaction
 -----------------------------------
 
 -  "Interaction objects" are StaticMesh/Primitive Components with an
-   attached **IEGrabComponent**. |image1|
--  An **IEGrabberComponent** attaches to anything that is used to
-   interact with items in the scene (for example a Hand
-   SkeletelMeshComponent or a MotionControllerComponent). |image2|
+   attached **IEGrabComponent**. |image7|
+
+-  | An **IEGrabberComponent** attaches to anything that is used to
+     interact with items in the scene (for example a Hand
+     SkeletelMeshComponent or a MotionControllerComponent).
+   | |image8|
 
 Interaction objects can live anywhere in your scene, all that's needed
 is to attach the IEGrabComponent. In addition, for re-use,
@@ -731,8 +767,10 @@ If you haven't already, add the UltraleapTrackingPlugin to your project:
 -  Download the latest UltraleapTrackingPlugin from
    `ultraleap/uhi-unreal-tracking
    (github.com) <https://github.com/ultraleap/uhi-unreal-tracking>`__
+
 -  Copy the plugin to the Plugins folder beneath your Unreal Project
    (create a Plugins folder if it doesn't already exist)
+
 -  Open your project and make sure 'Show Plugin Content' is enabled in
    the view options of your Content Browser.
 
@@ -787,7 +825,8 @@ controllers.
 Example 1: Interaction Objects 101
 ----------------------------------
 
-.. image:: https://i.imgur.com/ZbfWYZB.png
+.. figure:: https://i.imgur.com/ZbfWYZB.png
+   :alt: 
 
 The Interaction Objects example shows the behaviour of interaction
 objects when IEGrabComponents are attached.
@@ -811,7 +850,8 @@ interaction objects (e.g. cubes).
 Example 2: Basic UI in the Interaction Engine
 ---------------------------------------------
 
-.. image:: https://i.imgur.com/jlEEZVv.png
+.. figure:: https://i.imgur.com/jlEEZVv.png
+   :alt: 
 
 Interacting with interface elements is a very particular *kind* of
 interaction, but in VR or AR, we find these interactions to make the
@@ -831,7 +871,8 @@ IEGrabComponent's API for any and all interaction objects for which
 disabling contact when it is not 'the primary hover' of an interaction
 controller.
 
-.. image:: https://i.imgur.com/Wp81b57.png
+.. figure:: https://i.imgur.com/Wp81b57.png
+   :alt: 
 
 In this scene, a hand attached menu is included. Applications may want
 to attach an interface directly to a user's hand so that certain
@@ -842,7 +883,8 @@ into view when the user looks at their left palm.
 Example 3: Interaction Callbacks for Handle-type Interfaces
 -----------------------------------------------------------
 
-.. image:: https://i.imgur.com/CE91HOB.png
+.. figure:: https://i.imgur.com/CE91HOB.png
+   :alt: 
 
 The Interaction Callbacks example features a set of interaction objects
 that collectively form a basic **TransformTool** Actor the user may use
@@ -858,7 +900,8 @@ transformation takes place.
 Example 5: Building on Interaction Objects with Anchors
 -------------------------------------------------------
 
-.. image:: https://i.imgur.com/BF03fio.png
+.. figure:: https://i.imgur.com/BF03fio.png
+   :alt: 
 
 The IEAnchorableComponent and IEAnchorComponent build on the basic
 interactivity afforded by interaction objects. IEAnchorableComponents
@@ -923,6 +966,8 @@ object. Whether you're working with XR controllers or hands, the
 grasping API in the Interaction Engine provides a common interface for
 constructing logic around grasping, releasing, and throwing.
 
+.. _grasped-pose--object-movement:
+
 Grasped pose & object movement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -965,6 +1010,8 @@ impulse after release.
 FAQs
 ----
 
+.. _ive-added-the-plugin-to-the-plugins-folder-of-my-project-and-it-says-projectname-cannot-be-compiled-what-do-i-do:
+
 I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -980,7 +1027,8 @@ project must be converted to a C++ project. To convert the project:
 -  Go to **File->Add C++ class** and add an empty C++ class to the
    project. It doesn't matter what it's named
 
-   .. image:: https://i.imgur.com/FFCM0ge.png
+   .. figure:: https://i.imgur.com/FFCM0ge.png
+      :alt: 
 
 -  Now, exit your project, rename the **Plugin** folder to **Plugins**
 
@@ -1007,7 +1055,8 @@ In the anim graph of your anim blueprint, drag a connection out of the
 bone** node. Now edit the **Transform** node settings to change
 whichever bone you want to modify in the skeleton.
 
-.. image:: https://i.imgur.com/fYomt8w.png
+.. figure:: https://i.imgur.com/fYomt8w.png
+   :alt: 
 
 How do I clear a bone mapping back to *none* in the details view?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1015,7 +1064,8 @@ How do I clear a bone mapping back to *none* in the details view?
 Go to the **Edit defaults** tab and click the yellow reset arrow next to
 the bone you want to reset.
 
-.. image:: https://i.imgur.com/dIjhFEO.png
+.. figure:: https://i.imgur.com/dIjhFEO.png
+   :alt: 
 
 Why don't the different hand meshes line up perfectly?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1039,7 +1089,7 @@ package successfully. The user also added a simple on beginplay command
 to ensure VR is enabled on beginplay as the default behavior is desktop
 for UE4.
 
-|Windows Packaging|
+|image9|
 
 Contact
 -------
@@ -1047,16 +1097,17 @@ Contact
 Please post issues and feature requests to this `github repository
 issues section <https://github.com/leapmotion/LeapUnreal/issues>`__
 
-.. |GitHub release| image:: https://img.shields.io/github/release/leapmotion/leapunreal.svg
+.. |image1| image:: https://img.shields.io/github/release/leapmotion/leapunreal.svg
    :target: https://github.com/leapmotion/leapunreal/releases
-.. |Install and Go| image:: https://img.youtube.com/vi/YMq9xoRquyc/0.jpg
+.. |image2| image:: https://img.youtube.com/vi/YMq9xoRquyc/0.jpg
    :target: https://youtu.be/YMq9xoRquyc
-.. |VR Quickstart, Click me to see higher resolution| image:: http://i.imgur.com/vnTnCrB.gif
+.. |image3| image:: http://i.imgur.com/vnTnCrB.gif
    :target: https://youtu.be/YMq9xoRquyc
-.. |ensure input is received| image:: http://i.imgur.com/zWMrHxn.png
-.. |VR pickup and drop| image:: https://img.youtube.com/vi/dkZD1JuSSnM/0.jpg
+.. |image4| image:: http://i.imgur.com/zWMrHxn.png
+.. |image5| image:: https://img.youtube.com/vi/dkZD1JuSSnM/0.jpg
    :target: https://youtu.be/dkZD1JuSSnM
-.. |image1| image:: https://i.imgur.com/Qfrtilt.png
-.. |image2| image:: https://i.imgur.com/Op7lClc.png
-.. |Windows Packaging| image:: https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg
+.. |image6| image:: https://imgur.com/v0max0k.gif
+.. |image7| image:: https://i.imgur.com/Qfrtilt.png
+.. |image8| image:: https://i.imgur.com/Op7lClc.png
+.. |image9| image:: https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg
    :target: https://youtu.be/pRzm0M_a8uY

@@ -106,7 +106,7 @@ From the Leap Component the following events are available, with *On Leap Tracki
 
 For blueprint you add delegate events by selecting your Leap Component and hitting +
 
-<img src="http://i.imgur.com/sBldvwR.png">
+![add events](http://i.imgur.com/sBldvwR.png")
 
 For C++ consult how to bind [multicast delegates](https://docs.unrealengine.com/latest/INT/Programming/UnrealArchitecture/Delegates/Multicast/)
 
