@@ -471,6 +471,12 @@ Or
 
 That's it, you will now be able to interact in the scene with your Motion Controllers in VR, the Mouse in desktop mode and with Tracked Hands if an Ultraleap Tracking Device is connected.
 
+## A note on input mappings
+
+In order for the **IEPawnHands** pawn to receive input from motion controllers, keyboard and mouse, default input mappings need to be set up in your project. Example mappings are in the root of the plugin in **defaultinput.ini**. If you are starting a project from scratch, copying/overwriting this file into your project's **Config** folder will set the mappings up.
+
+If you're integrating into an existing project with your own input mappings, either set up the mappings in the provided **defaultinput.ini** manually  from **Project Settings**->**Input** in the Unreal Editor, or merge the text/settings into your existing **defaultinput.ini** in your project's **Config** folder from the example .ini file provided.
+
 # Check out the examples
 
 The examples folder (`UltraleapTracking Content/InteractionEngine/ExampleScenes`) contains a series of example scenes that demonstrate the features of the Interaction Engine.
