@@ -15,7 +15,49 @@ variables:
   
   VERSIONTRUNC: "Unknown"
 stages:
+  - documentation
   - build
+
+documentation::generate-tracking-documentation:
+  stage: documentation
+  tags:
+    - unreal
+    - win10  
+  timeout: 30m
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+      allow_failure: true
+
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: always
+      allow_failure: true
+      
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+      
+  script:
+     # Generate XML documentation using Doxygen
+    - echo "Generate docs"
+
+    # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
+    - doxygen
+
+    
+  after_script:
+    - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
+    - echo "$DOXY_LOCATION"
+
+    - mv "$DOXY_LOCATION/*" "./build"
+  artifacts:
+    name: "Artifacts"
+    paths:
+      - "./build/"
+
+    when: always
+    expire_in: never
 
 build:build-project:
   stage: build
@@ -52,18 +94,12 @@ build:build-project:
     
     - echo "Unreal build complete."
 
-    # Generate XML documentation using Doxygen
-    - echo "Generate docs"
-
-    # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
-    - doxygen
-
+   
   after_script:
      # Get the project/app version from the uplugin file
      # this holds the plugin version
     - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
-    - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
 
     - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
     - $VERSIONTRUNC = $VERSION.Replace('VersionName','')
@@ -81,11 +117,9 @@ build:build-project:
     - $BUILD_PATH = "./build/$PROJECT_NAME-$BUILD_FULL_VERSION/"
     - mkdir "$BUILD_PATH"  
     - echo "$BUILD_PATH"
-    - echo "$BUILD_LOCATION"   
-    - echo "$DOXY_LOCATION"
+    - echo "$BUILD_LOCATION"
 
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
-    - mv "$DOXY_LOCATION/*" "./build"
 
   artifacts:
     name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
