@@ -35,7 +35,7 @@ documentation::generate-tracking-documentation:
       allow_failure: true
       
     - if: $CI_COMMIT_BRANCH
-      when: always
+      when: manual
       allow_failure: true
       
   script:
