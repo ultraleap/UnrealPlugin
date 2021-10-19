@@ -22,7 +22,7 @@ documentation::generate-tracking-documentation:
   stage: documentation
   tags:
     - unreal
-    - win10  
+    - windows  
   timeout: 30m
 
   rules:
