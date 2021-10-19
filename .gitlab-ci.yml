@@ -52,7 +52,7 @@ documentation::generate-tracking-documentation:
     - echo "$ARTIFACTS_PATH"
     - echo "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
 
-    - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH
+    - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH"
     - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
     - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
   artifacts:
