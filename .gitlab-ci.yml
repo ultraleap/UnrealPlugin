@@ -38,12 +38,7 @@ documentation::generate-tracking-documentation:
       when: manual
       allow_failure: true
  
-  before_script:
-    - if (-not (Test-Path -Path "$ARTIFACTS_PATH")) { echo "creating... $ARTIFACTS_PATH"; mkdir "$ARTIFACTS_PATH" } else { ls $ARTIFACTS_PATH }
-
-    # Cleanup
-    - if (Test-Path -Path $ARTIFACTS_PATH/xml) { Remove-Item $ARTIFACTS_PATH/xml -Recurse -Force }
-
+ 
   script:
      # Generate XML documentation using Doxygen
     - echo "Generate docs"
@@ -51,12 +46,11 @@ documentation::generate-tracking-documentation:
     # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
     - doxygen
 
-    
   after_script:
     - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
     - echo "$DOXY_LOCATION"
     - echo "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
-
+    - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
     - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
   artifacts:
     name: "Artifacts"
