@@ -35,7 +35,7 @@ documentation::generate-tracking-documentation:
       allow_failure: true
       
     - if: $CI_COMMIT_BRANCH
-      when: manual
+      when: always
       allow_failure: true
       
   script:
@@ -50,7 +50,7 @@ documentation::generate-tracking-documentation:
     - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
     - echo "$DOXY_LOCATION"
 
-    - mv "$DOXY_LOCATION/*" "./build"
+    - mv "$DOXY_LOCATION/*" "./build/xml"
   artifacts:
     name: "Artifacts"
     paths:
