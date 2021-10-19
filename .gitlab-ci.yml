@@ -11,8 +11,6 @@ variables:
   
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
-  
-  ARTIFACTS_PATH: "Artifacts"
 
   VERSIONTRUNC: "Unknown"
 stages:
@@ -50,16 +48,12 @@ documentation::generate-tracking-documentation:
   after_script:
     - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
     - echo "$DOXY_LOCATION"
-    - echo "$ARTIFACTS_PATH"
-    - echo "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
-
-    - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH"
-    - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
-    - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
+    
+    - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR"
   artifacts:
     name: "Artifacts"
     paths:
-      - "$ARTIFACTS_PATH/xml"
+      - "xml"
 
     when: always
     expire_in: never
