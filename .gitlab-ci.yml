@@ -37,7 +37,13 @@ documentation::generate-tracking-documentation:
     - if: $CI_COMMIT_BRANCH
       when: manual
       allow_failure: true
-      
+ 
+  before_script:
+    - if (-not (Test-Path -Path "$ARTIFACTS_PATH")) { echo "creating... $ARTIFACTS_PATH"; mkdir "$ARTIFACTS_PATH" } else { ls $ARTIFACTS_PATH }
+
+    # Cleanup
+    - if (Test-Path -Path $ARTIFACTS_PATH/xml) { Remove-Item $ARTIFACTS_PATH/xml -Recurse -Force }
+
   script:
      # Generate XML documentation using Doxygen
     - echo "Generate docs"
@@ -49,8 +55,9 @@ documentation::generate-tracking-documentation:
   after_script:
     - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
     - echo "$DOXY_LOCATION"
+    - echo "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
 
-    - mv "$DOXY_LOCATION/*" "./build/xml"
+    - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
   artifacts:
     name: "Artifacts"
     paths:
@@ -68,7 +75,7 @@ build:build-project:
   retry: 2
   timeout: 1h
   allow_failure: false
-  before_script:
+
   script:   
     # Get Unreal version and changeset from the project. from json
     - $UNREAL_VERSION_CONTENT = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
