@@ -49,13 +49,16 @@ documentation::generate-tracking-documentation:
   after_script:
     - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
     - echo "$DOXY_LOCATION"
+    - echo "$ARTIFACTS_PATH"
     - echo "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
+
+    - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH
     - mkdir "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
     - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR/$ARTIFACTS_PATH/xml"
   artifacts:
     name: "Artifacts"
     paths:
-      - "./build/"
+      - "$ARTIFACTS_PATH/xml"
 
     when: always
     expire_in: never
