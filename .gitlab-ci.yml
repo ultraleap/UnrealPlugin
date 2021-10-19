@@ -12,7 +12,8 @@ variables:
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
   
-  
+  ARTIFACTS_PATH: "Artifacts"
+
   VERSIONTRUNC: "Unknown"
 stages:
   - documentation
