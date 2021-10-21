@@ -1157,7 +1157,7 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 	if (IsWaitingForConnect)
 	{
 		UE_LOG(UltraleapTrackingLog, Warning,
-			TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempeted whilst async connect in progress"));
+			TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempted whilst async connect in progress"));
 	}
 	if (Leap != nullptr)
 	{
