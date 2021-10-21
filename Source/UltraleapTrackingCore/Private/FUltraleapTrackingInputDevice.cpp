@@ -106,7 +106,6 @@ void FUltraleapTrackingInputDevice::OnConnect()
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapService: OnConnect."));
 
 		IsWaitingForConnect = false;
-		
 
 		SetOptions(Options);
 
@@ -316,7 +315,7 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 
 	SwitchTrackingSource(START_IN_OPEN_XR_MODE);
 	Options.bUseOpenXRAsSource = START_IN_OPEN_XR_MODE;
-	
+
 	// Attach to bodystate
 	Config.DeviceName = "Leap Motion";
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
@@ -1157,7 +1156,8 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 {
 	if (IsWaitingForConnect)
 	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempeted whilst async connect in progress"));
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempeted whilst async connect in progress"));
 	}
 	if (Leap != nullptr)
 	{
@@ -1231,7 +1231,7 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		// Vive
 		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will
 		// pass through here (is it supposed to?)
-		if (HMDType == TEXT("SteamVR") || HMDType == TEXT("GearVR"))
+		if (HMDType == TEXT("SteamVR") || HMDType == TEXT("GearVR") || HMDType == TEXT("OpenXR"))
 		{
 			switch (InOptions.TrackingFidelity)
 			{
@@ -1400,8 +1400,6 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	EndPinchThreshold = Options.EndPinchThreshold;
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
-
-
 }
 
 FLeapOptions FUltraleapTrackingInputDevice::GetOptions()
