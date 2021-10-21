@@ -3,38 +3,39 @@ LeapUnreal
 
 [![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/leapmotion/leapunreal/releases)
 
-The official [Ultraleap](http://ultraleap.com) plugin for the Unreal Engine 4. 
+The official [Leap Motion](http://www.leapmotion.com) plugin for the Unreal Engine 4. 
 
 You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
 
-Additionally, further UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
+Additionally, further Leap UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
+
+### Problems & Questions
+Reach out at https://forums.leapmotion.com/
+
+## Multiple Devices
+
+If you want to use multiple devices at the same time, see the experimental https://github.com/leapmotion/LeapUnreal/tree/feat-multi-device branch and https://github.com/leapmotion/LeapUnreal/releases/tag/v3.4.0 release.
 
 # Setup
 
-Make sure you have [the latest Ultraleap Hand Tracking Software](https://developer.leapmotion.com/tracking-software-download) installed (this plugin requires V4 or newer)
+1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started). This plugin requires v4 SDK tracking or newer.
+2. Create new or open a project. 
+3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .zip link)
+4. Create a Plugins folder in your project root folder if one doesn't already exist
+5. Drag the unzipped **LeapUnreal** plugin into the project's Plugins folder. 
+6. The plugin should be enabled and ready to use, if not enable it.
 
-1. Open or create a new project.
-2. Download the [latest release](https://github.com/leapmotion/LeapUnreal/releases) of the LeapUnreal plugin and SDK (make sure to use the .7z link and [7-zip.org](https://www.7-zip.org/) to unzip it)
-3. Drag and drop the Ultraleap Unreal Plugin into your project root folder.
-4. The plugin should be enabled and ready to use. If not, enable it.
-5. Use our Unreal Examples for object interaction.
+#### Quick setup video, get up and running fast!
+[![Install and Go](https://img.youtube.com/vi/xe3OWIJTMuY/0.jpg)](https://youtu.be/xe3OWIJTMuY)
 
-Additional Leap modules and examples can be downloaded from LeapUnrealModules
-
-#### Quick Setup Video 
-
-Get up and running in 41 seconds!
-
-[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/afbgRiC4fVk)
-
-# How To Use It - Convenience Rigged Pawn
+# How to use it - Convenience Rigged Pawn
 
 Use one of the following methods
 
 ### Option 1. VR Mode- Example Pawn
-After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
+After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
-[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/AvnfoqIZq6k)
+[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
 
 *NB: click the gif for a higher resolution video*
 
@@ -65,8 +66,7 @@ Leap Options (see below) exposes new settings that allow the sensitivity of the 
 * Grab Timeout - the number of microseconds required to pass before an end grab is triggered, in which no values were detected above the end grab threshold during that time. 
 * Pinch Timeout - the number of microseconds required to pass before an end pinch is triggered, in which no values were detected above the end pinch threshold during that time. 
 
-# Common Examples 
-Ok great, but how do I interact with things?
+# Common Examples - Ok great but how do I interact with things?
 
 Common use cases and examples will be found here:
 
@@ -78,7 +78,7 @@ e.g. basic interaction with physics actors
 
 # Custom Blueprint & C++, the Leap Component
 
-Add a *Leap Component* to any actor of choice to access events relating to hand tracking. 
+Add a *Leap Component* to any actor of choice to access events relating to the leap motion. 
 
 ![add component](http://i.imgur.com/UOAexrc.png")
 
@@ -103,7 +103,7 @@ For blueprint you add delegate events by selecting your Leap Component and hitti
 For C++ consult how to bind [multicast delegates](https://docs.unrealengine.com/latest/INT/Programming/UnrealArchitecture/Delegates/Multicast/)
 
 #### On Connected
-Event called when the tracking service connects. Will likely be called before game begin play so some components won't receive this call. Signature: *void*
+Event called when the leap service connects. Will likely be called before game begin play so some components won't receive this call. Signature: *void*
 ```c++
 FLeapEventSignature OnLeapConnected;
 ```
@@ -155,7 +155,7 @@ FLeapHandSignature OnHandBeginTracking;
 Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/leapmotion/LeapUnreal/blob/master/Source/LeapMotion/Public/LeapMotionData.h#L243)
 ```c++
 FLeapHandSignature OnHandEndTracking;
-```  
+```
 
 #### On Left Hand Visibility Changed
 
@@ -188,7 +188,7 @@ From the component you can also access functions to retrieve the latest frame da
 Utility function to check if a left/right hand is visible and tracked at this moment
 ```c++
 void AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible);
-```  
+```
 
 #### Get Latest Frame Data
 
@@ -254,32 +254,55 @@ static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
 ## Wireless Adapter
 
-If you're using an Ultraleap Hand Tracking Camera with e.g. a Vive and a [Wireless Adapter](https://www.vive.com/us/wireless-adapter/) you need to adjust the timewarp settings via ```SetLeapOptions```. Change only the tracking Fidelity to ```Leap Wireless``` on e.g. begin play and then the plugin should correctly compensate for the increased latency from the wireless link.
+If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https://www.vive.com/us/wireless-adapter/) you need to adjust the timewarp settings via ```SetLeapOptions```. Change only the tracking Fidelity to ```Leap Wireless``` on e.g. begin play and then the plugin should correctly compensate for the increased latency from the wireless link.
 
 ![setting wireless fidelity](https://i.imgur.com/v0yOqaL.png)
 
+
+
 ## Custom Rigging
 
+### A note on Unreal's FBX import settings
+
+When importing FBX hand models, if the model imports with the skeleton separated from the mesh as below, turn on **Use T0 as Ref pose**
+
+![](https://i.imgur.com/JdynkEl.png)
+
+
+
+
+
+![](https://i.imgur.com/T6F72vX.png)
+
 Using the *Body State* system, the plugin supports basic auto-mapping of tracked data to skeletal mesh bones for 1 or 2 hands in single or multiple meshes. The auto-mapping function should work on 3,4, or 5 bones per mesh and will auto-detect this setup in your rig. This should eliminate most of the tedium of rigging hand bones and should make it easy to switch to new skeletal meshes with even different skeletal naming schemes.
+
+To get started with a newly imported model, right click on the model and choose **Create->Anim Blueprint**
+
+![](https://i.imgur.com/Nl5cx8t.png)
 
 To add auto-mapping to your own ```anim instance```, re-parent it a ```BodyStateAnimInstance```
 
 ![](https://i.imgur.com/TbZfr59.png)
 
-Once done hit compile and you should see some new class defaults.
+Once done, turn on **Detect Hand Rotation During Auto Mapping** and hit the **Auto map** button. New class defaults will now be created if bones were mapped successfully.
 
-![](https://i.imgur.com/VGRI0nw.png)
+![](https://i.imgur.com/DcQhRXX.png)
+
+Once auto mapped, compile the blueprint to see the results. After the compile you'll see a lot of values auto-filled in your ```anim preview editor``` window
+
+![](https://i.imgur.com/rRBsReU.png)
 
 
-After the compile you'll also see a lot of values auto-filled in your ```anim preview editor``` window
 
-![](https://i.imgur.com/eAD1TfI.png)
+To enable the hand animation, add an **Ultraleap Modify Mapped Bones** node to the **AnimGraph** and connect it to the output pose. This maps incoming Leap hand data to the hand skeleton at runtime.
 
-By default auto-mapping is enabled and set to your left hand, simply changing the type to right will change the targeting, hit compile to affect changes after changing type. 
+![](https://i.imgur.com/V3t3NWg.png)
 
-![](https://i.imgur.com/fYXUgPG.png)
 
-To use this auto-mapped data set you drag a single node called ```Modify Mapped Bones``` in your anim graph. It expects a blend alpha and a single parameter which takes a ```Mapped Bone Anim Data``` struct. If you mapped a single hand, you can grab the 0 index from your ```Mapped Bone List``` array and pass that in. If you have a hand that properly deforms, that is it. You're done! The tracking is live in the editor so you should be able to place your hand in front of your leap and press *F* to center on the tracked location and preview how the rigging behaves with real data.
+
+By default auto mapping is set to your left hand, simply changing the type to right will change the targeting, hit compile to affect changes after changing type. 
+
+The tracking is now live in the editor so you should be able to place your hand in front of your leap and press *F* to center on the tracked location and preview how the rigging behaves with real data.
 
 
 ### Modifying Auto-map results
@@ -288,7 +311,7 @@ To use this auto-mapped data set you drag a single node called ```Modify Mapped 
 
 If you don't have a mesh setup that deforms well you can turn that off by adding an entry to your ```Mapped Bone List``` array and unchecking *Should Deform Mesh*. Any changes done to this ```Mapped Bone Anim Data``` entry will be applied after your auto-map fills it. Check your *Anim Preview Editor* to see all the mapped bone entries and final settings.
 
-![](https://i.imgur.com/8Axysda.png)
+![](https://i.imgur.com/4sjji8b.png)
 
 If you turn off deformation, only rotations will be applied to the mapped bones. To ensure the hand is still placed at the correct location you may need to fill your *anim graph* with appropriate custom changes. In this example we modify our *L_wrist* bone to translate to our BodyState wrist position. With this node active before all of our other rotations, we can now toggle the deform mesh to see how it changes the mesh hand.
 
@@ -302,11 +325,19 @@ If the auto-mapping got some things right, but some things wrong, you can overri
 
 ![](https://i.imgur.com/joLg6SU.gif)
 
+If the auto mapping process failed to find ones in the imported skeleton, the missing bones will be listed upon clicking the **Auto Map** button.
+
 #### Saving auto-map results
 
 You can save your auto-map results to stop it from re-mapping each time an instance is spawned. To do this hit apply in your ```anim preview editor``` and untick auto-mapping. You will see that the tracking still works as the same bones now show in your ```Mapped Bone List``` but in the class defaults section.
 
 ![](https://i.imgur.com/WQSXpPN.gif)
+
+### Flipped chirality (left to right or right to left mapped models)
+
+Often a single mesh is used as the model for both hands. In this case the hand that is not the same chirality (left or right) needs to have its rendering flipped. This is done in code by setting the scale to -1 on the X-axis. To flip the chirality of the model, enable **Flip Model Left Right** in the Mapped Bone list.
+
+![](https://i.imgur.com/VH9vUDh.png)
 
 ### Two handed meshes
 
@@ -319,7 +350,11 @@ Start by changing the auto-mapping target to ```Both Hands``` which will make tw
 Since you have two entries of ```Mapped Bone Anim Data``` you should add another ```Modify Mapped Bones``` node in your anim graph so both positions and rotations are set.
 
 #### Modifying Search Parameters
-In the above example the mesh also had a different naming scheme, by changing left/right search string to ```lf_``` and ```rt_``` the auto-mapping system was able to correctly detect the bones. In that example we also replaced the wrist bone mapping because of the particularly unusual number of wrist parents used in the skeletal mesh. This was done via a single bonemap change for each hand, everything else left the same.
+When auto mapping bone names, fixed strings are used to detect which bone is which in the skeleton. These can be modified in the **Search Names** parameter which is initially populated with the most common bone names.
+
+![](https://i.imgur.com/i2ri6q3.png)
+
+ 
 
 #### Character meshes
 
@@ -337,9 +372,57 @@ While we needed to do some custom work in this instance, there was no need to ma
 
 For characters, don't forget to use the alpha value to blend out of tracked data when tracking stops and e.g. resume your idle animations.
 
-## Multiple Devices
+### Adding hands to an actor
 
-If you want to use multiple devices at the same time, see the experimental https://github.com/leapmotion/LeapUnreal/tree/feat-multi-device branch and https://github.com/leapmotion/LeapUnreal/releases/tag/v3.4.0 release.
+Once the anim blueprint is set up for each hand, the hands can be added to an Actor as Child Actor Components. See the example hands in the **HandModules/Hands** folder in the LeapMotion plugin content.
+
+![](https://i.imgur.com/RG6zsKz.png)
+
+This actor can then be dragged into the scene to use the mapped hands at runtime.
+
+# FAQ
+
+#### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
+
+This is a quirk of Unreal projects that don't have any C++ code in them (blueprint only projects). To rebuild the Leap plugin, the project must be converted to a C++ project. To convert the project:
+
+- Rename the **Plugins** folder to **Plugin** to prevent it being used on loading the project
+
+- Open your project (.uproject) file
+
+- Go to **File->Add C++ class** and add an empty C++ class to the project. It doesn't matter what it's named
+
+  ![](https://i.imgur.com/FFCM0ge.png)
+
+- Now, exit your project, rename the **Plugin** folder to **Plugins**
+
+- Right click on your project .uproject file and choose **Generate Visual Studio Project Files**
+
+- Open the generated solution (.sln) and build it
+
+- You'll now be able to open your .uproject file and edit it as normal.
+
+
+
+### How do I set up the hand meshes so that the fingers collide with other objects in the scene?
+
+Create a **Physics Asset** on the hand mesh. A guide on how to do this is at [Skeletal Mesh Actors | Unreal Engine Documentation](https://docs.unrealengine.com/4.26/en-US/Basics/Actors/SkeletalMeshActors/). See the **Collision** section for details.
+
+### How do I modify a single joint/bone that has been mapped slightly wrong?
+
+In the anim graph of your anim blueprint, drag a connection out of the **Ultraleap Modify Mapped Bones** node and add a **Transform ( Modify bone** node. Now edit the **Transform** node settings to change whichever bone you want to modify in the skeleton.
+
+![](https://i.imgur.com/fYomt8w.png)
+
+### How do I clear a bone mapping back to *none* in the details view?
+
+Go to the **Edit defaults** tab and click the yellow reset arrow next to the bone you want to reset.
+
+![](https://i.imgur.com/dIjhFEO.png)
+
+### Why don't the different hand meshes line up perfectly?
+
+This is due to differences in each imported rigged model and whether or not metacarpal joints are included/mapped.
 
 # Packaging
 
@@ -347,14 +430,10 @@ If you want to use multiple devices at the same time, see the experimental https
 
 To package project plugins you will need a C++ project. If you have a blueprint only project, simply add a C++ class to your project and then package away.
 
-Below is a link to a video from our develoepr community showing an example of packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
+Below is a link to an example video for packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
 
 [![Windows Packaging](https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg)](https://youtu.be/pRzm0M_a8uY)
 
 ## Contact
 
 Please post issues and feature requests to this [github repository issues section](https://github.com/leapmotion/LeapUnreal/issues)
-
-### Problems & Questions
-Reach out at https://forums.leapmotion.com/
-
