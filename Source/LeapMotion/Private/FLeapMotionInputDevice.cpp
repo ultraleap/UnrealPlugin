@@ -1239,7 +1239,7 @@ void FLeapMotionInputDevice::SetOptions(const FLeapOptions& InOptions)
 		//Vive
 		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will pass through here (is it supposed to?)
 		if (HMDType == TEXT("SteamVR") ||
-			HMDType == TEXT("GearVR")) ||
+			HMDType == TEXT("GearVR") ||
 			HMDType == TEXT("OpenXR"))
 		{
 			switch (InOptions.TrackingFidelity)
