@@ -3,37 +3,36 @@ LeapUnreal
 
 [![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/leapmotion/leapunreal/releases)
 
-The official [Leap Motion](http://www.leapmotion.com) plugin for the Unreal Engine 4. 
+The official [Ultraleap](http://ultraleap.com) plugin for the Unreal Engine 4. Compatible with Ultraleap Gemini V5.2 Hand Tracking Software.
 
 You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
 
-Additionally, further Leap UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
-
-### Problems & Questions
-Reach out at https://forums.leapmotion.com/
-
-## Multiple Devices
-
-If you want to use multiple devices at the same time, see the experimental https://github.com/leapmotion/LeapUnreal/tree/feat-multi-device branch and https://github.com/leapmotion/LeapUnreal/releases/tag/v3.4.0 release.
+Additionally, further UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
 
 # Setup
 
-1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started). This plugin requires v4 SDK tracking or newer.
-2. Create new or open a project. 
-3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .zip link)
-4. Create a Plugins folder in your project root folder if one doesn't already exist
-5. Drag the unzipped **LeapUnreal** plugin into the project's Plugins folder. 
-6. The plugin should be enabled and ready to use, if not enable it.
+Make sure you have [the latest Ultraleap Hand Tracking Software](https://developer.leapmotion.com/tracking-software-download) installed (this plugin requires V4 or newer)
 
-#### Quick setup video, get up and running fast!
-[![Install and Go](https://img.youtube.com/vi/xe3OWIJTMuY/0.jpg)](https://youtu.be/xe3OWIJTMuY)
+1. Open or create a new project.
+2. Download the [latest release](https://github.com/leapmotion/LeapUnreal/releases) of the LeapUnreal plugin and SDK (make sure to use the .7z link and [7-zip.org](https://www.7-zip.org/) to unzip it)
+3. Create a Plugins folder in your project root folder if one doesn't already exist.
+4. Drag the unzipped LeapUnreal plugin into the project's Plugins folder
+5. The plugin should be enabled and ready to use. If not, enable it.
+6. Use our Unreal Examples for object interaction.
+
+
+#### Quick Setup Video
+
+Watch this quick setup video to get up and running fast
+
+[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ.jpg)](https://youtu.be/afbgRiC4fVk)
 
 # How to use it - Convenience Rigged Pawn
 
 Use one of the following methods
 
 ### Option 1. VR Mode- Example Pawn
-After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the leap with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
+After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
 [![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
 
@@ -66,19 +65,21 @@ Leap Options (see below) exposes new settings that allow the sensitivity of the 
 * Grab Timeout - the number of microseconds required to pass before an end grab is triggered, in which no values were detected above the end grab threshold during that time. 
 * Pinch Timeout - the number of microseconds required to pass before an end pinch is triggered, in which no values were detected above the end pinch threshold during that time. 
 
-# Common Examples - Ok great but how do I interact with things?
+# Common Examples
+
+Ok great, but how do I interact with things?
 
 Common use cases and examples will be found here:
 
 https://github.com/leapmotion/LeapUnrealModules
 
-e.g. basic interaction with physics actors
+e.g. basic interaction with physics actors, as demonstrated in this video from our developer community
 
 [![VR pickup and drop](https://img.youtube.com/vi/dkZD1JuSSnM/0.jpg)](https://youtu.be/dkZD1JuSSnM)
 
 # Custom Blueprint & C++, the Leap Component
 
-Add a *Leap Component* to any actor of choice to access events relating to the leap motion. 
+Add a *Leap Component* to any actor of choice to access events relating to hand tracking. 
 
 ![add component](http://i.imgur.com/UOAexrc.png")
 
@@ -103,7 +104,7 @@ For blueprint you add delegate events by selecting your Leap Component and hitti
 For C++ consult how to bind [multicast delegates](https://docs.unrealengine.com/latest/INT/Programming/UnrealArchitecture/Delegates/Multicast/)
 
 #### On Connected
-Event called when the leap service connects. Will likely be called before game begin play so some components won't receive this call. Signature: *void*
+Event called when the tracking service connects. Will likely be called before game begin play so some components won't receive this call. Signature: *void*
 ```c++
 FLeapEventSignature OnLeapConnected;
 ```
@@ -254,7 +255,7 @@ static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 
 ## Wireless Adapter
 
-If you're using the Leap Motion with e.g. a Vive and a [Wireless Adapter](https://www.vive.com/us/wireless-adapter/) you need to adjust the timewarp settings via ```SetLeapOptions```. Change only the tracking Fidelity to ```Leap Wireless``` on e.g. begin play and then the plugin should correctly compensate for the increased latency from the wireless link.
+If you're using e.g. a Vive and a [Wireless Adapter](https://www.vive.com/us/wireless-adapter/) you need to adjust the timewarp settings via ```SetLeapOptions```. Change only the tracking Fidelity to ```Leap Wireless``` on e.g. begin play and then the plugin should correctly compensate for the increased latency from the wireless link.
 
 ![setting wireless fidelity](https://i.imgur.com/v0yOqaL.png)
 
@@ -302,7 +303,7 @@ To enable the hand animation, add an **Ultraleap Modify Mapped Bones** node to t
 
 By default auto mapping is set to your left hand, simply changing the type to right will change the targeting, hit compile to affect changes after changing type. 
 
-The tracking is now live in the editor so you should be able to place your hand in front of your leap and press *F* to center on the tracked location and preview how the rigging behaves with real data.
+The tracking is now live in the editor so you should be able to place your hand in front of your Ultraleap Hand Tracking Camera and press *F* to center on the tracked location and preview how the rigging behaves with real data.
 
 
 ### Modifying Auto-map results
@@ -424,16 +425,23 @@ Go to the **Edit defaults** tab and click the yellow reset arrow next to the bon
 
 This is due to differences in each imported rigged model and whether or not metacarpal joints are included/mapped.
 
+## Multiple Devices
+
+If you want to use multiple devices at the same time, see the experimental https://github.com/leapmotion/LeapUnreal/tree/feat-multi-device branch and https://github.com/leapmotion/LeapUnreal/releases/tag/v3.4.0 release.
+
 # Packaging
 
 ### Windows
 
 To package project plugins you will need a C++ project. If you have a blueprint only project, simply add a C++ class to your project and then package away.
 
-Below is a link to an example video for packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
+Below is a link to a video from our developer community showing an example of packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
 
 [![Windows Packaging](https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg)](https://youtu.be/pRzm0M_a8uY)
 
 ## Contact
 
 Please post issues and feature requests to this [github repository issues section](https://github.com/leapmotion/LeapUnreal/issues)
+
+### Problems & Questions
+Reach out at https://forums.leapmotion.com/
