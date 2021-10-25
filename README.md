@@ -15,15 +15,17 @@ Make sure you have [the latest Ultraleap Hand Tracking Software](https://develo
 
 1. Open or create a new project.
 2. Download the [latest release](https://github.com/leapmotion/LeapUnreal/releases) of the LeapUnreal plugin and SDK (make sure to use the .7z link and [7-zip.org](https://www.7-zip.org/) to unzip it)
-3. Drag and drop the Ultraleap Unreal Plugin into your project root folder.
-4. The plugin should be enabled and ready to use. If not, enable it.
-5. Use our Unreal Examples for object interaction.
+3. Create a Plugins folder in your project root folder if one doesn't already exist.
+4. Drag the unzipped LeapUnreal plugin into the project's Plugins folder
+5. The plugin should be enabled and ready to use. If not, enable it.
+6. Use our Unreal Examples for object interaction.
+
 
 #### Quick Setup Video
 
 Watch this quick setup video to get up and running fast
 
-[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ/0.jpg)](https://youtu.be/afbgRiC4fVk)
+[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ.jpg)](https://youtu.be/afbgRiC4fVk)
 
 # How to use it - Convenience Rigged Pawn
 
@@ -32,7 +34,7 @@ Use one of the following methods
 ### Option 1. VR Mode- Example Pawn
 After the plugin is enabled you can change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If you're using the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
 
-[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/AvnfoqIZq6k)
+[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/EATrySQ.gif)](https://youtu.be/qRo-2-Qe4bs)
 
 *NB: click the gif for a higher resolution video*
 
@@ -433,7 +435,7 @@ If you want to use multiple devices at the same time, see the experimental https
 
 To package project plugins you will need a C++ project. If you have a blueprint only project, simply add a C++ class to your project and then package away.
 
-Below is a link to a video from our develoepr community showing an example of packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
+Below is a link to a video from our developer community showing an example of packaging for windows. The user here had a blueprint only project and added the required C++ class to package successfully. The user also added a simple on beginplay command to ensure VR is enabled on beginplay as the default behavior is desktop for UE4.
 
 [![Windows Packaging](https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg)](https://youtu.be/pRzm0M_a8uY)
 
