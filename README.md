@@ -14,7 +14,7 @@ Additionally, further UE4 modules and examples can be found at https://github.co
 Make sure you have [the latest Ultraleap Hand Tracking Software](https://developer.leapmotion.com/tracking-software-download) installed (this plugin requires V4 or newer)
 
 1. Open or create a new project.
-2. Download the [latest release](https://github.com/leapmotion/LeapUnreal/releases) of the LeapUnreal plugin and SDK (make sure to use the .7z link and [7-zip.org](https://www.7-zip.org/) to unzip it)
+2. Download the [latest release](https://github.com/leapmotion/LeapUnreal/releases) of the LeapUnreal plugin and SDK (make sure to use the .zip link)
 3. Create a Plugins folder in your project root folder if one doesn't already exist.
 4. Drag the unzipped LeapUnreal plugin into the project's Plugins folder
 5. The plugin should be enabled and ready to use. If not, enable it.
