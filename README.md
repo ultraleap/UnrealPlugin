@@ -5,6 +5,8 @@ LeapUnreal
 
 The official [Ultraleap](http://ultraleap.com) plugin for the Unreal Engine 4. Compatible with Ultraleap Gemini V5.2 Hand Tracking Software.
 
+For information on migrating from earlier releases of the Hand Tracking Software, see the [Migration Guide](https://developer.leapmotion.com/migration-guide).
+
 You can use convenience blueprints to just select and play or use a custom approach via blueprints or C++. See relevant sections for details
 
 Additionally, further UE4 modules and examples can be found at https://github.com/leapmotion/LeapUnrealModules.
