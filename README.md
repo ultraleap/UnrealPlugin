@@ -27,7 +27,7 @@ Make sure you have [the latest Ultraleap Hand Tracking Software](https://develo
 
 Watch this quick setup video to get up and running fast
 
-[![Install and Go](https://img.youtube.com/vi/z4HIqr-5kWQ.jpg)](https://youtu.be/afbgRiC4fVk)
+[![Install and Go](https://img.youtube.com/vi/afbgRiC4fVk/0.jpg)](https://youtu.be/afbgRiC4fVk)
 
 # How to use it - Convenience Rigged Pawn
 
