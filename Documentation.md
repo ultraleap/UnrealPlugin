@@ -7,14 +7,8 @@ The official [Ultraleap Tracking]([World-leading Hand Tracking: Small. Fast. Acc
 
 Use convenience blueprints to add to the scene and play in editor or use a custom approach via blueprints or C++.
 
-Additionally, further Ultraleap Tracking for Unreal modules and examples can be found at [ultraleap/UnrealPlugin-examples (github.com)](https://github.com/ultraleap/UnrealPlugin-examples)
-
 ### Problems & Questions
 Reach out at https://forums.leapmotion.com/
-
-## Multiple Devices - TODO: do we still want to support this?
-
-If you want to use multiple devices at the same time, see the experimental https://github.com/leapmotion/LeapUnreal/tree/feat-multi-device branch and https://github.com/leapmotion/LeapUnreal/releases/tag/v3.4.0 release.
 
 # Setup
 
