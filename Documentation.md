@@ -21,20 +21,14 @@ Reach out at https://forums.leapmotion.com/
 6. The plugin should be enabled and ready to use, if not enable it.
 
 #### Quick setup video, get up and running fast!
-[![Install and Go](https://img.youtube.com/vi/YMq9xoRquyc/0.jpg)](https://youtu.be/YMq9xoRquyc)
+[![Install and Go](https://img.youtube.com/vi/AvnfoqIZq6k/0.jpg)](https://youtu.be/AvnfoqIZq6k)
 
 # How to use it - Convenience Rigged Pawn
 
 Use one of the following methods
 
 ### Option 1. VR Mode- Example Pawn
-After the plugin is enabled, change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If using the tracking device with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. 
-
-
-
-[![VR Quickstart, Click me to see higher resolution](http://i.imgur.com/vnTnCrB.gif)](https://youtu.be/YMq9xoRquyc)
-
-*NB: click the gif for a higher resolution video*
+After the plugin is enabled, change your default pawn to *LeapHandsPawn* or place it in the level with auto-posses set to player 0. If using the tracking device with the HTC Vive or Oculus Rift, it expects the pawn camera to be at the floor which is it's tracking origin. See the setup video above for steps from startup to seeing your hands in VR.
 
 ### Option 2. Desktop Mode - Example Actor
 After the plugin is enabled, find *Leap Desktop Actor* in your content browser (plugin content enabled) and place it anywhere in your scene. When you hit play your hands will be tracked from the actor center with the sensor expected to be facing upwards.
