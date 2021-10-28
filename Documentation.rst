@@ -988,6 +988,26 @@ Why don't the different hand meshes line up perfectly?
 This is due to differences in each imported rigged model and whether or
 not metacarpal joints are included/mapped.
 
+How do I make my ring finger and little/pinky finger collide with objects in the scene?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the Interaction Engine pawn has collisions turned off for
+these fingers to prevent accidentally hitting buttons/objects. To enable
+collisions the **Physics asset** for the left and right hands must be
+modified.
+
+-  Open the **IELowPloy_Rigged_Hand_Left_Physics** asset from
+   **InteractionEngine/Pawn/IELowPoly_Rigged_Hand_Left_Physics.uasset**
+   |image3|
+
+-  Ctrl/Multi-Select all the joints for the Ring and Pinky fingers
+
+   .. image:: https://i.imgur.com/7PHr0TP.png
+
+-  Set the Collision Response to **Enabled**
+
+-  Repeat for the **IELowPloy_Rigged_Hand_Right_Physics** asset
+
 Packaging
 =========
 
@@ -1019,5 +1039,6 @@ issues section <https://github.com/leapmotion/LeapUnreal/issues>`__
 .. |ensure input is received| image:: http://i.imgur.com/zWMrHxn.png
 .. |image1| image:: https://i.imgur.com/Qfrtilt.png
 .. |image2| image:: https://i.imgur.com/Op7lClc.png
+.. |image3| image:: https://i.imgur.com/VHTrYet.png
 .. |Windows Packaging| image:: https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg
    :target: https://youtu.be/pRzm0M_a8uY

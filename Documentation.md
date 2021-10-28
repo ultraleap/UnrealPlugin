@@ -575,6 +575,21 @@ Go to the **Edit defaults** tab and click the yellow reset arrow next to the bon
 
 This is due to differences in each imported rigged model and whether or not metacarpal joints are included/mapped.
 
+### How do I make my ring finger and little/pinky finger collide with objects in the scene?
+
+By default, the Interaction Engine pawn has collisions turned off for these fingers to prevent accidentally hitting buttons/objects. To enable collisions the **Physics asset** for the left and right hands must be modified.
+
+- Open the **IELowPloy_Rigged_Hand_Left_Physics** asset from **InteractionEngine/Pawn/IELowPoly_Rigged_Hand_Left_Physics.uasset**
+  ![](https://i.imgur.com/VHTrYet.png)
+
+- Ctrl/Multi-Select all the joints for the Ring and Pinky fingers
+
+  ![](https://i.imgur.com/7PHr0TP.png)
+
+- Set the Collision Response to **Enabled** 
+
+- Repeat for the **IELowPloy_Rigged_Hand_Right_Physics** asset
+
 # Packaging
 
 ### Windows
