@@ -7,7 +7,7 @@ The official [Ultraleap Tracking]([World-leading Hand Tracking: Small. Fast. Acc
 
 Use convenience blueprints to add to the scene and play in editor or use a custom approach via blueprints or C++.
 
-Additionally, further Ultraleap Tracking for Unreal modules and examples can be found at [ultraleap/uhi-unreal-tracking-examples (github.com)](https://github.com/ultraleap/uhi-unreal-tracking-examples)
+Additionally, further Ultraleap Tracking for Unreal modules and examples can be found at [ultraleap/UnrealPlugin-examples (github.com)](https://github.com/ultraleap/UnrealPlugin-examples)
 
 ### Problems & Questions
 Reach out at https://forums.leapmotion.com/
@@ -78,7 +78,7 @@ Common use cases and examples will be found here:
 
 TODO: on pushing to github this needs updating
 
-[ultraleap/uhi-unreal-tracking-examples (github.com)](https://github.com/ultraleap/uhi-unreal-tracking-examples)
+[ultraleap/UnrealPlugin-examples (github.com)](https://github.com/ultraleap/UnrealPlugin-examples)
 
 e.g. basic interaction with physics actors
 
@@ -120,7 +120,7 @@ FLeapEventSignature OnLeapConnected;
 
 Event called when new tracking data is available, typically every game tick. Note that tracking data has the same origin as your hmd to properly compensate for head movement. Signature: ```const FLeapFrameData&, Frame```.
 
-[FLeapFrameData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L356)
+[FLeapFrameData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L356)
 
 ```c++
 FLeapFrameSignature OnLeapTrackingData;
@@ -128,42 +128,42 @@ FLeapFrameSignature OnLeapTrackingData;
 
 #### On Hand Grabbed
 
-Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
+Event called when a leap hand grab gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandGrabbed;
 ```
 
 #### On Hand Released
 
-Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see  [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
+Event called when a leap hand release gesture is detected. Signature: ```const FLeapHandData&, Hand```, see  [FLeapHandData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandReleased;
 ```
 
 #### On Hand Pinched
 
-Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
+Event called when a leap hand pinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandPinched;
 ```
 
 #### On Hand Unpinched
 
-Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
+Event called when a leap hand unpinch gesture is detected. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandUnpinched;
 ```
 
 #### On Hand Begin Tracking
 
-Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
+Event called when a leap hand enters the field of view and begins tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandBeginTracking;
 ```
 
 #### On Hand End Tracking
 
-Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
+Event called when a leap hand exits the field of view and stops tracking. Signature: ```const FLeapHandData&, Hand```, see [FLeapHandData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L289)
 ```c++
 FLeapHandSignature OnHandEndTracking;
 ```
@@ -184,7 +184,7 @@ FLeapVisibilityBoolSignature OnRightHandVisibilityChanged;
 
 #### On Leap Policies Updated
 
-Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L39)
+Event called when leap policies have changed. Signature: an array of policy flags defined as ```TArray<TEnumAsByte<ELeapPolicyFlag>>```. See [ELeapPolicyFlag](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L39)
 
 ```c++
 FLeapPolicySignature OnLeapPoliciesUpdated;
@@ -192,7 +192,7 @@ FLeapPolicySignature OnLeapPoliciesUpdated;
 
 #### On Leap Tracking Mode Updated
 
-Event called when the tracking mode has changed. Signature: an enum for the current tracking mode. See [ELeapMode](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L14)
+Event called when the tracking mode has changed. Signature: an enum for the current tracking mode. See [ELeapMode](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L14)
 
 ```c++
 FLeapTrackingModeSignature OnLeapTrackingModeUpdated;
@@ -213,7 +213,7 @@ void AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible);
 
 #### Get Latest Frame Data
 
-Polling function to get latest data. See [FLeapFrameData](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L356).
+Polling function to get latest data. See [FLeapFrameData](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L356).
 ```c++
 void GetLatestFrameData(FLeapFrameData& OutData);
 ```
@@ -236,14 +236,14 @@ Note that these blueprint nodes are global and available everywhere; a good plac
 
 #### Set Leap Mode
 
-Set basic global leap tracking options. Useful for switching tracking fidelity or desktop/vr tracking mode. See [ELeapMode](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L13) and [ELeapTrackingFidelity](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L30)
+Set basic global leap tracking options. Useful for switching tracking fidelity or desktop/vr tracking mode. See [ELeapMode](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L13) and [ELeapTrackingFidelity](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L30)
 ```c++
 static void SetLeapMode(ELeapMode Mode, ELeapTrackingFidelity Fidelity = ELeapTrackingFidelity::LEAP_NORMAL);
 ```
 
 #### Set Leap Options
 
-Set global leap options. See [FLeapOptions](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L122).
+Set global leap options. See [FLeapOptions](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L122).
 ```c++
 static void SetLeapOptions(const FLeapOptions& Options);
 ```
@@ -251,7 +251,7 @@ If tracking fidelity is set to custom, passed in ```TimewarpOffset```, ```Timewa
 
 #### Get Leap Options
 
-Gets currently set global options. See [FLeapOptions](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L122)
+Gets currently set global options. See [FLeapOptions](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L122)
 
 ```c++
 static void GetLeapOptions(FLeapOptions& OutOptions);
@@ -259,7 +259,7 @@ static void GetLeapOptions(FLeapOptions& OutOptions);
 
 #### Get Leap Stats
 
-Gets Leap read only stats such as api version, frame lookup and device information. See [FLeapStats](https://github.com/ultraleap/uhi-unreal-tracking/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L105)
+Gets Leap read only stats such as api version, frame lookup and device information. See [FLeapStats](https://github.com/ultraleap/UnrealPlugin/blob/master/Source/UltraleapTrackingCore/Public/UltraleapTrackingData.h#L105)
 
 ```c++
 static void GetLeapStats(FLeapStats& OutStats);
@@ -429,7 +429,7 @@ NOTE: it's important to use **Pressed** events rather than *Clicked* events as t
 
 The Interaction Engine allows users to work with your application by interacting with *physical* or *pseudo-physical* objects. Whether a baseball, a [block](https://www.youtube.com/watch?v=oZ_53T2jBGg&t=1m11s), a virtual trackball, a button on an interface panel, or a hologram with more complex affordances, if there are objects in your application you need your user to be able to **hover** near, **touch**, or **grasp** in some way, the Interaction Engine can do some or all of that work for you.
 
-You can find the Interaction Engine in the UltraleapTracking plugin at [ultraleap/uhi-unreal-tracking (github.com)](https://github.com/ultraleap/uhi-unreal-tracking)
+You can find the Interaction Engine in the UltraleapTracking plugin at [ultraleap/UnrealPlugin (github.com)](https://github.com/ultraleap/UnrealPlugin)
 
 For a quick look at what the Interaction Engine can do, we recommend adding the UltraleapTracking plugin to your project and checking out the included example scenes documented further down below. For an in-depth review of features in the Interaction Engine, keep reading.
 
@@ -455,7 +455,7 @@ The first example in the Interaction Engine package showcases the default behavi
 
 If you haven't already, add the UltraleapTrackingPlugin to your project:
 
-- Download the latest UltraleapTrackingPlugin from [ultraleap/uhi-unreal-tracking (github.com)](https://github.com/ultraleap/uhi-unreal-tracking)
+- Download the latest UltraleapTrackingPlugin from [ultraleap/UnrealPlugin (github.com)](https://github.com/ultraleap/UnrealPlugin)
 - Copy the plugin to the Plugins folder beneath your Unreal Project (create a Plugins folder if it doesn't already exist)
 - Open your project and make sure 'Show Plugin Content' is enabled in the view options of your Content Browser.
 
