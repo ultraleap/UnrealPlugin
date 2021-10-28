@@ -1008,6 +1008,12 @@ modified.
 
 -  Repeat for the **IELowPloy_Rigged_Hand_Right_Physics** asset
 
+In addition, if you want to enable the smaller fingers so that they can
+push buttons, edit the **IEButtonGrabComponent** **Disabled Bones** list
+and remove **Pinky** and **Ring**.
+
+.. image:: https://i.imgur.com/8ADdDKn.png
+
 Packaging
 =========
 
