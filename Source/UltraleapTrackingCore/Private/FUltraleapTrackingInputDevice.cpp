@@ -1292,7 +1292,8 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 			// Apply default options to zero offsets/rotations
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
 			{
-				FVector OculusOffset = FVector(8.0, 0, 0);
+				// in mm
+				FVector OculusOffset = FVector(80.0, 0, 0);
 				Options.HMDPositionOffset = OculusOffset;
 			}
 			if (InOptions.HMDRotationOffset.IsNearlyZero())
@@ -1347,7 +1348,8 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		{
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
 			{
-				FVector DayDreamOffset = FVector(8.0, 0, 0);
+				// in mm
+				FVector DayDreamOffset = FVector(80.0, 0, 0);
 				Options.HMDPositionOffset = DayDreamOffset;
 			}
 

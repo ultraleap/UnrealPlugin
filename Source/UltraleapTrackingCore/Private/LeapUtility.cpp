@@ -13,13 +13,12 @@ DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 #define LEAP_TO_UE_SCALE 0.1f
 #define UE_TO_LEAP_SCALE 10.f
 
-// Defaults - NB: these don't get automatically set in a development context since 4.20
-FVector FLeapUtility::LeapMountTranslationOffset = FVector(8.f, 0, 0);
+// in mm
+FVector FLeapUtility::LeapMountTranslationOffset = FVector(80.f, 0, 0);
 FQuat FLeapUtility::LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
 
 FQuat FLeapUtility::FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
 FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
-
 
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()

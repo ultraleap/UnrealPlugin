@@ -59,16 +59,14 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 
 		if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT)
 		{
-			
 			LeftHandVisible = true;
 		}
 		else if (Hands[i].HandType == EHandType::LEAP_HAND_RIGHT)
 		{
 			RightHandVisible = true;
-			
 		}
 	}
-	
+
 	FrameId = frame->tracking_frame_id;
 }
 
@@ -295,7 +293,7 @@ void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)
 	Direction = FLeapUtility::ConvertLeapVectorToFVector(palm->direction);
 
 	Normal = FLeapUtility::ConvertLeapVectorToFVector(palm->normal);
-	
+
 	Orientation = FLeapUtility::ConvertLeapQuatToFQuat(palm->orientation).Rotator();
 
 	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->position);
@@ -344,8 +342,9 @@ FLeapOptions::FLeapOptions()
 	TimewarpFactor = 1.f;
 	HandInterpFactor = 0.f;
 	FingerInterpFactor = 0.f;
-	HMDPositionOffset = FVector(9.0, 0, 0);	   // Vive default, for oculus use 8,0,0
-	HMDRotationOffset = FRotator(0, 0, 0);	   // If imperfectly mounted it might need to sag
+	// in mm
+	HMDPositionOffset = FVector(90.0, 0, 0);	// Vive default, for oculus use 80,0,0
+	HMDRotationOffset = FRotator(0, 0, 0);		// If imperfectly mounted it might need to sag
 	bUseFrameBasedGestureDetection = false;
 	StartGrabThreshold = .8f;
 	EndGrabThreshold = .5f;
