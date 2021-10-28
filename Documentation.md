@@ -70,19 +70,7 @@ Leap Options (see below) exposes new settings that allow the sensitivity of the 
 * Start Pinch Threshold - specifies the minimum grab value that needs to be detected before a pinch gesture is started.
 * End Pinch Threshold - specifies the minimum grab value that needs to be detected before a pinch gesture is stopped.
 * Grab Timeout - the number of microseconds required to pass before an end grab is triggered, in which no values were detected above the end grab threshold during that time. 
-* Pinch Timeout - the number of microseconds required to pass before an end pinch is triggered, in which no values were detected above the end pinch threshold during that time. 
-
-# Common Examples - Ok great but how do I interact with things?
-
-Common use cases and examples will be found here:
-
-TODO: on pushing to github this needs updating
-
-[ultraleap/UnrealPlugin-examples (github.com)](https://github.com/ultraleap/UnrealPlugin-examples)
-
-e.g. basic interaction with physics actors
-
-[![VR pickup and drop](https://img.youtube.com/vi/dkZD1JuSSnM/0.jpg)](https://youtu.be/dkZD1JuSSnM)
+* Pinch Timeout - the number of microseconds required to pass before an end pinch is triggered, in which no values were detected above the end pinch threshold during that time.
 
 # Custom Blueprint & C++, the Leap Component
 
