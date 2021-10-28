@@ -1231,7 +1231,7 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		// Vive
 		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will
 		// pass through here (is it supposed to?)
-		if (HMDType == TEXT("SteamVR") || HMDType == TEXT("GearVR") || HMDType == TEXT("OpenXR"))
+		if (HMDType == TEXT("SteamVR") || HMDType == TEXT("GearVR"))
 		{
 			switch (InOptions.TrackingFidelity)
 			{
@@ -1287,7 +1287,7 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		}
 
 		// Rift, note requires negative timewarp!
-		else if (HMDType == TEXT("OculusHMD"))
+		else if (HMDType == TEXT("OculusHMD") || HMDType == TEXT("OpenXR"))
 		{
 			// Apply default options to zero offsets/rotations
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
