@@ -51,4 +51,8 @@ class ULTRALEAPTRACKING_API UUltraleapIEFunctionLibrary : public UBlueprintFunct
 	/** Helper, initialise a physics constraint (needed as not all params are blueprint writeable) */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Interaction Engine")
 	static void InitPhysicsConstraint(UPhysicsConstraintComponent* PhysicsConstraintComponent);
+
+	/** Simulate keyboard input from blueprint */
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Interaction Engine")
+	static bool SimulateKeyPress(const UGameInstance* GameInstance, const FString& Key);
 };

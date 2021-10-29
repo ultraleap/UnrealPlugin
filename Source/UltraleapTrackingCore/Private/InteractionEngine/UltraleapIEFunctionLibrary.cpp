@@ -2,6 +2,8 @@
 
 #include "UltraleapIEFunctionLibrary.h"
 
+#include "Engine/World.h"
+
 TArray<USkeletalBodySetup*> UUltraleapIEFunctionLibrary::GetSkeletalBodySetups(UPhysicsAsset* PhysicsAsset)
 {
 	return PhysicsAsset->SkeletalBodySetups;
@@ -76,4 +78,20 @@ void UUltraleapIEFunctionLibrary::InitPhysicsConstraint(UPhysicsConstraintCompon
 
 	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.bSoftConstraint = true;
 	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.ContactDistance = 100.0f;
+}
+bool UUltraleapIEFunctionLibrary::SimulateKeyPress(const UGameInstance* GameInstance, const FString& Key)
+{
+	if (!GameInstance)
+	{
+		return false;
+	}
+
+	UGameViewportClient* ViewportClient = GameInstance->GetGameViewportClient();
+	FViewport* Viewport = ViewportClient->Viewport;
+
+	int32 ControllerId = 0;			  // or whatever controller id, could be a function param
+	FName PressedKey = FName(Key);	  // or whatever key, could be a function param
+	FInputKeyEventArgs Args = FInputKeyEventArgs(Viewport, ControllerId, FKey(PressedKey), EInputEvent::IE_Pressed);
+
+	return ViewportClient->InputKey(Args);
 }
