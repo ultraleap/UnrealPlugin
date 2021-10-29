@@ -79,7 +79,8 @@ void UUltraleapIEFunctionLibrary::InitPhysicsConstraint(UPhysicsConstraintCompon
 	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.bSoftConstraint = true;
 	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.ContactDistance = 100.0f;
 }
-bool UUltraleapIEFunctionLibrary::SimulateKeyPress(const UGameInstance* GameInstance, const FString& Key)
+#if 0
+bool UUltraleapIEFunctionLibrary::SimulateKeyPress(const UGameInstance* GameInstance, const FString& Key, const EInputEvent EventType)
 {
 	if (!GameInstance)
 	{
@@ -87,11 +88,36 @@ bool UUltraleapIEFunctionLibrary::SimulateKeyPress(const UGameInstance* GameInst
 	}
 
 	UGameViewportClient* ViewportClient = GameInstance->GetGameViewportClient();
+
+	if (!ViewportClient)
+	{
+		return false;
+	}
+
 	FViewport* Viewport = ViewportClient->Viewport;
+	if (!Viewport)
+	{
+		return false;
+	}
+
 
 	int32 ControllerId = 0;			  // or whatever controller id, could be a function param
-	FName PressedKey = FName(Key);	  // or whatever key, could be a function param
-	FInputKeyEventArgs Args = FInputKeyEventArgs(Viewport, ControllerId, FKey(PressedKey), EInputEvent::IE_Pressed);
+	FName PressedKey = FName(Key.ToUpper());	  // or whatever key, could be a function param
+	FInputKeyEventArgs Args = FInputKeyEventArgs(Viewport, ControllerId, FKey(PressedKey), EventType);
 
 	return ViewportClient->InputKey(Args);
+}
+#endif
+bool UUltraleapIEFunctionLibrary::SimulateKeyPress(
+	APlayerController* PlayerController, const FString& Key, const EInputEvent EventType)
+{
+	if (!PlayerController)
+	{
+		return false;
+	}
+
+	FKey KeyIn(*Key);
+	// FInputKeyEventArgs Args = FInputKeyEventArgs(Viewport, ControllerId, FKey(PressedKey), EventType);
+	// InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad);
+	return PlayerController->InputKey(KeyIn, EventType, 1.0, false);
 }
