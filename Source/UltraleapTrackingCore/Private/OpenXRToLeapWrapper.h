@@ -50,7 +50,7 @@ private:
 	LEAP_DEVICE_INFO DummyDeviceInfo;
 
 	LEAP_QUATERNION ConvertOrientationToLeap(const FQuat& FromOpenXR);
-	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions, const TArray<FQuat>& Rotations);
+	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const TArray<FVector>& Positions, const TArray<FQuat>& Rotations);
 	int64_t GetDummyLeapTime();
 
 	ELeapQuatSwizzleAxisB SwizzleX = ELeapQuatSwizzleAxisB::MinusY;

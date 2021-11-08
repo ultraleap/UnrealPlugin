@@ -120,9 +120,7 @@ LEAP_VECTOR ConvertFVectorToLeapVector(const FVector& UEVector)
 	return Ret;
 }
 
-// FOccluderVertexArray is really an array of vectors, don't know why this type was used in UE
-void FOpenXRToLeapWrapper::ConvertToLeapSpace(
-	LEAP_HAND& LeapHand, const FOccluderVertexArray& Positions, const TArray<FQuat>& Rotations)
+void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const TArray<FVector>& Positions, const TArray<FQuat>& Rotations)
 {
 	if (!XRTrackingSystem)
 	{
@@ -324,7 +322,7 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	{
 		return &DummyLeapFrame;
 	}
-	FOccluderVertexArray OutPositions[2];
+	TArray<FVector> OutPositions[2];
 	TArray<FQuat> OutRotations[2];
 	TArray<float> OutRadii[2];
 
