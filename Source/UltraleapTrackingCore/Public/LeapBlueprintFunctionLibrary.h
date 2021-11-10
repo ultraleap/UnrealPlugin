@@ -46,6 +46,11 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	/** For debugging purposes only */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
 	static void SetDebugRotation(const FRotator& Rotator);
+
+	/** Angle between vectors - Equivalent of Unity's Vector3.Angle*/
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
+	static float AngleBetweenVectors(const FVector& A, const FVector& B);
+
 	// Debug functions, remove completely when no longer needed
 	static void ShutdownLeap();
 
