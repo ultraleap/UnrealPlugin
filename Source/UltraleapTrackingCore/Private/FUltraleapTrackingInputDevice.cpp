@@ -1130,6 +1130,8 @@ void FUltraleapTrackingInputDevice::SetBSThumbFromLeapThumb(UBodyStateFinger* Fi
 
 	Finger->Distal->SetPosition(LeapDigit.Distal.PrevJoint);
 	Finger->Distal->SetOrientation(LeapDigit.Distal.Rotation);
+
+	Finger->bIsExtended = LeapDigit.IsExtended;
 }
 
 void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHandData& LeapHand)
