@@ -498,6 +498,13 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 		}
 	}
 
+	int Count = 0;
+	for (auto OtherFinger : Other->LeftArm()->Hand->Fingers)
+	{
+		auto ThisFinger = LeftArm()->Hand->Fingers[Count++];
+
+		ThisFinger->bIsExtended = OtherFinger->bIsExtended;
+	}
 	// merge tags, add unique tags of other skeleton
 	for (FString& Tag : Other->TrackingTags)
 	{
