@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
@@ -27,7 +27,8 @@ public:
 	virtual void GetAttachedDevices(TArray<FString>& Devices) override;
 
 	virtual void ShutdownLeap() override;
-
+	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override;
+	
 	bool IsActive();
 
 private:

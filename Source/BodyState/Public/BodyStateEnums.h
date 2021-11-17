@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
@@ -20,19 +20,19 @@ enum class EBodyStateAutoRigType : uint8
 	BOTH_HANDS
 };
 
-//Standard skeleton, Similar to UE - Good Baseline for now
+// Standard skeleton, Similar to UE - Good Baseline for now
 UENUM(BlueprintType, Category = "BS Enums")
 enum class EBodyStateBasicBoneType : uint8
 {
 	BONE_ROOT,
-	
-	//Body
+
+	// Body
 	BONE_PELVIS,
 	BONE_SPINE_1,
 	BONE_SPINE_2,
 	BONE_SPINE_3,
 
-	//Left Arm
+	// Left Arm
 	BONE_CLAVICLE_L,
 	BONE_UPPERARM_L,
 	BONE_LOWERARM_L,
@@ -59,7 +59,7 @@ enum class EBodyStateBasicBoneType : uint8
 	BONE_LOWERARM_TWIST_1_L,
 	BONE_UPPERARM_TWIST_1_L,
 
-	//Right Arm
+	// Right Arm
 	BONE_CLAVICLE_R,
 	BONE_UPPERARM_R,
 	BONE_LOWERARM_R,
@@ -86,11 +86,11 @@ enum class EBodyStateBasicBoneType : uint8
 	BONE_LOWERARM_TWIST_1_R,
 	BONE_UPPERARM_TWIST_1_R,
 
-	//Head
+	// Head
 	BONE_NECK_1,
 	BONE_HEAD,
 
-	//Left Foot
+	// Left Foot
 	BONE_THIGH_L,
 	BONE_CALF_L,
 	BONE_CALF_TWIST_1_L,
@@ -98,7 +98,7 @@ enum class EBodyStateBasicBoneType : uint8
 	BONE_BALL_L,
 	BONE_THIGH_TWIST_1_L,
 
-	//Right Foot
+	// Right Foot
 	BONE_THIGH_R,
 	BONE_CALF_R,
 	BONE_CALF_TWIST_1_R,
@@ -106,8 +106,8 @@ enum class EBodyStateBasicBoneType : uint8
 	BONE_BALL_R,
 	BONE_THIGH_TWIST_1_R,
 
-	//IK types ignored
+	// IK types ignored
 
-	//Final Entry for bone count/enumeration testing, never place an entry after this one
+	// Final Entry for bone count/enumeration testing, never place an entry after this one
 	BONES_COUNT
 };

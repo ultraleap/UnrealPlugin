@@ -1,10 +1,9 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
-#include "BodyStateInputInterface.h"
 #include "BodyStateDeviceConfig.h"
-
+#include "BodyStateInputInterface.h"
 
 class FBodyStateHMDDevice : public IBodyStateInputRawInterface
 {

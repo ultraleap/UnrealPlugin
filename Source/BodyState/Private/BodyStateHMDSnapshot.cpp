@@ -1,17 +1,17 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "BodyStateHMDSnapshot.h"
-#include "BodyStateUtility.h"
-#include "IXRTrackingSystem.h"
-#include "Engine/Engine.h"
 
+#include "BodyStateUtility.h"
+#include "Engine/Engine.h"
+#include "IXRTrackingSystem.h"
 
 void BSHMDSnapshotHandler::AddCurrentHMDSample(double CustomTimeStamp)
 {
-	//Grab current sample
+	// Grab current sample
 	Samples[CurrentIndex] = CurrentHMDSample(CustomTimeStamp);
 
-	//Circular tracker - slot it in correctly
+	// Circular tracker - slot it in correctly
 	CurrentIndex++;
 	if (CurrentIndex >= MAX_HMD_SNAPSHOT_COUNT)
 	{
@@ -42,14 +42,11 @@ FTransform BodyStateHMDSnapshot::Transform()
 	return FTransform(Orientation, Position, FVector(1.f));
 }
 
-
 BodyStateHMDSnapshot BodyStateHMDSnapshot::InterpolateWithOtherAtTimeStamp(BodyStateHMDSnapshot& Other, double DesiredTimeStamp)
 {
-	//Is the timestamp between these two samples?
-	if ( (Timestamp <= DesiredTimeStamp &&
-		  DesiredTimeStamp <= Other.Timestamp) ||
-		 (Other.Timestamp <= DesiredTimeStamp &&
-		  DesiredTimeStamp <= Timestamp) )
+	// Is the timestamp between these two samples?
+	if ((Timestamp <= DesiredTimeStamp && DesiredTimeStamp <= Other.Timestamp) ||
+		(Other.Timestamp <= DesiredTimeStamp && DesiredTimeStamp <= Timestamp))
 	{
 		BodyStateHMDSnapshot result;
 
@@ -57,22 +54,23 @@ BodyStateHMDSnapshot BodyStateHMDSnapshot::InterpolateWithOtherAtTimeStamp(BodyS
 		float FactorThis = FMath::Abs(DesiredTimeStamp - Timestamp) / range;
 		float FactorOther = FMath::Abs(DesiredTimeStamp - Other.Timestamp) / range;
 
-		result.Position = Position*FactorThis + Other.Position*FactorOther;
+		result.Position = Position * FactorThis + Other.Position * FactorOther;
 		result.Orientation = FQuat::Slerp(Orientation, Other.Orientation, FactorThis);
 		result.Timestamp = DesiredTimeStamp;
 		return result;
 	}
 	else
 	{
-		UE_LOG(BodyStateLog, Warning, TEXT("Invalid Lerp Timestamp, this: %1.0f other: %1.0f desired: %1.0f diff: %1.0f"), Timestamp, Other.Timestamp, DesiredTimeStamp, Timestamp-Other.Timestamp);
-		//return self
+		UE_LOG(BodyStateLog, Warning, TEXT("Invalid Lerp Timestamp, this: %1.0f other: %1.0f desired: %1.0f diff: %1.0f"),
+			Timestamp, Other.Timestamp, DesiredTimeStamp, Timestamp - Other.Timestamp);
+		// return self
 		return *this;
 	}
 }
 
 BodyStateHMDSnapshot BodyStateHMDSnapshot::operator*(float Mult)
 {
-	//Orientation.Slerp(Orientation, )
+	// Orientation.Slerp(Orientation, )
 	return BodyStateHMDSnapshot(Timestamp, Position * Mult, Orientation * Mult);
 }
 
@@ -102,7 +100,6 @@ BodyStateHMDSnapshot BSHMDSnapshotHandler::CurrentHMDSample(double CustomTimeSta
 	return Snapshot;
 }
 
-
 BodyStateHMDSnapshot BSHMDSnapshotHandler::LastHMDSample()
 {
 	return Samples[CurrentIndex];
@@ -111,16 +108,16 @@ BodyStateHMDSnapshot BSHMDSnapshotHandler::LastHMDSample()
 BodyStateHMDSnapshot BSHMDSnapshotHandler::HMDSampleClosestToTimestamp(double PassedTimestamp)
 {
 	double MinDifference = DBL_MAX;
-	int32 MinIndex = 0;	//always have a valid index in case something goes wrong
+	int32 MinIndex = 0;	   // always have a valid index in case something goes wrong
 
-	//UE_LOG(LeapPluginLog, Log, TEXT("Time warp Debug - Now: %d"), Timestamp);
+	// UE_LOG(LeapPluginLog, Log, TEXT("Time warp Debug - Now: %d"), Timestamp);
 
 	for (int32 i = 0; i < MAX_HMD_SNAPSHOT_COUNT; i++)
 	{
 		BodyStateHMDSnapshot& Snapshot = Samples[i];
 		int32 Difference = FMath::Abs(Snapshot.Timestamp - PassedTimestamp);
 
-		//UE_LOG(LeapPluginLog, Log, TEXT("Time warp Debug - Snapshot: %d, Difference: %d"), Snapshot.Timestamp, Difference);
+		// UE_LOG(LeapPluginLog, Log, TEXT("Time warp Debug - Snapshot: %d, Difference: %d"), Snapshot.Timestamp, Difference);
 
 		if (Difference < MinDifference)
 		{
@@ -129,13 +126,13 @@ BodyStateHMDSnapshot BSHMDSnapshotHandler::HMDSampleClosestToTimestamp(double Pa
 		}
 	}
 
-	//Not a perfect match? lerp the sample
+	// Not a perfect match? lerp the sample
 	if (MinDifference > 0)
 	{
 		BodyStateHMDSnapshot& FoundSample = Samples[MinIndex];
 		int InterpIndex = MinIndex;
 
-		//Did we find an older timer stamp? use a future timestamp to interpolate
+		// Did we find an older timer stamp? use a future timestamp to interpolate
 		if (FoundSample.Timestamp < PassedTimestamp)
 		{
 			InterpIndex = MinIndex + 1;
@@ -145,7 +142,7 @@ BodyStateHMDSnapshot BSHMDSnapshotHandler::HMDSampleClosestToTimestamp(double Pa
 			InterpIndex = MinIndex - 1;
 		}
 
-		//Sanity check for the index
+		// Sanity check for the index
 		if (InterpIndex < 0)
 		{
 			InterpIndex = MAX_HMD_SNAPSHOT_COUNT - 1;
@@ -158,6 +155,7 @@ BodyStateHMDSnapshot BSHMDSnapshotHandler::HMDSampleClosestToTimestamp(double Pa
 		return InterpSample;
 	}
 
-	//UE_LOG(LogTemp, Log, TEXT("Time warp Debug - MinSnapshot: %d, MinDifference: %d"), Samples[MinIndex].Timestamp, MinDifference);
+	// UE_LOG(LogTemp, Log, TEXT("Time warp Debug - MinSnapshot: %d, MinDifference: %d"), Samples[MinIndex].Timestamp,
+	// MinDifference);
 	return Samples[MinIndex];
 }

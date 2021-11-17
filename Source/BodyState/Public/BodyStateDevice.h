@@ -1,9 +1,10 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
 #include "BodyStateDeviceConfig.h"
 #include "BodyStateInputInterface.h"
+
 #include "BodyStateDevice.generated.h"
 
 USTRUCT(BlueprintType)
@@ -18,7 +19,7 @@ struct BODYSTATE_API FBodyStateDevice
 	FBodyStateDeviceConfig Config;
 
 	UPROPERTY()
-	class UBodyStateSkeleton* Skeleton;
+	class UBodyStateSkeleton* Skeleton = nullptr;
 
 	IBodyStateInputRawInterface* InputCallbackDelegate;
 };

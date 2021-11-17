@@ -1,9 +1,10 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
-#include "UltraleapTrackingData.h"
 #include "Components/ActorComponent.h"
+#include "UltraleapTrackingData.h"
+#include "LeapWrapper.h"
 #include "LeapComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
@@ -17,11 +18,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapTrackingModeSignature, ELeapMod
 
 UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
+
 class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:
-
 	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceAttached;
@@ -74,7 +75,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapImageEventSignature OnImageEvent;
 
-	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive this call.*/
+	/** Event called when the leap service connects. Will likely be called before game begin play so some component won't receive
+	 * this call.*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapEventSignature OnLeapServiceConnected;
 
@@ -86,12 +88,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Properties")
 	TEnumAsByte<ELeapMode> TrackingMode;
 
-
 	/** Event called when leap policies have changed */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapTrackingModeSignature OnLeapTrackingModeUpdated;
 
-	//By default in vr mode the first/primary device has this set to true
+	// By default in vr mode the first/primary device has this set to true
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Properties")
 	bool bAddHmdOrigin;
 
@@ -109,8 +110,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void GetLatestFrameData(FLeapFrameData& OutData);
 
-protected:
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 
+protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 };
