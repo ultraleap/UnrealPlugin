@@ -497,7 +497,25 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 			Bone->Meta = OtherBone->Meta;
 		}
 	}
+	// we only want to copy the states if it's the tracking device
+	// otherwise the skeleton merge of the HMD parsed skeleton will overwrite them
+	if (Other->Name != "HMD")
+	{
+		int Count = 0;
+		for (auto OtherFinger : Other->LeftArm()->Hand->Fingers)
+		{
+			auto ThisFinger = LeftArm()->Hand->Fingers[Count++];
 
+			ThisFinger->bIsExtended = OtherFinger->bIsExtended;
+		}
+		Count = 0;
+		for (auto OtherFinger : Other->RightArm()->Hand->Fingers)
+		{
+			auto ThisFinger = RightArm()->Hand->Fingers[Count++];
+
+			ThisFinger->bIsExtended = OtherFinger->bIsExtended;
+		}
+	}
 	// merge tags, add unique tags of other skeleton
 	for (FString& Tag : Other->TrackingTags)
 	{

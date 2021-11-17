@@ -3,9 +3,9 @@
 #pragma once
 
 #include "LeapBlueprintFunctionLibrary.h"
-#include "Misc/ConfigCacheIni.h"
-#include "IUltraleapTrackingPlugin.h"
 
+#include "IUltraleapTrackingPlugin.h"
+#include "Misc/ConfigCacheIni.h"
 
 FRotator ULeapBlueprintFunctionLibrary::DebugRotator;
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer) : Super(Initializer)
@@ -62,4 +62,10 @@ void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 void ULeapBlueprintFunctionLibrary::SetDebugRotation(const FRotator& Rotator)
 {
 	DebugRotator = Rotator;
+}
+float ULeapBlueprintFunctionLibrary::AngleBetweenVectors(const FVector& A, const FVector& B)
+{
+	float AngleCosine = FVector::DotProduct(A, B) / (A.Size() * B.Size());
+	float AngleRadians = FMath::Acos(AngleCosine);
+	return FMath::RadiansToDegrees(AngleRadians);
 }
