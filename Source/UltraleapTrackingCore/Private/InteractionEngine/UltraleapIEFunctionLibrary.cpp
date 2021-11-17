@@ -2,6 +2,8 @@
 
 #include "UltraleapIEFunctionLibrary.h"
 
+#include "Engine/World.h"
+
 TArray<USkeletalBodySetup*> UUltraleapIEFunctionLibrary::GetSkeletalBodySetups(UPhysicsAsset* PhysicsAsset)
 {
 	return PhysicsAsset->SkeletalBodySetups;
