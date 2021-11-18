@@ -1211,12 +1211,6 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	// Set main options
 	Options = InOptions;
 
-	// HMD offset not allowed in OpenXR (already corrected)
-	if (Options.bUseOpenXRAsSource)
-	{
-		Options.HMDPositionOffset = FVector(0, 0, 0);
-		Options.HMDRotationOffset = FRotator(0, 0, 0);
-	}
 	// Cache device type
 	FString DeviceType = Stats.DeviceInfo.PID;
 
@@ -1380,7 +1374,12 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 			// set yet, using passed in custom settings."), HMDType);
 		}
 	}
-
+	// HMD offset not allowed in OpenXR (already corrected)
+	if (Options.bUseOpenXRAsSource)
+	{
+		Options.HMDPositionOffset = FVector(0, 0, 0);
+		Options.HMDRotationOffset = FRotator(0, 0, 0);
+	}
 	// Ensure other factors are synced
 	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
