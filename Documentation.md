@@ -461,7 +461,7 @@ All of the examples can be used with Ultraleap tracked hands using an Ultraleap 
 
 ## Example 1: Interaction Objects 101
 
-![](https://i.imgur.com/ZbfWYZB.png)
+![](https://i.imgur.com/7sK48ec.png)
 
 The Interaction Objects example shows the behaviour of interaction objects when IEGrabComponents are attached.
 
@@ -483,7 +483,7 @@ In this scene, a hand attached menu is included. Applications may want to attach
 
 ## Example 3: Interaction Callbacks for Handle-type Interfaces
 
-![](https://i.imgur.com/CE91HOB.png)
+![](https://i.imgur.com/zhaHKPv.png)
 
 
 
@@ -491,9 +491,21 @@ The Interaction Callbacks example features a set of interaction objects that col
 
 ## Example 5: Building on Interaction Objects with Anchors
 
-![](https://i.imgur.com/BF03fio.png)
+![](https://i.imgur.com/yPJQOYb.png)
 
 The IEAnchorableComponent and IEAnchorComponent build on the basic interactivity afforded by interaction objects. IEAnchorableComponents integrate well with IEGrabComponents (they are designed to sit on the same StaticMeshComponent or PrimitiveComponent) and allow an interaction object to be placed in Anchor points that can be defined anywhere in your scene.
+
+## Example 5: Dynamic UI
+
+![](https://i.imgur.com/RmwNZJa.png)
+
+The dynamic UI example illustrates how easy it is to hook into dropping and docking items to automatically create and destroy UI when **IEGrabComponent** attached primitives are manipulated in the scene.
+
+## Example 6: Advanced Properties
+
+![](https://i.imgur.com/Z7dxbLQ.png)
+
+The advanced properties scene demonstrates different settable properties on **IEGrabComponents**. Examples are ignoring hover of either hand, and ignoring contact between the hands and the item.
 
 # Custom behaviors for interaction objects
 
