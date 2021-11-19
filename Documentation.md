@@ -449,7 +449,7 @@ That's it, you will now be able to interact in the scene with your Motion Contro
 
 ## A note on input mappings
 
-In order for the **IEPawnHands** pawn to receive input from motion controllers, keyboard and mouse, default input mappings need to be set up in your project. Example mappings are in the root of the plugin in **defaultinput.ini**. If you are starting a project from scratch, copying/overwriting this file into your project's **Config** folder will set the mappings up.
+In order for the **IEPawnHands** pawn to receive input from motion controllers, keyboard and mouse, default input mappings need to be set up in your project. Example mappings are in the root of the plugin in **defaultinput.ini**. If starting a project from scratch, copying/overwriting this file into your project's **Config** folder will set the mappings up.
 
 If you're integrating into an existing project with your own input mappings, either set up the mappings in the provided **defaultinput.ini** manually  from **Project Settings**->**Input** in the Unreal Editor, or merge the text/settings into your existing **defaultinput.ini** in your project's **Config** folder from the example .ini file provided.
 
@@ -505,13 +505,13 @@ The dynamic UI example illustrates how easy it is to hook into dropping and dock
 
 ![](https://i.imgur.com/Z7dxbLQ.png)
 
-The advanced properties scene demonstrates different settable properties on **IEGrabComponents**. Examples are ignoring hover of either hand, and ignoring contact between the hands and the item.
+The advanced properties scene demonstrates different settable properties on **IEGrabComponents**. Example properties include ignoring hover of either hand, and ignoring contact between the hands and the item.
 
 ## Example 7: Virtual keyboard
 
 ![](https://i.imgur.com/FsF9wIO.png)
 
-The virtual keyboard uses **IEButtons** for each keyboard key. Rapid typing is possible along with long press to activate advanced character input. Event handlers are provided to bind to each key press. 
+The virtual keyboard uses **IEButtons** for each keyboard key. Rapid typing is possible along with long press to activate advanced character input. Event dispatchers are provided to bind to each key press. 
 
 # Custom behaviors for interaction objects
 
@@ -548,6 +548,64 @@ When an object is moved because it is being grapsed by a moving controller, the 
 ### Throwing
 
 When a Non-Kinematic grasped object is released, its velocity and angular velocity are implied by the direction of throw by adding an impulse after release.
+
+# Pose Detection Components
+
+The **PoseDetector** derived components provide a convenient way to detect what a user’s hand is doing. For example, detect when the fingers of a hand are curled or extended, whether a finger or palm is pointing in a particular direction, or whether the hand or fingertip is close to one of a set of target objects. 
+
+![](https://i.imgur.com/7OvnlNS.png)
+
+Detectors can be combined together using a Logic Gate. The **LogicGateDetector** is itself a pose detector component that logically combines two or more other detectors to determine its own state. Need a thumb’s up gesture? Combine a thumb extended detector with a thumb pointing upward detector using a logic gate.
+
+Detectors generate event dispatchers calls when they activate or deactivate. This makes it easy to bind to a detector straight from blueprint.
+
+Each detector can draw debug primitives (only visible in editor) that make it easy to see its configured conditions and whether it is currently active or inactive.
+
+### Using a PoseDetector component
+
+To use a **PoseDetector** derived component, either attach the component to a hand's **SkeletalMeshComponent** or create the component in a new actor, in which case, upon construction, setup it's HandSkeletalMesh variable to point to the desired hand's SkeletalMeshComponent.
+
+The **OnPoseDetected** and **OnPoseLost** event dispatchers can then be bound to in order to react to the detection event (for example *thumbs up* and then *thumbs up no longer detected*). See the example at **UltraleapTracking/Content/PoseDetection/Pawn/PoseDetectionLowPolyHand** for how to do this along with the example scene at **UltraleapTracking/PoseDetection/ExampleScenes/PoseDetection**.
+
+### Combining Pose Detectors
+
+Combine multiple detectors to create more complex behavior using the **LogicGateDetector** component. A logic gate takes any number of other detectors as input, and outputs a single boolean. It's derived from the **PoseDetector** component, so it also dispatches **OnPoseDetected** and **OnPoseLost** events. You can set logic gates to be AND gates (all inputs must be true for the output to be true) or OR gates (the output is true if any input is true). You can also negate the output to configure the gate as a NAND or NOR gate.
+
+Since a logic gate is, itself, a **PoseDetector**, you can hook up multiple logic gates to create arbitrarily complex logic.
+
+## Pose Detector Cookbook
+
+The following collection of ideas illustrate how to use pose detectors to implement behaviors and interaction in your application.
+
+### Thumb’s Up
+
+To detect a “Thumb’s Up” use an **ExtendedFingerDetector** to check that the thumb is the only extended finger and a **FingerDirectionDetector** to check detect when the thumb is pointing up. Combine these detectors with an AND-type logic gate:
+
+- **ExtendedFingerDetector** – configure the component so that the Thumb must be extended and the other fingers must not be extended.
+- **FingerDirectionDetector** – configure the component so that:
+  - Finger Name = [*Thumb bone name*]
+  - Pointing Direction = (0, 0, 1)
+  - Pointing Type = Relative To World
+  - On and Off angles: set as desired
+- **LogicGateDetector** – Set the Gate Type to AND Gate and bind to the event dispatchers to the Actor or Component that should react to the thumb’s up.
+
+### Camera-Facing Open Hand
+
+To detect when a palm is facing the camera use an **ExtendedFingerDetector** to check that all the fingers are extended and a **PalmDirectionDetector** to check detect when the palm is facing the camera. Combine these detectors with an AND-type logic gate:
+
+- **ExtendedFingerDetector** – configure the component so that all fingers must be extended.
+- **PalmDirectionDetector** – configure the component so that:
+  - Pointing Direction = (0, 1, 0)
+  - Pointing Type = Relative To Horizon
+  - On and Off angles: set as desired
+- **LogicGateDetector** – Set the Gate Type to AND Gate and hook up the event dispatchers to the Actor or Component that should react to the thumb’s up.
+
+## Making Your Own Pose Detector
+
+To create your own Pose Detector classes, create a child blueprint of the **PoseDetector** component. Then override the **CheckPose** function in your class to implement detection logic. Within the logic, call **SetPoseActive** when the pose is detected and no longer detected. The parent **PoseDetector** component will then dispatch the relevant events for the two states.
+Reference the other PoseDetector derived components to see how a CheckPose implementation works.
+
+If you want to draw primitives to help visualised the pose detection algorithm, override **DrawDebug** in your custom component.
 
 ## FAQs
 
