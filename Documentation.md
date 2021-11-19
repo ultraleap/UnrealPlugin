@@ -565,7 +565,7 @@ Each detector can draw debug primitives (only visible in editor) that make it ea
 
 To use a **PoseDetector** derived component, either attach the component to a hand's **SkeletalMeshComponent** or create the component in a new actor, in which case, upon construction, setup it's HandSkeletalMesh variable to point to the desired hand's SkeletalMeshComponent.
 
-The **OnPoseDetected** and **OnPoseLost** event dispatchers can then be bound to in order to react to the detection event (for example *thumbs up* and then *thumbs up no longer detected*). See the example at **UltraleapTracking/Content/PoseDetection/Pawn/PoseDetectionLowPolyHand** for how to do this along with the example scene at **UltraleapTracking/PoseDetection/ExampleScenes/PoseDetection**.
+The **OnPoseDetected** and **OnPoseLost** event dispatchers can then be bound to, in order to react to the detection event (for example *thumbs up* and then *thumbs up no longer detected*). See the example at **UltraleapTracking/Content/PoseDetection/Pawn/PoseDetectionLowPolyHand** for how to do this along with the example scene at **UltraleapTracking/PoseDetection/ExampleScenes/PoseDetection**.
 
 ### Combining Pose Detectors
 
@@ -602,10 +602,10 @@ To detect when a palm is facing the camera use an **ExtendedFingerDetector** to 
 
 ## Making Your Own Pose Detector
 
-To create your own Pose Detector classes, create a child blueprint of the **PoseDetector** component. Then override the **CheckPose** function in your class to implement detection logic. Within the logic, call **SetPoseActive** when the pose is detected and no longer detected. The parent **PoseDetector** component will then dispatch the relevant events for the two states.
+To create your own Pose Detector classes, create a child blueprint of the **PoseDetector** component. Then override the **CheckPose** function in your class to implement detection logic. Within the logic, call **SetPoseActive** when the pose is detected, and no longer detected. The parent **PoseDetector** component will then dispatch the relevant events for the two states.
 Reference the other PoseDetector derived components to see how a CheckPose implementation works.
 
-If you want to draw primitives to help visualised the pose detection algorithm, override **DrawDebug** in your custom component.
+If you want to draw primitives to help visualise the pose detection algorithm, override **DrawDebug** in the custom component.
 
 ## FAQs
 
