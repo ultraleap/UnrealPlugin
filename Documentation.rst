@@ -850,6 +850,15 @@ The advanced properties scene demonstrates different settable properties
 on **IEGrabComponents**. Examples are ignoring hover of either hand, and
 ignoring contact between the hands and the item.
 
+Example 7: Virtual keyboard
+---------------------------
+
+.. image:: https://i.imgur.com/FsF9wIO.png
+
+The virtual keyboard uses **IEButtons** for each keyboard key. Rapid
+typing is possible along with long press to activate advanced character
+input. Event handlers are provided to bind to each key press.
+
 Custom behaviors for interaction objects
 ========================================
 

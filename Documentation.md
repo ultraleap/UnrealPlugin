@@ -507,6 +507,12 @@ The dynamic UI example illustrates how easy it is to hook into dropping and dock
 
 The advanced properties scene demonstrates different settable properties on **IEGrabComponents**. Examples are ignoring hover of either hand, and ignoring contact between the hands and the item.
 
+## Example 7: Virtual keyboard
+
+![](https://i.imgur.com/FsF9wIO.png)
+
+The virtual keyboard uses **IEButtons** for each keyboard key. Rapid typing is possible along with long press to activate advanced character input. Event handlers are provided to bind to each key press. 
+
 # Custom behaviors for interaction objects
 
 Be sure to take a look at examples 2 through 6 to see how interaction objects can have their behavior fine-tuned to meet the specific needs of your application. The standard workflow for writing custom blueprints for interaction objects goes something like this:
