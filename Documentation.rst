@@ -1070,6 +1070,47 @@ to see how a CheckPose implementation works.
 If you want to draw primitives to help visualise the pose detection
 algorithm, override **DrawDebug** in the custom component.
 
+Ready made Pose Detectors
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ExtendedFingerDetector
+^^^^^^^^^^^^^^^^^^^^^^
+
+Spheres turn yellow when detected
+
+.. image:: https://i.imgur.com/7OvnlNS.png
+
+ProximityDetector
+^^^^^^^^^^^^^^^^^
+
+Middle sphere turns green when detected, detection lost when proximity
+further than blue sphere
+
+.. image:: https://i.imgur.com/bXQVTQa.png
+
+PinchDetector
+^^^^^^^^^^^^^
+
+Middle pentagon turns green when detected, detection lost when pinch
+further than blue pentagon diameter
+
+.. image:: https://i.imgur.com/H6Knz7g.png
+
+PalmDirectionDetector
+^^^^^^^^^^^^^^^^^^^^^
+
+Triggers when palm crosses direction threshold
+
+.. image:: https://i.imgur.com/L061VcW.png
+
+FingerDirectionDetector
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Triggers when a given finger points in a given direction over a given
+angle tolerance (see cone extending from the finger)
+
+.. image:: https://i.imgur.com/tSHmFlz.png
+
 FAQs
 ----
 

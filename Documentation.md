@@ -607,6 +607,38 @@ Reference the other PoseDetector derived components to see how a CheckPose imple
 
 If you want to draw primitives to help visualise the pose detection algorithm, override **DrawDebug** in the custom component.
 
+### Ready made Pose Detectors
+
+#### ExtendedFingerDetector
+
+Spheres turn yellow when detected
+
+![](https://i.imgur.com/7OvnlNS.png)
+
+#### ProximityDetector
+
+Middle sphere turns green when detected, detection lost when proximity further than blue sphere
+
+![](https://i.imgur.com/bXQVTQa.png)
+
+#### PinchDetector
+
+Middle pentagon turns green when detected, detection lost when pinch further than blue pentagon diameter
+
+![](https://i.imgur.com/H6Knz7g.png)
+
+#### PalmDirectionDetector
+
+Triggers when palm crosses direction threshold
+
+![](https://i.imgur.com/L061VcW.png)
+
+#### FingerDirectionDetector
+
+Triggers when a given finger points in a given direction over a given angle tolerance (see cone extending from the finger)
+
+![](https://i.imgur.com/tSHmFlz.png)
+
 ## FAQs
 
 #### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
