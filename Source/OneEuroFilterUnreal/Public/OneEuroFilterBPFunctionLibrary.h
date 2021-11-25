@@ -46,9 +46,18 @@ class ONEEUROFILTERUNREAL_API UOneEuroFilterBPFunctionLibrary : public UBlueprin
 	static void SetTransformValue(UPARAM(ref) FOneEuroFilterTransform& InTransformFilter, FTransform NewValue);
 
 	UFUNCTION(BlueprintCallable, Category = "One Euro Filter")
-	static void SetParameters(UPARAM(ref) FOneEuroFilterTransform& InTransformFilter, float InFrequency, float InMinCutoff,
+	static void SetParametersTransform(UPARAM(ref) FOneEuroFilterTransform& InTransformFilter, float InFrequency, float InMinCutoff,
 		float InBeta, float InDCutoff);
 
 	UFUNCTION(BlueprintCallable, Category = "One Euro Filter")
-	static void RefreshParameters(UPARAM(ref) FOneEuroFilterTransform& InTransformFilter);
+	static void SetParametersFloat(
+		UPARAM(ref) FOneEuroFilterFloat& InFloatFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff);
+
+	UFUNCTION(BlueprintCallable, Category = "One Euro Filter")
+	static void SetParametersVector(
+		UPARAM(ref) FOneEuroFilterVector& InVectorFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff);
+
+	UFUNCTION(BlueprintCallable, Category = "One Euro Filter")
+	static void SetParametersRotator(
+		UPARAM(ref) FOneEuroFilterRotator& InRotatorFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff);
 };

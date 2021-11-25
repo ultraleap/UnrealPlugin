@@ -8,7 +8,7 @@ public class OneEuroFilterUnreal : ModuleRules
 	public OneEuroFilterUnreal(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+		OptimizeCode = CodeOptimization.Never;
 		PrivateIncludePaths.AddRange(new string[] { Path.Combine(ModuleDirectory, "Private") });
         PublicIncludePaths.AddRange(new string[] { Path.Combine(ModuleDirectory, "Public") });	
 		

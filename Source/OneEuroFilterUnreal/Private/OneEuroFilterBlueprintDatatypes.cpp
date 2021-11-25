@@ -12,7 +12,7 @@ FOneEuroFilterFloat::FOneEuroFilterFloat(float InFrequency, float InMinCutoff, f
 
 	Value = 0;
 	FilteredValue = 0;
-};
+}
 
 void FOneEuroFilterFloat::SetValue(float NewValue)
 {
@@ -27,14 +27,21 @@ void FOneEuroFilterFloat::SetValue(float NewValue)
 
 	if (TheFilter.IsValid())
 		FilteredValue = TheFilter->Filter(Value);
-};
+}
 
 void FOneEuroFilterFloat::GetValue(float& Raw, float& Filtered)
 {
 	Raw = Value;
 	Filtered = FilteredValue;
-};
-
+}
+void FOneEuroFilterFloat::RefreshParameters()
+{
+	if (!TheFilter)
+	{
+		return;
+	}
+	TheFilter->UpdateParams(Frequency, MinCutoff, Beta, DCutoff);
+}
 // FVECTOR
 FOneEuroFilterVector::FOneEuroFilterVector(float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
 {
@@ -43,7 +50,7 @@ FOneEuroFilterVector::FOneEuroFilterVector(float InFrequency, float InMinCutoff,
 	Value = FVector::ZeroVector;
 	FilteredValue = FVector::ZeroVector;
 	TheFilter = MakeShareable(new OneEuroFilter<FVector>(Frequency, MinCutoff, Beta, DCutoff));
-};
+}
 
 void FOneEuroFilterVector::SetValue(FVector NewValue)
 {
@@ -58,14 +65,21 @@ void FOneEuroFilterVector::SetValue(FVector NewValue)
 
 	if (TheFilter.IsValid())
 		FilteredValue = TheFilter->Filter(Value);
-};
+}
 
 void FOneEuroFilterVector::GetValue(FVector& Raw, FVector& Filtered)
 {
 	Raw = Value;
 	Filtered = FilteredValue;
-};
-
+}
+void FOneEuroFilterVector::RefreshParameters()
+{
+	if (!TheFilter)
+	{
+		return;
+	}
+	TheFilter->UpdateParams(Frequency, MinCutoff, Beta, DCutoff);
+}
 // FROTATOR
 
 FOneEuroFilterRotator::FOneEuroFilterRotator(float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
@@ -75,7 +89,7 @@ FOneEuroFilterRotator::FOneEuroFilterRotator(float InFrequency, float InMinCutof
 	Value = FRotator::ZeroRotator;
 	FilteredValue = FRotator::ZeroRotator;
 	TheFilter = MakeShareable(new OneEuroFilter<FRotator>(Frequency, MinCutoff, Beta, DCutoff));
-};
+}
 
 void FOneEuroFilterRotator::SetValue(FRotator NewValue)
 {
@@ -90,13 +104,21 @@ void FOneEuroFilterRotator::SetValue(FRotator NewValue)
 
 	if (TheFilter.IsValid())
 		FilteredValue = TheFilter->Filter(Value);
-};
+}
 
 void FOneEuroFilterRotator::GetValue(FRotator& Raw, FRotator& Filtered)
 {
 	Raw = Value;
 	Filtered = FilteredValue;
-};
+}
+void FOneEuroFilterRotator::RefreshParameters()
+{
+	if (!TheFilter)
+	{
+		return;
+	}
+	TheFilter->UpdateParams(Frequency, MinCutoff, Beta, DCutoff);
+}
 
 // FTRANSFORM
 
@@ -106,7 +128,7 @@ FOneEuroFilterTransform::FOneEuroFilterTransform(float InFrequency, float InMinC
 
 	Value = FTransform::Identity;
 	FilteredValue = FTransform::Identity;
-};
+}
 
 void FOneEuroFilterTransform::SetValue(FTransform NewValue)
 {
@@ -129,7 +151,7 @@ void FOneEuroFilterTransform::SetValue(FTransform NewValue)
 
 	if (TheScaleFilter.IsValid())
 		FilteredValue.SetScale3D(TheScaleFilter->Filter(Value.GetScale3D()));
-};
+}
 
 void FOneEuroFilterTransform::GetValue(bool bBypassScale, FTransform& Raw, FTransform& Filtered)
 {
@@ -139,18 +161,10 @@ void FOneEuroFilterTransform::GetValue(bool bBypassScale, FTransform& Raw, FTran
 	if (bBypassScale)
 		Filtered.SetScale3D(Raw.GetScale3D());
 }
-void FOneEuroFilterTransform::SetParameters(float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
-{
-	FOneEuroFilterSettings(InFrequency, InMinCutoff, InBeta, InDCutoff);
-
-	TheLocationFilter->UpdateParams(InFrequency, InMinCutoff, InBeta, InDCutoff);
-	TheRotationFilter->UpdateParams(InFrequency, InMinCutoff, InBeta, InDCutoff);
-	TheScaleFilter->UpdateParams(InFrequency, InMinCutoff, InBeta, InDCutoff);
-}
 
 void FOneEuroFilterTransform::RefreshParameters()
 {
 	TheLocationFilter->UpdateParams(Frequency, MinCutoff, Beta, DCutoff);
 	TheRotationFilter->UpdateParams(Frequency, MinCutoff, Beta, DCutoff);
 	TheScaleFilter->UpdateParams(Frequency, MinCutoff, Beta, DCutoff);
-};
+}

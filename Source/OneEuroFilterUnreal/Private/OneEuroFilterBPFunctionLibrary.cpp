@@ -17,13 +17,13 @@ void UOneEuroFilterBPFunctionLibrary::GetFloatValue(FOneEuroFilterFloat InFloatF
 	Filtered = TempFiltered;
 
 	return;
-};
+}
 
 void UOneEuroFilterBPFunctionLibrary::SetFloatValue(UPARAM(ref) FOneEuroFilterFloat& InFloatFilter, float NewValue)
 {
 	InFloatFilter.SetValue(NewValue);
 	return;
-};
+}
 
 // Vector ////////////////
 void UOneEuroFilterBPFunctionLibrary::GetVectorValue(FOneEuroFilterVector InVectorFilter, FVector& Raw, FVector& Filtered)
@@ -36,13 +36,13 @@ void UOneEuroFilterBPFunctionLibrary::GetVectorValue(FOneEuroFilterVector InVect
 	Filtered = TempFiltered;
 
 	return;
-};
+}
 
 void UOneEuroFilterBPFunctionLibrary::SetVectorValue(UPARAM(ref) FOneEuroFilterVector& InVectorFilter, FVector NewValue)
 {
 	InVectorFilter.SetValue(NewValue);
 	return;
-};
+}
 
 // Rotator ////////////
 void UOneEuroFilterBPFunctionLibrary::GetRotatorValue(FOneEuroFilterRotator InRotatorFilter, FRotator& Raw, FRotator& Filtered)
@@ -55,13 +55,13 @@ void UOneEuroFilterBPFunctionLibrary::GetRotatorValue(FOneEuroFilterRotator InRo
 	Filtered = TempFiltered;
 
 	return;
-};
+}
 
 void UOneEuroFilterBPFunctionLibrary::SetRotatorValue(UPARAM(ref) FOneEuroFilterRotator& InRotatorFilter, FRotator NewValue)
 {
 	InRotatorFilter.SetValue(NewValue);
 	return;
-};
+}
 
 // Transform ////////////
 void UOneEuroFilterBPFunctionLibrary::GetTransformValue(
@@ -75,19 +75,34 @@ void UOneEuroFilterBPFunctionLibrary::GetTransformValue(
 	Filtered = TempFiltered;
 
 	return;
-};
+}
 
 void UOneEuroFilterBPFunctionLibrary::SetTransformValue(UPARAM(ref) FOneEuroFilterTransform& InTransformFilter, FTransform NewValue)
 {
 	InTransformFilter.SetValue(NewValue);
 	return;
 }
-void UOneEuroFilterBPFunctionLibrary::SetParameters(
-	UPARAM(ref) FOneEuroFilterTransform& InTransformFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
+
+void UOneEuroFilterBPFunctionLibrary::SetParametersTransform(
+	UPARAM(ref) FOneEuroFilterTransform& InFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
 {
-	InTransformFilter.SetParameters(InFrequency, InMinCutoff, InBeta, InDCutoff);
+	InFilter.SetParameters(InFrequency, InMinCutoff, InBeta, InDCutoff);
 }
-void UOneEuroFilterBPFunctionLibrary::RefreshParameters(UPARAM(ref) FOneEuroFilterTransform& InTransformFilter)
+
+void UOneEuroFilterBPFunctionLibrary::SetParametersFloat(
+	UPARAM(ref) FOneEuroFilterFloat& InFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
 {
-	InTransformFilter.RefreshParameters();
-};
+	InFilter.SetParameters(InFrequency, InMinCutoff, InBeta, InDCutoff);
+}
+
+void UOneEuroFilterBPFunctionLibrary::SetParametersVector(
+	UPARAM(ref) FOneEuroFilterVector& InFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
+{
+	InFilter.SetParameters(InFrequency, InMinCutoff, InBeta, InDCutoff);
+}
+
+void UOneEuroFilterBPFunctionLibrary::SetParametersRotator(
+	UPARAM(ref) FOneEuroFilterRotator& InFilter, float InFrequency, float InMinCutoff, float InBeta, float InDCutoff)
+{
+	InFilter.SetParameters(InFrequency, InMinCutoff, InBeta, InDCutoff);
+}

@@ -12,7 +12,10 @@
 USTRUCT(BlueprintType)
 struct FOneEuroFilterSettings
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
+	virtual ~FOneEuroFilterSettings()
+	{
+	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "One Euro Filter Settings")
 	float Frequency = 120;
@@ -35,19 +38,31 @@ struct FOneEuroFilterSettings
 		Beta = InBeta;
 		DCutoff = InDCutoff;
 	};
+
+	virtual void SetParameters(float InFrequency = 120.0, float InMinCutoff = 1.0, float InBeta = 0.0, float InDCutoff = 1.0)
+	{
+		FOneEuroFilterSettings(InFrequency, InMinCutoff, InBeta, InDCutoff);
+		RefreshParameters();
+	}
+
+	virtual void RefreshParameters()
+	{
+	}
 };
 
 // Float OneEuroFilter to be used in Blueprints
 USTRUCT(BlueprintType)
 struct FOneEuroFilterFloat : public FOneEuroFilterSettings
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
 	FOneEuroFilterFloat(float InFrequency = 120.0, float InMinCutoff = 1.0, float InBeta = 0.0, float InDCutoff = 1.0);
 
 	void SetValue(float NewValue);
 
 	void GetValue(float& Raw, float& Filtered);
+
+	virtual void RefreshParameters() override;
 
 private:
 	float Value;
@@ -59,13 +74,15 @@ private:
 USTRUCT(BlueprintType)
 struct FOneEuroFilterVector : public FOneEuroFilterSettings
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
 	FOneEuroFilterVector(float InFrequency = 120.0, float InMinCutoff = 1.0, float InBeta = 0.0, float InDCutoff = 1.0);
 
 	void SetValue(FVector NewValue);
 
 	void GetValue(FVector& Raw, FVector& Filtered);
+
+	virtual void RefreshParameters() override;
 
 private:
 	FVector Value;
@@ -77,13 +94,15 @@ private:
 USTRUCT(BlueprintType)
 struct FOneEuroFilterRotator : public FOneEuroFilterSettings
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
 	FOneEuroFilterRotator(float InFrequency = 120.0, float InMinCutoff = 1.0, float InBeta = 0.0, float InDCutoff = 1.0);
 
 	void SetValue(FRotator NewValue);
 
 	void GetValue(FRotator& Raw, FRotator& Filtered);
+
+	virtual void RefreshParameters() override;
 
 private:
 	FRotator Value;
@@ -95,7 +114,7 @@ private:
 USTRUCT(BlueprintType)
 struct FOneEuroFilterTransform : public FOneEuroFilterSettings
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
 	FOneEuroFilterTransform(float InFrequency = 120.0, float InMinCutoff = 1.0, float InBeta = 0.0, float InDCutoff = 1.0);
 
@@ -103,9 +122,7 @@ struct FOneEuroFilterTransform : public FOneEuroFilterSettings
 
 	void GetValue(bool bBypassScale, FTransform& Raw, FTransform& Filtered);
 
-	void SetParameters(float InFrequency = 120.0, float InMinCutoff = 1.0, float InBeta = 0.0, float InDCutoff = 1.0);
-
-	void RefreshParameters();
+	virtual void RefreshParameters() override;
 
 private:
 	FTransform Value;
