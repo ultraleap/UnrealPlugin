@@ -1,4 +1,4 @@
-ULtraleap Tracking - Change Log
+Ultraleap Tracking - Change Log
 ====================
 
 Versions
