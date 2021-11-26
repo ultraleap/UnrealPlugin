@@ -6,6 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "PhysicsEngine/PhysicsAsset.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "ViewportInteractionUtils.h"
 
 #include "UltraleapIEFunctionLibrary.generated.h"
 
@@ -51,4 +52,8 @@ class ULTRALEAPTRACKING_API UUltraleapIEFunctionLibrary : public UBlueprintFunct
 	/** Helper, initialise a physics constraint (needed as not all params are blueprint writeable) */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Interaction Engine")
 	static void InitPhysicsConstraint(UPhysicsConstraintComponent* PhysicsConstraintComponent);
+
+	/** Helper, Test */
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Interaction Engine")
+	static FVector TestIt();
 };

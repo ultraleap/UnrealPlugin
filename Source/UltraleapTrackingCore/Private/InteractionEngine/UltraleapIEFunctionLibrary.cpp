@@ -4,6 +4,8 @@
 
 #include "Engine/World.h"
 
+using namespace ViewportInteractionUtils;
+
 TArray<USkeletalBodySetup*> UUltraleapIEFunctionLibrary::GetSkeletalBodySetups(UPhysicsAsset* PhysicsAsset)
 {
 	return PhysicsAsset->SkeletalBodySetups;
@@ -78,4 +80,15 @@ void UUltraleapIEFunctionLibrary::InitPhysicsConstraint(UPhysicsConstraintCompon
 
 	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.bSoftConstraint = true;
 	PhysicsConstraintComponent->ConstraintInstance.ProfileInstance.LinearLimit.ContactDistance = 100.0f;
+}
+FVector UUltraleapIEFunctionLibrary::TestIt()
+{
+	// const double InMinCutoff, const double InCutoffSlope, const double InDeltaCutoff
+	FOneEuroFilter Filter(0.1, 1, 1);
+
+	FVector TestIn;
+
+	Filter.SetCutoffSlope(1);
+	Filter.SetMinCutoff(0.1);
+	return Filter.Filter(TestIn, 0.011);
 }
