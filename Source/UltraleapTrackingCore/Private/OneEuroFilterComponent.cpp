@@ -7,7 +7,9 @@
 
 /************************************************************************/
 /* 1 Euro filter smoothing algorithm									*/
-/* http://cristal.univ-lille.fr/~casiez/1euro/							*/
+/* http://cristal.univ-lille.fr/~casiez/1euro/
+/*
+/* This is a port of the Epic implementation used for editor laser pointers
 /************************************************************************/
 
 // Sets default values for this component's properties
@@ -56,14 +58,14 @@ FVector UOneEuroFilterComponent::FLowpassFilter::GetPrevious() const
 	return Previous;
 }
 
-void UOneEuroFilterComponent::Init(const double InMinCutoff, const double InCutoffSlope, const double InDeltaCutoff)
+void UOneEuroFilterComponent::Init(const float InMinCutoff, const float InCutoffSlope, const float InDeltaCutoff)
 {
 	MinCutoff = InMinCutoff;
 	CutoffSlope = InCutoffSlope;
 	DeltaCutoff = InDeltaCutoff;
 }
 
-FVector UOneEuroFilterComponent::Filter(const FVector& InRaw, const double InDeltaTime)
+FVector UOneEuroFilterComponent::Filter(const FVector& InRaw, const float InDeltaTime)
 {
 	// Calculate the delta, if this is the first time then there is no delta
 	const FVector Delta = RawFilter.IsFirstTime() == true ? FVector::ZeroVector : (InRaw - RawFilter.GetPrevious()) * InDeltaTime;
@@ -78,17 +80,17 @@ FVector UOneEuroFilterComponent::Filter(const FVector& InRaw, const double InDel
 	return RawFilter.Filter(InRaw, CalculateAlpha(Cutoff, InDeltaTime));
 }
 
-void UOneEuroFilterComponent::SetMinCutoff(const double InMinCutoff)
+void UOneEuroFilterComponent::SetMinCutoff(const float InMinCutoff)
 {
 	MinCutoff = InMinCutoff;
 }
 
-void UOneEuroFilterComponent::SetCutoffSlope(const double InCutoffSlope)
+void UOneEuroFilterComponent::SetCutoffSlope(const float InCutoffSlope)
 {
 	CutoffSlope = InCutoffSlope;
 }
 
-void UOneEuroFilterComponent::SetDeltaCutoff(const double InDeltaCutoff)
+void UOneEuroFilterComponent::SetDeltaCutoff(const float InDeltaCutoff)
 {
 	DeltaCutoff = InDeltaCutoff;
 }
@@ -103,7 +105,7 @@ const FVector UOneEuroFilterComponent::CalculateCutoff(const FVector& InValue)
 	return Result;
 }
 
-const FVector UOneEuroFilterComponent::CalculateAlpha(const FVector& InCutoff, const double InDeltaTime) const
+const FVector UOneEuroFilterComponent::CalculateAlpha(const FVector& InCutoff, const float InDeltaTime) const
 {
 	FVector Result;
 	for (int i = 0; i < 3; i++)
@@ -113,8 +115,8 @@ const FVector UOneEuroFilterComponent::CalculateAlpha(const FVector& InCutoff, c
 	return Result;
 }
 
-const float UOneEuroFilterComponent::CalculateAlpha(const float InCutoff, const double InDeltaTime) const
+const float UOneEuroFilterComponent::CalculateAlpha(const float InCutoff, const float InDeltaTime) const
 {
-	const double tau = 1.0 / (2 * PI * InCutoff);
+	const float tau = 1.0 / (2 * PI * InCutoff);
 	return 1.0 / (1.0 + tau / InDeltaTime);
 }

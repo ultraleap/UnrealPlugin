@@ -49,24 +49,29 @@ private:
 	};
 
 public:
-	void Init(const double InMinCutoff, const double InCutoffSlope, const double InDeltaCutoff);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void Init(const float InMinCutoff, const float InCutoffSlope, const float InDeltaCutoff);
 
 	/** Smooth vector */
-	FVector Filter(const FVector& InRaw, const double InDeltaTime);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	FVector Filter(const FVector& InRaw, const float InDeltaTime);
 
 	/** Set the minimum cutoff */
-	void SetMinCutoff(const double InMinCutoff);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void SetMinCutoff(const float InMinCutoff);
 
 	/** Set the cutoff slope */
-	void SetCutoffSlope(const double InCutoffSlope);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void SetCutoffSlope(const float InCutoffSlope);
 
 	/** Set the delta slope */
-	void SetDeltaCutoff(const double InDeltaCutoff);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void SetDeltaCutoff(const float InDeltaCutoff);
 
 private:
 	const FVector CalculateCutoff(const FVector& InValue);
-	const FVector CalculateAlpha(const FVector& InCutoff, const double InDeltaTime) const;
-	const float CalculateAlpha(const float InCutoff, const double InDeltaTime) const;
+	const FVector CalculateAlpha(const FVector& InCutoff, const float InDeltaTime) const;
+	const float CalculateAlpha(const float InCutoff, const float InDeltaTime) const;
 
 	double MinCutoff;
 	double CutoffSlope;
