@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
@@ -71,4 +71,7 @@ public:
 
 	/** Force shutdown leap, do not call unless you have a very specfic need*/
 	virtual void ShutdownLeap() = 0;
+
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
 };

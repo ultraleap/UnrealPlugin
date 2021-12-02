@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "FUltraleapTrackingPlugin.h"
 
@@ -10,6 +10,20 @@
 #include "Modules/ModuleManager.h"
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
+
+// this forces the assembly context to use the LeapC.dll in the Plugin
+// without this, if OpenXR is enabled, the LeapC.dll in the OpenXR distribution will be loaded instead as it's
+// loaded earlier on in the boot process
+// This only works in the editor as Windows side by side expects the dll to be in either the same folder as the loading dll/exe
+// or a direct sub folder, the folder structure for packaged apps means that this is not possible without breaking Unreal's folder
+// structure.
+#if PLATFORM_WINDOWS
+#if WITH_EDITOR
+#pragma comment(linker, \
+	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.2.0.0' \
+processorArchitecture='*' publicKeyToken='0000000000000000' language='*'\"")
+#endif
+#endif	  // PLATFORM_WINDOWS
 
 void FUltraleapTrackingPlugin::StartupModule()
 {
@@ -124,6 +138,14 @@ void FUltraleapTrackingPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 		LeapInputDevice->SetLeapPolicy(Flag, Enable);
 	}
 }
+void FUltraleapTrackingPlugin::SetSwizzles(
+	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
+{
+	if (bActive)
+	{
+		LeapInputDevice->SetSwizzles(ToX, ToY, ToZ, ToW);
+	}
+}
 void FUltraleapTrackingPlugin::GetAttachedDevices(TArray<FString>& Devices)
 {
 	if (bActive)
@@ -143,22 +165,25 @@ void FUltraleapTrackingPlugin::ShutdownLeap()
 void* FUltraleapTrackingPlugin::GetLeapHandle()
 {
 	void* NewLeapDLLHandle = nullptr;
+	// Load LeapC DLL
+	FString LeapCLibraryPath;
 
 #if PLATFORM_WINDOWS
-#if PLATFORM_64BITS
-	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/UltraleapTracking/Win64"));
-#else
-	FString BinariesPath = FPaths::EngineDir() / FString(TEXT("Binaries/ThirdParty/UltraleapTracking/Win32"));
-#endif
-	FPlatformProcess::PushDllDirectory(*BinariesPath);
-	NewLeapDLLHandle = FPlatformProcess::GetDllHandle(*(BinariesPath / "LeapC.dll"));
-	FPlatformProcess::PopDllDirectory(*BinariesPath);
-#endif
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
+
+	if (Plugin != nullptr)
+	{
+		FString BaseDir = Plugin->GetBaseDir();
+		LeapCLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/Win64/LeapC.dll"));
+
+		NewLeapDLLHandle = !LeapCLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LeapCLibraryPath) : nullptr;
+	}
+#endif	  // PLATFORM_WINDOWS
 
 	if (NewLeapDLLHandle != nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"),
-			*FPaths::ConvertRelativePathToFull(BinariesPath / "LeapC.dll"));
+		UE_LOG(
+			UltraleapTrackingLog, Log, TEXT("Engine plugin DLL found at %s"), *FPaths::ConvertRelativePathToFull(LeapCLibraryPath));
 	}
 	return NewLeapDLLHandle;
 }

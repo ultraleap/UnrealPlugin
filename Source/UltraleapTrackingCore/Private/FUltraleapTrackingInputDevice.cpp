@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "FUltraleapTrackingInputDevice.h"
 
@@ -96,7 +96,7 @@ bool FUltraleapTrackingInputDevice::HandPinched(float Strength)
 
 int64 FUltraleapTrackingInputDevice::GetInterpolatedNow()
 {
-	return LeapGetNow() + HandInterpolationTimeOffset;
+	return Leap->GetNow() + HandInterpolationTimeOffset;
 }
 
 // comes from service message loop
@@ -105,23 +105,9 @@ void FUltraleapTrackingInputDevice::OnConnect()
 	FLeapAsync::RunShortLambdaOnGameThread([&] {
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapService: OnConnect."));
 
-		// Default to hmd mode if one is plugged in
-		FLeapOptions DefaultOptions;
+		IsWaitingForConnect = false;
 
-		Options.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-
-		// if we have a valid engine pointer and hmd update the device type
-		if (GEngine && GEngine->XRSystem.IsValid())
-		{
-			DefaultOptions.Mode = ELeapMode::LEAP_MODE_VR;
-		}
-		else
-		{
-			// HMD is disabled on load, default to desktop
-			DefaultOptions.Mode = ELeapMode::LEAP_MODE_DESKTOP;
-		}
-
-		SetOptions(DefaultOptions);
+		SetOptions(Options);
 
 		CallFunctionOnComponents([&](ULeapComponent* Component) { Component->OnLeapServiceConnected.Broadcast(); });
 	});
@@ -141,8 +127,10 @@ void FUltraleapTrackingInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO* Props)
 	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*) Props);
 	SetOptions(Options);
 
-	LeapImageHandler->Reset();
-
+	if (LeapImageHandler)
+	{
+		LeapImageHandler->Reset();
+	}
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
 
 	AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
@@ -309,9 +297,9 @@ void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const
 #pragma region Leap Input Device
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
-
+#define START_IN_OPEN_XR_MODE 0
 FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
-	: MessageHandler(InMessageHandler)
+	: MessageHandler(InMessageHandler), Leap(nullptr)
 {
 	// Link callbacks
 
@@ -325,7 +313,8 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
 
-	Leap.OpenConnection(this);	  // pass in the this as callback delegate
+	SwitchTrackingSource(START_IN_OPEN_XR_MODE);
+	Options.bUseOpenXRAsSource = START_IN_OPEN_XR_MODE;
 
 	// Attach to bodystate
 	Config.DeviceName = "Leap Motion";
@@ -382,46 +371,53 @@ void FUltraleapTrackingInputDevice::SendControllerEvents()
 void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
-
 	// Did a device connect?
-	if (!Leap.bIsConnected || !Leap.CurrentDeviceInfo)
+	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
 		return;
 	}
 
 	// Todo: get frame and parse for each device
 
-	_LEAP_TRACKING_EVENT* Frame = Leap.GetFrame();
+	_LEAP_TRACKING_EVENT* Frame = Leap->GetFrame();
 
 	// Is the frame valid?
 	if (!Frame)
 	{
 		return;
 	}
-
-	TimeWarpTimeStamp = Frame->info.timestamp;
-
-	int64 LeapTimeNow = LeapGetNow();
-	SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
-
-	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
-	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
-
-	if (Options.bUseInterpolation)
+	if (!Options.bUseOpenXRAsSource)
 	{
-		// Let's interpolate the frame using leap function
+		TimeWarpTimeStamp = Frame->info.timestamp;
+		int64 LeapTimeNow = 0;
+		LeapTimeNow = Leap->GetNow();
+		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
 
-		// Get the future interpolated finger frame
-		Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
-		CurrentFrame.SetFromLeapFrame(Frame);
+		HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
+		FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
-		// Get the future interpolated hand frame, farther than fingers to provide
-		// lower latency
-		Frame = Leap.GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
-		CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+		// interpolation not supported in OpenXR
+		if (Options.bUseInterpolation)
+		{
+			// Let's interpolate the frame using leap function
 
-		// Track our extrapolation time in stats
-		Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
+			// Get the future interpolated finger frame
+			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
+			CurrentFrame.SetFromLeapFrame(Frame);
+
+			// Get the future interpolated hand frame, farther than fingers to provide
+			// lower latency
+			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+
+			// Track our extrapolation time in stats
+			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
+		}
+		else
+		{
+			CurrentFrame.SetFromLeapFrame(Frame);
+			Stats.FrameExtrapolationInMS = 0;
+		}
 	}
 	else
 	{
@@ -441,7 +437,8 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 	}
 
 	// Are we in HMD mode? add our HMD snapshot
-	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD)
+	// Note with Open XR, the data is already transformed for the HMD/player camera
+	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD && !Options.bUseOpenXRAsSource)
 	{
 		// Correction for HMD offset and rotation has already been applied in call
 		// to CaptureAndEvaluateInput through CurrentFrame->SetFromLeapFrame()
@@ -450,7 +447,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 
 		if (IsInGameThread())
 		{
-			SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(LeapGetNow());
+			SnapshotNow = BSHMDSnapshotHandler::CurrentHMDSample(Leap->GetNow());
 		}
 
 		FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
@@ -481,7 +478,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 	}
 
 	if (LastLeapTime == 0)
-		LastLeapTime = LeapGetNow();
+		LastLeapTime = Leap->GetNow();
 
 	CheckHandVisibility();
 	CheckGrabGesture();
@@ -497,7 +494,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 
 	// It's now the past data
 	PastFrame = CurrentFrame;
-	LastLeapTime = LeapGetNow();
+	LastLeapTime = Leap->GetNow();
 }
 
 void FUltraleapTrackingInputDevice::CheckHandVisibility()
@@ -507,11 +504,11 @@ void FUltraleapTrackingInputDevice::CheckHandVisibility()
 		// Update visible hand list, must happen first
 		if (IsLeftVisible)
 		{
-			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastLeftVisible = TimeSinceLastLeftVisible + (Leap->GetNow() - LastLeapTime);
 		}
 		if (IsRightVisible)
 		{
-			TimeSinceLastRightVisible = TimeSinceLastRightVisible + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightVisible = TimeSinceLastRightVisible + (Leap->GetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -646,11 +643,11 @@ void FUltraleapTrackingInputDevice::CheckPinchGesture()
 	{
 		if (IsLeftPinching)
 		{
-			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastLeftPinch = TimeSinceLastLeftPinch + (Leap->GetNow() - LastLeapTime);
 		}
 		if (IsRightPinching)
 		{
-			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightPinch = TimeSinceLastRightPinch + (Leap->GetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -757,11 +754,11 @@ void FUltraleapTrackingInputDevice::CheckGrabGesture()
 	{
 		if (IsLeftGrabbing)
 		{
-			TimeSinceLastLeftGrab = TimeSinceLastLeftGrab + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastLeftGrab = TimeSinceLastLeftGrab + (Leap->GetNow() - LastLeapTime);
 		}
 		if (IsRightGrabbing)
 		{
-			TimeSinceLastRightGrab = TimeSinceLastRightGrab + (LeapGetNow() - LastLeapTime);
+			TimeSinceLastRightGrab = TimeSinceLastRightGrab + (Leap->GetNow() - LastLeapTime);
 		}
 		for (auto& Hand : CurrentFrame.Hands)
 		{
@@ -902,6 +899,8 @@ void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* Event
 	{
 		return;
 	}
+	// needed for world time
+	Leap->SetWorld(ComponentWorld);
 	// only add delegates to world
 	if (ComponentWorld->WorldType == EWorldType::Game || ComponentWorld->WorldType == EWorldType::GamePreview ||
 		ComponentWorld->WorldType == EWorldType::PIE)
@@ -928,7 +927,7 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 	UBodyStateBPLibrary::DetachDevice(BodyStateDeviceId);
 
 	// This will kill the leap thread
-	Leap.CloseConnection();
+	Leap->CloseConnection();
 
 	LeapImageHandler->CleanupImageData();
 }
@@ -943,27 +942,31 @@ void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame)
 {
 	OutFrame = CurrentFrame;
 }
-
+void FUltraleapTrackingInputDevice::SetSwizzles(
+	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
+{
+	Leap->SetSwizzles(ToX, ToY, ToZ, ToW);
+}
 // Policies
 void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
 	switch (Flag)
 	{
 		case LEAP_POLICY_BACKGROUND_FRAMES:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
 			break;
 		case LEAP_POLICY_IMAGES:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
 			break;
 		// legacy 3.0 implementation superseded by SetTrackingMode
 		case LEAP_POLICY_OPTIMIZE_HMD:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
 			break;
 		case LEAP_POLICY_ALLOW_PAUSE_RESUME:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
 			break;
 		case LEAP_POLICY_MAP_POINTS:
-			Leap.SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
+			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
 		default:
 			break;
 	}
@@ -974,13 +977,13 @@ void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag)
 	switch (Flag)
 	{
 		case LEAP_MODE_DESKTOP:
-			Leap.SetTrackingMode(eLeapTrackingMode_Desktop);
+			Leap->SetTrackingMode(eLeapTrackingMode_Desktop);
 			break;
 		case LEAP_MODE_VR:
-			Leap.SetTrackingMode(eLeapTrackingMode_HMD);
+			Leap->SetTrackingMode(eLeapTrackingMode_HMD);
 			break;
 		case LEAP_MODE_SCREENTOP:
-			Leap.SetTrackingMode(eLeapTrackingMode_ScreenTop);
+			Leap->SetTrackingMode(eLeapTrackingMode_ScreenTop);
 			break;
 	}
 }
@@ -1149,7 +1152,32 @@ void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, 
 }
 
 #pragma endregion BodyState
+void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
+{
+	if (IsWaitingForConnect)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempted whilst async connect in progress"));
+	}
+	if (Leap != nullptr)
+	{
+		Leap->CloseConnection();
+	}
 
+	if (UseOpenXRAsSource)
+	{
+		Leap = TSharedPtr<IHandTrackingWrapper>(new FOpenXRToLeapWrapper);
+	}
+	else
+	{
+		Leap = TSharedPtr<IHandTrackingWrapper>(new FLeapWrapper);
+	}
+	if (!UseOpenXRAsSource)
+	{
+		IsWaitingForConnect = true;
+	}
+	Leap->OpenConnection(this);
+}
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 {
 	if (GEngine && GEngine->XRSystem.IsValid())
@@ -1157,6 +1185,14 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		HMDType = GEngine->XRSystem->GetSystemName();
 	}
 
+	// Did we change the data source
+	if (Options.bUseOpenXRAsSource != InOptions.bUseOpenXRAsSource)
+	{
+		Options = InOptions;
+		SwitchTrackingSource(InOptions.bUseOpenXRAsSource);
+		// set this here as set options is re-called on connect
+		Options.bUseOpenXRAsSource = InOptions.bUseOpenXRAsSource;
+	}
 	// Did we change the mode?
 	if (Options.Mode != InOptions.Mode)
 	{
@@ -1245,12 +1281,13 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		}
 
 		// Rift, note requires negative timewarp!
-		else if (HMDType == TEXT("OculusHMD"))
+		else if (HMDType == TEXT("OculusHMD") || HMDType == TEXT("OpenXR"))
 		{
 			// Apply default options to zero offsets/rotations
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
 			{
-				FVector OculusOffset = FVector(8.0, 0, 0);
+				// in mm
+				FVector OculusOffset = FVector(80.0, 0, 0);
 				Options.HMDPositionOffset = OculusOffset;
 			}
 			if (InOptions.HMDRotationOffset.IsNearlyZero())
@@ -1305,7 +1342,8 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 		{
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
 			{
-				FVector DayDreamOffset = FVector(8.0, 0, 0);
+				// in mm
+				FVector DayDreamOffset = FVector(80.0, 0, 0);
 				Options.HMDPositionOffset = DayDreamOffset;
 			}
 
@@ -1336,7 +1374,12 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 			// set yet, using passed in custom settings."), HMDType);
 		}
 	}
-
+	// HMD offset not allowed in OpenXR (already corrected)
+	if (Options.bUseOpenXRAsSource)
+	{
+		Options.HMDPositionOffset = FVector(0, 0, 0);
+		Options.HMDRotationOffset = FRotator(0, 0, 0);
+	}
 	// Ensure other factors are synced
 	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;

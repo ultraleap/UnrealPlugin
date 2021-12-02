@@ -1,8 +1,9 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
 #include "Skeleton/BodyStateBone.h"
+
 #include "BodyStateArm.generated.h"
 
 /** Convenience BodyState wrapper around finger bones*/
@@ -17,7 +18,7 @@ class BODYSTATE_API UBodyStateFinger : public UObject
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Finger")
 	UBodyStateBone* Proximal;
 
-	//Note thumbs don't have this bone
+	// Note thumbs don't have this bone
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Finger")
 	UBodyStateBone* Intermediate;
 
@@ -34,7 +35,7 @@ class BODYSTATE_API UBodyStateHand : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
-	//Order should be: Thumb->Pinky
+	// Order should be: Thumb->Pinky
 	UPROPERTY(BlueprintReadOnly, Category = "BodyState Hand")
 	TArray<UBodyStateFinger*> Fingers;
 

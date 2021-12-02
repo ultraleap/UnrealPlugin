@@ -1,11 +1,13 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
 #include "LeapBlueprintFunctionLibrary.h"
 
 #include "IUltraleapTrackingPlugin.h"
+#include "Misc/ConfigCacheIni.h"
 
+FRotator ULeapBlueprintFunctionLibrary::DebugRotator;
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer) : Super(Initializer)
 {
 }
@@ -43,9 +45,21 @@ void ULeapBlueprintFunctionLibrary::GetAttachedLeapDevices(TArray<FString>& Devi
 {
 	IUltraleapTrackingPlugin::Get().GetAttachedDevices(Devices);
 }
-
+FString ULeapBlueprintFunctionLibrary::GetAppVersion()
+{
+	FString AppVersion;
+	if (GConfig)
+	{
+		GConfig->GetString(TEXT("/Script/EngineSettings.GeneralProjectSettings"), TEXT("ProjectVersion"), AppVersion, GGameIni);
+	}
+	return AppVersion;
+}
 // Debug Functions
 void ULeapBlueprintFunctionLibrary::ShutdownLeap()
 {
 	IUltraleapTrackingPlugin::Get().ShutdownLeap();
+}
+void ULeapBlueprintFunctionLibrary::SetDebugRotation(const FRotator& Rotator)
+{
+	DebugRotator = Rotator;
 }

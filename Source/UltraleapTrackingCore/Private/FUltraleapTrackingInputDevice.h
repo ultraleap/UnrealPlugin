@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
@@ -13,9 +13,9 @@
 #include "LeapLiveLink.h"
 #include "LeapUtility.h"
 #include "LeapWrapper.h"
+#include "OpenXRToLeapWrapper.h"
 #include "SceneViewExtension.h"
 #include "UltraleapTrackingData.h"
-
 /**
  * Stores raw controller data and custom toggles
  */
@@ -63,7 +63,7 @@ public:
 	void ShutdownLeap();
 	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
 	void LatestFrame(FLeapFrameData& OutFrame);
-
+	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 	void SetTrackingMode(ELeapMode Flag);
@@ -166,7 +166,7 @@ private:
 	// v5 Tracking mode API
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
-	FLeapWrapper Leap;
+	TSharedPtr<IHandTrackingWrapper> Leap;
 
 	// LeapWrapper Callbacks
 	virtual void OnConnect() override;
@@ -193,4 +193,8 @@ private:
 	void SetBSFingerFromLeapDigit(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit);
 	void SetBSThumbFromLeapThumb(class UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit);
 	void SetBSHandFromLeapHand(class UBodyStateHand* Hand, const FLeapHandData& LeapHand);
+
+	void SwitchTrackingSource(const bool UseOpenXRAsSource);
+
+	bool IsWaitingForConnect = false;
 };

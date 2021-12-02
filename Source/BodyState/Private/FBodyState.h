@@ -1,15 +1,15 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
-#include "IBodyState.h"
 #include "BodyStateSkeletonStorage.h"
+#include "IBodyState.h"
 class FBodyStateHMDDevice;
 
 class FBodyState : public IBodyState
 {
 public:
-	virtual TSharedPtr< class IInputDevice > CreateInputDevice(const TSharedRef< FGenericApplicationMessageHandler >& InMessageHandler);
+	virtual TSharedPtr<class IInputDevice> CreateInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler);
 
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
@@ -18,16 +18,21 @@ public:
 
 	virtual bool IsInputReady() override;
 
-	TSharedPtr< class FBodyStateInputDevice > BodyStateInputDevice;
-	virtual TSharedPtr< class FBodyStateInputDevice > GetInputDevice() { return BodyStateInputDevice; }
+	TSharedPtr<class FBodyStateInputDevice> BodyStateInputDevice;
+	virtual TSharedPtr<class FBodyStateInputDevice> GetInputDevice()
+	{
+		return BodyStateInputDevice;
+	}
 
-	//Attach/Detach devices
-	virtual int32 AttachDevice(const FBodyStateDeviceConfig& Configuration, IBodyStateInputRawInterface* InputCallbackDelegate) override;
+	// Attach/Detach devices
+	virtual int32 AttachDevice(
+		const FBodyStateDeviceConfig& Configuration, IBodyStateInputRawInterface* InputCallbackDelegate) override;
 	virtual bool DetachDevice(int32 DeviceID) override;
 
 	virtual UBodyStateSkeleton* SkeletonForDevice(int32 DeviceID) override;
 
-	virtual int32 AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId = 0) override;
+	virtual int32 AttachMergingFunctionForSkeleton(
+		TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId = 0) override;
 	virtual bool RemoveMergingFunction(int32 MergingFunctionId) override;
 
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener) override;
@@ -37,6 +42,6 @@ private:
 	bool bActive = false;
 	TSharedPtr<FBodyStateSkeletonStorage> SkeletonStorage;
 
-	//Built-in devices
+	// Built-in devices
 	TSharedPtr<FBodyStateHMDDevice> BSHMDDevice;
 };

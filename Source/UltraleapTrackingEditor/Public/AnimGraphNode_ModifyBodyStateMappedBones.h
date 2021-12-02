@@ -1,11 +1,14 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 #include "AnimGraphDefinitions.h"
 #include "AnimNode_ModifyBodyStateMappedBones.h"
+#if ENGINE_MAJOR_VERSION >= 5
+#include "Editor/AnimGraph/Public/AnimGraphNode_SkeletalControlBase.h"
+#else
 #include "Editor/AnimGraph/Classes/AnimGraphNode_SkeletalControlBase.h"
+#endif
 #include "Kismet2/BlueprintEditorUtils.h"
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
 
 #include "AnimGraphNode_ModifyBodyStateMappedBones.generated.h"
 

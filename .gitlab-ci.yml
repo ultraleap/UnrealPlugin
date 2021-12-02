@@ -1,0 +1,129 @@
+variables:
+  # use the strategy set in the project CI settings GIT_STRATEGY: none
+  GIT_SUBMODULE_STRATEGY: none
+  ErrorActionPreference: stop
+
+  PROJECT_NAME: "UltraleapTracking"
+  PROJECT_PATH: "$CI_PROJECT_DIR"  
+  
+  ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
+  ENGINE_UAT_PATH: "$ENGINE_PATH/Engine/Build/BatchFiles/RunUAT.bat"
+  
+  # this holds the unreal version
+  UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
+
+  VERSIONTRUNC: "Unknown"
+stages:
+  - documentation
+  - build
+
+documentation::generate-tracking-documentation:
+  stage: documentation
+  tags:
+    - unreal
+    - windows  
+  timeout: 30m
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+      allow_failure: true
+
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: always
+      allow_failure: true
+      
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+ 
+ 
+  script:
+     # Generate XML documentation using Doxygen
+    - echo "Generate docs"
+
+    # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
+    - doxygen
+
+  after_script:
+    - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
+    - echo "$DOXY_LOCATION"
+    
+    - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR"
+  artifacts:
+    name: "Artifacts"
+    paths:
+      - "xml"
+
+    when: always
+    expire_in: never
+
+build:build-project:
+  stage: build
+  tags:
+    - unreal
+    - windows
+  when: always
+  retry: 2
+  timeout: 1h
+  allow_failure: false
+
+  script:   
+    # Get Unreal version and changeset from the project. from json
+    - $UNREAL_VERSION_CONTENT = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
+    - $UNREAL_VERSION = $UNREAL_VERSION_CONTENT.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT.PatchVersion.ToString()
+    
+    - echo "$ENGINE_PATH"
+    - echo "$PROJECT_PATH"
+    - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
+    - echo "$ENGINE_UAT_PATH"
+    - echo "Working dir"
+    - pwd
+   
+    # Build the project.
+    - echo "==============================================="
+    - echo "Build with UAT"
+    - echo "==============================================="
+    
+    # Piped to a log file, remove at the end of this line if you want to see the output during build
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -Rocket > ./$PROJECT_NAME.log" 
+    - echo $process.ExitCode
+    - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
+    
+    
+    - echo "Unreal build complete."
+
+   
+  after_script:
+     # Get the project/app version from the uplugin file
+     # this holds the plugin version
+    - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
+    - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
+
+    - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
+    - $VERSIONTRUNC = $VERSION.Replace('VersionName','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace(':','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace(' ','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace('",','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace('"','')
+    - $VERSIONTRUNC = $VERSIONTRUNC.Replace('	','')
+    
+
+    - echo "$UNREAL_VERSION"
+    - echo "$VERSIONTRUNC"
+    
+    - $BUILD_FULL_VERSION = $VERSIONTRUNC
+    - $BUILD_PATH = "./build/$PROJECT_NAME-$BUILD_FULL_VERSION/"
+    - mkdir "$BUILD_PATH"  
+    - echo "$BUILD_PATH"
+    - echo "$BUILD_LOCATION"
+
+    - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
+
+  artifacts:
+    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
+    paths:
+    - "./build/"
+    - "./$PROJECT_NAME.log"
+    when: always
+    expire_in: 2 weeks

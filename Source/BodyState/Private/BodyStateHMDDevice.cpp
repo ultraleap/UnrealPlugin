@@ -1,29 +1,30 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "BodyStateHMDDevice.h"
-#include "XRMotionControllerBase.h"
-#include "IXRTrackingSystem.h"
+
 #include "Engine/Engine.h"
-#include "Skeleton/BodyStateSkeleton.h"
 #include "Features/IModularFeatures.h"
+#include "IXRTrackingSystem.h"
+#include "Skeleton/BodyStateSkeleton.h"
+#include "XRMotionControllerBase.h"
 
 FBodyStateHMDDevice::FBodyStateHMDDevice()
 {
 	HMDDeviceIndex = -1;
 
-	//Default config
+	// Default config
 	Config.DeviceName = TEXT("HMD");
 	Config.InputType = EBodyStateDeviceInputType::EXTERNAL_REFERENCE_INPUT_TYPE;
 	Config.TrackingTags.Add("Hands");
 	Config.TrackingTags.Add("Head");
 	bShouldTrackMotionControllers = true;
 	MotionControllerInertialConfidence = 0.1f;
-	MotionControllerTrackedConfidence = 0.8f;	//it's not 1.0 to allow leap motion to override it if both are tracked at same time
+	MotionControllerTrackedConfidence = 0.8f;	 // it's not 1.0 to allow leap motion to override it if both are tracked at same
+												 // time
 }
 
 FBodyStateHMDDevice::~FBodyStateHMDDevice()
 {
-
 }
 
 void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
@@ -49,7 +50,7 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 		{
 			UBodyStateBone* LeftHand = Skeleton->BoneForEnum(EBodyStateBasicBoneType::BONE_HAND_WRIST_L);
 			UBodyStateBone* RightHand = Skeleton->BoneForEnum(EBodyStateBasicBoneType::BONE_HAND_WRIST_R);
-			
+
 			if (!LeftHand->IsTracked())
 			{
 				LeftHand->Meta.Confidence = 0.f;
@@ -65,17 +66,19 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 				RightHand->Meta.TrackingTags = Config.TrackingTags;
 			}
 
-			//enum motion controllers
-			TArray<IMotionController*> MotionControllers = IModularFeatures::Get().GetModularFeatureImplementations<IMotionController>(IMotionController::GetModularFeatureName());
+			// enum motion controllers
+			TArray<IMotionController*> MotionControllers =
+				IModularFeatures::Get().GetModularFeatureImplementations<IMotionController>(
+					IMotionController::GetModularFeatureName());
 
-			FRotator OrientationRot = FRotator(0.f,0.f,0.f);
+			FRotator OrientationRot = FRotator(0.f, 0.f, 0.f);
 			FTransform HandTransform;
 			LeftHand->Meta.Confidence = 0.f;
 			RightHand->Meta.Confidence = 0.f;
-			
-			for(IMotionController* Controller : MotionControllers)
+
+			for (IMotionController* Controller : MotionControllers)
 			{
-				//Left Hand
+				// Left Hand
 				UBodyStateBone* Hand = LeftHand;
 				FName TrackingSource = FXRMotionControllerBase::LeftHandSourceId;
 
@@ -100,10 +103,10 @@ void FBodyStateHMDDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* 
 					Hand->BoneData.SetFromTransform(HandTransform);
 				}
 
-				//Right Hand
+				// Right Hand
 				Hand = RightHand;
 				TrackingSource = FXRMotionControllerBase::RightHandSourceId;
-				
+
 				TrackingStatus = Controller->GetControllerTrackingStatus(0, TrackingSource);
 				if (TrackingStatus != ETrackingStatus::NotTracked)
 				{

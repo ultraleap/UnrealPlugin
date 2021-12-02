@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 using System.IO;
  
@@ -88,7 +88,6 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"UltraleapTracking/Private",
 					IncludePath,
 					// ... add other private include paths required here ...
 				}
@@ -110,7 +109,8 @@ namespace UnrealBuildTool.Rules
 					"Projects",
 					"LiveLinkInterface",
 					"LiveLinkMessageBusFramework",
-					"BodyState"
+					"BodyState",
+					"PhysicsCore"
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
@@ -143,43 +143,6 @@ namespace UnrealBuildTool.Rules
 			return DLLString.GetHashCode() + DLLString.Length;	//ensure both hash and file lengths match
 		}
 
-		private void CopyToProjectBinaries(string Filepath, ReadOnlyTargetRules Target)
-		{
-			//System.Console.WriteLine("uprojectpath is: " + Path.GetFullPath(GetUProjectPath()));
-
-			string BinariesDir = Path.Combine(GetUProjectPath(), "Binaries", Target.Platform.ToString());
-			string Filename = Path.GetFileName(Filepath);
-
-			//convert relative path 
-			string FullBinariesDir = Path.GetFullPath(BinariesDir);
-
-			if (!Directory.Exists(FullBinariesDir))
-			{
-				Directory.CreateDirectory(FullBinariesDir);
-			}
-
-			string FullExistingPath = Path.Combine(FullBinariesDir, Filename);
-			bool ValidFile = false;
-
-			//File exists, check if they're the same
-			if (File.Exists(FullExistingPath))
-			{
-				int ExistingFileHash = HashFile(FullExistingPath);
-				int TargetFileHash = HashFile(Filepath);
-				ValidFile = ExistingFileHash == TargetFileHash;
-				if (!ValidFile)
-				{
-					System.Console.WriteLine("LeapPlugin: outdated dll detected.");
-				}
-			}
-
-			//No valid existing file found, copy new dll
-			if(!ValidFile)
-			{
-				System.Console.WriteLine("LeapPlugin: Copied from " + Filepath + ", to " + Path.Combine(FullBinariesDir, Filename));
-				File.Copy(Filepath, Path.Combine(FullBinariesDir, Filename), true);
-			}
-		}
 
 		public bool LoadLeapLib(ReadOnlyTargetRules Target)
 		{
@@ -206,14 +169,14 @@ namespace UnrealBuildTool.Rules
 				{
 					//DLL
 					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
-
+				
 					System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
 
-					//For project plugins, copy the dll to the project if needed
-					CopyToProjectBinaries(PluginDLLPath, Target);
-
-					string DLLPath = Path.GetFullPath(Path.Combine(GetUProjectPath(), "Binaries", PlatformString, "LeapC.dll"));
-					RuntimeDependencies.Add(DLLPath);
+					RuntimeDependencies.Add(PluginDLLPath);
+					if (!Target.bBuildEditor)
+					{
+						PublicDelayLoadDLLs.Add("LeapC.dll");
+					}
 				}
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)

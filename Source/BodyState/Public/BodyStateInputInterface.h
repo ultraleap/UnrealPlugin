@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
@@ -7,7 +7,7 @@
 
 #include "BodyStateInputInterface.generated.h"
 
-//For non-uobjects
+// For non-uobjects
 class BODYSTATE_API IBodyStateInputRawInterface
 {
 public:
@@ -15,7 +15,7 @@ public:
 	virtual void OnDeviceDetach() = 0;
 };
 
-//for uobject and bps
+// for uobject and bps
 UINTERFACE(Blueprintable, MinimalAPI)
 class UBodyStateInputInterface : public UInterface
 {
@@ -27,8 +27,7 @@ class BODYSTATE_API IBodyStateInputInterface
 	GENERATED_BODY()
 
 public:
-
 	/* Requests your device to update the skeleton. You can use this BS polling method or push updates to your skeleton*/
 	UFUNCTION(BlueprintNativeEvent, Category = "Body State Poll Interface")
-	void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton);	//todo: define
+	void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton);	 // todo: define
 };

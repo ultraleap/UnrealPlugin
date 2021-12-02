@@ -1,10 +1,10 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #pragma once
 
-#include "LiveLinkTypes.h"
 #include "ILiveLinkClient.h"
 #include "LiveLinkProvider.h"
+#include "LiveLinkTypes.h"
 #include "Skeleton/BodyStateSkeleton.h"
 
 class FLeapLiveLinkProducer
@@ -14,13 +14,13 @@ public:
 	void Startup();
 	void ShutDown();
 
-	//Linkup initial information of the skeleton
+	// Linkup initial information of the skeleton
 	void SyncSubjectToSkeleton(const UBodyStateSkeleton* Skeleton);
 
-	//Update transforms from bodystate skeleton data
+	// Update transforms from bodystate skeleton data
 	void UpdateFromBodyState(const UBodyStateSkeleton* Skeleton);
 
-	//Whether it's connected as a live link source, use this to determine if we should pay the live link data cost
+	// Whether it's connected as a live link source, use this to determine if we should pay the live link data cost
 	bool HasConnection();
 
 protected:
@@ -28,6 +28,6 @@ protected:
 	TSharedPtr<ILiveLinkProvider> LiveLinkProvider;
 	FName SubjectName;
 	TArray<UBodyStateBone*> TrackedBones;
-	 
-	static void ConvertComponentTransformToLocalTransform(FTransform& BoneTransform,const FTransform& ParentTransform);
+
+	static void ConvertComponentTransformToLocalTransform(FTransform& BoneTransform, const FTransform& ParentTransform);
 };

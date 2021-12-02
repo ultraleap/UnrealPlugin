@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "BodyStateUtility.h"
 
@@ -9,13 +9,13 @@ FRotator FBodyStateUtility::CombineRotators(FRotator A, FRotator B)
 	FQuat AQuat = FQuat(A);
 	FQuat BQuat = FQuat(B);
 
-	return FRotator(BQuat*AQuat);
+	return FRotator(BQuat * AQuat);
 }
 
 float FBodyStateUtility::AngleBetweenVectors(FVector A, FVector B)
 {
 	float dotAB = FVector::DotProduct(A, B);
-	float bottom = (A.Size()*B.Size());
+	float bottom = (A.Size() * B.Size());
 	if (bottom != 0)
 	{
 		return FMath::Acos(dotAB / bottom);

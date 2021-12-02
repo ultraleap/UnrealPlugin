@@ -1,15 +1,12 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "Skeleton/BodyStateArm.h"
 
-UBodyStateFinger::UBodyStateFinger(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UBodyStateFinger::UBodyStateFinger(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
 }
 
-UBodyStateHand::UBodyStateHand(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UBodyStateHand::UBodyStateHand(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
 
@@ -38,8 +35,6 @@ UBodyStateFinger* UBodyStateHand::PinkyFinger()
 	return Fingers[4];
 }
 
-UBodyStateArm::UBodyStateArm(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UBodyStateArm::UBodyStateArm(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
 }

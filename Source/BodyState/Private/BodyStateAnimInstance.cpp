@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "BodyStateAnimInstance.h"
 
@@ -6,6 +6,10 @@
 #include "BodyStateUtility.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#if WITH_EDITOR
+#include "Misc/MessageDialog.h"
+#include "PersonaUtils.h"
+#endif
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {
@@ -15,7 +19,6 @@ FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef
 UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Defaults
-	bAutoDetectBoneMapAtInit = false;
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
 
@@ -52,9 +55,9 @@ void UBodyStateAnimInstance::SetAnimSkeleton(UBodyStateSkeleton* InSkeleton)
 }
 
 TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::AutoDetectHandBones(
-	USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
 {
-	auto IndexedMap = AutoDetectHandIndexedBones(Component, RigTargetType);
+	auto IndexedMap = AutoDetectHandIndexedBones(Component, RigTargetType, Success, FailedBones);
 	return ToBoneReferenceMap(IndexedMap);
 }
 
@@ -162,10 +165,10 @@ TArray<int32> UBodyStateAnimInstance::SelectBones(const TArray<FString>& Definit
 }
 
 TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::AutoDetectHandIndexedBones(
-	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType /*= EBodyStateAutoRigType::HAND_LEFT*/)
+	USkeletalMeshComponent* Component, EBodyStateAutoRigType HandType, bool& Success, TArray<FString>& FailedBones)
 {
 	TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> AutoBoneMap;
-
+	Success = true;
 	if (Component == nullptr)
 	{
 		return AutoBoneMap;
@@ -173,7 +176,12 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 
 	// Get bones and parent indices
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+
+#if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 27)
+	FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetRefSkeleton();
+#else
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->RefSkeleton;
+#endif
 
 	// Finger roots
 	int32 ThumbBone = InvalidBone;
@@ -284,11 +292,13 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 		{
 			AutoBoneMap.Add(EBodyStateBasicBoneType::BONE_HAND_WRIST_R, BoneLookupList.SortedBones[WristBone]);
 		}
+
 		if (ThumbBone >= 0)
 		{
 			// Thumbs will always be ~ 3 bones
 			AddFingerToMap(EBodyStateBasicBoneType::BONE_THUMB_0_METACARPAL_R, ThumbBone, AutoBoneMap);
 		}
+
 		if (IndexBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -300,6 +310,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R, IndexBone, AutoBoneMap);
 			}
 		}
+
 		if (MiddleBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -311,6 +322,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R, MiddleBone, AutoBoneMap);
 			}
 		}
+
 		if (RingBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -322,6 +334,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 				AddFingerToMap(EBodyStateBasicBoneType::BONE_RING_1_PROXIMAL_R, RingBone, AutoBoneMap);
 			}
 		}
+
 		if (PinkyBone >= 0)
 		{
 			if (BonesPerFinger > NoMetaCarpelsFingerBoneCount)
@@ -334,10 +347,40 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 			}
 		}
 	}
+	// failure states, it's common not find an arm so don't flag that as fail to map
+	if (IndexBone < 0 || RingBone < 0 || PinkyBone < 0 || MiddleBone < 0 || ThumbBone < 0 || WristBone < 0)
+	{
+		if (IndexBone < 0)
+		{
+			FailedBones.Add("Index");
+		}
+		if (RingBone < 0)
+		{
+			FailedBones.Add("Ring");
+		}
+		if (MiddleBone < 0)
+		{
+			FailedBones.Add("Middle");
+		}
+		if (PinkyBone < 0)
+		{
+			FailedBones.Add("Pinky");
+		}
+		if (ThumbBone < 0)
+		{
+			FailedBones.Add("Thumb");
+		}
+		if (WristBone < 0)
+		{
+			FailedBones.Add("Wrist");
+		}
+	}
+
 	// create empty skeleton for easy config
 	if (AutoBoneMap.Num() < 2)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find bones, please manually map them"));
+		UE_LOG(LogTemp, Log, TEXT("Auto mapping bone names - Cannot automatically find any bones, please manually map them"));
+		Success = false;
 
 		CreateEmptyBoneMap(AutoBoneMap, HandType);
 	}
@@ -715,12 +758,13 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 	return ElbowLength;
 }
-void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType)
+void UBodyStateAnimInstance::AutoMapBoneDataForRigType(
+	FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
 {
 	// Grab our skel mesh component
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 
-	IndexedBoneMap = AutoDetectHandIndexedBones(Component, RigTargetType);
+	IndexedBoneMap = AutoDetectHandIndexedBones(Component, RigTargetType, Success, FailedBones);
 	auto OldMap = ForMap.BoneMap;
 	ForMap.BoneMap = ToBoneReferenceMap(IndexedBoneMap);
 
@@ -738,11 +782,11 @@ void UBodyStateAnimInstance::AutoMapBoneDataForRigType(FMappedBoneAnimData& ForM
 	}
 	ForMap.ElbowLength = CalculateElbowLength(ForMap, RigTargetType);
 	// Reset specified keys from defaults
-	for (auto Pair : OldMap)
+	/*for (auto Pair : OldMap)
 	{
 		Pair.Value.MeshBone.Initialize(CurrentSkeleton);
 		ForMap.BoneMap.Add(Pair.Key, Pair.Value);
-	}
+	}*/
 }
 
 int32 UBodyStateAnimInstance::TraverseLengthForIndex(int32 Index)
@@ -816,10 +860,15 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForM
 	if (ForMap.FlipModelLeftRight)
 	{
 		Component->SetRelativeScale3D(FVector(1, 1, -1));
+		// Unreal doesn't deal with mirrored scale when in comes to updating the mesh bounds
+		// this means that at 1 bounds scale, the skeletel mesh gets occluded as the bounds are not following the skeleton
+		// Until this is fixed in the engine, we have to force the bounds to be huge to always render.
+		Component->SetBoundsScale(10);
 	}
 	else
 	{
 		Component->SetRelativeScale3D(FVector(1, 1, 1));
+		Component->SetBoundsScale(1);
 	}
 }
 void UBodyStateAnimInstance::NativeInitializeAnimation()
@@ -829,41 +878,6 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	// Get our default bodystate skeleton
 	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
 	SetAnimSkeleton(Skeleton);
-
-	// Try to auto-detect our bones
-	if (bAutoDetectBoneMapAtInit)
-	{
-		// One hand mapping
-		if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
-		{
-			// Make one map if missing
-			if (MappedBoneList.Num() < 1)
-			{
-				FMappedBoneAnimData Map;
-				MappedBoneList.Add(Map);
-			}
-
-			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
-
-			AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget);
-		}
-		// Two hand mapping
-		else
-		{
-			// Make two maps if missing
-			while (MappedBoneList.Num() < 2)
-			{
-				FMappedBoneAnimData Map;
-				MappedBoneList.Add(Map);
-			}
-			// Map one hand each
-			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
-			AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
-
-			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
-			AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
-		}
-	}
 
 	// One hand mapping
 	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
@@ -972,6 +986,136 @@ bool UBodyStateAnimInstance::CalcIsTracking()
 	}
 	return Ret;
 }
+void UBodyStateAnimInstance::ExecuteAutoMapping()
+{
+	bool AutoMapSuccess = false;
+	TArray<FString> FailedBones;
+	// One hand mapping
+	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
+	{
+		// Make one map if missing
+		if (MappedBoneList.Num() < 1)
+		{
+			FMappedBoneAnimData Map;
+			MappedBoneList.Add(Map);
+		}
+
+		FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+
+		// reset on auto map button, otherwise flipping left to right won't set this up
+		OneHandMap.PreBaseRotation = FRotator::ZeroRotator;
+		AutoMapBoneDataForRigType(OneHandMap, AutoMapTarget, AutoMapSuccess, FailedBones);
+	}
+	// Two hand mapping
+	else
+	{
+		// Make two maps if missing
+		while (MappedBoneList.Num() < 2)
+		{
+			FMappedBoneAnimData Map;
+			MappedBoneList.Add(Map);
+		}
+		// Map one hand each
+		FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
+		AutoMapBoneDataForRigType(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT, AutoMapSuccess, FailedBones);
+
+		FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+		AutoMapBoneDataForRigType(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT, AutoMapSuccess, FailedBones);
+	}
+
+	// One hand mapping
+	if (AutoMapTarget != EBodyStateAutoRigType::BOTH_HANDS)
+	{
+		if (MappedBoneList.Num() > 0)
+		{
+			FMappedBoneAnimData& OneHandMap = MappedBoneList[0];
+			HandleLeftRightFlip(OneHandMap);
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(OneHandMap, AutoMapTarget);
+			}
+			else
+			{
+				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+	else
+	{
+		// Make two maps if missing
+		if (MappedBoneList.Num() > 1)
+		{
+			// Map one hand each
+			FMappedBoneAnimData& LeftHandMap = MappedBoneList[0];
+			FMappedBoneAnimData& RightHandMap = MappedBoneList[1];
+
+			HandleLeftRightFlip(LeftHandMap);
+			HandleLeftRightFlip(RightHandMap);
+
+			if (bDetectHandRotationDuringAutoMapping)
+			{
+				EstimateAutoMapRotation(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+				EstimateAutoMapRotation(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
+			}
+			else
+			{
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+			}
+		}
+	}
+
+	// Cache all results
+	if (BodyStateSkeleton == nullptr)
+	{
+		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
+	}
+	else
+	{
+		for (auto& BoneMap : MappedBoneList)
+		{
+			SyncMappedBoneDataCache(BoneMap);
+		}
+	}
+
+#if WITH_EDITOR
+	// this is what happens when the user clicks apply in the property previewer
+	PersonaUtils::CopyPropertiesToCDO(this);
+
+	FString Title("Ultraleap auto bone mapping");
+	FText TitleText = FText::FromString(*Title);
+	FString Message("Auto mapping succeeded! Compile to continue");
+
+	if (!AutoMapSuccess)
+	{
+		Message = "We couldn't automatically map all bones.\n\nThe following bones couldn't be auto mapped:\n\n";
+
+		for (auto BoneName : FailedBones)
+		{
+			Message += BoneName;
+			Message += "\n";
+		}
+		Message += "\n\nEdit the mappings manually in 'Mapped Bone List -> Bone Map' in the preview panel to continue.";
+	}
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), &TitleText);
+
+#endif
+}
+#if WITH_EDITOR
+void UBodyStateAnimInstance::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+
+	// if we want to trigger an action when the user manually changed a bone mapping , do it in here
+	if (PropertyChangedEvent.GetPropertyName() == "BoneName")
+	{
+	}
+}
+#endif	  // WITH_EDITOR
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
 	// Clear our current list

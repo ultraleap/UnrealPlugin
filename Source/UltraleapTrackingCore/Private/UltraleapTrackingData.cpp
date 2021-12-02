@@ -1,4 +1,4 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "UltraleapTrackingData.h"
 
@@ -294,7 +294,7 @@ void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)
 
 	Normal = FLeapUtility::ConvertLeapVectorToFVector(palm->normal);
 
-	Orientation = FRotationMatrix::MakeFromXZ(Direction, -Normal).Rotator();	// normal*-1.f
+	Orientation = FLeapUtility::ConvertLeapQuatToFQuat(palm->orientation).Rotator();
 
 	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->position);
 
@@ -342,8 +342,9 @@ FLeapOptions::FLeapOptions()
 	TimewarpFactor = 1.f;
 	HandInterpFactor = 0.f;
 	FingerInterpFactor = 0.f;
-	HMDPositionOffset = FVector(9.0, 0, 0);	   // Vive default, for oculus use 8,0,0
-	HMDRotationOffset = FRotator(0, 0, 0);	   // If imperfectly mounted it might need to sag
+	// in mm
+	HMDPositionOffset = FVector(90.0, 0, 0);	// Vive default, for oculus use 80,0,0
+	HMDRotationOffset = FRotator(0, 0, 0);		// If imperfectly mounted it might need to sag
 	bUseFrameBasedGestureDetection = false;
 	StartGrabThreshold = .8f;
 	EndGrabThreshold = .5f;
@@ -351,6 +352,7 @@ FLeapOptions::FLeapOptions()
 	EndPinchThreshold = .5f;
 	GrabTimeout = 100000;
 	PinchTimeout = 100000;
+	bUseOpenXRAsSource = false;
 	// bEnableImageStreaming = false;		//default image streaming to off
 }
 

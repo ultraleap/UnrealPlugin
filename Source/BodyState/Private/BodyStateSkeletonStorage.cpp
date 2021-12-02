@@ -1,11 +1,11 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
+
 
 #include "BodyStateSkeletonStorage.h"
-#include "Skeleton/BodyStateSkeleton.h"
+
+#include "BodyStateUtility.h"
 #include "CoreMinimal.h"
 #include "Misc/App.h"
-#include "BodyStateUtility.h"
-
+#include "Skeleton/BodyStateSkeleton.h"
 
 FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()
 {
@@ -16,7 +16,7 @@ FBodyStateSkeletonStorage::FBodyStateSkeletonStorage()
 
 FBodyStateSkeletonStorage::~FBodyStateSkeletonStorage()
 {
-	//Allow merge skeleton to be removed
+	// Allow merge skeleton to be removed
 	if (PrivateMergedSkeleton && PrivateMergedSkeleton->IsValidLowLevel())
 	{
 		PrivateMergedSkeleton->RemoveFromRoot();
@@ -26,7 +26,7 @@ FBodyStateSkeletonStorage::~FBodyStateSkeletonStorage()
 
 int32 FBodyStateSkeletonStorage::AddDevice(const FBodyStateDevice& InDevice)
 {
-	//Ensure we have a merged skeleton first
+	// Ensure we have a merged skeleton first
 	MergedSkeleton();
 
 	FBodyStateDevice Device = InDevice;
@@ -52,15 +52,15 @@ bool FBodyStateSkeletonStorage::RemoveDevice(int32 DeviceId)
 	if (DeviceId < 0)
 	{
 		UE_LOG(BodyStateLog, Log, TEXT("BodyState::RemoveDevice attempted to remove invalid index: (%d)"), DeviceId);
-		return false;	//couldn't find
+		return false;	 // couldn't find
 	}
 
 	bool HasKey = DeviceKeyMap.Contains(DeviceId);
-	
+
 	if (!HasKey)
 	{
 		UE_LOG(BodyStateLog, Log, TEXT("BodyState::RemoveDevice already removed (%d)"), DeviceId);
-		return false;	//already removed
+		return false;	 // already removed
 	}
 
 	IBodyStateInputRawInterface* DelegatePtr = DeviceKeyMap[DeviceId];
@@ -81,7 +81,7 @@ bool FBodyStateSkeletonStorage::RemoveDevice(int32 DeviceId)
 
 void FBodyStateSkeletonStorage::RemoveAllDevices()
 {
-	//We need to make a copy of our devices as remove will change the size of devices
+	// We need to make a copy of our devices as remove will change the size of devices
 	TArray<FBodyStateDevice> AllDevices;
 
 	Devices.GenerateValueArray(AllDevices);
@@ -97,12 +97,12 @@ void FBodyStateSkeletonStorage::RemoveAllDevices()
 
 UBodyStateSkeleton* FBodyStateSkeletonStorage::SkeletonForDevice(int32 DeviceId)
 {
-	//Return merged/only skeleton
+	// Return merged/only skeleton
 	if (DeviceId == 0)
 	{
 		return PrivateMergedSkeleton;
 	}
-	//Return specific skeleton
+	// Return specific skeleton
 	else if (!DeviceKeyMap.Contains(DeviceId))
 	{
 		UE_LOG(BodyStateLog, Warning, TEXT("DeviceID: %d is invalid, returning nullptr skeleton."), DeviceId);
@@ -116,7 +116,7 @@ UBodyStateSkeleton* FBodyStateSkeletonStorage::SkeletonForDevice(int32 DeviceId)
 
 UBodyStateSkeleton* FBodyStateSkeletonStorage::MergedSkeleton()
 {
-	//create as needed
+	// create as needed
 	if (!PrivateMergedSkeleton || !PrivateMergedSkeleton->IsValidLowLevel())
 	{
 		PrivateMergedSkeleton = NewObject<UBodyStateSkeleton>();
@@ -132,7 +132,7 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 	double Now = FApp::GetCurrentTime();
 	DeltaTime = (Now - LastFrameTime);
 
-	//Basic merge of skeleton data
+	// Basic merge of skeleton data
 	MergedSkeleton();
 
 	if (!PrivateMergedSkeleton->bTrackingActive)
@@ -140,22 +140,21 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 		return;
 	}
 
-	//Reset our confidence
+	// Reset our confidence
 	PrivateMergedSkeleton->ClearConfidence();
 	PrivateMergedSkeleton->TrackingTags.Empty();
 
-	//Merges all skeleton data
+	// Merges all skeleton data
 	{
 		FScopeLock ScopeLock(&PrivateMergedSkeleton->BoneDataLock);
 		for (auto& Elem : Devices)
 		{
-
 			UBodyStateSkeleton* Skeleton = Elem.Value.Skeleton;
 			PrivateMergedSkeleton->MergeFromOtherSkeleton(Skeleton);
 		}
 	}
 
-	//Dispatch estimator function lambdas which give merge skeleton and expect further updated values
+	// Dispatch estimator function lambdas which give merge skeleton and expect further updated values
 	CallMergingFunctions();
 
 	LastFrameTime = Now;
@@ -163,7 +162,7 @@ void FBodyStateSkeletonStorage::UpdateMergeSkeletonData()
 
 void FBodyStateSkeletonStorage::CallMergingFunctions()
 {
-	//Call all merging functions on our private merged skeleton
+	// Call all merging functions on our private merged skeleton
 	for (auto& Pair : MergingFunctions)
 	{
 		FScopeLock ScopeLock(&PrivateMergedSkeleton->BoneDataLock);
@@ -190,7 +189,7 @@ void FBodyStateSkeletonStorage::ClearMergingFunctions()
 	MergingFunctionIndexCount = 0;
 }
 
-void FBodyStateSkeletonStorage::CallFunctionOnDevices(TFunction< void(const FBodyStateDevice&)> InFunction)
+void FBodyStateSkeletonStorage::CallFunctionOnDevices(TFunction<void(const FBodyStateDevice&)> InFunction)
 {
 	for (auto& Elem : Devices)
 	{
