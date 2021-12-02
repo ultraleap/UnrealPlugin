@@ -8,7 +8,6 @@
 
 #pragma region LeapC Wrapper
 
-
 FLeapWrapper::FLeapWrapper() : bIsRunning(false)
 {
 	InterpolatedFrame = nullptr;
@@ -41,7 +40,7 @@ void FLeapWrapper::SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackD
 	CallbackDelegate = InCallbackDelegate;
 }
 
-LEAP_CONNECTION* FLeapWrapper::OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate)
+LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
 	SetCallbackDelegate(InCallbackDelegate);
 

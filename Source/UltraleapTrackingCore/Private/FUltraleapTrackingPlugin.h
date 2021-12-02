@@ -27,8 +27,9 @@ public:
 	virtual void GetAttachedDevices(TArray<FString>& Devices) override;
 
 	virtual void ShutdownLeap() override;
-	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override;
-	
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override;
+
 	bool IsActive();
 
 private:

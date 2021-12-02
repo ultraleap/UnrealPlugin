@@ -167,7 +167,7 @@ private:
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
 	TSharedPtr<IHandTrackingWrapper> Leap;
-	
+
 	// LeapWrapper Callbacks
 	virtual void OnConnect() override;
 	virtual void OnConnectionLost() override;

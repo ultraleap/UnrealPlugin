@@ -43,7 +43,7 @@ public:
 	{
 	}
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() = 0;
@@ -71,8 +71,8 @@ public:
 
 	virtual int64_t GetNow() = 0;
 
-	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY,ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
-
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -82,7 +82,7 @@ public:
 	bool bIsConnected = false;
 
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate)
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
 	{
 		CallbackDelegate = InCallbackDelegate;
 		return nullptr;
@@ -139,10 +139,11 @@ public:
 		CurrentWorld = World;
 	}
 
-	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
 	{
-
 	}
+
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -154,11 +155,10 @@ public:
 	// LeapC Vars
 	FThreadSafeBool bIsRunning;
 	FThreadSafeBool bHasFinished;
-	
+
 	LEAP_CONNECTION ConnectionHandle;
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
-	
 
 	FLeapWrapper();
 	virtual ~FLeapWrapper();
@@ -206,7 +206,6 @@ private:
 	// Threading variables
 	FCriticalSection DataLock;
 	TFuture<void> ProducerLambdaFuture;
-	
 
 	LEAP_TRACKING_EVENT* InterpolatedFrame;
 	uint64 InterpolatedFrameSize;
