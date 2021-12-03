@@ -1,11 +1,17 @@
-
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #pragma once
 
 #include "LeapBlueprintFunctionLibrary.h"
-#include "Misc/ConfigCacheIni.h"
-#include "IUltraleapTrackingPlugin.h"
 
+#include "IUltraleapTrackingPlugin.h"
+#include "Misc/ConfigCacheIni.h"
 
 FRotator ULeapBlueprintFunctionLibrary::DebugRotator;
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer) : Super(Initializer)
