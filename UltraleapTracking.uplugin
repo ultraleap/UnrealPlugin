@@ -8,13 +8,12 @@
 	"CreatedBy": "Ultraleap",
 	"CreatedByURL": "https://www.ultraleap.com/",
 	"DocsURL": "https://github.com/leapmotion/leapunreal",
-	"MarketplaceURL": "",
+	"MarketPlaceURL": "com.epicgames.launcher://ue/marketplace/product/bee1e122fcae438abb50441ee6286d92",
 	"SupportURL": "",
 	"EnabledByDefault": true,
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"Installed": false,
-	"MarketPlaceURL": "com.epicgames.launcher://ue/marketplace/product/bee1e122fcae438abb50441ee6286d92",
 	"Modules": [
 		{
 			"Name": "UltraleapTracking",
