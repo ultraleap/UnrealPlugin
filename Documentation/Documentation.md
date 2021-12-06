@@ -15,7 +15,7 @@ Reach out at https://forums.leapmotion.com/
 
 1. Ensure you have the latest [Leap Motion driver installed](https://developer.leapmotion.com/get-started). This plugin requires v4 SDK tracking or newer.
 2. Create new or open a project. 
-3. Download [latest release](https://github.com/leapmotion/LeapUnreal/releases) (make sure to use the .zip link)
+3. Download [latest release](https://github.com/ultraleap/UnrealPlugin/releases) (make sure to use the .zip link)
 4. Create a Plugins folder in your project root folder if one doesn't already exist
 5. Drag the unzipped **UltraleapTracking** plugin into the project's Plugins folder. 
 6. The plugin should be enabled and ready to use, if not enable it.
@@ -608,4 +608,4 @@ Below is a link to an example video for packaging for windows. The user here had
 
 ## Contact
 
-Please post issues and feature requests to this [github repository issues section](https://github.com/leapmotion/LeapUnreal/issues)
+Please post issues and feature requests to this [github repository issues section](https://github.com/ultraleap/UnrealPlugin/issues)
