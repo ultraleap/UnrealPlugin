@@ -7,8 +7,6 @@
 #include "Runtime/Engine/Public/Animation/AnimInstanceProxy.h"
 #include "Skeleton/BodyStateArm.h"
 
-
-
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones() : FAnimNode_SkeletalControlBase()
 {
 	WorldIsGame = false;
@@ -33,14 +31,13 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 	FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
 	FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
 	int32 WristBoneIndex = -1;
-	
+
 	if (WristCachedBone)
 	{
 		WristBoneIndex = WristCachedBone->MeshBone.BoneIndex;
 	}
 	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
 	{
-		
 		if (&CachedBone == ArmCachedBone && WristBoneIndex > -1 && WristCachedBone)
 		{
 			auto WristPosition = WristCachedBone->BSBone->BoneData.Transform.GetLocation();
@@ -179,7 +176,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 			FLeapUtility::LogRotation(FString::Printf(TEXT("%s rot "), *CachedBone.BSBone->Name),
 				CachedBone.BSBone->BoneData.Transform.GetRotation().Rotator());
 		}*/
-		
+
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
