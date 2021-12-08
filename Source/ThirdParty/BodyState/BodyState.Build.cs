@@ -33,7 +33,7 @@ public class BodyState : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"BodyState/Private",
+				"ThirdParty/BodyState/Private",
 			}
 			);
 			
