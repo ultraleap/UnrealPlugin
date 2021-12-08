@@ -1,7 +1,7 @@
 Ultraleap Unreal Plugin
 ====================
 
-[![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/leapmotion/leapunreal/releases)
+[![GitHub release](https://img.shields.io/github/release/ultraleap/unrealplugin.svg)](https://github.com/ultraleap/UnrealPlugin/releases)
 
 ## Introduction
 
@@ -27,7 +27,7 @@ The Unreal Plugin repository is designed and tested to work against 4.27.
 
 There are several ways you can consume this plugin.
 
-1. Download the [latest release](https://github.com/leapmotion/LeapUnreal/releases) of the UnrealPlugin and SDK (make sure to use the .zip link)
+1. Download the [latest release](https://github.com/ultraleap/UnrealPlugin/releases) of the UnrealPlugin and SDK (make sure to use the .zip link)
 2. Open or create a new project.
 3. Create a Plugins folder in your project root folder (if one doesn't already exist).
 4. Drag the unzipped UltraleapTracking plugin into the project's Plugins folder
