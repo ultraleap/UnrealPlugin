@@ -1,7 +1,7 @@
 Ultraleap Unreal Plugin
 ====================
 
-[![GitHub release](https://img.shields.io/github/release/leapmotion/leapunreal.svg)](https://github.com/ultraleap/UnrealPlugin/releases)
+[![GitHub release](https://img.shields.io/github/release/ultraleap/unrealplugin.svg)](https://github.com/ultraleap/UnrealPlugin/releases)
 
 ## Introduction
 
@@ -50,7 +50,7 @@ None
 
 ## Documentation
 
-You can find out more about how to use the Unreal Plugin [here](Documentation/Documentation.md)
+You can find out more about how to use the Unreal Plugin [here](Documentation.md)
 
 ## Usage
 
