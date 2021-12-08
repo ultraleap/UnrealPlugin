@@ -50,7 +50,7 @@ None
 
 ## Documentation
 
-You can find out more about how to use the Unreal Plugin [here](Documentation.md)
+You can find out more about how to use the Unreal Plugin [here](Documentation/Documentation.md)
 
 ## Usage
 
