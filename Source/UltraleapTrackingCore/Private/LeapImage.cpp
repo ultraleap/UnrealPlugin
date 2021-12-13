@@ -101,7 +101,7 @@ void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint3
 
 void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, const LEAP_IMAGE& Image, uint8* SrcData)
 {
-	UpdateTextureRegions(Texture, 0, 1, &UpdateTextureRegion, Image.properties.width, Image.properties.bpp, SrcData, true);
+	UpdateTextureRegions(Texture, 0, 1, &UpdateTextureRegion, Image.properties.width, Image.properties.bpp, SrcData, false);
 }
 
 void FLeapImage::UpdateTextureOnGameThread(UTexture2D* Texture, uint8* SrcData, const int32 BufferLength)
@@ -156,6 +156,10 @@ void FLeapImage::OnImage(const LEAP_IMAGE_EVENT* ImageEvent)
 
 	if (OnImageCallback.IsBound())
 	{
+
+		UpdateTextureRegions(LeftImageTexture, LeftLeapImage, LeftImageBuffer.GetData());
+		UpdateTextureRegions(RightImageTexture, RightLeapImage, RightImageBuffer.GetData());
+
 		if (LeftImageTexture && RightImageTexture)
 		{
 			FLeapAsync::RunShortLambdaOnGameThread([&, BufferSize] {
@@ -163,14 +167,6 @@ void FLeapImage::OnImage(const LEAP_IMAGE_EVENT* ImageEvent)
 				{
 					return;
 				}
-				// This is sufficient for now since leap images are small
-				UpdateTextureOnGameThread(LeftImageTexture, LeftImageBuffer.GetData(), BufferSize);
-				UpdateTextureOnGameThread(RightImageTexture, RightImageBuffer.GetData(), BufferSize);
-				bRenderDidUpdate = true;
-
-				// Todo: swap to optimized when ready
-				// UpdateTextureRegions(LeftImageTexture, LeftLeapImage, LeftImageBuffer.GetData());
-				// UpdateTextureRegions(RightImageTexture, RightLeapImage, RightImageBuffer.GetData());
 
 				OnImageCallback.Broadcast(LeftImageTexture, RightImageTexture);
 			});
