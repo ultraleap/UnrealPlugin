@@ -138,7 +138,6 @@ build:build-project:
     # dlls
     - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-BodyState.dll"
     - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-UltraleapTracking.dll"
-    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-OneEuroFilterUnreal.dll"
     - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-UltraleapTrackingEditor.dll"
     # intermediate folder
     - Remove-Item "$BUILD_MARKET_PLACE_PATH/Intermediate" -Recurse
