@@ -121,7 +121,7 @@ build:build-project:
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
-    - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace/$PROJECT_NAME-$BUILD_FULL_VERSION"
+    - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH"
 
