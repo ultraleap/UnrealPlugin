@@ -10,6 +10,7 @@
 
 #include "HeadMountedDisplayTypes.h"
 #include "IHandTracker.h"
+#include "IXRTrackingSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "LeapBlueprintFunctionLibrary.h"
 #include "LeapUtility.h"
