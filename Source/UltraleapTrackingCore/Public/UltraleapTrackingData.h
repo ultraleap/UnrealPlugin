@@ -392,3 +392,15 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 	void RotateFrame(const FRotator& InRotation);
 	void TranslateFrame(const FVector& InTranslation);
 };
+UENUM()
+enum class ELeapQuatSwizzleAxisB : uint8
+{
+	X UMETA(DisplayName = "X"),
+	Y UMETA(DisplayName = "Y"),
+	Z UMETA(DisplayName = "Z"),
+	W UMETA(DisplayName = "W"),
+	MinusX UMETA(DisplayName = "-X"),
+	MinusY UMETA(DisplayName = "-Y"),
+	MinusZ UMETA(DisplayName = "-Z"),
+	MinusW UMETA(DisplayName = "-W")
+};

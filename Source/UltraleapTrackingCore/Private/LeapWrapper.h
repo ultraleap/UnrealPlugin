@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "HAL/ThreadSafeBool.h"
 #include "LeapC.h"
+#include "UltraleapTrackingData.h"
 
 /** Interface for the passed callback delegate receiving game thread LeapC callbacks */
 class LeapWrapperCallbackInterface
@@ -22,18 +23,6 @@ public:
 	virtual void OnLog(const eLeapLogSeverity Severity, const int64_t Timestamp, const char* Message){};
 	virtual void OnConfigChange(const uint32_t RequestID, const bool Success){};
 	virtual void OnConfigResponse(const uint32_t RequestID, LEAP_VARIANT Value){};
-};
-UENUM()
-enum class ELeapQuatSwizzleAxisB : uint8
-{
-	X UMETA(DisplayName = "X"),
-	Y UMETA(DisplayName = "Y"),
-	Z UMETA(DisplayName = "Z"),
-	W UMETA(DisplayName = "W"),
-	MinusX UMETA(DisplayName = "-X"),
-	MinusY UMETA(DisplayName = "-Y"),
-	MinusZ UMETA(DisplayName = "-Z"),
-	MinusW UMETA(DisplayName = "-W")
 };
 
 class IHandTrackingWrapper
