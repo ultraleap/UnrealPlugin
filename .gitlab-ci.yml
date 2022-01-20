@@ -119,6 +119,36 @@ build:build-project:
     - echo "$BUILD_LOCATION"
 
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
+    # Copy the packaged plugin for modifications for the Unreal Marketplace submission
+    - echo "copying and modifying for the marketplace"
+    - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace/$PROJECT_NAME"
+
+    - echo "$BUILD_MARKET_PLACE_PATH"
+
+    - mkdir "$BUILD_MARKET_PLACE_PATH"
+    - Copy-Item "$BUILD_PATH*" -Destination "$BUILD_MARKET_PLACE_PATH" -Recurse
+    # Copy the FilterPlugin.ini
+    - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
+    - Copy-Item "$PROJECT_PATH/Config/FilterPlugin.ini" -Destination "$BUILD_MARKET_PLACE_PATH/Config"
+    # Clean the binaries folder
+    # pdbs
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/*.pdb"
+    # modules
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor.modules"
+    # dlls
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-BodyState.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-UltraleapTracking.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Binaries/Win64/UE4Editor-UltraleapTrackingEditor.dll"
+    # intermediate folder
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH/Intermediate" -Recurse
+
+    # zip it
+    - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH" -DestinationPath "$BUILD_MARKET_PLACE_PATH.zip"
+
+
+
+
+
 
   artifacts:
     name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"

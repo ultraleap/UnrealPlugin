@@ -23,7 +23,7 @@ Setup
    plugin requires v4 SDK tracking or newer.
 2. Create new or open a project.
 3. Download `latest
-   release <https://github.com/leapmotion/LeapUnreal/releases>`__ (make
+   release <https://github.com/ultraleap/UnrealPlugin/releases>`__ (make
    sure to use the .zip link)
 4. Create a Plugins folder in your project root folder if one doesn't
    already exist
@@ -1220,7 +1220,7 @@ Contact
 -------
 
 Please post issues and feature requests to this `github repository
-issues section <https://github.com/leapmotion/LeapUnreal/issues>`__
+issues section <https://github.com/ultraleap/UnrealPlugin/issues>`__
 
 .. |GitHub release| image:: https://img.shields.io/github/release/leapmotion/leapunreal.svg
    :target: https://github.com/leapmotion/leapunreal/releases
