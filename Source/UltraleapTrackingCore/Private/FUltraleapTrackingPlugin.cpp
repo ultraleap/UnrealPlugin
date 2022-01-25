@@ -51,10 +51,6 @@ void FUltraleapTrackingPlugin::StartupModule()
 	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
 	const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("Leap Plugin started v%s"), *PluginDescriptor.VersionName);
-
-	// early initialising works around device/input startup after begin play
-	TSharedPtr<FGenericApplicationMessageHandler> DummyMessageHandler(new FGenericApplicationMessageHandler());
-	CreateInputDevice(DummyMessageHandler.ToSharedRef());
 }
 
 void FUltraleapTrackingPlugin::ShutdownModule()
@@ -201,14 +197,8 @@ void* FUltraleapTrackingPlugin::GetLeapHandle()
 TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
 	const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 {
-	if (!LeapInputDevice.IsValid())
-	{
-		LeapInputDevice = MakeShareable(new FUltraleapTrackingInputDevice(InMessageHandler));
-	}
-	else
-	{
-		LeapInputDevice.Get()->SetMessageHandler(InMessageHandler);
-	}
+	FUltraleapTrackingPlugin::LeapInputDevice = MakeShareable(new FUltraleapTrackingInputDevice(InMessageHandler));
+
 	bActive = true;
 
 	// Add all the deferred components and empty it
