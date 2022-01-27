@@ -2,8 +2,27 @@ Ultraleap Tracking - Change Log
 ====================
 
 Versions
+### Version 4.0.11
+27th January 2022
 
-### Version 4.3.0
+* Added Virtual Keyboard Actor with example Scene
+* Added Pose detection with example scene (port of Detection utilities from Unity)
+* Updated far field interaction algorithm
+* Auto show/hide controllers when hands in use
+* Fixed hand modules examples scenes and actors not showing hands if hands already in view on startup
+* Monolithic build fixed (header dependencies)
+* Epic Marketplace fixes/changes
+	- CoreRedirects works in both Engine plugins folder and in the project plugins folder (references to old LeapMotion assets)
+	- Licensing statements added to all headers
+	- BodyState module moved to ThirdParty folder
+
+ Known issues:
+
+* Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
+* HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
+* As with most Unreal 4 VR projects, when run in VR preview in the editor, full framerate is often not achievable. This is fine when packaged.
+
+### Version 4.0.3
 
 - Plugin rebranded to UltraleapTracking from LeapMotion
 - Added Interaction Engine
@@ -56,6 +75,6 @@ Known issues:
 
 ---
 
-Copyright © 2012-2020 Ultraleap Ltd. All rights reserved.
+Copyright © 2012-2022 Ultraleap Ltd. All rights reserved.
 
 Use of the Leap Motion SDK is subject to the terms of the Leap Motion SDK Agreement available at https://developer.leapmotion.com/sdk_agreement, or another agreement between Ultraleap Ltd. and you, your company or other organization.
