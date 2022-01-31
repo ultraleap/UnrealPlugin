@@ -21,7 +21,7 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	CurrentDeviceInfo = &DummyDeviceInfo;
 	DummyDeviceInfo = {0};
 	DummyDeviceInfo.size = sizeof(LEAP_DEVICE_INFO);
-	DummyDeviceInfo.serial = "OpenXRDummyDevice";
+	DummyDeviceInfo.serial = (char*)("OpenXRDummyDevice");
 	DummyDeviceInfo.serial_length = strlen(DummyDeviceInfo.serial) + 1;
 
 	DummyLeapHands[0] = {0};
@@ -33,7 +33,7 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	DummyLeapHands[0].id = 1000;
 	DummyLeapHands[1].id = 2000;
 
-	DummyLeapFrame = {0};
+	DummyLeapFrame = {{0}};
 
 	DummyLeapFrame.framerate = 90;
 	DummyLeapFrame.pHands = DummyLeapHands;
@@ -101,7 +101,7 @@ int Sign(const ELeapQuatSwizzleAxisB& QuatSwizzleAxis)
 }
 LEAP_QUATERNION FOpenXRToLeapWrapper::ConvertOrientationToLeap(const FQuat& FromOpenXR)
 {
-	LEAP_QUATERNION Ret = {0};
+	LEAP_QUATERNION Ret = {{{0}}};
 
 	FVector4 OldRotVector(FromOpenXR.X, FromOpenXR.Y, FromOpenXR.Z, FromOpenXR.W);
 

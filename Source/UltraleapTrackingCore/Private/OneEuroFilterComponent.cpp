@@ -6,10 +6,10 @@
 #include "OneEuroFilterComponent.h"
 
 /************************************************************************/
-/* 1 Euro filter smoothing algorithm									*/
-/* http://cristal.univ-lille.fr/~casiez/1euro/
-/*
-/* This is a port of the Epic implementation used for editor laser pointers
+// 1 Euro filter smoothing algorithm									
+// http://cristal.univ-lille.fr/~casiez/1euro/
+//
+// This is a port of the Epic implementation used for editor laser pointers
 /************************************************************************/
 
 // Sets default values for this component's properties
