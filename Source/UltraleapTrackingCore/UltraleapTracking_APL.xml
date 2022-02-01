@@ -99,11 +99,12 @@
   	</gameActivityImportAdditions>
   
  	<gameActivityClassAdditions>
-		<insert>	
+		<insert>
 			private static ServiceBinder.Callbacks serviceBinderCallbacks = new ServiceBinder.Callbacks()
 			{
 			public void onBound()
 			{
+			Log.debug("UltraleapTracking calling OnBound() called");
 			// onBound
 			}
 
@@ -112,6 +113,7 @@
 			// Ensure we disconnect if the service becomes unbound to prevent
 			// a TIME_WAIT state on the Service TCP socket/address
 			//LeapCInterface.stopLeapCClient();
+				Log.debug("UltraleapTracking calling OnUnBound() called");
 			}
 			};
 			private ServiceBinder serviceBinder;
@@ -129,6 +131,7 @@
 	  <insert>
 		  // The service binder handles automatically binding to the hand tracking service, it provides a callback interface for checking the bind status.
 		  serviceBinder = new ServiceBinder(getApplicationContext(), serviceBinderCallbacks);
+		  Log.debug("UltraleapTracking creating the service binder");
 	  </insert>
   </gameActivityOnCreateAdditions>
 	
@@ -136,12 +139,13 @@
 	
   <gameActivityOnStartAdditions>
 	  <insert>
-		  if (ServiceBinder.isServiceInstalled(getApplicationContext())) 
+		  if (ServiceBinder.isServiceInstalled(getApplicationContext()))
 		  {
+		  Log.debug("UltraleapTracking calling bind() on the service binder");
 		  serviceBinder.bind();
 
-		  } 
-		  else 
+		  }
+		  else
 		  {
 		  }
 	  </insert>
@@ -149,13 +153,14 @@
   </gameActivityOnStartAdditions>
 	<gameActivityOnStopAdditions>
 		<insert>
-			if (!isChangingConfigurations()) 
+			if (!isChangingConfigurations())
 			{
 			//LeapCInterface.tearDown();
 			}
 
-			if (isFinishing()) 
+			if (isFinishing())
 			{
+			Log.debug("UltraleapTracking calling unbind() on the service binder");
 			serviceBinder.unbind();
 			}
 		</insert>
