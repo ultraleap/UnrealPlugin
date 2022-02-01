@@ -14,9 +14,13 @@
       <copyFile src="$S(PluginDir)/../../Source/ThirdParty/LeapSDK/Lib/Android/arm64-v8a/libLeapC.so"
                 dst="$S(BuildDir)/libs/arm64-v8a/libLeapC.so" />
       <log text="arm64-v8a UltraleapTracking runtime files copied"/>
-    </isArch>  
+    </isArch>
+		<log text="Copying UltraleapTrackingServiceBinder.aar"/>
+		<copyFile src="$S(PluginDir)/../../Source/ThirdParty/LeapSDK/Lib/Android/arm64-v8a/UltraleapTrackingServiceBinder.aar"
+				  dst="$S(BuildDir)/lib/arm64/UltraleapTrackingServiceBinder.aar" />
 
-  </resourceCopies>
+
+	</resourceCopies>
 
   <!-- Manifest Updates -->
   <androidManifestUpdates>
