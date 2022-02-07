@@ -2,7 +2,7 @@ Ultraleap Tracking - Change Log
 ====================
 
 Versions
-### Version 4.0.10
+### Version 4.1.0
 27th January 2022
 
 * Added Virtual Keyboard Actor with example Scene

@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 3,
-	"VersionName": "4.0.10",
+	"Version": 4,
+	"VersionName": "4.1.0",
 	"FriendlyName": "Ultraleap Tracking Plugin",
 	"Description": "Support for  Ultraleap hand tracking devices.",
 	"Category": "Input Devices",
