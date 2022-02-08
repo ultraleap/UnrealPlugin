@@ -1352,8 +1352,8 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
 			{
 				// in mm
-				FVector OculusOffset = FVector(50.0, 0, 0);
-				Options.HMDPositionOffset = OculusOffset;
+				FVector Offset = FVector(50.0, 0, 0);
+				Options.HMDPositionOffset = Offset;
 			}
 			if (InOptions.HMDRotationOffset.IsNearlyZero())
 			{
