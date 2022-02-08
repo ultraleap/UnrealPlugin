@@ -1186,7 +1186,6 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 	}
 	Leap->OpenConnection(this);
 }
-#pragma optimize("", off)
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 {
 	if (GEngine && GEngine->XRSystem.IsValid())
@@ -1467,7 +1466,6 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
 }
-#pragma optimize("", on)
 FLeapOptions FUltraleapTrackingInputDevice::GetOptions()
 {
 	return Options;
