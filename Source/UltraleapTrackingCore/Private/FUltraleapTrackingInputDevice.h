@@ -80,6 +80,7 @@ public:
 	{
 		return AttachedDevices;
 	}
+	void PostEarlyInit();
 
 private:
 	bool UseTimeBasedVisibilityCheck = false;

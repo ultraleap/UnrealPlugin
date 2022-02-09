@@ -202,6 +202,7 @@ TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
 	else
 	{
 		LeapInputDevice.Get()->SetMessageHandler(InMessageHandler);
+		LeapInputDevice->PostEarlyInit();
 	}
 	bActive = true;
 
@@ -212,7 +213,7 @@ TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
 	}
 	DeferredComponentList.Empty();
 
-	return TSharedPtr<class IInputDevice>(LeapInputDevice);
+	return LeapInputDevice;
 }
 
 IMPLEMENT_MODULE(FUltraleapTrackingPlugin, UltraleapTracking)
