@@ -23,6 +23,7 @@ public:
 private:
 	/* Contains references to all selected objects inside in the viewport */
 	TArray<TWeakObjectPtr<UObject>> SelectedObjects;
+	bool HasValidAnimInstance();
 
 public:
 	/* Makes a new instance of this detail layout class for a specific detail view requesting it */
