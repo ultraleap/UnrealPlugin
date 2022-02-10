@@ -26,7 +26,7 @@
 #if PLATFORM_WINDOWS
 #if WITH_EDITOR
 #pragma comment(linker, \
-	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.2.0.0' \
+	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.3.0.0' \
 processorArchitecture='*' publicKeyToken='0000000000000000' language='*'\"")
 #endif
 #endif	  // PLATFORM_WINDOWS
