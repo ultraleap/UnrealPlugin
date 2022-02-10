@@ -356,8 +356,11 @@ void FUltraleapTrackingInputDevice::PostEarlyInit()
 FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 {
 #if WITH_EDITOR
-	// LiveLink cleanup
-	LiveLink->ShutDown();
+	if (LiveLink != nullptr)
+	{
+		// LiveLink cleanup
+		LiveLink->ShutDown();
+	}
 #endif
 
 	ShutdownLeap();
@@ -933,10 +936,15 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 	// Detach from body state
 	UBodyStateBPLibrary::DetachDevice(BodyStateDeviceId);
 
-	// This will kill the leap thread
-	Leap->CloseConnection();
-
-	LeapImageHandler->CleanupImageData();
+	if (Leap != nullptr)
+	{
+		// This will kill the leap thread
+		Leap->CloseConnection();
+	}
+	if (LeapImageHandler != nullptr)
+	{
+		LeapImageHandler->CleanupImageData();
+	}
 }
 
 void FUltraleapTrackingInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
