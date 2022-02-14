@@ -118,8 +118,7 @@ private:
 	FLeapHandData LastRightHand;
 
 	// Private UProperties
-	void ClearReferences(UObject* object);
-
+	
 	TArray<ULeapComponent*> EventDelegates;	   // delegate storage
 
 	// Private utility methods

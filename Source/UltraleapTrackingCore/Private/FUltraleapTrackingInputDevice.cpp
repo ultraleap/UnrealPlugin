@@ -890,18 +890,6 @@ void FUltraleapTrackingInputDevice::SetChannelValues(int32 ControllerId, const F
 	// Nothing necessary to do (boilerplate code to complete the interface)
 }
 
-void FUltraleapTrackingInputDevice::ClearReferences(UObject* object)
-{
-	if (object != nullptr)
-	{
-		if (object->IsValidLowLevel())
-		{
-			object->RemoveFromRoot();
-			object->MarkPendingKill();
-		}
-	}
-}
-
 void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
 	UWorld* ComponentWorld = EventDelegate->GetOwner()->GetWorld();
