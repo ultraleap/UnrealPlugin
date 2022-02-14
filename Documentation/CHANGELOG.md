@@ -2,6 +2,26 @@ Ultraleap Tracking - Change Log
 ====================
 
 Versions
+
+### Version 4.1.1
+14th February 2022
+
+* Fixed clicking on AutoMap button from default tab crashes project
+* Hand menu show and hide algorithm now the same as the Unity tools (doesn't hide when hand high up above camera)
+* Updated to latest LeapC.dll v5.3.0.0
+* Added early initialisation of the Leap Plugin:
+	- Removes/fixes any input mapping warnings on build (LeapGrab etc.)
+	- Fixes the initialisation when packaged such that the leap device is present at begin play (this used to be only present after a delay of one frame)
+* Added Pico motion controller input event mappings
+* Added teleporter niagara beam from the standard UE VR template
+
+Known issues:
+
+* Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
+* HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
+* As with most Unreal 4 VR projects, when run in VR preview in the editor, full framerate is often not achievable. This is fine when packaged.
+
+
 ### Version 4.1.0
 27th January 2022
 
@@ -16,7 +36,7 @@ Versions
 	- Licensing statements added to all headers
 	- BodyState module moved to ThirdParty folder
 
- Known issues:
+Known issues:
 
 * Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
 * HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
