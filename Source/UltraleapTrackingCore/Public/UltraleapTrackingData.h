@@ -1,4 +1,10 @@
-
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #pragma once
 
@@ -195,7 +201,8 @@ struct ULTRALEAPTRACKING_API FLeapOptions
 	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
 	float PinchTimeout;
 
-	/** Pull tracking data from OpenXR instead of LeapC.dll  */
+	/** Experimental: Pull tracking data from OpenXR instead of LeapC.dll. Note that Pinch and Grasp events and strength are not yet
+	 * implemented  */
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	bool bUseOpenXRAsSource;
 };
@@ -391,4 +398,16 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 	void ScaleFrame(float Scale);
 	void RotateFrame(const FRotator& InRotation);
 	void TranslateFrame(const FVector& InTranslation);
+};
+UENUM()
+enum class ELeapQuatSwizzleAxisB : uint8
+{
+	X UMETA(DisplayName = "X"),
+	Y UMETA(DisplayName = "Y"),
+	Z UMETA(DisplayName = "Z"),
+	W UMETA(DisplayName = "W"),
+	MinusX UMETA(DisplayName = "-X"),
+	MinusY UMETA(DisplayName = "-Y"),
+	MinusZ UMETA(DisplayName = "-Z"),
+	MinusW UMETA(DisplayName = "-W")
 };

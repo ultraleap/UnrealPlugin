@@ -1,4 +1,10 @@
-
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #include "FUltraleapTrackingInputDevice.h"
 
@@ -316,13 +322,6 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	SwitchTrackingSource(START_IN_OPEN_XR_MODE);
 	Options.bUseOpenXRAsSource = START_IN_OPEN_XR_MODE;
 
-	// Attach to bodystate
-	Config.DeviceName = "Leap Motion";
-	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
-	Config.TrackingTags.Add("Hands");
-	Config.TrackingTags.Add("Fingers");
-	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
-
 	// Multi-device note: attach multiple devices and get another ID?
 	// Origin will be different if mixing vr with desktop/mount
 
@@ -331,6 +330,17 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
+}
+
+#undef LOCTEXT_NAMESPACE
+void FUltraleapTrackingInputDevice::PostEarlyInit()
+{
+	// Attach to bodystate
+	Config.DeviceName = "Leap Motion";
+	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
+	Config.TrackingTags.Add("Hands");
+	Config.TrackingTags.Add("Fingers");
+	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
 #if WITH_EDITOR
 	// LiveLink startup
@@ -343,14 +353,14 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	LeapImageHandler = MakeShareable(new FLeapImage);
 	LeapImageHandler->OnImageCallback.AddRaw(this, &FUltraleapTrackingInputDevice::OnImageCallback);
 }
-
-#undef LOCTEXT_NAMESPACE
-
 FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 {
 #if WITH_EDITOR
-	// LiveLink cleanup
-	LiveLink->ShutDown();
+	if (LiveLink != nullptr)
+	{
+		// LiveLink cleanup
+		LiveLink->ShutDown();
+	}
 #endif
 
 	ShutdownLeap();
@@ -926,10 +936,15 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 	// Detach from body state
 	UBodyStateBPLibrary::DetachDevice(BodyStateDeviceId);
 
-	// This will kill the leap thread
-	Leap->CloseConnection();
-
-	LeapImageHandler->CleanupImageData();
+	if (Leap != nullptr)
+	{
+		// This will kill the leap thread
+		Leap->CloseConnection();
+	}
+	if (LeapImageHandler != nullptr)
+	{
+		LeapImageHandler->CleanupImageData();
+	}
 }
 
 void FUltraleapTrackingInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)

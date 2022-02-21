@@ -1,10 +1,17 @@
-
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #pragma once
 #include "Async/Async.h"
 #include "CoreMinimal.h"
 #include "HAL/ThreadSafeBool.h"
 #include "LeapC.h"
+#include "UltraleapTrackingData.h"
 
 /** Interface for the passed callback delegate receiving game thread LeapC callbacks */
 class LeapWrapperCallbackInterface
@@ -23,18 +30,6 @@ public:
 	virtual void OnConfigChange(const uint32_t RequestID, const bool Success){};
 	virtual void OnConfigResponse(const uint32_t RequestID, LEAP_VARIANT Value){};
 };
-UENUM()
-enum class ELeapQuatSwizzleAxisB : uint8
-{
-	X UMETA(DisplayName = "X"),
-	Y UMETA(DisplayName = "Y"),
-	Z UMETA(DisplayName = "Z"),
-	W UMETA(DisplayName = "W"),
-	MinusX UMETA(DisplayName = "-X"),
-	MinusY UMETA(DisplayName = "-Y"),
-	MinusZ UMETA(DisplayName = "-Z"),
-	MinusW UMETA(DisplayName = "-W")
-};
 
 class IHandTrackingWrapper
 {
@@ -43,7 +38,7 @@ public:
 	{
 	}
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() = 0;
@@ -71,8 +66,8 @@ public:
 
 	virtual int64_t GetNow() = 0;
 
-	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY,ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
-
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -82,7 +77,7 @@ public:
 	bool bIsConnected = false;
 
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection( LeapWrapperCallbackInterface* InCallbackDelegate)
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
 	{
 		CallbackDelegate = InCallbackDelegate;
 		return nullptr;
@@ -139,10 +134,11 @@ public:
 		CurrentWorld = World;
 	}
 
-	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
 	{
-
 	}
+
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -154,11 +150,10 @@ public:
 	// LeapC Vars
 	FThreadSafeBool bIsRunning;
 	FThreadSafeBool bHasFinished;
-	
+
 	LEAP_CONNECTION ConnectionHandle;
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
-	
 
 	FLeapWrapper();
 	virtual ~FLeapWrapper();
@@ -206,7 +201,6 @@ private:
 	// Threading variables
 	FCriticalSection DataLock;
 	TFuture<void> ProducerLambdaFuture;
-	
 
 	LEAP_TRACKING_EVENT* InterpolatedFrame;
 	uint64 InterpolatedFrameSize;

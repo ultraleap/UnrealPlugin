@@ -1,4 +1,10 @@
-
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #include "FUltraleapTrackingPlugin.h"
 
@@ -20,7 +26,7 @@
 #if PLATFORM_WINDOWS
 #if WITH_EDITOR
 #pragma comment(linker, \
-	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.2.0.0' \
+	"\"/manifestdependency:type='win32' name='LeapC.dll' version='5.3.0.0' \
 processorArchitecture='*' publicKeyToken='0000000000000000' language='*'\"")
 #endif
 #endif	  // PLATFORM_WINDOWS
@@ -45,6 +51,10 @@ void FUltraleapTrackingPlugin::StartupModule()
 	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
 	const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("Leap Plugin started v%s"), *PluginDescriptor.VersionName);
+
+	// early initialising works around device/input startup after begin play
+	TSharedPtr<FGenericApplicationMessageHandler> DummyMessageHandler(new FGenericApplicationMessageHandler());
+	CreateInputDevice(DummyMessageHandler.ToSharedRef());
 }
 
 void FUltraleapTrackingPlugin::ShutdownModule()
@@ -191,8 +201,15 @@ void* FUltraleapTrackingPlugin::GetLeapHandle()
 TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
 	const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 {
-	FUltraleapTrackingPlugin::LeapInputDevice = MakeShareable(new FUltraleapTrackingInputDevice(InMessageHandler));
-
+	if (!LeapInputDevice.IsValid())
+	{
+		LeapInputDevice = MakeShareable(new FUltraleapTrackingInputDevice(InMessageHandler));
+	}
+	else
+	{
+		LeapInputDevice.Get()->SetMessageHandler(InMessageHandler);
+		LeapInputDevice->PostEarlyInit();
+	}
 	bActive = true;
 
 	// Add all the deferred components and empty it
@@ -202,7 +219,7 @@ TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
 	}
 	DeferredComponentList.Empty();
 
-	return TSharedPtr<class IInputDevice>(LeapInputDevice);
+	return LeapInputDevice;
 }
 
 IMPLEMENT_MODULE(FUltraleapTrackingPlugin, UltraleapTracking)

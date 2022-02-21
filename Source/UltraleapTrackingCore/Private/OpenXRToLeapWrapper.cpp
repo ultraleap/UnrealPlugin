@@ -1,12 +1,16 @@
-// /****************************************************************************** * Copyright (C) Ultraleap, Ltd. 2011-2021. * *
-// * * Use subject to the terms of the Apache License 2.0 available at            * * http://www.apache.org/licenses/LICENSE-2.0, or
-// another agreement           * * between Ultraleap and you, your company or other organization.             *
-// ******************************************************************************/
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #include "OpenXRToLeapWrapper.h"
 
 #include "HeadMountedDisplayTypes.h"
 #include "IHandTracker.h"
+#include "IXRTrackingSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "LeapBlueprintFunctionLibrary.h"
 #include "LeapUtility.h"

@@ -1,4 +1,10 @@
-
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #pragma once
 
@@ -80,6 +86,7 @@ public:
 	{
 		return AttachedDevices;
 	}
+	void PostEarlyInit();
 
 private:
 	bool UseTimeBasedVisibilityCheck = false;
@@ -167,7 +174,7 @@ private:
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
 	TSharedPtr<IHandTrackingWrapper> Leap;
-	
+
 	// LeapWrapper Callbacks
 	virtual void OnConnect() override;
 	virtual void OnConnectionLost() override;

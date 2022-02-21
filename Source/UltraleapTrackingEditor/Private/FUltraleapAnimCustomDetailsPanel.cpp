@@ -1,4 +1,10 @@
-//
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #include "FUltraleapAnimCustomDetailsPanel.h"
 
@@ -34,6 +40,10 @@ void FUltraleapAnimCustomDetailsPanel::CustomizeDetails(IDetailLayoutBuilder& De
 	// Store the currently selected objects from the viewport to the SelectedObjects array.
 	DetailBuilder.GetObjectsBeingCustomized(SelectedObjects);
 
+	if (!HasValidAnimInstance())
+	{
+		return;
+	}
 	// Adding a custom row
 	CustomCategory.AddCustomRow(FText::FromString("Auto bone mapping category"))
 		.ValueContent()
@@ -51,6 +61,22 @@ void FUltraleapAnimCustomDetailsPanel::CustomizeDetails(IDetailLayoutBuilder& De
 					SNew(STextBlock).Text(FText::FromString("Auto map!"))]];
 }
 
+bool FUltraleapAnimCustomDetailsPanel::HasValidAnimInstance()
+{
+	bool IsValid = false;
+	for (const TWeakObjectPtr<UObject>& Object : SelectedObjects)
+	{
+		UBodyStateAnimInstance* AnimInstance = Cast<UBodyStateAnimInstance>(Object.Get());
+
+		if (AnimInstance != nullptr)
+		{
+			USkeletalMeshComponent* OwningComponent = Cast<USkeletalMeshComponent>(AnimInstance->GetOuter());
+
+			IsValid = OwningComponent != nullptr;
+		}
+	}
+	return IsValid;
+}
 FReply FUltraleapAnimCustomDetailsPanel::ClickedOnButton()
 {
 	if (GEngine)
