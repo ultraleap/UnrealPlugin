@@ -5,39 +5,59 @@
 	<!-- init section is always evaluated once per architecture -->
 	<init>
 		<log text="UltraleapTracking init"/>
+		<setBool result="bSupported" value="false"/>
+		<isArch arch="arm64-v8a">
+			<setBool result="bSupported" value="true"/>
+		</isArch>
 	</init>
 
 	<!-- optional files or directories to copy to Intermediate/Android/APK -->
 	<resourceCopies>
     <log text="Copying UltraleapTracking runtime files to staging"/>
-    <isArch arch="armeabi-v7a">
-      <copyFile src="$S(PluginDir)/../../ThirdParty/LeapSDK/Lib/Android/armeabi-v7a/libLeapC.so"
-			    			dst="$S(BuildDir)/libs/armeabi-v7a/libLeapC.so" />
-      <log text="armeabi-v7a UltraleapTracking runtime files copied"/>
-    </isArch>
     <isArch arch="arm64-v8a">
-      <copyFile src="$S(PluginDir)/../../ThirdParty/LeapSDK/Lib/Android/arm64-v8a/libLeapC.so"
+      <copyFile src="$S(PluginDir)/../../Source/ThirdParty/LeapSDK/Lib/Android/arm64-v8a/libLeapC.so"
                 dst="$S(BuildDir)/libs/arm64-v8a/libLeapC.so" />
       <log text="arm64-v8a UltraleapTracking runtime files copied"/>
     </isArch>
-    <isArch arch="x86">
-      <copyFile src="$S(PluginDir)/../../ThirdParty/LeapSDK/Lib/Android/x86/libLeapC.so"
-						dst="$S(BuildDir)/libs/x86/libLeapC.so" />
-      <log text="x86 UltraleapTracking runtime files copied"/>
-    </isArch>
-    <isArch arch="x86_64">  
-      <copyFile src="$S(PluginDir)/../../ThirdParty/LeapSDK/Lib/Android/x86_64/libLeapC.so"
-						dst="$S(BuildDir)/libs/x86_64/libLeapC.so" />
-      <log text="x86_64 UltraleapTracking runtime files copied"/>
-    </isArch>
-    
+		
+	<log text="Copying UltraleapTrackingServiceBinder.aar"/>
+	<copyFile src="$S(PluginDir)/../../Source/ThirdParty/LeapSDK/Lib/Android/arm64-v8a/UltraleapTrackingServiceBinder.aar"
+				dst="$S(BuildDir)/Lib/UltraleapTrackingServiceBinder.aar" />
 
-  </resourceCopies>
 
+	</resourceCopies>
+	<baseBuildGradleAdditions>
+		<if condition="bSupported">
+			<true>
+				<insert>
+					allprojects {
+					repositories {
+					repositories {
+					flatDir {
+				</insert>
+				<insertValue value="dirs '$S(PluginDir)/../../Source/ThirdParty/LeapSDK/Lib/Android/arm64-v8a'"/>
+				<insertNewline/>
+				<insert>
+					}
+					}
+					}
+					}
+				</insert>
+			</true>
+		</if>
+	</baseBuildGradleAdditions>
+	
+	<gradleProperties>
+		<insert>
+			android.useAndroidX=true
+			android.enableJetifier=true
+		</insert>
+	</gradleProperties>
   <!-- Manifest Updates -->
   <androidManifestUpdates>
+	  <addPermission android:name="android.permission.INTERNET"/>
+	  <addPermission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   </androidManifestUpdates>
-
 	<!-- Files to copy before the build so they can be used in the build -->
     <prebuildCopies>
     </prebuildCopies>
@@ -46,13 +66,41 @@
   	<proguardAdditions>
   	</proguardAdditions>
 
-    <gameActivityImportAdditions>
+	<buildGradleAdditions>
+		<if condition="bSupported">
+			<true>
+				<insert>
+					dependencies.implementation(name: 'UltraleapTrackingServiceBinder', ext: 'aar')
+				</insert>
+			</true>
+		</if>
+	</buildGradleAdditions>
+
+	<gameActivityImportAdditions>
       <!-- import com.UltraleapTracking.*; -->
     	<insert>
-    	</insert>
+			import com.ultraleap.tracking.service_binder.ServiceBinder;
+		</insert>
   	</gameActivityImportAdditions>
   
  	<gameActivityClassAdditions>
+		<insert>
+			private static ServiceBinder.Callbacks serviceBinderCallbacks = new ServiceBinder.Callbacks()
+			{
+			public void onBound()
+			{
+			Log.debug("UltraleapTracking OnBound() called");
+			// onBound
+			}
+
+			public void onUnbound()
+			{
+				Log.debug("UltraleapTracking OnUnBound() called");
+			}
+			};
+			private ServiceBinder serviceBinder;
+		</insert>
+
 	</gameActivityClassAdditions>
   
   <gameActivityOnPauseAdditions>
@@ -62,11 +110,43 @@
   </gameActivityOnResumeAdditions>
 
   <gameActivityOnCreateAdditions>
+	  <insert>
+		  // The service binder handles automatically binding to the hand tracking service, it provides a callback interface for checking the bind status.
+		  serviceBinder = new ServiceBinder(getApplicationContext(), serviceBinderCallbacks);
+		  Log.debug("UltraleapTracking creating the service binder");
+	  </insert>
   </gameActivityOnCreateAdditions>
-
+	
+		
+	
   <gameActivityOnStartAdditions>
-	</gameActivityOnStartAdditions>
+	  <insert>
+		  if (ServiceBinder.isServiceInstalled(getApplicationContext()))
+		  {
+		  Log.debug("UltraleapTracking calling bind() on the service binder");
+		  serviceBinder.bind();
 
+		  }
+		  else
+		  {
+		  }
+	  </insert>
+
+  </gameActivityOnStartAdditions>
+	<gameActivityOnStopAdditions>
+		<insert>
+			if (!isChangingConfigurations())
+			{
+			}
+
+			if (isFinishing())
+			{
+			Log.debug("UltraleapTracking calling unbind() on the service binder");
+			serviceBinder.unbind();
+			}
+		</insert>
+
+	</gameActivityOnStopAdditions>
 
 	  <!-- optional libraries to load in GameActivity.java before libUE4.so -->
 	<soLoadLibrary>
