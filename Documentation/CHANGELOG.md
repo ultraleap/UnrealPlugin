@@ -4,13 +4,18 @@ Ultraleap Tracking - Change Log
 Versions
 
 ### Version 4.2.0
-28th February 2022
+16th March 2022
 
 * Fixed initialise to VR mode for legacy LeapHandsPawn
 * Added XR2/Android LeapC libraries and support
 * Added support for Pico stand alone mode
+* Added support for UE 5 Preview 2 - NOTE that as UE5 is still in preview, this should not be considered final support
 
 Known issues:
+
+* Text colour in UI interaction drop downs wrong (UE5 bug)
+* Running VR with OpenXR via SteamVR doesn't see VR (UE5 bug). To work around, enable the SteamVR plugin in the project.
+* In UE5, grabbing with the right hand motion controller is intermittent
 
 * Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
 * HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
