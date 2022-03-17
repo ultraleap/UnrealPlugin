@@ -186,7 +186,6 @@ build:build-project:
     paths:
     - "./build/"
     - "./$PROJECT_NAME.log"
-    - $LOG_PATH_UE5 = "./$PROJECT_NAME" + "_ue5.log"
-    - $LOG_PATH_UE5
+    - ".%/$PROJECT_NAME%_ue5.log"
     when: always
     expire_in: 2 weeks
