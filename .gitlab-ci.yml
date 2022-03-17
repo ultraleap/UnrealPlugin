@@ -14,6 +14,7 @@ variables:
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
   UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
+  UE5_PACKAGE_PATH: "$PROJECT_PATH/$PROJECT_NAME_ue5"
 
   VERSIONTRUNC: "Unknown"
 stages:
@@ -102,7 +103,7 @@ build:build-project:
     
     - echo "Unreal 4.0 build complete."
 
-    - $UE5_PACKAGE_PATH = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5"
+    - 
     - echo "$UE5_PACKAGE_PATH"
 
     - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
