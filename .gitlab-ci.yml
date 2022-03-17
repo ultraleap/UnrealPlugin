@@ -6,7 +6,7 @@ variables:
   PROJECT_NAME: "UltraleapTracking"
   PROJECT_PATH: "$CI_PROJECT_DIR"   
   
-  ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
+  ENGINE_PATH: "C:/Program Files/Epic Games/UE_5.0"
   ENGINE_UAT_PATH: "$ENGINE_PATH/Engine/Build/BatchFiles/RunUAT.bat"
   
   # this holds the unreal version
