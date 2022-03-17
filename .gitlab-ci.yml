@@ -135,9 +135,9 @@ build:build-project:
     
     - $BUILD_FULL_VERSION = $VERSIONTRUNC
     - $BUILD_PATH = "./build/$PROJECT_NAME-$BUILD_FULL_VERSION/"
-    - $BUILD_PATH_UE5 = "./build/$PROJECT_NAME_UE5-$BUILD_FULL_VERSION/"
+    - $BUILD_PATH_UE5 = "./build/$PROJECT_NAME" + "_ue5" +"-$BUILD_FULL_VERSION/"
     - mkdir "$BUILD_PATH"  
-    - mkdir "$BUILD_PATH_UE5"  
+    - mkdir "$BUILD_PATH_UE5"
 
     - echo "$BUILD_PATH"
     - echo "$BUILD_LOCATION"
