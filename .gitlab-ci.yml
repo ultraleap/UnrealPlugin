@@ -108,7 +108,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5"
     - echo "$UE5_PACKAGE_PATH"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  > ./$PROJECT_NAME_ue5.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  > ./$PROJECT_NAMEue5.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -186,6 +186,6 @@ build:build-project:
     paths:
     - "./build/"
     - "./$PROJECT_NAME.log"
-    - -join("./$PROJECT_NAME","_ue5.log")
+    - "./$PROJECT_NAMEue5.log"
     when: always
     expire_in: 2 weeks
