@@ -6,11 +6,14 @@ variables:
   PROJECT_NAME: "UltraleapTracking"
   PROJECT_PATH: "$CI_PROJECT_DIR"   
   
-  ENGINE_PATH: "C:/Program Files/Epic Games/UE_5.0"
+  ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
   ENGINE_UAT_PATH: "$ENGINE_PATH/Engine/Build/BatchFiles/RunUAT.bat"
   
+  ENGINE_PATH_UE5: "C:/Program Files/Epic Games/UE_5.0"
+  ENGINE_UAT_PATH_UE5: "$ENGINE_PATH_UE5/Engine/Build/BatchFiles/RunUAT.bat"
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
+  UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
 
   VERSIONTRUNC: "Unknown"
 stages:
@@ -73,10 +76,16 @@ build:build-project:
     - $UNREAL_VERSION_CONTENT = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
     - $UNREAL_VERSION = $UNREAL_VERSION_CONTENT.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT.PatchVersion.ToString()
     
+    - $UNREAL_VERSION_CONTENT_UE5 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
+    - $UNREAL_VERSION_UE5 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
+    
+
     - echo "$ENGINE_PATH"
+    - echo "$ENGINE_PATH_UE5"
     - echo "$PROJECT_PATH"
     - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - echo "$ENGINE_UAT_PATH"
+    - echo "$ENGINE_UAT_PATH_UE5"
     - echo "Working dir"
     - pwd
    
@@ -91,7 +100,14 @@ build:build-project:
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
     
-    - echo "Unreal build complete."
+    - echo "Unreal 4.0 build complete."
+
+
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME_UE5 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket > ./$PROJECT_NAME_UE5.log" 
+    - echo $process.ExitCode
+    - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
+    
+    - echo "Unreal 5.0 build complete."
 
    
   after_script:
@@ -99,6 +115,8 @@ build:build-project:
      # this holds the plugin version
     - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
+    - $BUILD_LOCATION_UE5 = "$PROJECT_PATH/$PROJECT_NAME_UE5"
+
 
     - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
     - $VERSIONTRUNC = $VERSION.Replace('VersionName','')
@@ -110,15 +128,21 @@ build:build-project:
     
 
     - echo "$UNREAL_VERSION"
+    - echo "$UNREAL_VERSION_UE5"
     - echo "$VERSIONTRUNC"
     
     - $BUILD_FULL_VERSION = $VERSIONTRUNC
     - $BUILD_PATH = "./build/$PROJECT_NAME-$BUILD_FULL_VERSION/"
+    - $BUILD_PATH_UE5 = "./build/$PROJECT_NAME_UE5-$BUILD_FULL_VERSION/"
     - mkdir "$BUILD_PATH"  
+    - mkdir "$BUILD_PATH_UE5"  
+
     - echo "$BUILD_PATH"
     - echo "$BUILD_LOCATION"
 
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
+    - mv "$BUILD_LOCATION_UE5/*" "$BUILD_PATH_UE5"
+
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace/$PROJECT_NAME"
