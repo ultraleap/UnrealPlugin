@@ -14,6 +14,8 @@ variables:
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
   UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
+  UNREAL_VERSION: ""
+  UNREAL_VERSION_UE5: ""
 
   VERSIONTRUNC: "Unknown"
 stages:
@@ -105,7 +107,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5"
     - echo "$UE5_PACKAGE_PATH"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  > ./$PROJECT_NAME.ue5.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -185,5 +187,6 @@ build:build-project:
     paths:
     - "./build/"
     - "./$PROJECT_NAME.log"
+    - "./$PROJECT_NAME.ue5.log"
     when: always
     expire_in: 2 weeks
