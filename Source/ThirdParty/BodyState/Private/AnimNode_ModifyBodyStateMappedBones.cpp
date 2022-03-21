@@ -102,6 +102,79 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
 			   (MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion()));
 	NewBoneTM.SetRotation(BoneQuat);
 }
+FVector CalculateAxis(const FTransform& Transform, const FVector& Direction)
+{
+	FVector BoneForward = Transform.InverseTransformVector(Direction);
+	BoneForward.Normalize();
+	return BoneForward;
+}
+void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
+	const FCachedBoneLink& CachedBone,const FCachedBoneLink& CachedPrevBone, FTransform& NewBoneTM)
+{
+	if (!BSAnimInstance->ScaleModelToTrackingData || !BSAnimInstance->IsTracking || !MappedBoneAnimData.FingerTipLengths.Num())
+	{
+		return;
+	}
+	bool IsTip = false;
+	int FingerIndex = 0;
+	float FingerScaleOffset = MappedBoneAnimData.ThumbTipScaleOffset;
+	// is it a tip?
+	switch (CachedBone.BSBone->BoneType)
+	{
+		case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_L:
+			FingerIndex = 1;
+			FingerScaleOffset = MappedBoneAnimData.IndexTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_R:
+			FingerIndex = 1;
+			FingerScaleOffset = MappedBoneAnimData.IndexTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L:
+			FingerIndex = 2;
+			FingerScaleOffset = MappedBoneAnimData.MiddleTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R:
+			FingerIndex = 2;
+			FingerScaleOffset = MappedBoneAnimData.MiddleTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_L:
+			FingerIndex = 3;
+			FingerScaleOffset = MappedBoneAnimData.RingTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_R:
+			FingerIndex = 3;
+			FingerScaleOffset = MappedBoneAnimData.RingTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_L:
+			FingerScaleOffset = MappedBoneAnimData.PinkyTipScaleOffset;
+			FingerIndex = 4;
+		case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R:
+			FingerScaleOffset = MappedBoneAnimData.PinkyTipScaleOffset;
+			FingerIndex = 4;
+		case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_L:
+			FingerScaleOffset = MappedBoneAnimData.ThumbTipScaleOffset;
+		case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R:
+			IsTip = true;
+			break;
+	}
+	
+	if (IsTip)
+	{
+		FVector TipPosition = CachedBone.BSBone->BoneData.Transform.GetLocation();
+		FVector BehindTipPosition = CachedPrevBone.BSBone->BoneData.Transform.GetLocation();
+		
+		float LeapFingerTipLength = FVector::Distance(TipPosition, BehindTipPosition);
+		float ModelFingerTipLength = MappedBoneAnimData.FingerTipLengths[FingerIndex];
+
+		float Ratio = LeapFingerTipLength / ModelFingerTipLength;
+		// not sure this makes sense, why subtract the global scale offset?
+		float AdjustedRatio = (Ratio * (FingerScaleOffset) - MappedBoneAnimData.ModelScaleOffset);
+
+		// Calculate the direction that goes up the bone towards the next bone
+		FVector Direction = (BehindTipPosition - TipPosition);
+		Direction.Normalize();
+		// Calculate which axis to scale along
+		FVector Axis = CalculateAxis(CachedBone.BSBone->BoneData.Transform, Direction);
+		// Calculate the scale by ensuring all axis are 1 apart from the axis to scale along
+		FVector Scale = FVector::OneVector + (Axis * AdjustedRatio);
+		NewBoneTM.SetScale3D(Scale);
+	}
+	//NewBoneTM.SetRotation(BoneQuat);
+}
 
 bool FAnimNode_ModifyBodyStateMappedBones::CheckInitEvaulate()
 {
@@ -167,6 +240,7 @@ void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale()
 
 	BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);	
 }
+
 // middle finger length as tracked
 float FAnimNode_ModifyBodyStateMappedBones::CalculateLeapHandLength()
 {
@@ -196,6 +270,7 @@ float FAnimNode_ModifyBodyStateMappedBones::CalculateLeapHandLength()
 	}
 	return Length;
 }
+
 void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComponentSpacePoseContext& Output)
 {
 	Super::EvaluateComponentPose_AnyThread(Output);
@@ -217,7 +292,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
 
 	SetHandGlobalScale();
-
+	
 	// cached for elbow position
 	const FCachedBoneLink* ArmCachedBone = nullptr;
 	const FCachedBoneLink* WristCachedBone = nullptr;
@@ -227,6 +302,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		CacheArmOrWrist(CachedBone, &ArmCachedBone, &WristCachedBone);
 	}
 	int LoopCount = 0;
+	FCachedBoneLink& CachedPrevBone = MappedBoneAnimData.CachedBoneList[0];
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
 		LoopCount++;
@@ -236,15 +312,11 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 				CachedBone.MeshBone.BoneIndex);
 			continue;
 		}
-		/* if (LoopCount == 1)
-		{
-			FLeapUtility::LogRotation(FString::Printf(TEXT("%s rot "), *CachedBone.BSBone->Name),
-				CachedBone.BSBone->BoneData.Transform.GetRotation().Rotator());
-		}*/
-
+		
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
+		ApplyScale(CachedBone, CachedPrevBone, NewBoneTM);
 		ApplyRotation(CachedBone, NewBoneTM, WristCachedBone);
 		ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
 
@@ -252,6 +324,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		TArray<FBoneTransform> TempTransform;
 		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
 		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+
+		CachedPrevBone = CachedBone;
 	}
 }
 
