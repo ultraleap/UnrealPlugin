@@ -171,6 +171,7 @@ struct FMappedBoneAnimData
 	/** Auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
 	FQuat AutoCorrectRotation;
+
 	// Data structure containing a parent -> child ordered bone list
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	TArray<FCachedBoneLink> CachedBoneList;
@@ -338,6 +339,9 @@ protected:
 
 	void EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	
+	// Calculate and store the hand size for auto scaling (the distance from palm to middle finger of the model)
+	void CalculateHandSize(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 
 	// using node items, beware node items are NOT in component space
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,

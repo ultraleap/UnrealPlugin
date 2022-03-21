@@ -776,6 +776,48 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 	return ElbowLength;
 }
+void UBodyStateAnimInstance::CalculateHandSize(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::CalculateHandSize INodeMapping is NULL so cannot proceed"));
+		return;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+
+
+	EBodyStateBasicBoneType MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L;
+	EBodyStateBasicBoneType MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R;
+		MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R;
+	}
+	float Length = 0;
+	// the enum is in bone order
+	for (int i = (int) MiddleStart; i < (int) MiddleEnd; ++i)
+	{
+		bool BoneFound = false;
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType)i, Names, ComponentSpaceTransforms, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i+1), Names, ComponentSpaceTransforms, BoneFound);
+	
+		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation()); 
+		Length += Magnitude;
+	}
+
+
+}
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(
 	FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
 {
@@ -1056,6 +1098,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			{
 				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
+			CalculateHandSize(OneHandMap, AutoMapTarget);
 		}
 	}
 	else
@@ -1079,6 +1122,8 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			{
 				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
+			CalculateHandSize(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+			CalculateHandSize(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
 		}
 	}
 
