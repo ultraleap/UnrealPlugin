@@ -159,11 +159,11 @@ void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale()
 		BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale);
 		return;
 	}
-	float LeapLength = CalculateLeapHandLength();
-	{
-	}
-	float MiddleFingerRatio = LeapLength / MappedBoneAnimData.HandModelLength;
-	float ScaleRatio = MiddleFingerRatio * MappedBoneAnimData.ModelScaleOffset;
+	const float LeapLength = CalculateLeapHandLength();
+	// ratio between model middle finger length and hand middle finger length
+	const float MiddleFingerRatio = LeapLength / MappedBoneAnimData.HandModelLength;
+	// constant user entered correction for model
+	const float ScaleRatio = MiddleFingerRatio * MappedBoneAnimData.ModelScaleOffset;
 
 	BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);	
 }
