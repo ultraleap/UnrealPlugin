@@ -163,6 +163,9 @@ struct FMappedBoneAnimData
 		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
 	float PinkyTipScaleOffset;
 
+	/** Model finger tip lengths, calculated on AutoMap */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	TArray<float> FingerTipLengths;
 
 	/** Auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
@@ -250,7 +253,7 @@ public:
 	bool bUseSortedBoneNames;
 
 	/** Automatically scale the model to the user's hands */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool ScaleModelToTrackingData;
 
 	/** Auto detection names (e.g. index thumb etc.)*/
@@ -342,6 +345,10 @@ protected:
 	
 	// Calculate and store the hand size for auto scaling (the distance from palm to middle finger of the model)
 	void CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+
+	// Calculate and store the hand size for auto scaling (the distance from palm to middle finger of the model)
+	void CalculateFingertipSizes(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+
 
 	// using node items, beware node items are NOT in component space
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
