@@ -133,10 +133,6 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
 	float HandModelLength;
 
-	/** Automatically scale the model to the user's hands */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
-	bool ScaleModelToTrackingData;
-
 	/** User entered scale offset to fit to entire model for hand auto scaling */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere,
 		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
@@ -253,6 +249,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	bool bUseSortedBoneNames;
 
+	/** Automatically scale the model to the user's hands */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
+	bool ScaleModelToTrackingData;
+
 	/** Auto detection names (e.g. index thumb etc.)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	FBoneSearchNames SearchNames;
@@ -341,7 +341,7 @@ protected:
 	float CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 	
 	// Calculate and store the hand size for auto scaling (the distance from palm to middle finger of the model)
-	void CalculateHandSize(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
+	void CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType);
 
 	// using node items, beware node items are NOT in component space
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,

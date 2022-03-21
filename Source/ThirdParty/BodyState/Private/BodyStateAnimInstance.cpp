@@ -548,6 +548,11 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
 	bool& BoneFound) const
 {
+	if (!ForMap.BoneMap.Contains(BoneType))
+	{
+		BoneFound = false;
+		return FTransform();
+	}
 	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
 	int Index = Names.Find(Bone.BoneName);
 
@@ -776,8 +781,12 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 	return ElbowLength;
 }
-void UBodyStateAnimInstance::CalculateHandSize(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
+	if (!ScaleModelToTrackingData)
+	{
+		return;
+	}
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
 	// Get bones and parent indices
@@ -809,13 +818,19 @@ void UBodyStateAnimInstance::CalculateHandSize(const FMappedBoneAnimData& ForMap
 	for (int i = (int) MiddleStart; i < (int) MiddleEnd; ++i)
 	{
 		bool BoneFound = false;
+
+		// we may not have all bones
+		if (!ForMap.BoneMap.Contains((EBodyStateBasicBoneType)i))
+		{
+			continue;
+		}
 		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType)i, Names, ComponentSpaceTransforms, BoneFound);
 		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i+1), Names, ComponentSpaceTransforms, BoneFound);
 	
 		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation()); 
 		Length += Magnitude;
 	}
-
+	ForMap.HandModelLength = Length;
 
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(
