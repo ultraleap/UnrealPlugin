@@ -569,22 +569,14 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
 {
 	FTransform Ret;
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
-
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
 
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
-
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetCurrentWristPose INodeMapping is NULL so cannot proceed"));
-		return Ret;
+		return FTransform();
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
@@ -619,21 +611,14 @@ void Normalize360(FRotator& InPlaceRot)
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
 		return;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
@@ -732,20 +717,14 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	float ElbowLength = 0;
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
 		return 0;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
@@ -781,28 +760,40 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 	}
 	return ElbowLength;
 }
+bool UBodyStateAnimInstance::GetNamesAndTransforms(
+	TArray<FTransform>& ComponentSpaceTransforms, TArray<FName>& Names, TArray<FNodeItem>& NodeItems) const
+{
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	
+	
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetNamesAndTransforms INodeMapping is NULL so cannot proceed"));
+		return false;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	return true;
+}
 void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	if (!ScaleModelToTrackingData)
 	{
 		return;
 	}
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
-
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::CalculateHandSize INodeMapping is NULL so cannot proceed"));
 		return;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
-
 
 
 	EBodyStateBasicBoneType MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L;

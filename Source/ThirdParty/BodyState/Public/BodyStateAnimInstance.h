@@ -367,6 +367,9 @@ protected:
 	static const int32 InvalidBone = -1;
 	static const int32 NoMetaCarpelsFingerBoneCount = 3;
 
+private:
+	bool GetNamesAndTransforms(TArray<FTransform>& ComponentSpaceTransforms, TArray<FName>& Names, TArray<FNodeItem>& NodeItems) const;
+
 public:
 #if WITH_EDITOR
 	/**
