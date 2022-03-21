@@ -788,7 +788,7 @@ void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, cons
 	{
 		return;
 	}
-
+	
 	CalculateFingertipSizes(ForMap, RigTargetType);
 
 	TArray<FTransform> ComponentSpaceTransforms;
@@ -798,8 +798,7 @@ void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, cons
 	{
 		return;
 	}
-
-
+	
 	EBodyStateBasicBoneType MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L;
 	EBodyStateBasicBoneType MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L;
 
@@ -969,7 +968,7 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	}
 	return ReferenceMap;
 }
-void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForMap)
+void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 {
 	// the user can manually specify that the model is flipped (left to right or right to left)
 	// Setting the scale on the component flips the view
@@ -983,6 +982,7 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForM
 	if (ForMap.FlipModelLeftRight)
 	{
 		Component->SetRelativeScale3D(FVector(1, 1, -1));
+		ForMap.OriginalScale = FVector(1, 1, -1);
 		// Unreal doesn't deal with mirrored scale when in comes to updating the mesh bounds
 		// this means that at 1 bounds scale, the skeletel mesh gets occluded as the bounds are not following the skeleton
 		// Until this is fixed in the engine, we have to force the bounds to be huge to always render.
@@ -991,6 +991,7 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForM
 	else
 	{
 		Component->SetRelativeScale3D(FVector(1, 1, 1));
+		ForMap.OriginalScale = FVector(1, 1, 1);
 		Component->SetBoundsScale(1);
 	}
 }

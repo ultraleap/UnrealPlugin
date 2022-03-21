@@ -166,6 +166,11 @@ struct FMappedBoneAnimData
 	/** Model finger tip lengths, calculated on AutoMap */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	TArray<float> FingerTipLengths;
+	
+	/** Original scale of the model, used for auto scaling calculations */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	FVector OriginalScale;
+
 
 	/** Auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
@@ -366,7 +371,7 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	void HandleLeftRightFlip(const FMappedBoneAnimData& ForMap);
+	void HandleLeftRightFlip(FMappedBoneAnimData& ForMap);
 
 	static void CreateEmptyBoneMap(
 		TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone>& AutoBoneMap, const EBodyStateAutoRigType HandType);

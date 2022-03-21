@@ -64,4 +64,7 @@ private:
 	bool CheckInitEvaulate();
 	void CacheArmOrWrist(
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink** ArmCachedBone, const FCachedBoneLink** WristCachedBone);
+
+	void SetHandGlobalScale();
+	float CalculateLeapHandLength();
 };

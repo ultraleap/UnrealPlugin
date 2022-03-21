@@ -150,7 +150,52 @@ void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 		}
 	}
 }
+void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale()
+{
+	if (!BSAnimInstance->ScaleModelToTrackingData || !BSAnimInstance->IsTracking || !MappedBoneAnimData.HandModelLength)
+	{
+		// back to original scale
+		// TODO: check this vs flip left right setting for negative scale
+		BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale);
+		return;
+	}
+	float LeapLength = CalculateLeapHandLength();
+	{
+	}
+	float MiddleFingerRatio = LeapLength / MappedBoneAnimData.HandModelLength;
+	float ScaleRatio = MiddleFingerRatio * MappedBoneAnimData.ModelScaleOffset;
 
+	BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);	
+}
+// middle finger length as tracked
+float FAnimNode_ModifyBodyStateMappedBones::CalculateLeapHandLength()
+{
+	float Length = 0;
+	TArray<FCachedBoneLink> FingerBones;
+	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
+	{
+		switch (CachedBone.BSBone->BoneType)
+		{
+			case EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_2_INTERMEDIATE_L:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_2_INTERMEDIATE_R:
+			case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R:
+				FingerBones.Add(CachedBone);
+				break;
+		}
+	}
+
+	for (int i = 0; i < (FingerBones.Num() - 1); ++i)
+	{
+		float Magnitude = FVector::Distance(FingerBones[i].BSBone->BoneData.Transform.GetLocation(),FingerBones[i+1].BSBone->BoneData.Transform.GetLocation());
+		Length += Magnitude;
+	}
+	return Length;
+}
 void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComponentSpacePoseContext& Output)
 {
 	Super::EvaluateComponentPose_AnyThread(Output);
@@ -170,6 +215,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	}
 
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
+
+	SetHandGlobalScale();
 
 	// cached for elbow position
 	const FCachedBoneLink* ArmCachedBone = nullptr;
