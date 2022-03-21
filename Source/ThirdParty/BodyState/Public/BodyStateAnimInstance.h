@@ -121,14 +121,54 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	UBodyStateSkeleton* BodyStateSkeleton;
 
-	/** Skeleton driving mapped data */
+	/** Estimated Elbow length */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
 	float ElbowLength;
 
+	/** Flip the chirality of the hand model (for model re-use across left to right or right to left hands) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
 	bool FlipModelLeftRight;
 
-	/** auto calculated rotation to correct/normalize model rotation*/
+	/** Calculated hand length by walking the bones from palm to middle fingertip */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
+	float HandModelLength;
+
+	/** Automatically scale the model to the user's hands */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
+	bool ScaleModelToTrackingData;
+
+	/** User entered scale offset to fit to entire model for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float ModelScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float ThumbTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float IndexTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float MiddleTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float RingTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float PinkyTipScaleOffset;
+
+
+	/** Auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
 	FQuat AutoCorrectRotation;
 	// Data structure containing a parent -> child ordered bone list
@@ -143,6 +183,9 @@ struct FMappedBoneAnimData
 		PreBaseRotation = FRotator(ForceInitToZero);
 		TrackingTagLimit.Empty();
 		AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		ModelScaleOffset = ThumbTipScaleOffset = IndexTipScaleOffset = MiddleTipScaleOffset = RingTipScaleOffset =
+			PinkyTipScaleOffset = 1.0;
+
 	}
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
