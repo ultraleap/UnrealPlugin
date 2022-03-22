@@ -133,36 +133,6 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Bone Anim Struct")
 	float HandModelLength;
 
-	/** User entered scale offset to fit to entire model for hand auto scaling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,
-		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
-	float ModelScaleOffset;
-
-	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,
-		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
-	float ThumbTipScaleOffset;
-
-	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,
-		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
-	float IndexTipScaleOffset;
-
-	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,
-		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
-	float MiddleTipScaleOffset;
-
-	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,
-		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
-	float RingTipScaleOffset;
-
-	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,
-		Category = "Bone Anim Struct", meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
-	float PinkyTipScaleOffset;
-
 	/** Model finger tip lengths, calculated on AutoMap */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
 	TArray<float> FingerTipLengths;
@@ -188,9 +158,6 @@ struct FMappedBoneAnimData
 		PreBaseRotation = FRotator(ForceInitToZero);
 		TrackingTagLimit.Empty();
 		AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
-		ModelScaleOffset = ThumbTipScaleOffset = IndexTipScaleOffset = MiddleTipScaleOffset = RingTipScaleOffset =
-			PinkyTipScaleOffset = 1.0;
-
 	}
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
@@ -258,8 +225,40 @@ public:
 	bool bUseSortedBoneNames;
 
 	/** Automatically scale the model to the user's hands */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
 	bool ScaleModelToTrackingData;
+	
+
+	/** User entered scale offset to fit to entire model for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
+		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float ModelScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
+		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float ThumbTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
+		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float IndexTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
+		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float MiddleTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
+		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float RingTipScaleOffset;
+
+	/** User entered scale offset to fit to fingertip model to hand for hand auto scaling */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
+		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))
+	float PinkyTipScaleOffset;
+
 
 	/** Auto detection names (e.g. index thumb etc.)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map")

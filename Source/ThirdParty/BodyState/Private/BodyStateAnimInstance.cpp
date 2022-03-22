@@ -41,6 +41,9 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	bIncludeMetaCarpels = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
+
+	ModelScaleOffset = ThumbTipScaleOffset = IndexTipScaleOffset = MiddleTipScaleOffset = RingTipScaleOffset = PinkyTipScaleOffset =
+		1.0;
 }
 
 void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(
