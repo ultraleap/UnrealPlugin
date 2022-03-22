@@ -158,6 +158,8 @@ struct FMappedBoneAnimData
 		PreBaseRotation = FRotator(ForceInitToZero);
 		TrackingTagLimit.Empty();
 		AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		OriginalScale = FVector::OneVector;
+		HandModelLength = 0;
 	}
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
