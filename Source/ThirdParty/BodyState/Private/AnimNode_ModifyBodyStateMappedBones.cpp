@@ -156,8 +156,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 	if (IsTip)
 	{
 		FVector TipPosition = CachedBone.BSBone->BoneData.Transform.GetLocation();
-
-
+		FTransform DirectionTransform = CachedPrevBone->BSBone->BoneData.Transform;
+		float DirectionMult = -1;
 		FVector BehindTipPosition = CachedPrevBone->BSBone->BoneData.Transform.GetLocation();
 		
 		float LeapFingerTipLength = FVector::Distance(TipPosition, BehindTipPosition);
@@ -173,6 +173,10 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 			TipPosition = NewBoneTM.GetLocation();
 			BehindTipPosition = PrevBoneTM.GetLocation();
 
+			DirectionTransform = NewBoneTM;
+
+			DirectionMult = 1;
+
 		}
 		float Ratio = LeapFingerTipLength / ModelFingerTipLength;
 		// not sure this makes sense, why subtract the global scale offset?
@@ -181,8 +185,9 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 		// Calculate the direction that goes up the bone towards the next bone
 		FVector Direction = (BehindTipPosition - TipPosition);
 		Direction.Normalize();
+		Direction *= DirectionMult;
 		// Calculate which axis to scale along
-		FVector Axis = CalculateAxis(NewBoneTM, Direction);
+		FVector Axis = CalculateAxis(DirectionTransform, Direction);
 		// Calculate the scale by ensuring all axis are 1 apart from the axis to scale along
 		FVector Scale = FVector::OneVector + (Axis * AdjustedRatio);
 		NewBoneTM.SetScale3D(Scale);
