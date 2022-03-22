@@ -68,7 +68,7 @@ private:
 	void CacheArmOrWrist(
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink** ArmCachedBone, const FCachedBoneLink** WristCachedBone);
 
-	void SetHandGlobalScale();
+	void SetHandGlobalScale(FTransform& NewBoneTM);
 	
 
 	float CalculateLeapHandLength();

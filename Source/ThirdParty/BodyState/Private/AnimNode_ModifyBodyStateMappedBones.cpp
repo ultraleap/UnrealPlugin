@@ -234,22 +234,30 @@ void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 		}
 	}
 }
-void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale()
+void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale(FTransform& NewBoneTM)
 {
 	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimData.HandModelLength)
 	{
 		// back to original scale
 		// TODO: check this vs flip left right setting for negative scale
-		BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale);
+		NewBoneTM.SetScale3D(MappedBoneAnimData.OriginalScale);
+		//BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale);
 		return;
 	}
-	const float LeapLength = CalculateLeapHandLength();
+	float LeapLength = CalculateLeapHandLength();
+	// never tracked
+	if (LeapLength == 0)
+	{
+		LeapLength = MappedBoneAnimData.HandModelLength;
+	}
+
 	// ratio between model middle finger length and hand middle finger length
 	const float MiddleFingerRatio = LeapLength / MappedBoneAnimData.HandModelLength;
 	// constant user entered correction for model
 	const float ScaleRatio = MiddleFingerRatio * MappedBoneAnimData.ModelScaleOffset;
 	// TODO: move this to the game thread?
-	BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);	
+	NewBoneTM.SetScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);
+	//BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);	
 }
 
 // middle finger length as tracked
@@ -302,7 +310,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
 
-	SetHandGlobalScale();
+//	SetHandGlobalScale();
 	
 	// cached for elbow position
 	const FCachedBoneLink* ArmCachedBone = nullptr;
@@ -316,7 +324,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	FCachedBoneLink* CachedPrevBone = &MappedBoneAnimData.CachedBoneList[0];
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
-		LoopCount++;
 		if (CachedBone.MeshBone.BoneIndex == -1)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(),
@@ -327,6 +334,11 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
+		// setup global scale on the root bone
+		if (!LoopCount)
+		{
+			SetHandGlobalScale(NewBoneTM);
+		}
 		ApplyScale(CachedBone, CachedPrevBone, NewBoneTM);
 		if (BSAnimInstance->IsTracking)
 		{
@@ -339,6 +351,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
 
 		CachedPrevBone = &CachedBone;
+		LoopCount++;		
 	}
 }
 
