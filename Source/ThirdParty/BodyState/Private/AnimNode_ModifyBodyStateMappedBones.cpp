@@ -111,7 +111,7 @@ FVector CalculateAxis(const FTransform& Transform, const FVector& Direction)
 void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 	const FCachedBoneLink& CachedBone,const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM)
 {
-	if (!BSAnimInstance->ScaleModelToTrackingData || !BSAnimInstance->IsTracking || !MappedBoneAnimData.FingerTipLengths.Num())
+	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimData.FingerTipLengths.Num())
 	{
 		return;
 	}
@@ -225,7 +225,7 @@ void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 }
 void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale()
 {
-	if (!BSAnimInstance->ScaleModelToTrackingData || !BSAnimInstance->IsTracking || !MappedBoneAnimData.HandModelLength)
+	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimData.HandModelLength)
 	{
 		// back to original scale
 		// TODO: check this vs flip left right setting for negative scale
