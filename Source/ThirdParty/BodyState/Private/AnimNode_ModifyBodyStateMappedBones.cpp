@@ -299,19 +299,10 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	{
 		return;
 	}
-	// If we don't have data driving us, ignore this evaluation
 	const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
 	float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
-	// set in the UI thread based on the skeleton status
-	if (!BSAnimInstance->IsTracking)
-	{
-	//	BlendWeight = 0;
-	}
-
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
-
-//	SetHandGlobalScale();
 	
 	// cached for elbow position
 	const FCachedBoneLink* ArmCachedBone = nullptr;
@@ -324,6 +315,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	int LoopCount = 0;
 	FTransform PrevBoneTM;
 	FCachedBoneLink* CachedPrevBone = &MappedBoneAnimData.CachedBoneList[0];
+
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
 		if (CachedBone.MeshBone.BoneIndex == -1)
@@ -341,6 +333,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		{
 			SetHandGlobalScale(NewBoneTM);
 		}
+		// Apply scale even when not tracking, so we can see it in editor
 		ApplyScale(CachedBone, CachedPrevBone, NewBoneTM, PrevBoneTM);
 		if (BSAnimInstance->IsTracking)
 		{
