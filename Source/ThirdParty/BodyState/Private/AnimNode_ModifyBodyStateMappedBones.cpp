@@ -177,7 +177,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 		// Calculate the direction that goes up the bone towards the next bone
 		FVector Direction = (BehindTipPosition - TipPosition);
 		Direction.Normalize();
-		Direction.Z = -Direction.Z;
+		Direction = -Direction;
 		// Calculate which axis to scale along
 		FVector Axis = CalculateAxis(CachedBone.BSBone->BoneData.Transform, Direction);
 		// Calculate the scale by ensuring all axis are 1 apart from the axis to scale along
