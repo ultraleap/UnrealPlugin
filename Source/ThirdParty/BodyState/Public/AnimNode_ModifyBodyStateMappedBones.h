@@ -61,7 +61,7 @@ private:
 	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* WristCachedBone,
 		const FCachedBoneLink* ArmCachedBone);
 	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* CachedWristBone);
-	void ApplyScale(const FCachedBoneLink& CachedBone, const FCachedBoneLink& CachedPrevBone, FTransform& NewBoneTM);
+	void ApplyScale(const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM);
 	
 	
 	bool CheckInitEvaulate();

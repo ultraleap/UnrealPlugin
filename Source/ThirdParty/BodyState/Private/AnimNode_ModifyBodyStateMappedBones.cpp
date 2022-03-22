@@ -109,7 +109,7 @@ FVector CalculateAxis(const FTransform& Transform, const FVector& Direction)
 	return BoneForward;
 }
 void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
-	const FCachedBoneLink& CachedBone,const FCachedBoneLink& CachedPrevBone, FTransform& NewBoneTM)
+	const FCachedBoneLink& CachedBone,const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM)
 {
 	if (!BSAnimInstance->ScaleModelToTrackingData || !BSAnimInstance->IsTracking || !MappedBoneAnimData.FingerTipLengths.Num())
 	{
@@ -155,7 +155,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 	if (IsTip)
 	{
 		FVector TipPosition = CachedBone.BSBone->BoneData.Transform.GetLocation();
-		FVector BehindTipPosition = CachedPrevBone.BSBone->BoneData.Transform.GetLocation();
+		FVector BehindTipPosition = CachedPrevBone->BSBone->BoneData.Transform.GetLocation();
 		
 		float LeapFingerTipLength = FVector::Distance(TipPosition, BehindTipPosition);
 		float ModelFingerTipLength = MappedBoneAnimData.FingerTipLengths[FingerIndex];
@@ -237,7 +237,7 @@ void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale()
 	const float MiddleFingerRatio = LeapLength / MappedBoneAnimData.HandModelLength;
 	// constant user entered correction for model
 	const float ScaleRatio = MiddleFingerRatio * MappedBoneAnimData.ModelScaleOffset;
-
+	// TODO: move this to the game thread?
 	BSAnimInstance->GetSkelMeshComponent()->SetRelativeScale3D(MappedBoneAnimData.OriginalScale * ScaleRatio);	
 }
 
@@ -302,7 +302,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		CacheArmOrWrist(CachedBone, &ArmCachedBone, &WristCachedBone);
 	}
 	int LoopCount = 0;
-	FCachedBoneLink& CachedPrevBone = MappedBoneAnimData.CachedBoneList[0];
+	FCachedBoneLink* CachedPrevBone = &MappedBoneAnimData.CachedBoneList[0];
 	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 	{
 		LoopCount++;
@@ -325,7 +325,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
 		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
 
-		CachedPrevBone = CachedBone;
+		CachedPrevBone = &CachedBone;
 	}
 }
 
