@@ -28,6 +28,19 @@
 #include "Misc/MessageDialog.h"
 #include "PersonaUtils.h"
 #endif
+
+
+FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
+{
+	bShouldDeformMesh = false;
+	FlipModelLeftRight = false;
+	OffsetTransform.SetScale3D(FVector(1.f));
+	PreBaseRotation = FRotator(ForceInitToZero);
+	TrackingTagLimit.Empty();
+	AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+	OriginalScale = FVector::OneVector;
+	HandModelLength = 0;
+}
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {

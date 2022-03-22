@@ -97,6 +97,7 @@ struct FMappedBoneAnimData
 {
 	GENERATED_USTRUCT_BODY()
 
+	FMappedBoneAnimData();
 	/** Whether the mesh should deform to match the tracked data */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bone Anim Struct")
 	bool bShouldDeformMesh;
@@ -150,17 +151,7 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	TArray<FCachedBoneLink> CachedBoneList;
 
-	FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
-	{
-		bShouldDeformMesh = false;
-		FlipModelLeftRight = false;
-		OffsetTransform.SetScale3D(FVector(1.f));
-		PreBaseRotation = FRotator(ForceInitToZero);
-		TrackingTagLimit.Empty();
-		AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
-		OriginalScale = FVector::OneVector;
-		HandModelLength = 0;
-	}
+	
 
 	void SyncCachedList(const USkeleton* LinkedSkeleton);
 
