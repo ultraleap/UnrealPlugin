@@ -304,6 +304,11 @@ The tracking is now live in the editor so you should be able to place your hand 
 
 ### Modifying Auto-map results
 
+#### Automatic Scaling
+
+To have the hand model automatically scale to the user's hand, turn on ```Scale Model to Tracking Data``` and click the ```Automap``` button. The hand model when tracked will scale to any user's hand size.
+The scaling can be tweaked by changing the offset sliders to fit better with the mapped model.
+
 #### Deformation
 
 If you don't have a mesh setup that deforms well you can turn that off by adding an entry to your ```Mapped Bone List``` array and unchecking *Should Deform Mesh*. Any changes done to this ```Mapped Bone Anim Data``` entry will be applied after your auto-map fills it. Check your *Anim Preview Editor* to see all the mapped bone entries and final settings.
