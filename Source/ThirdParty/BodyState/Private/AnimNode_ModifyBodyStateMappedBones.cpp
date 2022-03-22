@@ -240,9 +240,6 @@ void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale(FTransform& NewBon
 {
 	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimData.HandModelLength)
 	{
-		// back to original scale
-		// TODO: check this vs flip left right setting for negative scale
-		NewBoneTM.SetScale3D(MappedBoneAnimData.OriginalScale);
 		return;
 	}
 	float LeapLength = CalculateLeapHandLength();
