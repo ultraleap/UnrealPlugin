@@ -117,37 +117,38 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 	}
 	bool IsTip = false;
 	int FingerIndex = 0;
-	float FingerScaleOffset = MappedBoneAnimData.ThumbTipScaleOffset;
+	float FingerScaleOffset = 0;
 	// is it a tip?
 	switch (CachedBone.BSBone->BoneType)
 	{
 		case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_L:
-			FingerIndex = 1;
-			FingerScaleOffset = MappedBoneAnimData.IndexTipScaleOffset;
 		case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_R:
 			FingerIndex = 1;
 			FingerScaleOffset = MappedBoneAnimData.IndexTipScaleOffset;
+			IsTip = true;
+			break;
 		case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L:
-			FingerIndex = 2;
-			FingerScaleOffset = MappedBoneAnimData.MiddleTipScaleOffset;
 		case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R:
 			FingerIndex = 2;
 			FingerScaleOffset = MappedBoneAnimData.MiddleTipScaleOffset;
+			IsTip = true;
+			break;
 		case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_L:
-			FingerIndex = 3;
-			FingerScaleOffset = MappedBoneAnimData.RingTipScaleOffset;
 		case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_R:
 			FingerIndex = 3;
 			FingerScaleOffset = MappedBoneAnimData.RingTipScaleOffset;
+			IsTip = true;
+			break;
 		case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_L:
-			FingerScaleOffset = MappedBoneAnimData.PinkyTipScaleOffset;
-			FingerIndex = 4;
 		case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R:
 			FingerScaleOffset = MappedBoneAnimData.PinkyTipScaleOffset;
 			FingerIndex = 4;
+			IsTip = true;
+			break;
 		case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_L:
-			FingerScaleOffset = MappedBoneAnimData.ThumbTipScaleOffset;
 		case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R:
+			FingerScaleOffset = MappedBoneAnimData.ThumbTipScaleOffset;
+			FingerIndex = 0;
 			IsTip = true;
 			break;
 	}
@@ -155,11 +156,20 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 	if (IsTip)
 	{
 		FVector TipPosition = CachedBone.BSBone->BoneData.Transform.GetLocation();
+
+
 		FVector BehindTipPosition = CachedPrevBone->BSBone->BoneData.Transform.GetLocation();
 		
 		float LeapFingerTipLength = FVector::Distance(TipPosition, BehindTipPosition);
-		float ModelFingerTipLength = MappedBoneAnimData.FingerTipLengths[FingerIndex];
 
+		
+
+		float ModelFingerTipLength = MappedBoneAnimData.FingerTipLengths[FingerIndex];
+		// never tracked
+		if (TipPosition.IsZero())
+		{
+			LeapFingerTipLength = ModelFingerTipLength;
+		}
 		float Ratio = LeapFingerTipLength / ModelFingerTipLength;
 		// not sure this makes sense, why subtract the global scale offset?
 		float AdjustedRatio = (Ratio * (FingerScaleOffset) - MappedBoneAnimData.ModelScaleOffset);
@@ -167,6 +177,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 		// Calculate the direction that goes up the bone towards the next bone
 		FVector Direction = (BehindTipPosition - TipPosition);
 		Direction.Normalize();
+		Direction.Z = -Direction.Z;
 		// Calculate which axis to scale along
 		FVector Axis = CalculateAxis(CachedBone.BSBone->BoneData.Transform, Direction);
 		// Calculate the scale by ensuring all axis are 1 apart from the axis to scale along
@@ -286,7 +297,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	// set in the UI thread based on the skeleton status
 	if (!BSAnimInstance->IsTracking)
 	{
-		BlendWeight = 0;
+	//	BlendWeight = 0;
 	}
 
 	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
@@ -317,9 +328,11 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
 		ApplyScale(CachedBone, CachedPrevBone, NewBoneTM);
-		ApplyRotation(CachedBone, NewBoneTM, WristCachedBone);
-		ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
-
+		if (BSAnimInstance->IsTracking)
+		{
+			ApplyRotation(CachedBone, NewBoneTM, WristCachedBone);
+			ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
+		}
 		// Set the transform back into the anim system
 		TArray<FBoneTransform> TempTransform;
 		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
