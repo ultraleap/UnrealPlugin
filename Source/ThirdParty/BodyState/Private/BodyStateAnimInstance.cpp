@@ -787,11 +787,6 @@ bool UBodyStateAnimInstance::GetNamesAndTransforms(
 
 void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
-	if (!ScaleModelToTrackingData)
-	{
-		return;
-	}
-	
 	CalculateFingertipSizes(ForMap, RigTargetType);
 
 	TArray<FTransform> ComponentSpaceTransforms;
