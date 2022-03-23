@@ -201,10 +201,19 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		ApplyRotation(CachedBone, NewBoneTM, WristCachedBone);
 		ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
 
-		// Set the transform back into the anim system
-		TArray<FBoneTransform> TempTransform;
-		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
-		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+
+		if (NewBoneTM.ContainsNaN())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid Transform"), *CachedBone.MeshBone.BoneName.ToString());
+		}
+		else
+		{
+			// Set the transform back into the anim system
+			TArray<FBoneTransform> TempTransform;
+			TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
+			Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+		}
+		
 	}
 }
 

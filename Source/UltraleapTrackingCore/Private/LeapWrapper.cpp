@@ -339,7 +339,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	LEAP_DEVICE_INFO DeviceProperties = {sizeof(DeviceProperties)};
 	// Start with a length of 1 (pretending we don't know a priori what the length is).
 	// Currently device serial numbers are all the same length, but that could change in the future
-	DeviceProperties.serial_length = 1;
+	DeviceProperties.serial_length = 64;
 	DeviceProperties.serial = (char*) malloc(DeviceProperties.serial_length);
 	// This will fail since the serial buffer is only 1 character long
 	// But deviceProperties is updated to contain the required buffer length
