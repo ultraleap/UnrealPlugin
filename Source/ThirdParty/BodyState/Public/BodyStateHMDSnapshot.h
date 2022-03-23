@@ -34,7 +34,12 @@ public:
 	FVector Position;
 	FQuat Orientation;
 
-	BodyStateHMDSnapshot(){};
+	BodyStateHMDSnapshot()
+	{
+		Position = FVector::ZeroVector;
+		Orientation = FQuat::Identity;
+		Timestamp = 0;
+	}
 	BodyStateHMDSnapshot(double InTimeStamp, const FVector& InPosition, const FQuat& InOrientation);
 
 	/** Returns the difference between the two snapshots*/
