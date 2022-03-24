@@ -98,7 +98,7 @@ build:build-project:
     - echo "==============================================="
     
     # Piped to a log file, remove at the end of this line if you want to see the output during build
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket > ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -184,7 +184,7 @@ build:build-project:
   artifacts:
     name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
     paths:
-    - "./build/"
     - "./$PROJECT_NAME.log"
+    - "./build/"
     when: always
     expire_in: 2 weeks
