@@ -35,7 +35,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Interaction Engine")
 	void MoveTo(const FVector& SolvedPosition, const FRotator& SolvedRotation, UPrimitiveComponent* RigidBody, const bool JustGrasped)
 	{
-
+		if (!RigidBody)
+		{
+			return;
+		}
 		FQuat QuatSolvedRotation(SolvedRotation);
 		MoveToImpl(SolvedPosition, QuatSolvedRotation, RigidBody, JustGrasped);
 	}

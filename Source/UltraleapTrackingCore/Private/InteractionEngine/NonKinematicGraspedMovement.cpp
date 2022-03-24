@@ -24,13 +24,11 @@ UNonKinematicGraspedMovement::UNonKinematicGraspedMovement() : UGraspedMovementH
 void UNonKinematicGraspedMovement::MoveToImpl(
 	const FVector& SolvedPosition, const FQuat& SolvedRotation, UPrimitiveComponent* RigidBody, const bool JustGrasped)
 {
+	// centre of mass is in world coords
+	FVector RelativeCenterOfMass = RigidBody->GetComponentLocation() - RigidBody->GetCenterOfMass();
 
-	if (!RigidBody)
-	{
-		return;
-	}
-	FVector SolvedCenterOfMass = SolvedRotation * RigidBody->GetCenterOfMass() + SolvedPosition;
-	FVector CurrCenterOfMass = FQuat(RigidBody->GetComponentRotation()) * RigidBody->GetCenterOfMass() + RigidBody->GetComponentLocation();
+	FVector SolvedCenterOfMass = SolvedRotation * RelativeCenterOfMass + SolvedPosition;
+	FVector CurrCenterOfMass = FQuat(RigidBody->GetComponentRotation()) * RelativeCenterOfMass + RigidBody->GetComponentLocation();
 
 	FVector TargetVelocity = ToLinearVelocity(CurrCenterOfMass, SolvedCenterOfMass, GetWorld()->GetDeltaSeconds());
 	
