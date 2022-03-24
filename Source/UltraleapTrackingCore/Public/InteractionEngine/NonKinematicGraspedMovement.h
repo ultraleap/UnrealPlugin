@@ -33,8 +33,7 @@ protected:
 		const bool JustGrasped) override;
 		
 private:
-	float MaxVelocity = 60.0f;
-	float SimulationScale = 1.0f;
+	
 
 	FVector LastSolvedCoMPosition = FVector::ZeroVector;
 		

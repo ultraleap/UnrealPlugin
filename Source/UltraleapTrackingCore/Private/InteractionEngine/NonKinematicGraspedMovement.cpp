@@ -45,7 +45,7 @@ void UNonKinematicGraspedMovement::MoveToImpl(
 		TargetAngularVelocity *= TargetPercent;
 	}
 
-	float FollowStrength = 1.0f;
+	
 
 	// TODO: pull in float curve somehow
 	/* if (!JustGrasped)

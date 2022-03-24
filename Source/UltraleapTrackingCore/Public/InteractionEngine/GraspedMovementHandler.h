@@ -43,6 +43,15 @@ public:
 		MoveToImpl(SolvedPosition, QuatSolvedRotation, RigidBody, JustGrasped);
 	}
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float FollowStrength = 1.0f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float MaxVelocity = 100.0f;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float SimulationScale = 1.0f;
+
 protected:
 	// override for specific implementations
 	virtual void MoveToImpl(
