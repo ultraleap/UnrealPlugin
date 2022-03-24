@@ -11,6 +11,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GraspedMovementHandler.h"
+#include "Curves/CurveFloat.h"
 #include "NonKinematicGraspedMovement.generated.h"
 
 
