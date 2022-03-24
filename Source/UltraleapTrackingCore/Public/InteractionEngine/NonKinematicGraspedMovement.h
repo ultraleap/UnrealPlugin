@@ -31,7 +31,11 @@ protected:
 	// override for specific implementations
 	virtual void MoveToImpl(const FVector& SolvedPosition, const FQuat& SolvedRotation, UPrimitiveComponent* RigidBody,
 		const bool JustGrasped) override;
-		
+	
+	// Curve for how fast the physics tracks the desired target location
+	UPROPERTY()
+	UCurveFloat* StrengthByDistance;
+
 private:
 	
 

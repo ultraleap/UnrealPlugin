@@ -47,7 +47,7 @@ public:
 	float FollowStrength = 1.0f;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
-	float MaxVelocity = 100.0f;
+	float MaxVelocity = 300.0f;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	float SimulationScale = 1.0f;

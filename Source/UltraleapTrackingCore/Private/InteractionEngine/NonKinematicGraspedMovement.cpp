@@ -19,6 +19,10 @@
 // Sets default values for this component's properties
 UNonKinematicGraspedMovement::UNonKinematicGraspedMovement() : UGraspedMovementHandler()
 {
+	StrengthByDistance = NewObject<UCurveFloat>();
+	StrengthByDistance->FloatCurve.AddKey(0.0f,1.0f);
+	StrengthByDistance->FloatCurve.AddKey(2, 0.3f);
+
 }
 
 void UNonKinematicGraspedMovement::MoveToImpl(
@@ -46,24 +50,17 @@ void UNonKinematicGraspedMovement::MoveToImpl(
 	}
 
 	
-
-	// TODO: pull in float curve somehow
-	/* if (!JustGrasped)
+	if (!JustGrasped)
 	{
 		float RemainingDistanceLastFrame = FVector::Distance(LastSolvedCoMPosition, CurrCenterOfMass);
-		FollowStrength = StrengthByDistance.Evaluate(RemainingDistanceLastFrame / SimulationScale);
-	}*/
+		FollowStrength = StrengthByDistance->GetFloatValue(RemainingDistanceLastFrame / SimulationScale);
+	}
 
 	FVector LerpedVelocity = FMath::Lerp(RigidBody->GetPhysicsLinearVelocity(), TargetVelocity, FollowStrength);
-	FVector LerpedAngularVelocity = FMath::Lerp(RigidBody->GetPhysicsAngularVelocity(), TargetAngularVelocity, FollowStrength);
+	FVector LerpedAngularVelocity = FMath::Lerp(RigidBody->GetPhysicsAngularVelocityInDegrees(), TargetAngularVelocity, FollowStrength);
 
 	RigidBody->SetPhysicsLinearVelocity(LerpedVelocity);
-	RigidBody->SetPhysicsAngularVelocity(LerpedAngularVelocity);
+	RigidBody->SetPhysicsAngularVelocityInDegrees(LerpedAngularVelocity);
 
 	LastSolvedCoMPosition = SolvedCenterOfMass;
-
-	
-	// Store the target position and rotation to prevent slippage in SwapGrasp
-	// scenarios.
-	//intObj.latestScheduledGraspPose = new Pose(solvedPosition, solvedRotation);
 }
