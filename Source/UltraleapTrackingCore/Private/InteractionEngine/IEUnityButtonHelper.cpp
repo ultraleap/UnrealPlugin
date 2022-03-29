@@ -88,7 +88,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	{
 		FVector OriginalLocalVelocity = LocalPhysicsVelocity;
 		float Force = FMath::Clamp(
-			SpringForce * 100000.0f *
+			SpringForce * 10000.0f *
 				(InitialLocalPosition.X - FMath::Lerp(MinMaxHeight.X, MinMaxHeight.Y, RestingHeight) - LocalPhysicsPosition.X),
 			-100.0f / ParentWorldTransform.GetScale3D().Z, 100.0f / ParentWorldTransform.GetScale3D().Z);
 		// Spring force
