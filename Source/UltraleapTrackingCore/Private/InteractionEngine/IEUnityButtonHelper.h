@@ -48,6 +48,15 @@ protected:
 	UPROPERTY()
 	FVector LocalPhysicsPositionConstrained;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float FrictionCoefficient;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float DragCoefficient;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	bool SweepOnMove;
+
 	/**  Logic for IE button from Unity, call on tick from BP */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void Update(
@@ -79,5 +88,7 @@ private:
 	void FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
 		const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform);
 
+	void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform);
+	void SetRelativeRotationAsWorld(USceneComponent* Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform);
 
 };

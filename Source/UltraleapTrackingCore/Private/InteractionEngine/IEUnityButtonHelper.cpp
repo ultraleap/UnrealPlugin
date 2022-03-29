@@ -9,12 +9,12 @@ UIEUnityButtonHelper::UIEUnityButtonHelper()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-
+	FrictionCoefficient = 30;
+	DragCoefficient = 60;
+	SweepOnMove = true;
 	// ...
 }
 
-const float FRICTION_COEFFICIENT = 30;
-const float DRAG_COEFFICIENT = 60;
 
 FVector UIEUnityButtonHelper::ConstrainDepressedLocalPosition(const FVector& InitialLocalPosition, const FVector& LocalPosition)
 {
@@ -22,15 +22,17 @@ FVector UIEUnityButtonHelper::ConstrainDepressedLocalPosition(const FVector& Ini
 	return FVector(LocalPhysicsPosition.X + LocalPosition.X, InitialLocalPosition.Y, InitialLocalPosition.Z);
 }
 // when simulating physics, SetRelativePosition is actually in world coords as attachment is broken.
-void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform)
+void UIEUnityButtonHelper::SetRelativeLocationAsWorld(
+	USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform)
 {
 	FVector WorldLocation = WorldTransform.TransformPosition(RelativeLocation);
-	Rigidbody->SetRelativeLocation(WorldLocation);
+	Rigidbody->SetRelativeLocation(WorldLocation, SweepOnMove);
 }
-void SetRelativeRotationAsWorld(USceneComponent * Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform)
+void UIEUnityButtonHelper::SetRelativeRotationAsWorld(
+	USceneComponent* Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform)
 {
 	FRotator WorldRotation = WorldTransform.TransformRotation(FQuat(RelativeRotation)).Rotator();
-	Rigidbody->SetRelativeRotation(WorldRotation);
+	Rigidbody->SetRelativeRotation(WorldRotation, SweepOnMove);
 }
 void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping,
 	const bool& IsPrimaryHovered, const bool& IsGrasped, const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact,
@@ -105,12 +107,12 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		if (VelMag > 0)
 		{
 			// Friction force
-			float FrictionForceAmt = VelMag * FRICTION_COEFFICIENT;
+			float FrictionForceAmt = VelMag * FrictionCoefficient;
 			FrictionDragVelocityChangeAmt += WorldDelta * ParentWorldTransform.GetScale3D().Z * FrictionForceAmt;
 
 			// Drag force
 			float VelSqrMag = VelMag * VelMag;
-			float DragForceAmt = VelSqrMag * DRAG_COEFFICIENT;
+			float DragForceAmt = VelSqrMag * DragCoefficient;
 			FrictionDragVelocityChangeAmt += WorldDelta * ParentWorldTransform.GetScale3D().Z * DragForceAmt;
 
 			// Apply velocity change, but don't let friction or drag let velocity
@@ -238,7 +240,7 @@ void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent
 				PhysicsVelocity = FVector::ZeroVector;
 			}
 			FVector WorldLocation = ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained);
-			Rigidbody->SetWorldLocation(WorldLocation);
+			Rigidbody->SetWorldLocation(WorldLocation, false);
 			Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
 		}
 	}
