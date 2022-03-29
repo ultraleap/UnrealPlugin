@@ -17,54 +17,55 @@ public:
 
 protected:
 	UPROPERTY()
-	bool _pressedThisFrame;
+	bool PressedThisFrame;
 	
 	UPROPERTY()
-	bool _unpressedThisFrame;
+	bool UnpressedThisFrame;
 		
 	UPROPERTY()
-	bool _isPressed;
+	bool IsPressed;
 
 	UPROPERTY()
-	FVector _localPhysicsPosition;
+	FVector LocalPhysicsPosition;
 
 	UPROPERTY()
-	USceneComponent* _lastDepressor;
+	USceneComponent* LastDepressor;
 
 	UPROPERTY()
-	FVector _localDepressorPosition;
+	FVector LocalDepressorPosition;
 
 	UPROPERTY()
-	FVector _physicsPosition;
+	FVector PhysicsPosition;
 
 	UPROPERTY()
-	FVector _physicsVelocity;
+	FVector PhysicsVelocity;
+
+	UPROPERTY()
+	USceneComponent* LockedInteractingController;
+
+	UPROPERTY()
+	FVector LocalPhysicsPositionConstrained;
 
 	/**  Logic for IE button from Unity, call on tick from BP */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void Update(
-	UPARAM(Ref) bool& ignoreGrasping, UPARAM(Ref) bool& _initialIgnoreGrasping, const bool& isPrimaryHovered, const bool& isGrasped,
-	const bool& controlEnabled, UPARAM(Ref) bool& ignoreContact, UPrimitiveComponent* rigidbody,
-	const FRotator& _initialLocalRotation, const float primaryHoverDistance, 
-	const float _springForce, const FVector2D& minMaxHeight, const float restingHeight, const float WorldDelta, const FVector& initialLocalPosition, UPARAM(Ref) float& _pressedAmount, USceneComponent* primaryHoveringController);
+	UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping, const bool& IsPrimaryHovered, const bool& IsGrasped,
+	const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
+	const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, 
+	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition, UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController);
 
 	//UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	//FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
 
-	UPROPERTY()
-	USceneComponent* _lockedInteractingController;
 	
-	UPROPERTY()
-	FVector _localPhysicsPositionConstrained;
-
 
 
 private:
 	void OnPress(){}
 	void OnUnpress(){}
 
-	FVector constrainDepressedLocalPosition(
-		const FVector& initialLocalPosition, const FVector& localPosition);
+	FVector ConstrainDepressedLocalPosition(
+		const FVector& InitialLocalPosition, const FVector& LocalPosition);
 
 
 };
