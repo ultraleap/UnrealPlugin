@@ -26,8 +26,12 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	const bool& IsPrimaryHovered, const bool& IsGrasped, const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
-	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController)
+	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform )
 {
+	if (!Rigidbody || !PrimaryHoveringController)
+	{
+		return;
+	}
 	// Reset our convenience state variables.
 	PressedThisFrame = false;
 	UnpressedThisFrame = false;
@@ -44,25 +48,24 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	if (PrimaryHoverDistance < 0.005f || IsGrasped || IsPressed)
 	{
 		LocalPhysicsPosition = ConstrainDepressedLocalPosition(InitialLocalPosition,
-			Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformPosition(Rigidbody->GetComponentLocation()) - LocalPhysicsPosition);
+			ParentWorldTransform.InverseTransformPosition(Rigidbody->GetComponentLocation()) - LocalPhysicsPosition);
 	}
 	else
 	{
 		FVector2D LocalSlidePosition = FVector2D(LocalPhysicsPosition.X, LocalPhysicsPosition.Y);
 
-		LocalPhysicsPosition =
-			Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformPosition(Rigidbody->GetComponentLocation());
+		LocalPhysicsPosition = ParentWorldTransform.InverseTransformPosition(Rigidbody->GetComponentLocation());
 
 		LocalPhysicsPosition = FVector(LocalSlidePosition.X, LocalSlidePosition.Y, LocalPhysicsPosition.Z);
 	}
 	bool HasVelocity = false;
 	// Calculate the physical kinematics of the button in local space
-	FVector LocalPhysicsVelocity = Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformVector(Rigidbody->GetPhysicsLinearVelocity());
+	FVector LocalPhysicsVelocity = ParentWorldTransform.InverseTransformVector(Rigidbody->GetPhysicsLinearVelocity());
 	if (IsPressed && IsPrimaryHovered && LastDepressor != nullptr)
 	{
 		FVector CurLocalDepressorPos =
-			Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformPosition(LastDepressor->GetComponentLocation());
-		FVector OrigLocalDepressorPos = Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformPosition(
+			ParentWorldTransform.InverseTransformPosition(LastDepressor->GetComponentLocation());
+		FVector OrigLocalDepressorPos = ParentWorldTransform.InverseTransformPosition(
 			Rigidbody->GetComponentTransform().TransformPosition(LocalDepressorPosition));
 		LocalPhysicsVelocity = FVector::BackwardVector * 0.05f;
 		LocalPhysicsPosition = ConstrainDepressedLocalPosition(InitialLocalPosition, CurLocalDepressorPos - OrigLocalDepressorPos);
@@ -80,8 +83,8 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 			FMath::Clamp(SpringForce * 10000.0f *
 					(InitialLocalPosition.Z - FMath::Lerp(MinMaxHeight.X, MinMaxHeight.Y, RestingHeight) -
 								LocalPhysicsPosition.Z),
-				-100.0f / Rigidbody->GetAttachParent()->GetComponentScale().X,
-				100.0f / Rigidbody->GetAttachParent()->GetComponentScale().X) *
+				-100.0f / ParentWorldTransform.GetScale3D().X,
+				100.0f /  ParentWorldTransform.GetScale3D().X) *
 			WorldDelta * FVector::ForwardVector;
 
 		if (FMath::Abs(LocalPhysicsVelocity.Size()) > 0.001)
@@ -95,12 +98,12 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		{
 			// Friction force
 			float FrictionForceAmt = VelMag * FRICTION_COEFFICIENT;
-			FrictionDragVelocityChangeAmt += WorldDelta * Rigidbody->GetAttachParent()->GetComponentScale().X * FrictionForceAmt;
+			FrictionDragVelocityChangeAmt += WorldDelta * ParentWorldTransform.GetScale3D().X * FrictionForceAmt;
 
 			// Drag force
 			float VelSqrMag = VelMag * VelMag;
 			float DragForceAmt = VelSqrMag * DRAG_COEFFICIENT;
-			FrictionDragVelocityChangeAmt += WorldDelta * Rigidbody->GetAttachParent()->GetComponentScale().X * DragForceAmt;
+			FrictionDragVelocityChangeAmt += WorldDelta * ParentWorldTransform.GetScale3D().X * DragForceAmt;
 
 			// Apply velocity change, but don't let friction or drag let velocity
 			// magnitude cross zero.
@@ -116,8 +119,8 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	}
 
 	// Transform the local physics back into world space
-	PhysicsPosition = Rigidbody->GetAttachParent()->GetComponentTransform().TransformPosition(LocalPhysicsPosition);
-	PhysicsVelocity = Rigidbody->GetAttachParent()->GetComponentTransform().TransformVector(LocalPhysicsVelocity);
+	PhysicsPosition = ParentWorldTransform.TransformPosition(LocalPhysicsPosition);
+	PhysicsVelocity = ParentWorldTransform.TransformVector(LocalPhysicsVelocity);
 
 	// Calculate the Depression State of the Button from its Physical Position
 	// Set its Graphical Position to be Constrained Physically
@@ -144,7 +147,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		}
 		else
 		{
-			PhysicsPosition = Rigidbody->GetAttachParent()->GetComponentTransform().TransformPosition(
+			PhysicsPosition = ParentWorldTransform.TransformPosition(
 				FVector(LocalPhysicsPosition.X, LocalPhysicsPosition.Y, InitialLocalPosition.Z - MinMaxHeight.X));
 			PhysicsVelocity = PhysicsVelocity * 0.1f;
 			IsPressed = false;
@@ -195,13 +198,13 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		LastDepressor = nullptr;
 	}
 
-	LocalPhysicsPositionConstrained = Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformPosition(PhysicsPosition);
+	LocalPhysicsPositionConstrained = ParentWorldTransform.InverseTransformPosition(PhysicsPosition);
 
-	FixedUpdate(IsGrasped, Rigidbody, InitialLocalPosition, MinMaxHeight, RestingHeight);
+	FixedUpdate(IsGrasped, Rigidbody, InitialLocalPosition, MinMaxHeight, RestingHeight, ParentWorldTransform);
 }
 
 void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
-	const FVector2D& MinMaxHeight, const float RestingHeight)
+	const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform)
 {
 	if (!IsGrasped && Rigidbody->IsAnyRigidBodyAwake())
 	{
@@ -223,7 +226,7 @@ void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent
 				PhysicsVelocity = FVector::ZeroVector;
 			}
 
-			Rigidbody->SetWorldLocation(Rigidbody->GetAttachParent()->GetComponentTransform().TransformPosition(LocalPhysicsPositionConstrained));
+			Rigidbody->SetWorldLocation(ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained));
 			Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
 		}
 	}

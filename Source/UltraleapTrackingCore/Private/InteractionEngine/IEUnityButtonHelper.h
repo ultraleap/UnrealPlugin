@@ -52,7 +52,8 @@ protected:
 	UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping, const bool& IsPrimaryHovered, const bool& IsGrasped,
 	const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
 	const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, 
-	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition, UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController);
+	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
+		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform);
 
 	//UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	//FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
@@ -70,7 +71,7 @@ private:
 	// in Unity this handles the physics tick
 	// in Unreal we can't get an independent physics tick without editing engine source
 	void FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
-	const FVector2D& MinMaxHeight, const float RestingHeight);
+		const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform);
 
 
 };
