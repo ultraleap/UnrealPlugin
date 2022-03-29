@@ -36,7 +36,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	const bool& IsPrimaryHovered, const bool& IsGrasped, const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
-	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform )
+	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform, const FVector& ContactPoint )
 {
 	if (!Rigidbody)
 	{
@@ -73,8 +73,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	FVector LocalPhysicsVelocity = ParentWorldTransform.InverseTransformVector(Rigidbody->GetPhysicsLinearVelocity());
 	if (IsPressed && IsPrimaryHovered && LastDepressor != nullptr)
 	{
-		FVector CurLocalDepressorPos =
-			ParentWorldTransform.InverseTransformPosition(LastDepressor->GetComponentLocation());
+		FVector CurLocalDepressorPos = ParentWorldTransform.InverseTransformPosition(ContactPoint/* LastDepressor->GetComponentLocation()*/);
 		FVector OrigLocalDepressorPos = ParentWorldTransform.InverseTransformPosition(
 			Rigidbody->GetComponentTransform().TransformPosition(LocalDepressorPosition));
 		LocalPhysicsVelocity = FVector::BackwardVector * 0.05f;
@@ -88,7 +87,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	{
 		FVector OriginalLocalVelocity = LocalPhysicsVelocity;
 		float Force = FMath::Clamp(
-			SpringForce * 100000.0f *
+			SpringForce * 10000.0f *
 				(InitialLocalPosition.X - FMath::Lerp(MinMaxHeight.X, MinMaxHeight.Y, RestingHeight) - LocalPhysicsPosition.X),
 			-100.0f / ParentWorldTransform.GetScale3D().Z, 100.0f / ParentWorldTransform.GetScale3D().Z);
 		// Spring force
@@ -154,6 +153,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		if ((IsPrimaryHovered /* && LastDepressor != nullptr*/) || IsGrasped)
 		{
 			IsPressed = true;
+			LastDepressor = PrimaryHoveringController;
 		}
 		else
 		{

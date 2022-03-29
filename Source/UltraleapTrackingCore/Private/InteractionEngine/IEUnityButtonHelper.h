@@ -55,7 +55,8 @@ protected:
 	const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
 	const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, 
 	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
-		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform);
+		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
+		const FVector& ContactPoint);
 
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	FIEButtonStateChanged OnButtonStateChanged;
