@@ -240,6 +240,7 @@ void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent
 				PhysicsVelocity = FVector::ZeroVector;
 			}
 			FVector WorldLocation = ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained);
+			// when constraining, we don't want to sweep as this allows the hand to push the button off axis.
 			Rigidbody->SetWorldLocation(WorldLocation, false);
 			Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
 		}
