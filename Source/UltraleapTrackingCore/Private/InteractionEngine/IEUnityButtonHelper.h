@@ -67,5 +67,10 @@ private:
 	FVector ConstrainDepressedLocalPosition(
 		const FVector& InitialLocalPosition, const FVector& LocalPosition);
 
+	// in Unity this handles the physics tick
+	// in Unreal we can't get an independent physics tick without editing engine source
+	void FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
+	const FVector2D& MinMaxHeight, const float RestingHeight);
+
 
 };

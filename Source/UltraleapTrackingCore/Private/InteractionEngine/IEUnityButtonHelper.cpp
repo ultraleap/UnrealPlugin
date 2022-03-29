@@ -196,4 +196,35 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	}
 
 	LocalPhysicsPositionConstrained = Rigidbody->GetAttachParent()->GetComponentTransform().InverseTransformPosition(PhysicsPosition);
+
+	FixedUpdate(IsGrasped, Rigidbody, InitialLocalPosition, MinMaxHeight, RestingHeight);
+}
+
+void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
+	const FVector2D& MinMaxHeight, const float RestingHeight)
+{
+	if (!IsGrasped && Rigidbody->IsAnyRigidBodyAwake())
+	{
+		float LocalPhysicsDisplacementPercentage =
+			FMath::GetMappedRangeValueClamped(FVector2D(MinMaxHeight.X, MinMaxHeight.Y), FVector2D(0,100), InitialLocalPosition.Z - LocalPhysicsPosition.Z);
+
+		// Sleep the rigidbody if it's not really moving.
+		if (Rigidbody->GetComponentLocation() == PhysicsPosition && PhysicsVelocity == FVector::ZeroVector &&
+			FMath::Abs(LocalPhysicsDisplacementPercentage - RestingHeight) < 0.01F)
+		{
+			Rigidbody->PutAllRigidBodiesToSleep();
+		}
+		else
+		{
+			// Otherwise reset the body's position to where it was last time PhysX
+			// looked at it.
+			if (PhysicsVelocity.ContainsNaN())
+			{
+				PhysicsVelocity = FVector::ZeroVector;
+			}
+
+			Rigidbody->SetWorldLocation(Rigidbody->GetAttachParent()->GetComponentTransform().TransformPosition(LocalPhysicsPositionConstrained));
+			Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
+		}
+	}
 }
