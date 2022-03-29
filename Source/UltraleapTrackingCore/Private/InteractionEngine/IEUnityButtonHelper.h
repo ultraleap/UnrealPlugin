@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "IEUnityButtonHelper.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FIEButtonStateChanged, UIEUnityButtonHelper*, Source, bool, IsPressed);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UIEUnityButtonHelper : public UActorComponent
 {
@@ -55,15 +57,18 @@ protected:
 	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
 		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform);
 
-	//UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
-	//FGrabClassifierGrabStateChanged OnIsGrabbingChanged;
-
-	
-
+	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
+	FIEButtonStateChanged OnButtonStateChanged;
 
 private:
-	void OnPress(){}
-	void OnUnpress(){}
+	void OnPress()
+	{
+		OnButtonStateChanged.Broadcast(this, true);
+	}
+	void OnUnpress()
+	{
+		OnButtonStateChanged.Broadcast(this, false);
+	}
 
 	FVector ConstrainDepressedLocalPosition(
 		const FVector& InitialLocalPosition, const FVector& LocalPosition);

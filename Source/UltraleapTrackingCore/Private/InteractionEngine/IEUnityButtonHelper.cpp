@@ -151,7 +151,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		SetRelativeLocationAsWorld(Rigidbody, 
 			FVector(InitialLocalPosition.X - MinMaxHeight.X,
 			LocalPhysicsPosition.Y, LocalPhysicsPosition.Z), ParentWorldTransform);
-		if ((IsPrimaryHovered && LastDepressor != nullptr) || IsGrasped)
+		if ((IsPrimaryHovered /* && LastDepressor != nullptr*/) || IsGrasped)
 		{
 			IsPressed = true;
 		}
