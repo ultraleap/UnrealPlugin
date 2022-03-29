@@ -17,6 +17,9 @@ public:
 	// Sets default values for this component's properties
 	UIEUnityButtonHelper();
 
+
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+
 protected:
 	UPROPERTY()
 	bool PressedThisFrame;
@@ -57,6 +60,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	bool SweepOnMove;
 
+	
 	/**  Logic for IE button from Unity, call on tick from BP */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void Update(
@@ -91,4 +95,12 @@ private:
 	void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform);
 	void SetRelativeRotationAsWorld(USceneComponent* Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform);
 
+
+	bool IsGraspedCache;
+	UPrimitiveComponent* RigidbodyCache;
+
+	FVector InitialLocalPositionCache;
+	FVector2D MinMaxHeightCache;
+	float RestingHeightCache;
+	FTransform ParentWorldTransformCache;
 };
