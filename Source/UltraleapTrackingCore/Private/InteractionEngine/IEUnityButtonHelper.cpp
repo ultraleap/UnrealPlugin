@@ -8,8 +8,8 @@ UIEUnityButtonHelper::UIEUnityButtonHelper()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	
-
+	InterpFinalLocation = false;
+	InterpSpeed = 1;
 	FrictionCoefficient = 30;
 	DragCoefficient = 60;
 	SweepOnMove = true;
@@ -239,14 +239,14 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	if (!UseSeparateTick)
 	{
 		FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
-			ParentWorldTransformCache);
+			ParentWorldTransformCache, WorldDelta);
 	}
 
 	
 }
 
 void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
-	const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform)
+	const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform, const float DeltaSeconds)
 {
 	if (!IsGrasped && Rigidbody->IsAnyRigidBodyAwake())
 	{
@@ -269,6 +269,11 @@ void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent
 			}
 			FVector WorldLocation = ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained) + AdditionalDelta;
 			// when constraining, we don't want to sweep as this allows the hand to push the button off axis.
+			FVector CurrentWorldLocation = Rigidbody->GetComponentLocation();
+			if (InterpFinalLocation)
+			{
+				WorldLocation = FMath::VInterpTo(CurrentWorldLocation, WorldLocation, DeltaSeconds, InterpSpeed);
+			}
 			Rigidbody->SetWorldLocation(WorldLocation, false);
 			Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
 		}
@@ -282,6 +287,7 @@ void UIEUnityButtonHelper::TickComponent(
 		return;
 	}
 	
-	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache, ParentWorldTransformCache);
+	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
+				ParentWorldTransformCache, GetWorld()->DeltaTimeSeconds);
 	FixedUpdateCalled = true;
 }

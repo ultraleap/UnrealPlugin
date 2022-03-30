@@ -69,6 +69,11 @@ protected:
 	UPROPERTY()
 	bool UseSeparateTick;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	float InterpSpeed;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	bool InterpFinalLocation;
 	
 	/**  Logic for IE button from Unity, call on tick from BP */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
@@ -99,7 +104,7 @@ private:
 	// in Unity this handles the physics tick
 	// in Unreal we can't get an independent physics tick without editing engine source
 	void FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
-		const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform);
+		const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform, const float DeltaSeconds);
 
 	void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform);
 	void SetRelativeRotationAsWorld(USceneComponent* Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform);
