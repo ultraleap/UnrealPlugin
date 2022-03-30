@@ -63,6 +63,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	bool SweepOnMove;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
+	FVector AdditionalDelta;
+
 	UPROPERTY()
 	bool UseSeparateTick;
 
