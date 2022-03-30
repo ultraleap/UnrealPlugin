@@ -46,6 +46,9 @@ protected:
 	FVector PhysicsVelocity;
 
 	UPROPERTY()
+	bool FixedUpdateCalled;
+
+	UPROPERTY()
 	USceneComponent* LockedInteractingController;
 
 	UPROPERTY()
@@ -59,6 +62,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	bool SweepOnMove;
+
+	UPROPERTY()
+	bool UseSeparateTick;
 
 	
 	/**  Logic for IE button from Unity, call on tick from BP */

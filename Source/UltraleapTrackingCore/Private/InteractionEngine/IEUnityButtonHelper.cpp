@@ -8,12 +8,22 @@ UIEUnityButtonHelper::UIEUnityButtonHelper()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-	SetTickGroup(TG_PrePhysics);
+	
 
 	FrictionCoefficient = 30;
 	DragCoefficient = 60;
 	SweepOnMove = true;
+	UseSeparateTick = false;
+
+	if (UseSeparateTick)
+	{
+		PrimaryComponentTick.bCanEverTick = true;
+		SetTickGroup(TG_PrePhysics);
+	}
+	else
+	{
+		PrimaryComponentTick.bCanEverTick = false;
+	}
 	// ...
 }
 
@@ -52,6 +62,12 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	MinMaxHeightCache = MinMaxHeight;
 	RestingHeightCache = RestingHeight;
 	ParentWorldTransformCache = ParentWorldTransform;
+
+	if (!FixedUpdateCalled && UseSeparateTick)
+	{
+		return;
+	}
+	FixedUpdateCalled = false;
 	// Reset our convenience state variables.
 	PressedThisFrame = false;
 	UnpressedThisFrame = false;
@@ -220,8 +236,12 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 
 	LocalPhysicsPositionConstrained = ParentWorldTransform.InverseTransformPosition(PhysicsPosition);
 
-	
-	
+	if (!UseSeparateTick)
+	{
+		FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
+			ParentWorldTransformCache);
+	}
+
 	
 }
 
@@ -261,5 +281,7 @@ void UIEUnityButtonHelper::TickComponent(
 	{
 		return;
 	}
+	
 	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache, ParentWorldTransformCache);
+	FixedUpdateCalled = true;
 }
