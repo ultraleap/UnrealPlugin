@@ -61,6 +61,8 @@ void UIEUnityButtonHelper::SetPhysicsTickablePrimitive(UIEPhysicsTickStaticMeshC
 	{
 		UsePhysicsCallback = true;
 		Primitive->IEPhysicsTickNotify.AddDynamic(this, &UIEUnityButtonHelper::OnIEPhysicsNotify);
+		Primitive->IEPostPhysicsTickNotify.AddDynamic(this, &UIEUnityButtonHelper::OnIEPostPhysicsNotify);
+
 	}
 }
 // this can be called outside of the game thread
@@ -69,6 +71,10 @@ void UIEUnityButtonHelper::OnIEPhysicsNotify(float DeltaTime, FBodyInstance& Bod
 	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
 		ParentWorldTransformCache, DeltaTime);
 	FixedUpdateCalled = true;
+}
+void UIEUnityButtonHelper::OnIEPostPhysicsNotify(float DeltaTime)
+{
+	
 }
 void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping,
 	const bool& IsPrimaryHovered, const bool& IsGrasped, const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact,
@@ -265,8 +271,6 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 		FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
 			ParentWorldTransformCache, WorldDelta);
 	}
-
-	
 }
 
 void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,

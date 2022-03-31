@@ -15,6 +15,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FIEButtonStateChanged, UIEUnityButtonHelper*, Source, bool, IsPressed);
 
+
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UIEUnityButtonHelper : public UActorComponent
 {
@@ -26,6 +28,8 @@ public:
 
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+
+
 
 protected:
 	UPROPERTY()
@@ -142,4 +146,7 @@ private:
 
 	UFUNCTION()
 	void OnIEPhysicsNotify(float DeltaTime, FBodyInstance& BodyInstance);
+	
+	UFUNCTION()
+	void OnIEPostPhysicsNotify(float DeltaTime);
 };
