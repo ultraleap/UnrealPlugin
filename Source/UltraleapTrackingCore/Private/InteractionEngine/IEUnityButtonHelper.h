@@ -1,9 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "InteractionEngine/IEPhysicsTickStaticMeshComponent.h"
 #include "IEUnityButtonHelper.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FIEButtonStateChanged, UIEUnityButtonHelper*, Source, bool, IsPressed);
@@ -69,12 +76,19 @@ protected:
 	UPROPERTY()
 	bool UseSeparateTick;
 
+	UPROPERTY()
+	bool UsePhysicsCallback;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	float InterpSpeed;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Ultraleap IE")
 	bool InterpFinalLocation;
 	
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void SetPhysicsTickablePrimitive(UIEPhysicsTickStaticMeshComponent* Primitive);
+
+
 	/**  Logic for IE button from Unity, call on tick from BP */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void Update(
@@ -117,4 +131,15 @@ private:
 	FVector2D MinMaxHeightCache;
 	float RestingHeightCache;
 	FTransform ParentWorldTransformCache;
+
+	FCalculateCustomPhysics OnCalculateCustomPhysics;
+
+	void SubstepTick(float DeltaTime, FBodyInstance* BodyInstance);
+	void DoPhysics(float DeltaTime, bool InSubstep);
+
+	UPROPERTY()
+	UIEPhysicsTickStaticMeshComponent* PhysicsTickablePrimitive;
+
+	UFUNCTION()
+	void OnIEPhysicsNotify(float DeltaTime, FBodyInstance& BodyInstance);
 };

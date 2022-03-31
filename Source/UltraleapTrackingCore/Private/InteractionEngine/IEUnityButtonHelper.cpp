@@ -1,4 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 
 #include "InteractionEngine/IEUnityButtonHelper.h"
@@ -14,6 +20,7 @@ UIEUnityButtonHelper::UIEUnityButtonHelper()
 	DragCoefficient = 60;
 	SweepOnMove = true;
 	UseSeparateTick = false;
+	UsePhysicsCallback = false;
 
 	if (UseSeparateTick)
 	{
@@ -24,7 +31,7 @@ UIEUnityButtonHelper::UIEUnityButtonHelper()
 	{
 		PrimaryComponentTick.bCanEverTick = false;
 	}
-	// ...
+	
 }
 
 
@@ -46,6 +53,23 @@ void UIEUnityButtonHelper::SetRelativeRotationAsWorld(
 	FRotator WorldRotation = WorldTransform.TransformRotation(FQuat(RelativeRotation)).Rotator();
 	Rigidbody->SetRelativeRotation(WorldRotation, SweepOnMove);
 }
+void UIEUnityButtonHelper::SetPhysicsTickablePrimitive(UIEPhysicsTickStaticMeshComponent* Primitive)
+{
+	PhysicsTickablePrimitive = Primitive;
+
+	if (Primitive)
+	{
+		UsePhysicsCallback = true;
+		Primitive->IEPhysicsTickNotify.AddDynamic(this, &UIEUnityButtonHelper::OnIEPhysicsNotify);
+	}
+}
+// this can be called outside of the game thread
+void UIEUnityButtonHelper::OnIEPhysicsNotify(float DeltaTime, FBodyInstance& BodyInstance)
+{
+	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
+		ParentWorldTransformCache, DeltaTime);
+	FixedUpdateCalled = true;
+}
 void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping,
 	const bool& IsPrimaryHovered, const bool& IsGrasped, const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
@@ -63,7 +87,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	RestingHeightCache = RestingHeight;
 	ParentWorldTransformCache = ParentWorldTransform;
 
-	if (!FixedUpdateCalled && UseSeparateTick)
+	if (!FixedUpdateCalled && (UseSeparateTick || UsePhysicsCallback))
 	{
 		return;
 	}
@@ -236,7 +260,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 
 	LocalPhysicsPositionConstrained = ParentWorldTransform.InverseTransformPosition(PhysicsPosition);
 
-	if (!UseSeparateTick)
+	if (!UseSeparateTick && !UsePhysicsCallback)
 	{
 		FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
 			ParentWorldTransformCache, WorldDelta);
@@ -248,6 +272,10 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform, const float DeltaSeconds)
 {
+	if (!Rigidbody)
+	{
+		return;
+	}
 	if (!IsGrasped && Rigidbody->IsAnyRigidBodyAwake())
 	{
 		float LocalPhysicsDisplacementPercentage =
@@ -290,4 +318,12 @@ void UIEUnityButtonHelper::TickComponent(
 	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
 				ParentWorldTransformCache, GetWorld()->DeltaTimeSeconds);
 	FixedUpdateCalled = true;
+}
+void UIEUnityButtonHelper::SubstepTick(float DeltaTime, FBodyInstance* BodyInstance)
+{
+
+}
+void UIEUnityButtonHelper::DoPhysics(float DeltaTime, bool InSubstep)
+{
+
 }
