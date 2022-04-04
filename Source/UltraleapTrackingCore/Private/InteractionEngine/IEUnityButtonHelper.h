@@ -185,7 +185,7 @@ private:
 		const FVector& InitialLocalPosition, const FVector& LocalPosition);
 
 	// in Unity this handles the physics tick
-	// in Unreal we can't get an independent physics tick without editing engine source
+	// in Unreal with physics substepping turned on, we call this on each substep
 	void FixedUpdate(const float DeltaSeconds, FBodyInstance* BodyInstance = nullptr);
 
 	void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform);
