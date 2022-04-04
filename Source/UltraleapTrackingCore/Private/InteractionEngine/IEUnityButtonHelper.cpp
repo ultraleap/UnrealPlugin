@@ -75,13 +75,13 @@ void UIEUnityButtonHelper::OnIEPostPhysicsNotify(float DeltaTime)
 {
 	Update(*State.IgnoreGrasping,State.InitialIgnoreGrasping, State.IsPrimaryHovered,State.IsGrasped,*State.IgnoreContact, State.Rigidbody,
 		State.InitialLocalRotation, State.PrimaryHoverDistance, State.SpringForce, State.MinMaxHeight, State.RestingHeight,DeltaTime,
-		State.InitialLocalPosition, *State.PressedAmount, State.PrimaryHoveringController,State.ParentWorldTransform, State.ContactPoint);
+		State.InitialLocalPosition, *State.PressedAmount, State.PrimaryHoveringController,State.ParentWorldTransform, State.ContactPoint, false);
 	
 }
 void UIEUnityButtonHelper::UpdateState(UPARAM(Ref) bool& IgnoreGrasping, const bool& InitialIgnoreGrasping,
 	const bool& IsPrimaryHovered, const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
-	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
+	const FVector2D& MinMaxHeight, const float RestingHeight, const FVector& InitialLocalPosition,
 	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
 	const FVector& ContactPoint)
 {
@@ -110,8 +110,15 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	const bool& IsPrimaryHovered, const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
-	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform, const FVector& ContactPoint )
+	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform, const FVector& ContactPoint, const bool SetStateOnly   )
 {
+	if (SetStateOnly)
+	{
+		UpdateState(IgnoreGrasping, InitialIgnoreGrasping, IsPrimaryHovered, IsGrasped, IgnoreContact, Rigidbody,
+			InitialLocalRotation, PrimaryHoverDistance, SpringForce, MinMaxHeight, RestingHeight, InitialLocalPosition,
+			PressedAmount, PrimaryHoveringController, ParentWorldTransform, ContactPoint);
+	}
+
 	if (!Rigidbody)
 	{
 		return;

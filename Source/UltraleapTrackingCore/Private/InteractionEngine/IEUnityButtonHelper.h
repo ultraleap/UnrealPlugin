@@ -112,8 +112,7 @@ protected:
 	UPROPERTY()
 	FVector PhysicsVelocity;
 
-	UPROPERTY()
-	bool FixedUpdateCalled;
+	FThreadSafeBool FixedUpdateCalled;
 
 	UPROPERTY()
 	USceneComponent* LockedInteractingController;
@@ -157,13 +156,13 @@ protected:
 	const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, 
 	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
 		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
-		const FVector& ContactPoint);
+		const FVector& ContactPoint, const bool SetStateOnly);
 
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void UpdateState(UPARAM(Ref) bool& IgnoreGrasping, const bool& InitialIgnoreGrasping, const bool& IsPrimaryHovered,
 		const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
 		const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
-		const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
+		const FVector2D& MinMaxHeight, const float RestingHeight, const FVector& InitialLocalPosition,
 		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
 		const FVector& ContactPoint);
 
