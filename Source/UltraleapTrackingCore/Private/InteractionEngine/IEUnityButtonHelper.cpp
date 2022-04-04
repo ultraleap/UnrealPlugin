@@ -313,7 +313,7 @@ void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds, FBodyInstance* 
 
 	if (!State.IsGrasped && State.Rigidbody->IsAnyRigidBodyAwake())
 	{
-		float LocalPhysicsDisplacementPercentage = FMath::GetMappedRangeValueClamped(FVector2D(State.MinMaxHeight.X, State.MinMaxHeight.Y), FVector2D(0, 100),
+		float LocalPhysicsDisplacementPercentage = FMath::GetMappedRangeValueClamped(FVector2D(State.MinMaxHeight.X, State.MinMaxHeight.Y), FVector2D(0, 1.0f),
 				State.InitialLocalPosition.X - LocalPhysicsPosition.X);
 
 		// Sleep the rigidbody if it's not really moving.
