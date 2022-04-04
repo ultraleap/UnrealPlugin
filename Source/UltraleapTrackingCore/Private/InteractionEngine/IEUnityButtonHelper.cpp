@@ -75,14 +75,14 @@ void UIEUnityButtonHelper::OnIEPostPhysicsNotify(float DeltaTime)
 {
 	Update(*State.IgnoreGrasping,State.InitialIgnoreGrasping, State.IsPrimaryHovered,State.IsGrasped,*State.IgnoreContact, State.Rigidbody,
 		State.InitialLocalRotation, State.PrimaryHoverDistance, State.SpringForce, State.MinMaxHeight, State.RestingHeight,DeltaTime,
-		State.InitialLocalPosition, *State.PressedAmount, State.PrimaryHoveringController,State.ParentWorldTransform, State.ContactPoint, false);
+		State.InitialLocalPosition, *State.PressedAmount, State.PrimaryHoveringController, State.ContactPoint, false);
 	
 }
 void UIEUnityButtonHelper::UpdateState(UPARAM(Ref) bool& IgnoreGrasping, const bool& InitialIgnoreGrasping,
 	const bool& IsPrimaryHovered, const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const FVector& InitialLocalPosition,
-	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
+	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,
 	const FVector& ContactPoint)
 {
 	State.IsGrasped = IsGrasped;
@@ -90,7 +90,7 @@ void UIEUnityButtonHelper::UpdateState(UPARAM(Ref) bool& IgnoreGrasping, const b
 	State.InitialLocalPosition = InitialLocalPosition;
 	State.MinMaxHeight = MinMaxHeight;
 	State.RestingHeight = RestingHeight;
-	State.ParentWorldTransform = ParentWorldTransform;
+	
 
 	State.IgnoreGrasping = &IgnoreGrasping;
 	State.InitialIgnoreGrasping = InitialIgnoreGrasping;
@@ -110,15 +110,15 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	const bool& IsPrimaryHovered, const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
-	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform, const FVector& ContactPoint, const bool SetStateOnly   )
+	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FVector& ContactPoint, const bool SetStateOnly   )
 {
 	if (SetStateOnly)
 	{
 		UpdateState(IgnoreGrasping, InitialIgnoreGrasping, IsPrimaryHovered, IsGrasped, IgnoreContact, Rigidbody,
 			InitialLocalRotation, PrimaryHoverDistance, SpringForce, MinMaxHeight, RestingHeight, InitialLocalPosition,
-			PressedAmount, PrimaryHoveringController, ParentWorldTransform, ContactPoint);
+			PressedAmount, PrimaryHoveringController, ContactPoint);
 	}
-
+	FTransform ParentWorldTransform = GetOwner()->GetActorTransform();
 	if (!Rigidbody)
 	{
 		return;
@@ -309,6 +309,8 @@ void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds)
 	{
 		return;
 	}
+	FTransform ParentWorldTransform = GetOwner()->GetActorTransform();
+
 	if (!State.IsGrasped && State.Rigidbody->IsAnyRigidBodyAwake())
 	{
 		float LocalPhysicsDisplacementPercentage = FMath::GetMappedRangeValueClamped(FVector2D(State.MinMaxHeight.X, State.MinMaxHeight.Y), FVector2D(0, 100),
@@ -328,7 +330,7 @@ void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds)
 			{
 				PhysicsVelocity = FVector::ZeroVector;
 			}
-			FVector WorldLocation = State.ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained) + AdditionalDelta;
+			FVector WorldLocation = ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained) + AdditionalDelta;
 			// when constraining, we don't want to sweep as this allows the hand to push the button off axis.
 			FVector CurrentWorldLocation = State.Rigidbody->GetComponentLocation();
 			if (InterpFinalLocation)
