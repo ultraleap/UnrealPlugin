@@ -68,16 +68,46 @@ void UIEUnityButtonHelper::SetPhysicsTickablePrimitive(UIEPhysicsTickStaticMeshC
 // this can be called outside of the game thread
 void UIEUnityButtonHelper::OnIEPhysicsNotify(float DeltaTime, FBodyInstance& BodyInstance)
 {
-	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
-		ParentWorldTransformCache, DeltaTime);
+	FixedUpdate(DeltaTime);
 	FixedUpdateCalled = true;
 }
 void UIEUnityButtonHelper::OnIEPostPhysicsNotify(float DeltaTime)
 {
+	Update(*State.IgnoreGrasping,State.InitialIgnoreGrasping, State.IsPrimaryHovered,State.IsGrasped,*State.IgnoreContact, State.Rigidbody,
+		State.InitialLocalRotation, State.PrimaryHoverDistance, State.SpringForce, State.MinMaxHeight, State.RestingHeight,DeltaTime,
+		State.InitialLocalPosition, *State.PressedAmount, State.PrimaryHoveringController,State.ParentWorldTransform, State.ContactPoint);
 	
 }
+void UIEUnityButtonHelper::UpdateState(UPARAM(Ref) bool& IgnoreGrasping, const bool& InitialIgnoreGrasping,
+	const bool& IsPrimaryHovered, const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact,
+	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
+	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
+	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
+	const FVector& ContactPoint)
+{
+	State.IsGrasped = IsGrasped;
+	State.Rigidbody = Rigidbody;
+	State.InitialLocalPosition = InitialLocalPosition;
+	State.MinMaxHeight = MinMaxHeight;
+	State.RestingHeight = RestingHeight;
+	State.ParentWorldTransform = ParentWorldTransform;
+
+	State.IgnoreGrasping = &IgnoreGrasping;
+	State.InitialIgnoreGrasping = InitialIgnoreGrasping;
+	State.IsPrimaryHovered = IsPrimaryHovered;
+	State.IgnoreContact = &IgnoreContact;
+
+	State.InitialLocalRotation = InitialLocalRotation;
+	State.PrimaryHoverDistance = PrimaryHoverDistance;
+	State.SpringForce = SpringForce;
+
+	State.PressedAmount = &PressedAmount;
+	State.PrimaryHoveringController = PrimaryHoveringController;
+	State.ContactPoint = ContactPoint;
+}
+	// Direct port of logic from Unity physics button
 void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping,
-	const bool& IsPrimaryHovered, const bool& IsGrasped, const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact,
+	const bool& IsPrimaryHovered, const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact,
 	UPrimitiveComponent* Rigidbody, const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
 	const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
 	UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController,const FTransform& ParentWorldTransform, const FVector& ContactPoint )
@@ -86,12 +116,6 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	{
 		return;
 	}
-	IsGraspedCache = IsGrasped;
-	RigidbodyCache = Rigidbody;
-	InitialLocalPositionCache = InitialLocalPosition;
-	MinMaxHeightCache = MinMaxHeight;
-	RestingHeightCache = RestingHeight;
-	ParentWorldTransformCache = ParentWorldTransform;
 
 	if (!FixedUpdateCalled && (UseSeparateTick || UsePhysicsCallback))
 	{
@@ -104,7 +128,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 
 	// Disable collision on this button if it is not the primary hover.
 	IgnoreGrasping = InitialIgnoreGrasping ? true : !IsPrimaryHovered && !IsGrasped;
-	IgnoreContact = (!IsPrimaryHovered || IsGrasped) || !ControlEnabled;
+	IgnoreContact = (!IsPrimaryHovered || IsGrasped);
 
 	// Enforce local rotation (if button is child of non-kinematic rigidbody,
 	// this is necessary).
@@ -268,28 +292,26 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 
 	if (!UseSeparateTick && !UsePhysicsCallback)
 	{
-		FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
-			ParentWorldTransformCache, WorldDelta);
+		FixedUpdate(WorldDelta);
 	}
 }
 
-void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
-	const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform, const float DeltaSeconds)
+void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds)
 {
-	if (!Rigidbody)
+	if (!State.Rigidbody)
 	{
 		return;
 	}
-	if (!IsGrasped && Rigidbody->IsAnyRigidBodyAwake())
+	if (!State.IsGrasped && State.Rigidbody->IsAnyRigidBodyAwake())
 	{
-		float LocalPhysicsDisplacementPercentage =
-			FMath::GetMappedRangeValueClamped(FVector2D(MinMaxHeight.X, MinMaxHeight.Y), FVector2D(0,100), InitialLocalPosition.X - LocalPhysicsPosition.X);
+		float LocalPhysicsDisplacementPercentage = FMath::GetMappedRangeValueClamped(FVector2D(State.MinMaxHeight.X, State.MinMaxHeight.Y), FVector2D(0, 100),
+				State.InitialLocalPosition.X - LocalPhysicsPosition.X);
 
 		// Sleep the rigidbody if it's not really moving.
-		if (Rigidbody->GetComponentLocation() == PhysicsPosition && PhysicsVelocity == FVector::ZeroVector &&
-			FMath::Abs(LocalPhysicsDisplacementPercentage - RestingHeight) < 0.01F)
+		if (State.Rigidbody->GetComponentLocation() == PhysicsPosition && PhysicsVelocity == FVector::ZeroVector &&
+			FMath::Abs(LocalPhysicsDisplacementPercentage - State.RestingHeight) < 0.01F)
 		{
-			Rigidbody->PutAllRigidBodiesToSleep();
+			State.Rigidbody->PutAllRigidBodiesToSleep();
 		}
 		else
 		{
@@ -299,28 +321,27 @@ void UIEUnityButtonHelper::FixedUpdate(const bool IsGrasped, UPrimitiveComponent
 			{
 				PhysicsVelocity = FVector::ZeroVector;
 			}
-			FVector WorldLocation = ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained) + AdditionalDelta;
+			FVector WorldLocation = State.ParentWorldTransform.TransformPosition(LocalPhysicsPositionConstrained) + AdditionalDelta;
 			// when constraining, we don't want to sweep as this allows the hand to push the button off axis.
-			FVector CurrentWorldLocation = Rigidbody->GetComponentLocation();
+			FVector CurrentWorldLocation = State.Rigidbody->GetComponentLocation();
 			if (InterpFinalLocation)
 			{
 				WorldLocation = FMath::VInterpTo(CurrentWorldLocation, WorldLocation, DeltaSeconds, InterpSpeed);
 			}
-			Rigidbody->SetWorldLocation(WorldLocation, false);
-			Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
+			State.Rigidbody->SetWorldLocation(WorldLocation, false);
+			State.Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
 		}
 	}
 }
 void UIEUnityButtonHelper::TickComponent(
 	float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	if (!RigidbodyCache)
+	if (!State.Rigidbody)
 	{
 		return;
 	}
 	
-	FixedUpdate(IsGraspedCache, RigidbodyCache, InitialLocalPositionCache, MinMaxHeightCache, RestingHeightCache,
-				ParentWorldTransformCache, GetWorld()->DeltaTimeSeconds);
+	FixedUpdate(GetWorld()->DeltaTimeSeconds);
 	FixedUpdateCalled = true;
 }
 void UIEUnityButtonHelper::SubstepTick(float DeltaTime, FBodyInstance* BodyInstance)

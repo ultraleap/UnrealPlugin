@@ -15,7 +15,63 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FIEButtonStateChanged, UIEUnityButtonHelper*, Source, bool, IsPressed);
 
+USTRUCT()
+struct FIEUnityButtonState
+{
+	GENERATED_USTRUCT_BODY()
 
+	// used in fixed update
+	bool IsGrasped;
+
+	UPROPERTY()
+	UPrimitiveComponent* Rigidbody;
+
+	FVector InitialLocalPosition;
+	FVector2D MinMaxHeight;
+	float RestingHeight;
+	FTransform ParentWorldTransform;
+
+	// used on post physics tick
+	bool* IgnoreGrasping;
+	bool InitialIgnoreGrasping;
+	bool IsPrimaryHovered;
+	bool* IgnoreContact;
+		
+	FRotator InitialLocalRotation;
+	float PrimaryHoverDistance;
+	float SpringForce;
+	
+	float* PressedAmount;
+
+	UPROPERTY()
+	USceneComponent* PrimaryHoveringController;
+
+	FVector ContactPoint;
+
+	FIEUnityButtonState()
+	{
+		IsGrasped = false;
+		Rigidbody = nullptr;
+
+		InitialLocalPosition = FVector::ZeroVector;
+		MinMaxHeight = FVector2D::ZeroVector;
+		RestingHeight = 0.5f;
+		ParentWorldTransform = FTransform::Identity;
+
+		IgnoreGrasping = nullptr;
+		InitialIgnoreGrasping = nullptr;
+		IsPrimaryHovered = false;
+		IgnoreContact = nullptr;
+
+		InitialLocalRotation = FRotator::ZeroRotator;
+		PrimaryHoverDistance = 0.0f;
+		SpringForce = 0.0f;
+
+		PressedAmount = nullptr;
+		PrimaryHoveringController = nullptr;
+		ContactPoint = FVector::ZeroVector;
+	}
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UIEUnityButtonHelper : public UActorComponent
@@ -97,11 +153,20 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
 	void Update(
 	UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) bool& InitialIgnoreGrasping, const bool& IsPrimaryHovered, const bool& IsGrasped,
-	const bool& ControlEnabled, UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
+	UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
 	const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, 
 	const float SpringForce, const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
 		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
 		const FVector& ContactPoint);
+
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap IE")
+	void UpdateState(UPARAM(Ref) bool& IgnoreGrasping, const bool& InitialIgnoreGrasping, const bool& IsPrimaryHovered,
+		const bool& IsGrasped, UPARAM(Ref) bool& IgnoreContact, UPrimitiveComponent* Rigidbody,
+		const FRotator& InitialLocalRotation, const float PrimaryHoverDistance, const float SpringForce,
+		const FVector2D& MinMaxHeight, const float RestingHeight, const float WorldDelta, const FVector& InitialLocalPosition,
+		UPARAM(Ref) float& PressedAmount, USceneComponent* PrimaryHoveringController, const FTransform& ParentWorldTransform,
+		const FVector& ContactPoint);
+
 
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Ultraleap IE")
 	FIEButtonStateChanged OnButtonStateChanged;
@@ -115,26 +180,20 @@ private:
 	{
 		OnButtonStateChanged.Broadcast(this, false);
 	}
+	FIEUnityButtonState State;
 
 	FVector ConstrainDepressedLocalPosition(
 		const FVector& InitialLocalPosition, const FVector& LocalPosition);
 
 	// in Unity this handles the physics tick
 	// in Unreal we can't get an independent physics tick without editing engine source
-	void FixedUpdate(const bool IsGrasped, UPrimitiveComponent* Rigidbody, const FVector& InitialLocalPosition,
-		const FVector2D& MinMaxHeight, const float RestingHeight, const FTransform& ParentWorldTransform, const float DeltaSeconds);
+	void FixedUpdate(const float DeltaSeconds);
 
 	void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform);
 	void SetRelativeRotationAsWorld(USceneComponent* Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform);
 
 
-	bool IsGraspedCache;
-	UPrimitiveComponent* RigidbodyCache;
-
-	FVector InitialLocalPositionCache;
-	FVector2D MinMaxHeightCache;
-	float RestingHeightCache;
-	FTransform ParentWorldTransformCache;
+	
 
 	FCalculateCustomPhysics OnCalculateCustomPhysics;
 
