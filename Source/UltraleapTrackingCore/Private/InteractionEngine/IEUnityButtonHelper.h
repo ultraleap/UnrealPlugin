@@ -186,7 +186,7 @@ private:
 
 	// in Unity this handles the physics tick
 	// in Unreal we can't get an independent physics tick without editing engine source
-	void FixedUpdate(const float DeltaSeconds);
+	void FixedUpdate(const float DeltaSeconds, FBodyInstance* BodyInstance = nullptr);
 
 	void SetRelativeLocationAsWorld(USceneComponent* Rigidbody, const FVector& RelativeLocation, const FTransform& WorldTransform);
 	void SetRelativeRotationAsWorld(USceneComponent* Rigidbody, const FRotator& RelativeRotation, const FTransform& WorldTransform);

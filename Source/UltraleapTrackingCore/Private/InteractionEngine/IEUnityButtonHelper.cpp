@@ -37,7 +37,7 @@ UIEUnityButtonHelper::UIEUnityButtonHelper()
 
 FVector UIEUnityButtonHelper::ConstrainDepressedLocalPosition(const FVector& InitialLocalPosition, const FVector& LocalPosition)
 {
-	// Buttons are only allowed to move along their Z axis.
+	// Buttons are only allowed to move along their X axis.
 	return FVector(LocalPhysicsPosition.X + LocalPosition.X, InitialLocalPosition.Y, InitialLocalPosition.Z);
 }
 // when simulating physics, SetRelativePosition is actually in world coords as attachment is broken.
@@ -68,7 +68,7 @@ void UIEUnityButtonHelper::SetPhysicsTickablePrimitive(UIEPhysicsTickStaticMeshC
 // this can be called outside of the game thread
 void UIEUnityButtonHelper::OnIEPhysicsNotify(float DeltaTime, FBodyInstance& BodyInstance)
 {
-	FixedUpdate(DeltaTime);
+	FixedUpdate(DeltaTime, &BodyInstance);
 	FixedUpdateCalled = true;
 }
 void UIEUnityButtonHelper::OnIEPostPhysicsNotify(float DeltaTime)
@@ -149,7 +149,7 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 	}
 	else
 	{
-		FVector2D LocalSlidePosition = FVector2D(LocalPhysicsPosition.Z, LocalPhysicsPosition.Y);
+		FVector2D LocalSlidePosition = FVector2D(LocalPhysicsPosition.Y, LocalPhysicsPosition.Z);
 
 		LocalPhysicsPosition = ParentWorldTransform.InverseTransformPosition(Rigidbody->GetComponentLocation());
 
@@ -297,13 +297,13 @@ void UIEUnityButtonHelper::Update(UPARAM(Ref) bool& IgnoreGrasping, UPARAM(Ref) 
 
 	LocalPhysicsPositionConstrained = ParentWorldTransform.InverseTransformPosition(PhysicsPosition);
 
-	if (!UseSeparateTick && !UsePhysicsCallback)
+	if (!UseSeparateTick  && !UsePhysicsCallback )
 	{
 		FixedUpdate(WorldDelta);
 	}
 }
 
-void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds)
+void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds, FBodyInstance* BodyInstance)
 {
 	if (!State.Rigidbody)
 	{
@@ -337,8 +337,24 @@ void UIEUnityButtonHelper::FixedUpdate(const float DeltaSeconds)
 			{
 				WorldLocation = FMath::VInterpTo(CurrentWorldLocation, WorldLocation, DeltaSeconds, InterpSpeed);
 			}
-			State.Rigidbody->SetWorldLocation(WorldLocation, false);
-			State.Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
+
+			// from Physics tick?
+			if (BodyInstance)
+			{
+				FTransform Transform = State.Rigidbody->GetComponentTransform();
+				Transform.SetLocation(WorldLocation);
+
+				FPhysicsInterface::SetGlobalPose_AssumesLocked(BodyInstance->GetPhysicsActorHandle(), Transform);
+				FPhysicsInterface::SetLinearVelocity_AssumesLocked(BodyInstance->GetPhysicsActorHandle(), PhysicsVelocity);
+			}
+			else
+			{
+				State.Rigidbody->SetWorldLocation(WorldLocation, false);
+				State.Rigidbody->SetPhysicsLinearVelocity(PhysicsVelocity);
+
+			}
+			
+			
 		}
 	}
 }

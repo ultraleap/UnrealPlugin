@@ -16,7 +16,7 @@ void FIESecondaryTickFunction::ExecuteTick(
 	if (Target && !Target->IsPendingKill() && !Target->IsUnreachable())
 	{
 		FScopeCycleCounterUObject ActorScope(Target);
-		Target->IEPostPhysicsTickNotify.Broadcast(DeltaTime);
+		//Target->IEPostPhysicsTickNotify.Broadcast(DeltaTime);
 	}
 }
 
@@ -52,6 +52,7 @@ void UIEPhysicsTickStaticMeshComponent::TickComponent(
 
 	// Add custom physics forces substepping ticks
 	GetBodyInstance()->AddCustomPhysics(OnCalculateCustomPhysics);
+	IEPostPhysicsTickNotify.Broadcast(DeltaTime);
 }
 void UIEPhysicsTickStaticMeshComponent::SubstepTick(float DeltaTime, FBodyInstance* InBodyInstance)
 {
