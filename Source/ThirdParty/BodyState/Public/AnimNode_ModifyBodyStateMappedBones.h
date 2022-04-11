@@ -61,7 +61,17 @@ private:
 	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* WristCachedBone,
 		const FCachedBoneLink* ArmCachedBone);
 	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* CachedWristBone);
+	void ApplyScale(
+		const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM, FTransform& PrevBoneTM);
+	
+	
 	bool CheckInitEvaulate();
 	void CacheArmOrWrist(
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink** ArmCachedBone, const FCachedBoneLink** WristCachedBone);
+
+	void SetHandGlobalScale(FTransform& NewBoneTM);
+	
+
+	float CalculateLeapHandLength();
+	
 };

@@ -25,6 +25,7 @@ public class BodyState : ModuleRules
 	public BodyState(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+	//	OptimizeCode = CodeOptimization.Never;
 		PublicIncludePaths.AddRange(
 			new string[] {
 			}

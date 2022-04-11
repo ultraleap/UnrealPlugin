@@ -28,6 +28,19 @@
 #include "Misc/MessageDialog.h"
 #include "PersonaUtils.h"
 #endif
+
+
+FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
+{
+	bShouldDeformMesh = false;
+	FlipModelLeftRight = false;
+	OffsetTransform.SetScale3D(FVector(1.f));
+	PreBaseRotation = FRotator(ForceInitToZero);
+	TrackingTagLimit.Empty();
+	AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+	OriginalScale = FVector::OneVector;
+	HandModelLength = 0;
+}
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {
@@ -41,6 +54,9 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	bIncludeMetaCarpels = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
+
+	ModelScaleOffset = ThumbTipScaleOffset = IndexTipScaleOffset = MiddleTipScaleOffset = RingTipScaleOffset = PinkyTipScaleOffset =
+		1.0;
 }
 
 void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(
@@ -548,6 +564,11 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
 	bool& BoneFound) const
 {
+	if (!ForMap.BoneMap.Contains(BoneType))
+	{
+		BoneFound = false;
+		return FTransform();
+	}
 	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
 	int Index = Names.Find(Bone.BoneName);
 
@@ -564,22 +585,14 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
 {
 	FTransform Ret;
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
-
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
 
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
-
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetCurrentWristPose INodeMapping is NULL so cannot proceed"));
-		return Ret;
+		return FTransform();
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
@@ -614,21 +627,14 @@ void Normalize360(FRotator& InPlaceRot)
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
 		return;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
@@ -727,20 +733,14 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	float ElbowLength = 0;
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
 		return 0;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
@@ -775,6 +775,121 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
 	}
 	return ElbowLength;
+}
+bool UBodyStateAnimInstance::GetNamesAndTransforms(
+	TArray<FTransform>& ComponentSpaceTransforms, TArray<FName>& Names, TArray<FNodeItem>& NodeItems) const
+{
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	
+	
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetNamesAndTransforms INodeMapping is NULL so cannot proceed"));
+		return false;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	return true;
+}
+
+void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	CalculateFingertipSizes(ForMap, RigTargetType);
+
+	TArray<FTransform> ComponentSpaceTransforms;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
+	{
+		return;
+	}
+	ForMap.OriginalScale = ComponentSpaceTransforms[0].GetScale3D();
+	EBodyStateBasicBoneType MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L;
+	EBodyStateBasicBoneType MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R;
+		MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R;
+	}
+	float Length = 0;
+	// the enum is in bone order
+	for (int i = (int) MiddleStart; i < (int) MiddleEnd; ++i)
+	{
+		bool BoneFound = false;
+
+		// we may not have all bones
+		if (!ForMap.BoneMap.Contains((EBodyStateBasicBoneType)i))
+		{
+			continue;
+		}
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType)i, Names, ComponentSpaceTransforms, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i+1), Names, ComponentSpaceTransforms, BoneFound);
+	
+		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation()); 
+		Length += Magnitude;
+	}
+	ForMap.HandModelLength = Length;
+
+}
+void UBodyStateAnimInstance::CalculateFingertipSizes(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	TArray<FTransform> ComponentSpaceTransforms;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+
+	static const int NumFingers = 5;
+	
+	ForMap.FingerTipLengths.Empty();
+
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
+	{
+		return;
+	}
+	EBodyStateBasicBoneType FingerTipsLeft[NumFingers] = {EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_L,
+		EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_L, EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L,
+		EBodyStateBasicBoneType::BONE_RING_3_DISTAL_L, EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_L};
+
+	EBodyStateBasicBoneType FingerTipsRight[NumFingers] = {EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R,
+		EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_R, EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R,
+		EBodyStateBasicBoneType::BONE_RING_3_DISTAL_R, EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R};
+
+	EBodyStateBasicBoneType* FingerTipEnums = FingerTipsLeft;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		FingerTipEnums = FingerTipsRight;
+	}
+
+	for (int i = 0; i < NumFingers; ++i)
+	{
+		bool BoneFound = false;
+		
+		EBodyStateBasicBoneType End = FingerTipEnums[i];
+		int BeforeEndInt = ((int) End) - 1;
+		EBodyStateBasicBoneType BeforeEnd = (EBodyStateBasicBoneType) BeforeEndInt;
+
+		
+		// we may not have all bones
+		if (!ForMap.BoneMap.Contains(End) || !ForMap.BoneMap.Contains(BeforeEnd))
+		{
+			ForMap.FingerTipLengths.Add(0);
+			continue;
+		}
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, BeforeEnd, Names, ComponentSpaceTransforms, BoneFound);
+		FTransform PoseNext =
+			GetTransformFromBoneEnum(ForMap, End, Names, ComponentSpaceTransforms, BoneFound);
+
+		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation());
+		ForMap.FingerTipLengths.Add(Magnitude);
+	}
+
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(
 	FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
@@ -864,7 +979,7 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	}
 	return ReferenceMap;
 }
-void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForMap)
+void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 {
 	// the user can manually specify that the model is flipped (left to right or right to left)
 	// Setting the scale on the component flips the view
@@ -1056,6 +1171,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			{
 				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
+			CalculateHandSize(OneHandMap, AutoMapTarget);
 		}
 	}
 	else
@@ -1079,6 +1195,8 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			{
 				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
 			}
+			CalculateHandSize(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+			CalculateHandSize(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
 		}
 	}
 
