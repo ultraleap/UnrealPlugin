@@ -221,6 +221,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
 	bool ScaleModelToTrackingData;
 	
+	/** Ignore the wrist translation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
+	bool IgnoreWristTranslation;
 
 	/** User entered scale offset to fit to entire model for hand auto scaling */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",

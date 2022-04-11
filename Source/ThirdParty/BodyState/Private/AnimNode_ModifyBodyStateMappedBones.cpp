@@ -56,7 +56,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 	}
 
 	// is it the root?
-	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone && WristBoneIndex > -1 && WristCachedBone)
+	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone && WristBoneIndex > -1 && WristCachedBone &&
+		!BSAnimInstance->IgnoreWristTranslation)
 	{
 		// arm/elbow
 		if (&CachedBone == ArmCachedBone)
@@ -339,7 +340,7 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 			ApplyScale(CachedBone, CachedPrevBone, NewBoneTM, PrevBoneTM, MappedBoneAnimData);
 			if (BSAnimInstance->IsTracking)
 			{
-				switch (CachedBone.BSBone->BoneType)
+				/* switch (CachedBone.BSBone->BoneType)
 				{
 				  case EBodyStateBasicBoneType::BONE_HAND_WRIST_R:
 					case EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_R:
@@ -368,7 +369,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 						ApplyRotation(CachedBone, NewBoneTM, WristCachedBone, MappedBoneAnimData);
 						break;
 
-				}
+				}*/
+				ApplyRotation(CachedBone, NewBoneTM, WristCachedBone, MappedBoneAnimData);
 				ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone, MappedBoneAnimData);
 			}
 			// Set the transform back into the anim system
