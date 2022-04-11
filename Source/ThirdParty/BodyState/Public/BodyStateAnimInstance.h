@@ -60,7 +60,8 @@ struct FBodyStateIndexedBoneList
 
 	// run after filling our index
 	TArray<int32> FindBoneWithChildCount(int32 Count);
-	void SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones);
+	void SetFromRefSkeleton(
+		const FReferenceSkeleton& RefSkeleton, bool SortBones, EBodyStateAutoRigType HandType, const bool FilterByHand);
 	int32 LongestChildTraverseForBone(int32 Bone);
 
 	FBodyStateIndexedBoneList()

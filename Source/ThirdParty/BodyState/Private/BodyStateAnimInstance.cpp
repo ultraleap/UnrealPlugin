@@ -225,7 +225,8 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	int32 PinkyBone = InvalidBone;
 
 	// Re-organize our bone information
-	BoneLookupList.SetFromRefSkeleton(RefSkeleton, bUseSortedBoneNames);
+	BoneLookupList.SetFromRefSkeleton(
+		RefSkeleton, bUseSortedBoneNames, HandType, AutoMapTarget == EBodyStateAutoRigType::BOTH_HANDS);
 
 	int32 WristBone = InvalidBone;
 	int32 LowerArmBone = InvalidBone;
@@ -1331,25 +1332,58 @@ TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 	}
 	return ResultArray;
 }
-
-void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones)
+// filter bones by hands
+bool IsHandType(const FString& BoneName, EBodyStateAutoRigType HandType)
 {
+	FString EndTest("_l");
+	FString Name(BoneName);
+
+	if (HandType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		EndTest = "_r";
+	}
+	if (Name.Right(2) == EndTest)
+	{
+		return true;
+	}
+	return false;
+}
+void FBodyStateIndexedBoneList::SetFromRefSkeleton(
+	const FReferenceSkeleton& RefSkeleton, bool SortBones, EBodyStateAutoRigType HandType, const bool FilterByHand)
+{
+	SortedBones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
 		FBodyStateIndexedBone Bone;
 		Bone.BoneName = RefSkeleton.GetBoneName(i);
 		Bone.ParentIndex = RefSkeleton.GetParentIndex(i);
 		Bone.Index = i;
-		SortedBones.Add(Bone);
+
+		//Filter by hand
+		if (FilterByHand)
+		{
+			if (IsHandType(Bone.BoneName.ToString(), HandType))
+			{
+				SortedBones.Add(Bone);
+			}
+		}
+		else
+		{
+			SortedBones.Add(Bone);
+		}
 	}
 	if (SortBones)
 	{
-		SortedBones.Sort();
-
-		for (int i = 0; i < SortedBones.Num(); ++i)
-		{
-			SortedBones[i].Index = i;
-		}
+		SortedBones.Sort(
+			[](const FBodyStateIndexedBone& One, const FBodyStateIndexedBone& Two)
+			{
+				
+				return One.BoneName < Two.BoneName;
+			});
+	}
+	for (int i = 0; i < SortedBones.Num(); ++i)
+	{
+		SortedBones[i].Index = i;
 	}
 	Bones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
