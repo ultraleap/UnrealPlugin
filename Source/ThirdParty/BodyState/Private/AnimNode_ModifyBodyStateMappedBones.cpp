@@ -54,9 +54,12 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 	{
 		WristBoneIndex = WristCachedBone->MeshBone.BoneIndex;
 	}
-	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
+
+	// is it the root?
+	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone && WristBoneIndex > -1 && WristCachedBone)
 	{
-		if (&CachedBone == ArmCachedBone && WristBoneIndex > -1 && WristCachedBone)
+		// arm/elbow
+		if (&CachedBone == ArmCachedBone)
 		{
 			auto WristPosition = WristCachedBone->BSBone->BoneData.Transform.GetLocation();
 			auto ElbowForward = FRotationMatrix(CachedBone.BSBone->BoneData.Transform.Rotator()).GetScaledAxis(EAxis::X);
@@ -68,6 +71,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 
 			NewBoneTM.SetTranslation(CorrectTranslation);
 		}
+		// wrist
 		else
 		{
 			FQuat AdditionalRotation = MappedBoneAnimData.OffsetTransform.GetRotation();
