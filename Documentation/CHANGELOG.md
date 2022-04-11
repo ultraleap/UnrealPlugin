@@ -11,7 +11,7 @@ Versions
 * Fixed - Blocks can be docked whilst open in the Dynamic UI scene
 * Fixed - Auto switching between hands and controllers show left hand when in and out of tracking
 * Fixed - Palm orientation pose detector now defaults to triggering on palm facing camera/user's face
-* Fixed - Not a number could be recieved if hands tracking during scene startup
+* Fixed - Not a number could be received if hands tracking during scene startup
 * Fixed - When picking up blocks underneath other blocks, blocks behaved as if very heavy/pinned down
 
 Known issues:
