@@ -301,6 +301,11 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 		if (!MappedBoneAnimData.BodyStateSkeleton)
 		{
 			continue;
+
+		}
+		if (!MappedBoneAnimData.CachedBoneList.Num())
+		{
+			continue;
 		}
 		const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
 		float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
@@ -329,6 +334,10 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 			}
 
 			FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
+			if (CompactPoseBoneToModify == -1)
+			{
+				continue;
+			}
 			FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
 			// setup global scale on the root bone
