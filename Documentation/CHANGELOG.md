@@ -4,7 +4,7 @@ Ultraleap Tracking - Change Log
 Versions
 
 ### Version 4.3.0
-11th Aptil 2022
+11th April 2022
 
 * Added auto hand scaling support to BodyStateAnimInstance/AutoMapping workflow
 * Fixed - Blocks attracted by left hand in Anchors and Dynamic UI scene when menu not shown
