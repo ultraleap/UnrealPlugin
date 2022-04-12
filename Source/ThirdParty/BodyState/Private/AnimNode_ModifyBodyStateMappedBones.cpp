@@ -179,8 +179,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 
 		}
 		float Ratio = LeapFingerTipLength / ModelFingerTipLength;
-		// not sure this makes sense, why subtract the global scale offset?
-		float AdjustedRatio = (Ratio * (FingerScaleOffset) -BSAnimInstance->ModelScaleOffset);
+		float AdjustedRatio = Ratio * FingerScaleOffset;
 
 		// Calculate the direction that goes up the bone towards the next bone
 		FVector Direction = (BehindTipPosition - TipPosition);
