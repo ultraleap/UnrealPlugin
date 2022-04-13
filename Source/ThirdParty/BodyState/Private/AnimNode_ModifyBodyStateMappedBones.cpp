@@ -179,7 +179,9 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 
 		}
 		float Ratio = LeapFingerTipLength / ModelFingerTipLength;
-		float AdjustedRatio = Ratio * FingerScaleOffset;
+		// Fingerscale offset of one is a zero scale change
+		float AdjustedRatio = Ratio * (FingerScaleOffset - 1.0);
+
 
 		// Calculate the direction that goes up the bone towards the next bone
 		FVector Direction = (BehindTipPosition - TipPosition);
