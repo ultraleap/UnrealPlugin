@@ -496,10 +496,7 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 		return;
 	}
 
-	if (!Other->IsTrackingAnyBone())
-	{
-		return;
-	}
+	
 	if (Other->Name != "HMD")
 	{
 		for (int i = 0; i < Bones.Num(); i++)
