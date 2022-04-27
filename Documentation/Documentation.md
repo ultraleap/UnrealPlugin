@@ -664,22 +664,21 @@ Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new proje
 * Follow the Epic guide to create, download and import your metahuman to your project: [Getting started](https://docs.metahuman.unrealengine.com/en-US/MetahumansUnrealEngine/GettingStarted/)
 * Create a child class of **UltraleapTracking/Metahumans/IEPawnHands_Metahuman**
 * Move the newly created pawn class into your project's content folder 
-* Set the **MetahumanBPClass** member of your newly created class to your imported Metahuman blueprint (for example HadleyBP)
-* Locate and create a new animation blueprint from your metahuman’s skeleton. TODO:Locate skeleton image here
+* Set the **MetahumanBPClass** member of your newly created class to your imported Metahuman blueprint (for example HadleyBP) ![](https://imgur.com/NzHLdCp.png)
+* Locate and create a new animation blueprint from your metahuman’s skeleton. ![](https://imgur.com/7X9bewG.png) ![](https://imgur.com/ET3Z7YF.png)
 * Move the newly created animation blueprint outside of the metahumans common folder
-* Reparent the blueprint to **BodyStateAnimInstance**. TODO: reparent bp image
-* Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist Translation** and click **Auto map**. TODO:AutoMapImage
-* Copy the nodes from the template **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim graph and eventgraph) into your anim blueprint.
-TODO: Anim and event graph images
+* Reparent the blueprint to **BodyStateAnimInstance**. ![](https://imgur.com/JR4UV03.png)
+* Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist Translation** and click **Auto map**. ![](https://imgur.com/P51oMTa.png)
+* Copy the nodes from the template **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim graph and eventgraph) into your anim blueprint. ![](https://imgur.com/Q1n3GM7.png) ![](https://imgur.com/lraQXBv.png)
 * You can use select all to copy paste events
 * Compile your new animation blueprint. At this point there will be missing variable errors
-* Right click on the missing  Metahuman Extensions variable and choose **Create variable for Metahuman Extensions** 
-* Connect up the last pin in the animation graph to the **Output Pose** node. TODO: image for output pose
+* Right click on the missing  Metahuman Extensions variable and choose **Create variable for Metahuman Extensions** ![](https://imgur.com/yqfYWFq.png)
+* Connect up the last pin in the animation graph to the **Output Pose** node. ![](https://imgur.com/sLqFeb4.png)
 * The animation blueprint should now compile and be ready for use.
 
 ## Setting up the metahuman pawn
-* Set the BodyAnimBPClass in your new pawn to your newly created anim class TODO: set anim class image
-* Set you new pawn as the default pawn in your game mode TODO: default pawn class 
+* Set the BodyAnimBPClass in your new pawn to your newly created anim class ![](https://imgur.com/acqWA8f.png)
+* Set you new pawn as the default pawn in your game mode ![](https://imgur.com/YP0obW0.png)
 * The metahuman will now run rigged in VR in your scene
 * Note the pawn starts with the metahuman hidden, you have to select one of the **calibrate height** options from the hand menu to show it.
 
