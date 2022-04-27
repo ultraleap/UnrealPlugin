@@ -191,7 +191,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 		FVector Axis = CalculateAxis(DirectionTransform, Direction);
 		// Calculate the scale by ensuring all axis are 1 apart from the axis to scale along
 		FVector Scale = FVector::OneVector + (Axis * AdjustedRatio);
-		NewBoneTM.SetScale3D(Scale);
+		NewBoneTM.SetScale3D(Scale * BSAnimInstance->ModelScaleOffset);
 	}
 }
 
