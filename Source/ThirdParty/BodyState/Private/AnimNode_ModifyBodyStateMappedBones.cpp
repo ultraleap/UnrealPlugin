@@ -116,6 +116,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 		return;
 	}
 	bool IsTip = false;
+	bool IsLeft = false;
+
 	int FingerIndex = 0;
 	float FingerScaleOffset = 0;
 	// is it a tip?
@@ -152,6 +154,23 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 			IsTip = true;
 			break;
 	}
+	switch (CachedBone.BSBone->BoneType)
+	{
+		case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_L:
+		case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L:
+		case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_L:
+		case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_L:
+		case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_L:
+			IsLeft = true;
+			break;
+		case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_R:
+		case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R:
+		case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_R:
+		case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R:
+		case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R:
+			IsLeft = false;
+			break;
+	}
 	
 	if (IsTip)
 	{
@@ -165,7 +184,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 		
 
 		float ModelFingerTipLength = MappedBoneAnimData.FingerTipLengths[FingerIndex];
-		// never tracked
+		// never tracked/uninitialised state
 		if (TipPosition.IsZero())
 		{
 			LeapFingerTipLength = ModelFingerTipLength;
@@ -175,7 +194,10 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
 
 			DirectionTransform = NewBoneTM;
 
-			DirectionMult = 1;
+			if (!IsLeft)
+			{
+				DirectionMult = 1;
+			}
 
 		}
 		float Ratio = LeapFingerTipLength / ModelFingerTipLength;
