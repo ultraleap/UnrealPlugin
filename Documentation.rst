@@ -1186,10 +1186,10 @@ Setting up the metahuman pawn
 Walking animations
 ------------------
 
--  A place holder is left in the template anim graph to add idle to
-   walking animation blendspace 2D. See the example project for more
-   information. The example project uses retargeted animations from the
-   default UE4 mannequin.
+A place holder is left in the template anim graph to add idle to walking
+animation blendspace 2D. See the example project for more information.
+The example project uses retargeted animations from the default UE4
+mannequin.
 
 Lip sync
 --------

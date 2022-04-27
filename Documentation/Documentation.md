@@ -683,7 +683,7 @@ Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new proje
 * Note the pawn starts with the metahuman hidden, you have to select one of the **calibrate height** options from the hand menu to show it.
 
 ## Walking animations
-* A place holder is left in the template anim graph to add idle to walking animation blendspace 2D. See the example project for more information. The example project uses retargeted animations from the default UE4 mannequin.
+A place holder is left in the template anim graph to add idle to walking animation blendspace 2D. See the example project for more information. The example project uses retargeted animations from the default UE4 mannequin.
 
 ## Lip sync
 See the **FaceLipSync_AnimBP** blueprint in the example project on the marketplace for a setup where the mouth moves with the mic input.
