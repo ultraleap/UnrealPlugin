@@ -653,10 +653,10 @@ This can be run in VR as an embodied avatar or in desktop mode. There's also an 
 
 The example project is available on the Unreal Marketplace. Run the default map in VR mode to access the preset metahumans. A male and female metahuman is mapped.
 Import your own metahumans into the project and change the **MetahumanBPClass** member of **IEPawnHands_Metahuman_Hadley** to your imported metahuman blueprint.
+![](https://imgur.com/NzHLdCp)
 
-TODO: picture here ChangeProjectMetaHuman.png
 
-Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new project for re-use in a new project.
+Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new project for re-use.
 
 ## Importing and mapping a metahuman from scratch
 

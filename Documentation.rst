@@ -1136,11 +1136,10 @@ default map in VR mode to access the preset metahumans. A male and
 female metahuman is mapped. Import your own metahumans into the project
 and change the **MetahumanBPClass** member of
 **IEPawnHands_Metahuman_Hadley** to your imported metahuman blueprint.
-
-TODO: picture here ChangeProjectMetaHuman.png
+|image3|
 
 Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a
-new project for re-use in a new project.
+new project for re-use.
 
 Importing and mapping a metahuman from scratch
 ----------------------------------------------
@@ -1153,32 +1152,32 @@ Importing and mapping a metahuman from scratch
    **UltraleapTracking/Metahumans/IEPawnHands_Metahuman**
 -  Move the newly created pawn class into your project's content folder
 -  Set the **MetahumanBPClass** member of your newly created class to
-   your imported Metahuman blueprint (for example HadleyBP) |image3|
+   your imported Metahuman blueprint (for example HadleyBP) |image4|
 -  Locate and create a new animation blueprint from your metahuman’s
-   skeleton. |image4| |image5|
+   skeleton. |image5| |image6|
 -  Move the newly created animation blueprint outside of the metahumans
    common folder
--  Reparent the blueprint to **BodyStateAnimInstance**. |image6|
+-  Reparent the blueprint to **BodyStateAnimInstance**. |image7|
 -  Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist
-   Translation** and click **Auto map**. |image7|
+   Translation** and click **Auto map**. |image8|
 -  Copy the nodes from the template
    **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim
-   graph and eventgraph) into your anim blueprint. |image8| |image9|
+   graph and eventgraph) into your anim blueprint. |image9| |image10|
 -  You can use select all to copy paste events
 -  Compile your new animation blueprint. At this point there will be
    missing variable errors
 -  Right click on the missing Metahuman Extensions variable and choose
-   **Create variable for Metahuman Extensions** |image10|
+   **Create variable for Metahuman Extensions** |image11|
 -  Connect up the last pin in the animation graph to the **Output Pose**
-   node. |image11|
+   node. |image12|
 -  The animation blueprint should now compile and be ready for use.
 
 Setting up the metahuman pawn
 -----------------------------
 
 -  Set the BodyAnimBPClass in your new pawn to your newly created anim
-   class |image12|
--  Set you new pawn as the default pawn in your game mode |image13|
+   class |image13|
+-  Set you new pawn as the default pawn in your game mode |image14|
 -  The metahuman will now run rigged in VR in your scene
 -  Note the pawn starts with the metahuman hidden, you have to select
    one of the **calibrate height** options from the hand menu to show
@@ -1269,7 +1268,7 @@ modified.
 
 -  Open the **IELowPloy_Rigged_Hand_Left_Physics** asset from
    **InteractionEngine/Pawn/IELowPoly_Rigged_Hand_Left_Physics.uasset**
-   |image14|
+   |image15|
 
 -  Ctrl/Multi-Select all the joints for the Ring and Pinky fingers
 
@@ -1316,17 +1315,18 @@ issues section <https://github.com/ultraleap/UnrealPlugin/issues>`__
 .. |ensure input is received| image:: http://i.imgur.com/zWMrHxn.png
 .. |image1| image:: https://i.imgur.com/Qfrtilt.png
 .. |image2| image:: https://i.imgur.com/Op7lClc.png
-.. |image3| image:: https://imgur.com/NzHLdCp.png
-.. |image4| image:: https://imgur.com/7X9bewG.png
-.. |image5| image:: https://imgur.com/ET3Z7YF.png
-.. |image6| image:: https://imgur.com/JR4UV03.png
-.. |image7| image:: https://imgur.com/P51oMTa.png
-.. |image8| image:: https://imgur.com/Q1n3GM7.png
-.. |image9| image:: https://imgur.com/lraQXBv.png
-.. |image10| image:: https://imgur.com/yqfYWFq.png
-.. |image11| image:: https://imgur.com/sLqFeb4.png
-.. |image12| image:: https://imgur.com/acqWA8f.png
-.. |image13| image:: https://imgur.com/YP0obW0.png
-.. |image14| image:: https://i.imgur.com/VHTrYet.png
+.. |image3| image:: https://imgur.com/NzHLdCp
+.. |image4| image:: https://imgur.com/NzHLdCp.png
+.. |image5| image:: https://imgur.com/7X9bewG.png
+.. |image6| image:: https://imgur.com/ET3Z7YF.png
+.. |image7| image:: https://imgur.com/JR4UV03.png
+.. |image8| image:: https://imgur.com/P51oMTa.png
+.. |image9| image:: https://imgur.com/Q1n3GM7.png
+.. |image10| image:: https://imgur.com/lraQXBv.png
+.. |image11| image:: https://imgur.com/yqfYWFq.png
+.. |image12| image:: https://imgur.com/sLqFeb4.png
+.. |image13| image:: https://imgur.com/acqWA8f.png
+.. |image14| image:: https://imgur.com/YP0obW0.png
+.. |image15| image:: https://i.imgur.com/VHTrYet.png
 .. |Windows Packaging| image:: https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg
    :target: https://youtu.be/pRzm0M_a8uY
