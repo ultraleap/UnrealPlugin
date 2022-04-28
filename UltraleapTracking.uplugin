@@ -21,7 +21,9 @@
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Android"
+				"Android",
+				"Linux"
+
 			]
 		},
 		{
@@ -30,7 +32,8 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Android"
+				"Android",
+				"Linux"
 			]
 		},
 		{
@@ -39,7 +42,8 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Android"
+				"Android",
+				"Linux"
 			]
 		}
 	]
