@@ -8,7 +8,7 @@
 
 #include "UltraleapTrackingEditorModule.h"
 
-#include "BodystateAnimInstance.h"
+#include "BodyStateAnimInstance.h"
 #include "FUltraleapAnimCustomDetailsPanel.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
