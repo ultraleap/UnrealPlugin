@@ -199,7 +199,7 @@ private:
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
 
 	// Threading variables
-	FCriticalSection DataLock;
+	FCriticalSection* DataLock;
 	TFuture<void> ProducerLambdaFuture;
 
 	LEAP_TRACKING_EVENT* InterpolatedFrame;
