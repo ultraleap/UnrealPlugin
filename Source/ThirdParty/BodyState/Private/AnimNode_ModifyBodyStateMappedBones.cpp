@@ -349,36 +349,6 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 			ApplyScale(CachedBone, CachedPrevBone, NewBoneTM, PrevBoneTM, MappedBoneAnimData);
 			if (BSAnimInstance->IsTracking)
 			{
-				/* switch (CachedBone.BSBone->BoneType)
-				{
-				  case EBodyStateBasicBoneType::BONE_HAND_WRIST_R:
-					case EBodyStateBasicBoneType::BONE_INDEX_0_METACARPAL_R:
-				//	case EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_R: 
-				//	case EBodyStateBasicBoneType::BONE_INDEX_2_INTERMEDIATE_R: 
-				//	case EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_R: 
-					case EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R:
-				//	case EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_R: 
-				//	case EBodyStateBasicBoneType::BONE_MIDDLE_2_INTERMEDIATE_R:
-				//	case EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R: 
-					case EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R:
-				//	case EBodyStateBasicBoneType::BONE_PINKY_1_PROXIMAL_R: 
-				//	case EBodyStateBasicBoneType::BONE_PINKY_2_INTERMEDIATE_R:
-				//	case EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R:
-					case EBodyStateBasicBoneType::BONE_RING_0_METACARPAL_R:
-				//	case EBodyStateBasicBoneType::BONE_RING_1_PROXIMAL_R:
-				//	case EBodyStateBasicBoneType::BONE_RING_2_INTERMEDIATE_R:
-				//	case EBodyStateBasicBoneType::BONE_RING_3_DISTAL_R:
-					case EBodyStateBasicBoneType::BONE_THUMB_1_PROXIMAL_R:
-				//	case EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R:
-					case EBodyStateBasicBoneType::BONE_LOWERARM_TWIST_1_R:
-					case EBodyStateBasicBoneType::BONE_UPPERARM_TWIST_1_R:
-						ApplyRotation(CachedBone, NewBoneTM, WristCachedBone, MappedBoneAnimData);
-						break;
-					default:
-						ApplyRotation(CachedBone, NewBoneTM, WristCachedBone, MappedBoneAnimData);
-						break;
-
-				}*/
 				ApplyRotation(CachedBone, NewBoneTM, WristCachedBone, MappedBoneAnimData);
 				ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone, MappedBoneAnimData);
 			}
