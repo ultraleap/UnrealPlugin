@@ -226,6 +226,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
 	bool IgnoreWristTranslation;
 
+	/** Derive the elbow position from the wrist (useful for Orion tracking)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
+	bool GuessElbowPosition;
+
 	/** User entered scale offset to fit to entire model for hand auto scaling */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",
 		meta = (UIMin = "0.0", ClampMin = "0.0", UIMax = "3.0", ClampMax = "3.0"))

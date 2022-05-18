@@ -60,7 +60,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 		!BSAnimInstance->IgnoreWristTranslation)
 	{
 		// arm/elbow
-		if (&CachedBone == ArmCachedBone)
+		if (&CachedBone == ArmCachedBone && BSAnimInstance->GuessElbowPosition)
 		{
 			auto WristPosition = WristCachedBone->BSBone->BoneData.Transform.GetLocation();
 			auto ElbowForward = FRotationMatrix(CachedBone.BSBone->BoneData.Transform.Rotator()).GetScaledAxis(EAxis::X);
