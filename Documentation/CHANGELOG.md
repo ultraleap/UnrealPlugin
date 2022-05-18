@@ -4,7 +4,7 @@ Ultraleap Tracking - Change Log
 Versions
 
 ### Version 4.3.0
-11th April 2022
+18th May 2022
 
 * Added auto hand scaling support to BodyStateAnimInstance/AutoMapping workflow
 * Fixed - Blocks attracted by left hand in Anchors and Dynamic UI scene when menu not shown
@@ -13,6 +13,7 @@ Versions
 * Fixed - Palm orientation pose detector now defaults to triggering on palm facing camera/user's face
 * Fixed - Not a number could be received if hands tracking during scene startup
 * Fixed - When picking up blocks underneath other blocks, blocks behaved as if very heavy/pinned down
+* Fixed - Motion controller interaction with UMG interfaces
 
 Known issues:
 
@@ -22,6 +23,7 @@ Known issues:
 * HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
 * As with most Unreal 4 VR projects, when run in VR preview in the editor, full framerate is often not achievable. This is fine when packaged.
 * Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
+* In UE5 Using the SteamVR plugin only, motion controller models are not visible when auto switching is enabled.
 
 ### Version 4.2.0
 28th March 2022
