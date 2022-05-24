@@ -65,7 +65,7 @@ private:
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM, FTransform& PrevBoneTM);
 	
 	
-	void ApplyAutoCorrectRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM);
+	void ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping, const FTransform& LeapWrist, FTransform& NewBoneTM);
 
 
 	bool CheckInitEvaulate();
