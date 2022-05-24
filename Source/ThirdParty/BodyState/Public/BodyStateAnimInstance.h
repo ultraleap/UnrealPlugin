@@ -351,10 +351,6 @@ protected:
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;
 
-	// using component space transforms array, this gets zerod upon starting in scene
-	//FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
-	//	const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms, bool& BoneFound) const;
-
 	void AutoMapBoneDataForRigType(
 		FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones);
 	TArray<int32> SelectBones(const TArray<FString>& Definitions);

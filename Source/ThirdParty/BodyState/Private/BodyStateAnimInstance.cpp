@@ -560,28 +560,6 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	}
 	return FTransform();
 }
-/*
-FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
-	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
-	bool& BoneFound) const
-{
-	if (!ForMap.BoneMap.Contains(BoneType))
-	{
-		BoneFound = false;
-		return FTransform();
-	}
-	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
-	int Index = Names.Find(Bone.BoneName);
-
-	BoneFound = false;
-	if (Index > InvalidBone && Index < ComponentSpaceTransforms.Num())
-	{
-		BoneFound = true;
-		return ComponentSpaceTransforms[Index];
-	}
-	return FTransform();
-}
-*/
 FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
 {
