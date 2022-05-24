@@ -43,11 +43,20 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateSkeletalControl_AnyThread(
 {
 	EvaluateComponentPose_AnyThread(Output);
 }
+FTransform FAnimNode_ModifyBodyStateMappedBones::GetComponentTransformScaleOnly()
+{
+	FTransform Ret = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
+
+	Ret.SetTranslation(FVector::ZeroVector);
+	Ret.SetRotation(FQuat::Identity);
+
+	return Ret;
+}
 void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM,
 	const FCachedBoneLink* WristCachedBone, const FCachedBoneLink* ArmCachedBone)
 {
 	FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
-	FTransform ComponentTransform = BSAnimInstance->GetSkelMeshComponent()->GetRelativeTransform();
+	FTransform ComponentTransform = GetComponentTransformScaleOnly();
 	int32 WristBoneIndex = -1;
 
 	if (WristCachedBone)

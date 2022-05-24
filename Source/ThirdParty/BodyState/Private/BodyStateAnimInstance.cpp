@@ -560,6 +560,7 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	}
 	return FTransform();
 }
+/*
 FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
 	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
 	bool& BoneFound) const
@@ -580,7 +581,7 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	}
 	return FTransform();
 }
-
+*/
 FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
 {
@@ -664,10 +665,10 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	bool PinkyBoneFound = false;
 	bool WristBoneFound = false;
 
-	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, ComponentSpaceTransforms, IndexBoneFound);
-	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, ComponentSpaceTransforms, MiddleBoneFound);
-	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, ComponentSpaceTransforms, PinkyBoneFound);
-	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, ComponentSpaceTransforms, WristBoneFound);
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems, MiddleBoneFound);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
@@ -829,8 +830,8 @@ void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, cons
 		{
 			continue;
 		}
-		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType)i, Names, ComponentSpaceTransforms, BoneFound);
-		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i+1), Names, ComponentSpaceTransforms, BoneFound);
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) i, Names, NodeItems, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i + 1), Names, NodeItems, BoneFound);
 	
 		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation()); 
 		Length += Magnitude;
@@ -882,9 +883,8 @@ void UBodyStateAnimInstance::CalculateFingertipSizes(FMappedBoneAnimData& ForMap
 			ForMap.FingerTipLengths.Add(0);
 			continue;
 		}
-		FTransform Pose = GetTransformFromBoneEnum(ForMap, BeforeEnd, Names, ComponentSpaceTransforms, BoneFound);
-		FTransform PoseNext =
-			GetTransformFromBoneEnum(ForMap, End, Names, ComponentSpaceTransforms, BoneFound);
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, BeforeEnd, Names, NodeItems, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, End, Names, NodeItems, BoneFound);
 
 		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation());
 		ForMap.FingerTipLengths.Add(Magnitude);

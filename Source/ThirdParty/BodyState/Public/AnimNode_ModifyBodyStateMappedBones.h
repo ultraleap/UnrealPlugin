@@ -73,5 +73,6 @@ private:
 	
 
 	float CalculateLeapHandLength();
+	FTransform GetComponentTransformScaleOnly();
 	
 };
