@@ -37,7 +37,7 @@ FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLe
 	OffsetTransform.SetScale3D(FVector(1.f));
 	PreBaseRotation = FRotator(ForceInitToZero);
 	TrackingTagLimit.Empty();
-	AutoCorrectRotation = FRotator(ForceInitToZero);
+	AutoCorrectRotation = FRotator::ZeroRotator;
 	OriginalScale = FVector::OneVector;
 	HandModelLength = 0;
 }
@@ -645,7 +645,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	if (!RefIndex)
 	{
-		ForMap.AutoCorrectRotation = FRotator(ForceInitToZero);
+		ForMap.AutoCorrectRotation = FRotator::ZeroRotator;
 
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find the index bone"));
 
@@ -671,7 +671,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
-		ForMap.AutoCorrectRotation = FRotator(ForceInitToZero);
+		ForMap.AutoCorrectRotation = FRotator::ZeroRotator;
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find all finger bones"));
 
 		return;
@@ -697,10 +697,10 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	
 	// Round to closest 90 degrees
 	auto RoundedRotationOffset = (ModelRotation.Inverse() * WristPose.GetRotation()).Rotator();
-	RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
+	/* RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
 	RoundedRotationOffset.Yaw = FMath::RoundToFloat(RoundedRotationOffset.Yaw / 90) * 90;
 	RoundedRotationOffset.Roll = FMath::RoundToFloat(RoundedRotationOffset.Roll / 90) * 90;
-	
+	*/
 	FRotator WristRotation = RoundedRotationOffset;
 
 	// correct to UE space as defined by control hands
@@ -711,9 +711,9 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	else
 	{
 		WristRotation += FRotator(90, 0, 0);
-	}
-	*/
-
+	}*/
+	
+	
 	// Y (Pitch), Z (Yaw), X (Roll)
 	//WristRotation += FRotator(90 ,-90 , -90);
 	ForMap.AutoCorrectRotation = WristRotation;
@@ -1012,7 +1012,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FRotator(ForceInitToZero);
+				OneHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
 			}
 		}
 	}
@@ -1035,7 +1035,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FRotator(ForceInitToZero);
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
 			}
 		}
 	}
@@ -1156,7 +1156,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FRotator(ForceInitToZero);
+				OneHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
 			}
 			CalculateHandSize(OneHandMap, AutoMapTarget);
 		}
@@ -1180,7 +1180,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FRotator(ForceInitToZero);
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
 			}
 			CalculateHandSize(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
 			CalculateHandSize(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);

@@ -114,11 +114,17 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
 void FAnimNode_ModifyBodyStateMappedBones::ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping,const FTransform& LeapWrist, FTransform& NewBoneTM)
 {
 	FQuat BoneQuat = NewBoneTM.GetRotation();
-
-	/* FRotator WristBeforeMappingRot = WristBeforeMapping.GetRotation().Rotator();
-	BoneQuat = ((WristBeforeMapping.GetRotation().Inverse() * BoneQuat) *
-					 MappedBoneAnimData.AutoCorrectRotation.Quaternion());*/
-	BoneQuat *= MappedBoneAnimData.AutoCorrectRotation.Quaternion();
+	static const bool InverseOutWrist = false;
+	//MappedBoneAnimData.AutoCorrectRotation = BSAnimInstance->DebugAddRotation;
+	if (InverseOutWrist)
+	{
+		BoneQuat = ((WristBeforeMapping.GetRotation().Inverse() * BoneQuat) *
+					 MappedBoneAnimData.AutoCorrectRotation.Quaternion());
+	}
+	else
+	{
+		BoneQuat = MappedBoneAnimData.AutoCorrectRotation.Quaternion() * BoneQuat;
+	}
 	NewBoneTM.SetRotation(BoneQuat);
 
 }
