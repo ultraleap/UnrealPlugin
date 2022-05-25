@@ -447,12 +447,6 @@ void UBodyStateAnimInstance::CreateEmptyBoneMap(
 		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
 	}
 }
-FRotator LookRotationSimple(const FVector& Forward, const FVector& UpDirection)
-{
-	FVector Direction = UpDirection - Forward;
-	Direction.Normalize();
-	return Direction.Rotation();
-}
 
 FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
 {
@@ -518,39 +512,6 @@ FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
 	quaternion.W = (m01 - m10) * num2;
 
 	return quaternion;
-}
-void OrthoNormalize3(FVector& Normal, FVector& Tangent)
-{
-	Normal = Normal.GetUnsafeNormal();
-	Tangent = Tangent - (Normal * FVector::DotProduct(Tangent, Normal));
-	Tangent = Tangent.GetUnsafeNormal();
-}
-// ref https://www.gamedev.net/forums/topic/613595-quaternion-lookrotationlookat-up/
-FQuat LookRotation3(FVector& lookAt, FVector& upDirection)
-{
-	FVector forward = lookAt;
-	FVector up = upDirection;
-	OrthoNormalize3(forward, up);
-	FVector right = FVector::CrossProduct(up, forward);
-
-	float m00 = right.X;
-	float m01 = up.X;
-	float m02 = forward.X;
-	float m10 = right.Y;
-	float m11 = up.Y;
-	float m12 = forward.Y;
-	float m20 = right.Z;
-	float m21 = up.Z;
-	float m22 = forward.Z;
-
-	FQuat Ret;
-	Ret.W = sqrtf(1.0f + m00 + m11 + m22) * 0.5f;
-	float w4_recip = 1.0f / (4.0f * Ret.W);
-	Ret.X = (m21 - m12) * w4_recip;
-	Ret.Y = (m02 - m20) * w4_recip;
-	Ret.Z = (m10 - m01) * w4_recip;
-
-	return Ret;
 }
 
 /* Find an orthonormal basis for the set of vectors q
