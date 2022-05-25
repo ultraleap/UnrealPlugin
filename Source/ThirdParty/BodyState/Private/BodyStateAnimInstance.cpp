@@ -711,7 +711,11 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	else
 	{
 		WristRotation += FRotator(90, 0, 0);
-	}*/
+	}
+	*/
+
+	// Y (Pitch), Z (Yaw), X (Roll)
+	//WristRotation += FRotator(90 ,-90 , -90);
 	ForMap.AutoCorrectRotation = WristRotation;
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
