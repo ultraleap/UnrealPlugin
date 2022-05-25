@@ -625,7 +625,7 @@ FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 }
 // for debugging only, calcs debug rotations normalized for Unity (has no effect on the main path through the code)
 #define DEBUG_ROTATIONS_AS_UNITY 0
-//#if DEBUG_ROTATIONS_AS_UNITY
+#if DEBUG_ROTATIONS_AS_UNITY
 // useful for comparing with Unity when debugging (unused)
 void Normalize360(FRotator& InPlaceRot)
 {
@@ -648,18 +648,13 @@ void ConvertToUnity(FTransform& UETransform)
 	FVector UnityVector(-UETransform.GetLocation().X, UETransform.GetLocation().Z, UETransform.GetLocation().Y);
 	
 	FRotator UERotator = UETransform.GetRotation().Rotator();
-	FRotator UERotatorNormalized = UERotator;
-	Normalize360(UERotatorNormalized);
-
-	// flip rotation
-	FRotator UnityRotator(UETransform.GetRotation().Rotator().Roll, UETransform.GetRotation().Rotator().Pitch,
-		UETransform.GetRotation().Rotator().Yaw);
+	
 	// cm to meters
 	UnityVector /= 100;
 
 	UETransform.SetLocation(UnityVector);
 }
-	//#endif	  // DEBUG_ROTATIONS_AS_UNITY
+#endif	  // DEBUG_ROTATIONS_AS_UNITY
 
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
@@ -706,11 +701,12 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
 	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
 
-
+#if DEBUG_ROTATIONS_AS_UNITY
 	ConvertToUnity(IndexPose);
 	ConvertToUnity(MiddlePose);
 	ConvertToUnity(PinkyPose);
 	ConvertToUnity(WristPose);
+#endif
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
@@ -731,49 +727,20 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 		Right = -Right;
 	}	
 	FVector Up = FVector::CrossProduct(Forward, Right);
-	FVector UpUnity = Up / 100.0;
-	// we need a three param version of this.
 	OrthNormalize2(Up, Forward, Right);
 	
-	// different to unity
-	//FVector::CreateOrthonormalBasis(Up, Forward, Right);
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
 
-	// THIS IS RETURNING DIFFERENT TO UNITY LookRotation
-	// QUAT is correct here when calculated in Unity space
 	ModelRotation = LookRotation(Forward, Up);
-	auto ModelRotationDebug = ModelRotation.Rotator();
-	Normalize360(ModelRotationDebug);
-
-	auto WristRotationDebug = WristPose.GetRotation().Rotator();
-	Normalize360(WristRotationDebug);
+	
 	// Round to closest 90 degrees
 	auto RoundedRotationOffset = (ModelRotation.Inverse() * WristPose.GetRotation()).Rotator();
-	//(ModelRotation.Inverse() * WristPose.GetRotation()).Rotator();
 	RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
 	RoundedRotationOffset.Yaw = FMath::RoundToFloat(RoundedRotationOffset.Yaw / 90) * 90;
 	RoundedRotationOffset.Roll = FMath::RoundToFloat(RoundedRotationOffset.Roll / 90) * 90;
 	
-	// In unity, this came from the wrist in the world/scene coords
-	//FQuat WristPoseQuat(WristPose.GetRotation());
-
-#if DEBUG_ROTATIONS_AS_UNITY
-	// debug
-	FRotator WristSourceRotation = WristPose.GetRotation().Rotator();
-	Normalize360(WristSourceRotation);
-
-	FRotator ModelDebugRotation = ModelRotation.Rotator();
-	Normalize360(ModelDebugRotation);
-	// end debug
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-
-	//FRotator WristRotation = (ModelRotation.Inverse() * WristPoseQuat).Rotator();
 	FRotator WristRotation = RoundedRotationOffset;
-#if DEBUG_ROTATIONS_AS_UNITY
-	FRotator WristDebugRotation = WristRotation;
-	Normalize360(WristDebugRotation);
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
 
 	// correct to UE space as defined by control hands
 	/* if (ForMap.FlipModelLeftRight)
@@ -784,10 +751,6 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	{
 		WristRotation += FRotator(90, 0, 0);
 	}*/
-#if DEBUG_ROTATIONS_AS_UNITY
-	WristDebugRotation = WristRotation;
-	Normalize360(WristDebugRotation);
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
 	ForMap.AutoCorrectRotation = WristRotation;
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
