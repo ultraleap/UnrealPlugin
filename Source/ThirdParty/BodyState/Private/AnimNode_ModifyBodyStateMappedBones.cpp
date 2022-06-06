@@ -107,24 +107,14 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
 	FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
 	
 	// Apply pre and post adjustment (Post * (Input * Pre) )
-	BoneQuat = (MappedBoneAnimData.OffsetTransform.GetRotation() * (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion()));
+	BoneQuat = (BoneQuat * MappedBoneAnimData.PreBaseRotation.Quaternion());
 	NewBoneTM.SetRotation(BoneQuat);
 }
 // apply auto rotate to wrist post mapping the hand, this then rotates/translates child bones correctly
 void FAnimNode_ModifyBodyStateMappedBones::ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping,const FTransform& LeapWrist, FTransform& NewBoneTM)
 {
 	FQuat BoneQuat = NewBoneTM.GetRotation();
-	static const bool InverseOutWrist = false;
-	//MappedBoneAnimData.AutoCorrectRotation = BSAnimInstance->DebugAddRotation;
-	if (InverseOutWrist)
-	{
-		BoneQuat = ((WristBeforeMapping.GetRotation().Inverse() * BoneQuat) *
-					 MappedBoneAnimData.AutoCorrectRotation.Quaternion());
-	}
-	else
-	{
-		BoneQuat = MappedBoneAnimData.AutoCorrectRotation.Quaternion() * BoneQuat;
-	}
+	BoneQuat = MappedBoneAnimData.AutoCorrectRotation.Quaternion() * BoneQuat;
 	NewBoneTM.SetRotation(BoneQuat);
 
 }

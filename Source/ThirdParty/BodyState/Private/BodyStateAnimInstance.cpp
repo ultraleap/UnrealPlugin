@@ -697,25 +697,35 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	
 	// Round to closest 90 degrees
 	auto RoundedRotationOffset = (ModelRotation.Inverse() * WristPose.GetRotation()).Rotator();
-	/* RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
+	RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
 	RoundedRotationOffset.Yaw = FMath::RoundToFloat(RoundedRotationOffset.Yaw / 90) * 90;
 	RoundedRotationOffset.Roll = FMath::RoundToFloat(RoundedRotationOffset.Roll / 90) * 90;
-	*/
+	
 	FRotator WristRotation = RoundedRotationOffset;
 
-	// correct to UE space as defined by control hands
-	/* if (ForMap.FlipModelLeftRight)
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		WristRotation += FRotator(-90, 0, -180);
+		if (ForMap.FlipModelLeftRight)
+		{
+			WristRotation = (WristRotation.Quaternion() *  FRotator(-90, 0, 0).Quaternion()).Rotator();
+		}
+		else
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 0, 180).Quaternion()).Rotator();
+		}
 	}
 	else
 	{
-		WristRotation += FRotator(90, 0, 0);
-	}*/
-	
-	
-	// Y (Pitch), Z (Yaw), X (Roll)
-	//WristRotation += FRotator(90 ,-90 , -90);
+		if (ForMap.FlipModelLeftRight)
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 90, 90).Quaternion()).Rotator();
+		}
+		else
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 0, 0).Quaternion()).Rotator();
+		}
+
+	}
 	ForMap.AutoCorrectRotation = WristRotation;
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
