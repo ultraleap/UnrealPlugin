@@ -145,7 +145,7 @@ struct FMappedBoneAnimData
 
 	/** Auto calculated rotation to correct/normalize model rotation*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
-	FRotator AutoCorrectRotation;
+	FQuat AutoCorrectRotation;
 
 	
 	// Data structure containing a parent -> child ordered bone list

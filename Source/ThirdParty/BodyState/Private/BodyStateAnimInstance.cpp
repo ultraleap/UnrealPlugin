@@ -37,7 +37,7 @@ FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLe
 	OffsetTransform.SetScale3D(FVector(1.f));
 	PreBaseRotation = FRotator(ForceInitToZero);
 	TrackingTagLimit.Empty();
-	AutoCorrectRotation = FRotator::ZeroRotator;
+	AutoCorrectRotation = FQuat::Identity;
 	OriginalScale = FVector::OneVector;
 	HandModelLength = 0;
 }
@@ -645,7 +645,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	if (!RefIndex)
 	{
-		ForMap.AutoCorrectRotation = FRotator::ZeroRotator;
+		ForMap.AutoCorrectRotation = FQuat::Identity;
 
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find the index bone"));
 
@@ -671,7 +671,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
-		ForMap.AutoCorrectRotation = FRotator::ZeroRotator;
+		ForMap.AutoCorrectRotation = FQuat::Identity;
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find all finger bones"));
 
 		return;
@@ -726,7 +726,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 		}
 
 	}
-	ForMap.AutoCorrectRotation = WristRotation;
+	ForMap.AutoCorrectRotation = WristRotation.Quaternion();
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -1022,7 +1022,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
+				OneHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 		}
 	}
@@ -1045,7 +1045,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 		}
 	}
@@ -1166,7 +1166,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
+				OneHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 			CalculateHandSize(OneHandMap, AutoMapTarget);
 		}
@@ -1190,7 +1190,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FRotator::ZeroRotator;
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 			CalculateHandSize(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
 			CalculateHandSize(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);

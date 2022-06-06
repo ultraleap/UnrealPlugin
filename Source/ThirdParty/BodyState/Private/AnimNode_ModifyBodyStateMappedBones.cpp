@@ -114,7 +114,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
 void FAnimNode_ModifyBodyStateMappedBones::ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping,const FTransform& LeapWrist, FTransform& NewBoneTM)
 {
 	FQuat BoneQuat = NewBoneTM.GetRotation();
-	BoneQuat = MappedBoneAnimData.AutoCorrectRotation.Quaternion() * BoneQuat;
+	BoneQuat = MappedBoneAnimData.AutoCorrectRotation * BoneQuat;
 	NewBoneTM.SetRotation(BoneQuat);
 
 }
