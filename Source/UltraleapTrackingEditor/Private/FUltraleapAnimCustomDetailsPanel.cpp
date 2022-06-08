@@ -8,7 +8,7 @@
 
 #include "FUltraleapAnimCustomDetailsPanel.h"
 
-#include "BodystateAnimInstance.h"
+#include "BodyStateAnimInstance.h"
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"

@@ -3,6 +3,21 @@ Ultraleap Tracking - Change Log
 
 Versions
 
+### Version 4.4.0
+7th June 2022
+
+* Added Linux support/Leap libraries
+
+Known issues:
+
+* Text colour in UI interaction drop downs wrong (UE5 bug)
+* Running VR with OpenXR via SteamVR doesn't see VR (UE5 bug). To work around, enable the SteamVR plugin in the project.
+* In UE5, grabbing with the right hand motion controller is intermittent
+* HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
+* As with most Unreal 4 VR projects, when run in VR preview in the editor, full framerate is often not achievable. This is fine when packaged.
+* Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
+
+
 ### Version 4.3.0
 18th May 2022
 

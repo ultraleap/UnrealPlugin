@@ -18,10 +18,14 @@ FLeapWrapper::FLeapWrapper() : bIsRunning(false)
 {
 	InterpolatedFrame = nullptr;
 	InterpolatedFrameSize = 0;
+	DataLock = new FCriticalSection();
 }
 
 FLeapWrapper::~FLeapWrapper()
 {
+	delete DataLock;
+	DataLock = nullptr;
+	
 	bIsRunning = false;
 	CallbackDelegate = nullptr;
 	LatestFrame = nullptr;
@@ -140,9 +144,9 @@ void FLeapWrapper::CloseConnectionHandle(LEAP_CONNECTION* InConnectionHandle)
 LEAP_TRACKING_EVENT* FLeapWrapper::GetFrame()
 {
 	LEAP_TRACKING_EVENT* currentFrame;
-	DataLock.Lock();
+	DataLock->Lock();
 	currentFrame = LatestFrame;
-	DataLock.Unlock();
+	DataLock->Unlock();
 	return currentFrame;
 }
 
@@ -176,9 +180,9 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 LEAP_DEVICE_INFO* FLeapWrapper::GetDeviceProperties()
 {
 	LEAP_DEVICE_INFO* currentDevice;
-	DataLock.Lock();
+	DataLock->Lock();
 	currentDevice = CurrentDeviceInfo;
-	DataLock.Unlock();
+	DataLock->Unlock();
 	return currentDevice;
 }
 
@@ -261,7 +265,7 @@ void FLeapWrapper::Millisleep(int milliseconds)
 
 void FLeapWrapper::SetDevice(const LEAP_DEVICE_INFO* DeviceProps)
 {
-	DataLock.Lock();
+	DataLock->Lock();
 	if (CurrentDeviceInfo)
 	{
 		free(CurrentDeviceInfo->serial);
@@ -273,7 +277,7 @@ void FLeapWrapper::SetDevice(const LEAP_DEVICE_INFO* DeviceProps)
 	*CurrentDeviceInfo = *DeviceProps;
 	CurrentDeviceInfo->serial = (char*) malloc(DeviceProps->serial_length);
 	memcpy(CurrentDeviceInfo->serial, DeviceProps->serial, DeviceProps->serial_length);
-	DataLock.Unlock();
+	DataLock->Unlock();
 }
 
 void FLeapWrapper::CleanupLastDevice()
@@ -287,7 +291,7 @@ void FLeapWrapper::CleanupLastDevice()
 
 void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT* Frame)
 {
-	DataLock.Lock();
+	DataLock->Lock();
 
 	if (!LatestFrame)
 	{
@@ -296,7 +300,7 @@ void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT* Frame)
 
 	*LatestFrame = *Frame;
 
-	DataLock.Unlock();
+	DataLock->Unlock();
 }
 
 /** Called by ServiceMessageLoop() when a connection event is returned by LeapPollConnection(). */
