@@ -153,10 +153,16 @@ build:build-project:
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace/$PROJECT_NAME"
+    - $BUILD_MARKET_PLACE_PATH_UE5 = "./build/MarketPlace_UE5/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH"
+    - echo "$BUILD_MARKET_PLACE_PATH_UE5"
+
 
     - mkdir "$BUILD_MARKET_PLACE_PATH"
+    - mkdir "$BUILD_MARKET_PLACE_PATH_UE5"
+
+    # UE4 contents
     - Copy-Item "$BUILD_PATH*" -Destination "$BUILD_MARKET_PLACE_PATH" -Recurse
     # Copy the FilterPlugin.ini
     - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
@@ -176,6 +182,25 @@ build:build-project:
     # zip it
     - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH" -DestinationPath "$BUILD_MARKET_PLACE_PATH.zip"
 
+    # UE5 contents
+    - Copy-Item "$BUILD_PATH_UE5*" -Destination "$BUILD_MARKET_PLACE_PATH_UE5" -Recurse
+    # Copy the FilterPlugin.ini
+    - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
+    - Copy-Item "$PROJECT_PATH/Config/FilterPlugin.ini" -Destination "$BUILD_MARKET_PLACE_PATH_UE5/Config"
+    # Clean the binaries folder
+    # pdbs
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/*.pdb"
+    # modules
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor.modules"
+    # dlls
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor-BodyState.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor-UltraleapTracking.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor-UltraleapTrackingEditor.dll"
+    # intermediate folder
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Intermediate" -Recurse
+
+    # zip it
+    - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5.zip"
 
 
 
