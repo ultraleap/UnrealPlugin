@@ -191,11 +191,11 @@ build:build-project:
     # pdbs
     - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/*.pdb"
     # modules
-    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor.modules"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UnrealEditor.modules"
     # dlls
-    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor-BodyState.dll"
-    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor-UltraleapTracking.dll"
-    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UE4Editor-UltraleapTrackingEditor.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UnrealEditor-BodyState.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UnrealEditor-UltraleapTracking.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Binaries/Win64/UnrealEditor-UltraleapTrackingEditor.dll"
     # intermediate folder
     - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5/Intermediate" -Recurse
 
