@@ -108,13 +108,6 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyAutoCorrectRotation(const FTrans
 	FQuat BoneQuat = NewBoneTM.GetRotation();
 	BoneQuat = MappedBoneAnimData.AutoCorrectRotation * BoneQuat;
 	BoneQuat = (BoneQuat * MappedBoneAnimData.OffsetTransform.GetRotation());
-	
-	
-	const FTransform ComponentTransform = GetComponentTransformScaleOnly();
-
-//	BoneQuat =
-	//	ComponentTransform.InverseTransformRotation(BoneQuat);
-
 	NewBoneTM.SetRotation(BoneQuat);
 
 }
