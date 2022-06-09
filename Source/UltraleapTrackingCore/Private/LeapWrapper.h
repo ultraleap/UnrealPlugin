@@ -38,7 +38,7 @@ public:
 	{
 	}
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode = false) = 0;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() = 0;
@@ -55,7 +55,8 @@ public:
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) = 0;
 
-	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;	// Used in polling example
+	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;
+	
 	virtual const char* ResultString(eLeapRS Result) = 0;
 
 	virtual void EnableImageStream(bool bEnable) = 0;
@@ -68,6 +69,8 @@ public:
 
 	virtual void SetSwizzles(
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
+
+	virtual LEAP_DEVICE GetDeviceHandle() = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -77,7 +80,7 @@ public:
 	bool bIsConnected = false;
 
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 	{
 		CallbackDelegate = InCallbackDelegate;
 		return nullptr;
@@ -138,13 +141,17 @@ public:
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
 	{
 	}
+	virtual LEAP_DEVICE GetDeviceHandle() override
+	{
+		return nullptr;
+	}
 
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
 };
 /** Wraps LeapC API into a threaded and event driven delegate callback format */
-class FLeapWrapper : public FLeapWrapperBase
+class FLeapWrapper : public IHandTrackingWrapper
 {
 public:
 	// LeapC Vars
@@ -162,9 +169,9 @@ public:
 
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
 	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate);
-
+	void SetCallbackDelegate(LEAP_DEVICE DeviceHandle, LeapWrapperCallbackInterface* InCallbackDelegate);
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) override;
+	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode) override;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() override;
@@ -181,21 +188,47 @@ public:
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override;
 
-	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override;	 // Used in polling example
+	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override
+	{
+		return nullptr;
+	}
 	virtual const char* ResultString(eLeapRS Result) override;
 
 	virtual void EnableImageStream(bool bEnable) override;
+
+	virtual bool IsConnected() override
+	{
+		return bIsConnected;
+	}
+
+	virtual void SetWorld(UWorld* World)
+	{
+	}
+	virtual LEAP_DEVICE GetDeviceHandle() override
+	{
+		return nullptr;
+	}
+	
+	virtual void SetSwizzles(
+		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW){};
+	
 	virtual int64_t GetNow() override
 	{
 		return LeapGetNow();
 	}
-
+	
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);
 
+	LeapWrapperCallbackInterface* ConnectorCallbackDelegate = nullptr;
+	TMap<LEAP_DEVICE, LeapWrapperCallbackInterface*> MapDeviceToCallback;
+	TMap<uint32_t, LEAP_DEVICE> MapDeviceIDToDevice;
+
+	LeapWrapperCallbackInterface* GetCallbackDelegateFromDeviceID(const uint32_t DeviceID);
+	LeapWrapperCallbackInterface* GetCallbackDelegateFromDeviceHandle(const LEAP_DEVICE DeviceHandle);
 	// Frame and handle data
-	LEAP_DEVICE DeviceHandle;
+	TArray <TSharedPtr<IHandTrackingWrapper> > Devices;
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
 
 	// Threading variables
@@ -222,7 +255,7 @@ private:
 	// void setImage();
 	void SetFrame(const LEAP_TRACKING_EVENT* Frame);
 	void SetDevice(const LEAP_DEVICE_INFO* DeviceProps);
-	void CleanupLastDevice();
+	
 
 	void ServiceMessageLoop(void* unused = nullptr);
 
@@ -232,11 +265,16 @@ private:
 	void HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent);
 	void HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent);
 	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent);
-	void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent);
-	void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent);
-	void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent);
-	void HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent);
-	void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent);
-	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent);
-	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent);
+	void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent, const uint32_t DeviceID);
+	void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent, const uint32_t DeviceID);
+	void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent, const uint32_t DeviceID);
+	void HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent, const uint32_t DeviceID);
+	void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent, const uint32_t DeviceID);
+	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent, const uint32_t DeviceID);
+	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent, const uint32_t DeviceID);
+
+	bool bIsConnected = false;
+
+	void AddDevice();
+	void RemoveDevice(const LEAP_DEVICE DeviceHandle);
 };

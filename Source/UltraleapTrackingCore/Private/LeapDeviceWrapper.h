@@ -28,9 +28,6 @@ public:
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
 	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate);
 
-	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate) override;
-
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() override;
 
@@ -52,6 +49,10 @@ public:
 	virtual int64_t GetNow() override
 	{
 		return LeapGetNow();
+	}
+	virtual LEAP_DEVICE GetDeviceHandle() override
+	{ 
+		return DeviceHandle; 
 	}
 
 private:

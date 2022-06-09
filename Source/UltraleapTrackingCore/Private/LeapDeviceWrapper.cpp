@@ -48,14 +48,6 @@ void FLeapDeviceWrapper::SetCallbackDelegate(LeapWrapperCallbackInterface* InCal
 	CallbackDelegate = InCallbackDelegate;
 }
 
-LEAP_CONNECTION* FLeapDeviceWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
-{
-	SetCallbackDelegate(InCallbackDelegate);
-
-	// TODO: proxy to singleton LeapWrapper (service poller)
-	// TODO: subscribe to device specific callbacks somehow
-	return nullptr;
-}
 
 void FLeapDeviceWrapper::CloseConnection()
 {

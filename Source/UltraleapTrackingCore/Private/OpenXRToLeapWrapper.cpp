@@ -42,7 +42,7 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
 {
 }
-LEAP_CONNECTION* FOpenXRToLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate)
+LEAP_CONNECTION* FOpenXRToLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
 	CallbackDelegate = InCallbackDelegate;
 	InitOpenXRHandTrackingModule();
