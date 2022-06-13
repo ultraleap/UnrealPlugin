@@ -644,6 +644,50 @@ Triggers when a given finger points in a given direction over a given angle tole
 
 ![](https://i.imgur.com/tSHmFlz.png)
 
+# Metahuman support
+
+You can use automapping functionality along with a custom pawn to use tracked hands combined with a metahuman.
+This can be run in VR as an embodied avatar or in desktop mode. There's also an example project with a couple of metahumans and an example scene ready made.
+
+## Using the example project
+
+The example project is available on the Unreal Marketplace. Run the default map in VR mode to access the preset metahumans. A male and female metahuman is mapped.
+Import your own metahumans into the project and change the **MetahumanBPClass** member of **IEPawnHands_Metahuman_Hadley** to your imported metahuman blueprint.
+![](https://imgur.com/NzHLdCp)
+
+
+Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new project for re-use.
+
+## Importing and mapping a metahuman from scratch
+
+* Create a new VR template project or open your existing project
+* Follow the Epic guide to create, download and import your metahuman to your project: [Getting started](https://docs.metahuman.unrealengine.com/en-US/MetahumansUnrealEngine/GettingStarted/)
+* Create a child class of **UltraleapTracking/Metahumans/IEPawnHands_Metahuman**
+* Move the newly created pawn class into your project's content folder 
+* Set the **MetahumanBPClass** member of your newly created class to your imported Metahuman blueprint (for example HadleyBP) ![](https://imgur.com/NzHLdCp.png)
+* Locate and create a new animation blueprint from your metahuman’s skeleton. ![](https://imgur.com/7X9bewG.png) ![](https://imgur.com/ET3Z7YF.png)
+* Move the newly created animation blueprint outside of the metahumans common folder
+* Reparent the blueprint to **BodyStateAnimInstance**. ![](https://imgur.com/JR4UV03.png)
+* Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist Translation** and click **Auto map**. ![](https://imgur.com/P51oMTa.png)
+* Copy the nodes from the template **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim graph and eventgraph) into your anim blueprint. ![](https://imgur.com/Q1n3GM7.png) ![](https://imgur.com/lraQXBv.png)
+* You can use select all to copy paste events
+* Compile your new animation blueprint. At this point there will be missing variable errors
+* Right click on the missing  Metahuman Extensions variable and choose **Create variable for Metahuman Extensions** ![](https://imgur.com/yqfYWFq.png)
+* Connect up the last pin in the animation graph to the **Output Pose** node. ![](https://imgur.com/sLqFeb4.png)
+* The animation blueprint should now compile and be ready for use.
+
+## Setting up the metahuman pawn
+* Set the BodyAnimBPClass in your new pawn to your newly created anim class ![](https://imgur.com/acqWA8f.png)
+* Set you new pawn as the default pawn in your game mode ![](https://imgur.com/YP0obW0.png)
+* The metahuman will now run rigged in VR in your scene
+* Note the pawn starts with the metahuman hidden, you have to select one of the **calibrate height** options from the hand menu to show it.
+
+## Walking animations
+A place holder is left in the template anim graph to add idle to walking animation blendspace 2D. See the example project for more information. The example project uses retargeted animations from the default UE4 mannequin.
+
+## Lip sync
+See the **FaceLipSync_AnimBP** blueprint in the example project on the marketplace for a setup where the mouth moves with the mic input.
+
 ## FAQs
 
 #### I've added the plugin to the plugins folder of my project and it says '*[ProjectName]* cannot be compiled'. What do I do?
