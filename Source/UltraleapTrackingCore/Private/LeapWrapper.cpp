@@ -35,13 +35,13 @@ FLeapWrapper::~FLeapWrapper()
 void FLeapWrapper::SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
 	// fallback behaviour for non multidevice
-	MapDeviceToCallback.Add(nullptr, InCallbackDelegate);
-	//CallbackDelegate = InCallbackDelegate;
+	MapDeviceToCallback.Add(0, InCallbackDelegate);
+	ConnectorCallbackDelegate = InCallbackDelegate;
 }
 // per device event handling
-void FLeapWrapper::SetCallbackDelegate(LEAP_DEVICE DeviceHandle, LeapWrapperCallbackInterface* InCallbackDelegate)
+void FLeapWrapper::SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate)
 {
-	MapDeviceToCallback.Add(DeviceHandle, InCallbackDelegate);
+	MapDeviceToCallback.Add(DeviceID, InCallbackDelegate);
 }
 LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
@@ -80,12 +80,13 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 }
 LeapWrapperCallbackInterface* FLeapWrapper::GetCallbackDelegateFromDeviceID(const uint32_t DeviceID)
 {
-	return *MapDeviceToCallback.Find(*MapDeviceIDToDevice.Find(DeviceID));
+	if(MapDeviceToCallback.Contains(DeviceID))
+	{
+		return *MapDeviceToCallback.Find(DeviceID);
+	}
+	return nullptr;
 }
-LeapWrapperCallbackInterface* FLeapWrapper::GetCallbackDelegateFromDeviceHandle(const LEAP_DEVICE DeviceHandle)
-{
-	return *MapDeviceToCallback.Find(DeviceHandle);
-}
+
 void FLeapWrapper::CloseConnection()
 {
 	if (!bIsConnected)
@@ -319,7 +320,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
 		return;
 	}
-
+	
 	// Create a struct to hold the device properties, we have to provide a buffer for the serial string
 	LEAP_DEVICE_INFO DeviceProperties = {sizeof(DeviceProperties)};
 	// Start with a length of 1 (pretending we don't know a priori what the length is).
@@ -342,15 +343,15 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 			return;
 		}
 	}
-	FLeapDeviceWrapper* NewDevice = new FLeapDeviceWrapper();
-	/* SetDevice(&DeviceProperties);
-
-	if (CallbackDelegate)
+	AddDevice(DeviceEvent->device.id, DeviceProperties);
+	
+	
+	if (ConnectorCallbackDelegate)
 	{
 		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this] {
-			if (CallbackDelegate)
+				if (ConnectorCallbackDelegate)
 			{
-				CallbackDelegate->OnDeviceFound(&DeviceProperties);
+				ConnectorCallbackDelegate->OnDeviceFound(&DeviceProperties);
 				free(DeviceProperties.serial);
 			}
 		});
@@ -360,7 +361,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		free(DeviceProperties.serial);
 	}
 
-	LeapCloseDevice(DeviceHandle);*/
+	LeapCloseDevice(DeviceHandle);
 }
 
 /** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
@@ -381,15 +382,25 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	}
 	// TODO: is the handle in the struct the same thing?
 	// Why does the old code close the device handle once opened?
-	RemoveDevice((LEAP_DEVICE)DeviceEvent->device.handle);
+	RemoveDevice(DeviceEvent->device.id);
 }
-void FLeapWrapper::RemoveDevice(const LEAP_DEVICE DeviceHandle)
+void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo)
 {
-	MapDeviceToCallback.Remove(DeviceHandle);
+	TSharedPtr<IHandTrackingWrapper> SPDevice = MakeShared<FLeapDeviceWrapper>(DeviceID, DeviceInfo, this);
+	Devices.Add(SPDevice);
+	//MapDeviceToCallback.Add(DeviceHandle,)
+	//FLeapDeviceWrapper* DeviceDirect = dynamic_cast<FLeapDeviceWrapper*>(SPDevice.Get());
+	
+}
+void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
+{
+	MapDeviceToCallback.Remove(DeviceID);
 	TSharedPtr<IHandTrackingWrapper> ToRemove;
+
+	// TODO: add map
 	for (auto LeapDeviceWrapper : Devices)
 	{
-		if (LeapDeviceWrapper->GetDeviceHandle() == DeviceHandle)
+		if (LeapDeviceWrapper->GetDeviceID() == DeviceID)
 		{
 			ToRemove = LeapDeviceWrapper;
 		}
@@ -403,10 +414,11 @@ void FLeapWrapper::RemoveDevice(const LEAP_DEVICE DeviceHandle)
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("FLeapWrapper::RemoveDevice couldn't find removed device"));
 	}
 }
-	/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent)
+
+/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
+void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent, const uint32_t DeviceID)
 {
-	LeapWrapperCallbackInterface* CallbackDelegate = GetCallbackDelegateFromDeviceHandle(DeviceFailureEvent->hDevice);
+	LeapWrapperCallbackInterface* CallbackDelegate = GetCallbackDelegateFromDeviceID(DeviceID);
 	
 	if (CallbackDelegate)
 	{
@@ -589,7 +601,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 				HandleDeviceLostEvent(Msg.device_event);
 				break;
 			case eLeapEventType_DeviceFailure:
-				HandleDeviceFailureEvent(Msg.device_failure_event);
+				HandleDeviceFailureEvent(Msg.device_failure_event, Msg.device_id);
 				break;
 			case eLeapEventType_Tracking:
 				HandleTrackingEvent(Msg.tracking_event, Msg.device_id);

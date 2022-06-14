@@ -12,7 +12,7 @@
 #include "HAL/ThreadSafeBool.h"
 #include "LeapC.h"
 #include "UltraleapTrackingData.h"
-
+#include "LeapWrapper.h"
 /** Wraps/Abstracts a Device */
 class FLeapDeviceWrapper : public FLeapWrapperBase
 {
@@ -20,7 +20,7 @@ public:
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
 
-	FLeapDeviceWrapper();
+	FLeapDeviceWrapper(const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, IHandTrackingWrapper* ConnectorIn);
 	virtual ~FLeapDeviceWrapper();
 
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
@@ -50,16 +50,16 @@ public:
 	{
 		return LeapGetNow();
 	}
-	virtual LEAP_DEVICE GetDeviceHandle() override
+	virtual uint32_t GetDeviceID() override
 	{ 
-		return DeviceHandle; 
+		return DeviceID; 
 	}
 
 private:
 	void Millisleep(int Milliseconds);
 
 	// Frame and handle data
-	LEAP_DEVICE DeviceHandle;
+	uint32_t DeviceID;
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
 
 	// Threading variables
@@ -76,8 +76,6 @@ private:
 	// Received LeapC callbacks (filtered by device) converted into game thread events
 	void HandleConnectionEvent(const LEAP_CONNECTION_EVENT* ConnectionEvent);
 	void HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT* ConnectionLostEvent);
-	void HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent);
-	void HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent);
 	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent);
 	void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent);
 	void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent);
@@ -102,4 +100,6 @@ private:
 	FGraphEventRef TaskRefPolicy;
 	FGraphEventRef TaskRefConfigChange;
 	FGraphEventRef TaskRefConfigResponse;
+
+	IHandTrackingWrapper* Connector;
 };

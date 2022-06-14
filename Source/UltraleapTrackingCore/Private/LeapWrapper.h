@@ -70,7 +70,10 @@ public:
 	virtual void SetSwizzles(
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
 
-	virtual LEAP_DEVICE GetDeviceHandle() = 0;
+	virtual uint32_t GetDeviceID() = 0;
+
+	virtual void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
+	virtual void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -141,9 +144,17 @@ public:
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override
 	{
 	}
-	virtual LEAP_DEVICE GetDeviceHandle() override
+	virtual uint32_t GetDeviceID() override
 	{
-		return nullptr;
+		return 0;
+	}
+	virtual void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) override
+	{
+		return;
+	}
+	virtual void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) override
+	{
+		return;
 	}
 
 protected:
@@ -168,8 +179,8 @@ public:
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
 
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
-	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate);
-	void SetCallbackDelegate(LEAP_DEVICE DeviceHandle, LeapWrapperCallbackInterface* InCallbackDelegate);
+	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) override;
+	void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) override;
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
 	virtual LEAP_CONNECTION* OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode) override;
 
@@ -204,9 +215,9 @@ public:
 	virtual void SetWorld(UWorld* World)
 	{
 	}
-	virtual LEAP_DEVICE GetDeviceHandle() override
+	virtual uint32_t GetDeviceID() override
 	{
-		return nullptr;
+		return 0;
 	}
 	
 	virtual void SetSwizzles(
@@ -222,11 +233,11 @@ private:
 	void Millisleep(int Milliseconds);
 
 	LeapWrapperCallbackInterface* ConnectorCallbackDelegate = nullptr;
-	TMap<LEAP_DEVICE, LeapWrapperCallbackInterface*> MapDeviceToCallback;
+	TMap<uint32_t, LeapWrapperCallbackInterface*> MapDeviceToCallback;
 	TMap<uint32_t, LEAP_DEVICE> MapDeviceIDToDevice;
 
 	LeapWrapperCallbackInterface* GetCallbackDelegateFromDeviceID(const uint32_t DeviceID);
-	LeapWrapperCallbackInterface* GetCallbackDelegateFromDeviceHandle(const LEAP_DEVICE DeviceHandle);
+	
 	// Frame and handle data
 	TArray <TSharedPtr<IHandTrackingWrapper> > Devices;
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
@@ -254,7 +265,7 @@ private:
 
 	// void setImage();
 	void SetFrame(const LEAP_TRACKING_EVENT* Frame);
-	void SetDevice(const LEAP_DEVICE_INFO* DeviceProps);
+	//void SetDevice(const LEAP_DEVICE_INFO* DeviceProps);
 	
 
 	void ServiceMessageLoop(void* unused = nullptr);
@@ -264,7 +275,7 @@ private:
 	void HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT* ConnectionLostEvent);
 	void HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent);
 	void HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent);
-	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent);
+	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent, const uint32_t DeviceID);
 	void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent, const uint32_t DeviceID);
 	void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent, const uint32_t DeviceID);
 	void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent, const uint32_t DeviceID);
@@ -275,6 +286,6 @@ private:
 
 	bool bIsConnected = false;
 
-	void AddDevice();
-	void RemoveDevice(const LEAP_DEVICE DeviceHandle);
+	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo);
+	void RemoveDevice(const uint32_t DeviceID);
 };

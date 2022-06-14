@@ -13,11 +13,17 @@
 
 #pragma region Leap Device Wrapper
 
-FLeapDeviceWrapper::FLeapDeviceWrapper() : bIsRunning(false)
+FLeapDeviceWrapper::FLeapDeviceWrapper(
+	const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, IHandTrackingWrapper* ConnectorIn)
+	: bIsRunning(false)
 {
 	InterpolatedFrame = nullptr;
 	InterpolatedFrameSize = 0;
 	DataLock = new FCriticalSection();
+
+	DeviceID = DeviceIDIn;
+	Connector = ConnectorIn;
+	SetDevice(&DeviceInfoIn);
 }
 
 FLeapDeviceWrapper::~FLeapDeviceWrapper()
@@ -45,7 +51,13 @@ FLeapDeviceWrapper::~FLeapDeviceWrapper()
 
 void FLeapDeviceWrapper::SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
+	// Should now be able to add connection directly to Lower level leapwrapper
+	// which will callback the connection by device handle/ID
 	CallbackDelegate = InCallbackDelegate;
+	if (Connector)
+	{
+		Connector->SetCallbackDelegate(DeviceID, InCallbackDelegate);
+	}
 }
 
 
@@ -60,7 +72,7 @@ void FLeapDeviceWrapper::CloseConnection()
 	bIsConnected = false;
 	bIsRunning = false;
 	CleanupLastDevice();
-
+	
 	// Wait for thread to exit - Blocking call, but it should be very quick.
 	FTimespan ExitWaitTimeSpan = FTimespan::FromSeconds(3);
 
@@ -171,6 +183,8 @@ void FLeapDeviceWrapper::CleanupLastDevice()
 		free(CurrentDeviceInfo->serial);
 	}
 	CurrentDeviceInfo = nullptr;
+	
+	DeviceID = 0;
 }
 
 void FLeapDeviceWrapper::SetFrame(const LEAP_TRACKING_EVENT* Frame)
@@ -206,80 +220,6 @@ void FLeapDeviceWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EV
 	if (CallbackDelegate)
 	{
 		CallbackDelegate->OnConnectionLost();
-	}
-}
-
-/**
- * Called by ServiceMessageLoop() when a device event is returned by LeapPollConnection()
- */
-void FLeapDeviceWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
-{
-	// LEAP_DEVICE DeviceHandle;
-	// Open device using LEAP_DEVICE_REF from event struct.
-	eLeapRS Result = LeapOpenDevice(DeviceEvent->device, &DeviceHandle);
-	if (Result != eLeapRS_Success)
-	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
-		return;
-	}
-
-	// Create a struct to hold the device properties, we have to provide a buffer for the serial string
-	LEAP_DEVICE_INFO DeviceProperties = {sizeof(DeviceProperties)};
-	// Start with a length of 1 (pretending we don't know a priori what the length is).
-	// Currently device serial numbers are all the same length, but that could change in the future
-	DeviceProperties.serial_length = 64;
-	DeviceProperties.serial = (char*) malloc(DeviceProperties.serial_length);
-	// This will fail since the serial buffer is only 1 character long
-	// But deviceProperties is updated to contain the required buffer length
-	Result = LeapGetDeviceInfo(DeviceHandle, &DeviceProperties);
-	if (Result == eLeapRS_InsufficientBuffer)
-	{
-		// try again with correct buffer size
-		free(DeviceProperties.serial);
-		DeviceProperties.serial = (char*) malloc(DeviceProperties.serial_length);
-		Result = LeapGetDeviceInfo(DeviceHandle, &DeviceProperties);
-		if (Result != eLeapRS_Success)
-		{
-			printf("Failed to get device info %s.\n", ResultString(Result));
-			free(DeviceProperties.serial);
-			return;
-		}
-	}
-
-	SetDevice(&DeviceProperties);
-
-	if (CallbackDelegate)
-	{
-		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this] {
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnDeviceFound(&DeviceProperties);
-				free(DeviceProperties.serial);
-			}
-		});
-	}
-	else
-	{
-		free(DeviceProperties.serial);
-	}
-
-	LeapCloseDevice(DeviceHandle);
-}
-
-/** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
-void FLeapDeviceWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
-{
-	// todo: remove device handles matched here
-	// DeviceHandles.Remove(DeviceHandle);
-
-	if (CallbackDelegate)
-	{
-		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, this] {
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnDeviceLost(CurrentDeviceInfo->serial);
-			}
-		});
 	}
 }
 
