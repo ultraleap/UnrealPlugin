@@ -77,6 +77,7 @@ void ULeapComponent::UninitializeComponent()
 
 	Super::UninitializeComponent();
 }
+#if WITH_EDITOR
 // Property notifications
 // for regular properties:
 void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
@@ -92,3 +93,4 @@ void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	}
 	Super::PostEditChangeProperty(e);
 }
+#endif

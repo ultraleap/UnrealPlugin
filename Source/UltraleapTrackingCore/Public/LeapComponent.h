@@ -140,10 +140,10 @@ public:
 	{
 		return AvailableDeviceSerials;
 	}
-
+#if WITH_EDITOR
 	// property change handlers
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
+#endif
 
 protected:
 	virtual void InitializeComponent() override;
