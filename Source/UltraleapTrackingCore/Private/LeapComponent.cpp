@@ -17,6 +17,18 @@ ULeapComponent::ULeapComponent(const FObjectInitializer& init) : UActorComponent
 
 	bAddHmdOrigin = false;
 	DeviceId = 1;	 // default to first device
+
+	CreateTestState();
+
+}
+void ULeapComponent::CreateTestState()
+{
+
+	AvailableDeviceSerials.Add("John");
+	AvailableDeviceSerials.Add("Paul");
+	AvailableDeviceSerials.Add("Ringo");
+
+	ActiveDeviceSerial = "Paul";
 }
 
 void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
@@ -46,10 +58,37 @@ void ULeapComponent::SetSwizzles(
 {
 	IUltraleapTrackingPlugin::Get().SetSwizzles(ToX, ToY, ToZ, ToW);
 }
+bool ULeapComponent::UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode)
+{
+	MultiDeviceMode = DeviceMode;
+	return false;
+}
+bool ULeapComponent::UpdateActiveDevice(const FString& DeviceSerial)
+{
+	// this already be set if Update came from the UI
+	// set here for programatically setting it
+	ActiveDeviceSerial = DeviceSerial;
+	return false;
+}
 void ULeapComponent::UninitializeComponent()
 {
 	// remove ourselves from the delegates
 	IUltraleapTrackingPlugin::Get().RemoveEventDelegate(this);
 
 	Super::UninitializeComponent();
+}
+// Property notifications
+// for regular properties:
+void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
+{
+	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
+	if (PropertyName == "ActiveDeviceSerial")
+	{
+		UpdateActiveDevice(ActiveDeviceSerial);
+	}
+	else if (PropertyName == "MultiDeviceMode")
+	{
+		UpdateMultiDeviceMode(MultiDeviceMode);
+	}
+	Super::PostEditChangeProperty(e);
 }

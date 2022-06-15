@@ -61,6 +61,13 @@ enum ELeapServiceLogLevel
 	LEAP_LOG_INFO
 };
 
+UENUM(BlueprintType)
+enum ELeapMultiDeviceMode
+{
+	LEAP_MULTI_DEVICE_SINGULAR = 0,
+	LEAP_MULTI_DEVICE_COMBINED
+};
+
 USTRUCT(BlueprintType)
 struct ULTRALEAPTRACKING_API FLeapDevice
 {

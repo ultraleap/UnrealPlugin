@@ -118,8 +118,42 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
+	
+	/** Multidevice configuration, Singular subscribes to a single device. 
+	Combined subscribes to multiple devices combined into one device
+	*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
+	TEnumAsByte<ELeapMultiDeviceMode> MultiDeviceMode;
+
+	/** Available device list
+	*/
+	UPROPERTY(BlueprintReadWrite, Category = "Leap Devices")
+	TArray<FString> AvailableDeviceSerials;
+
+	/** Active Device (Singular mode only)
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
+	FString ActiveDeviceSerial;
+
+	UFUNCTION(CallInEditor)
+	TArray<FString> GetSerialOptions() const
+	{
+		return AvailableDeviceSerials;
+	}
+
+	// property change handlers
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
 
 protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool UpdateActiveDevice(const FString& DeviceSerial);
+	// remove before release
+	void CreateTestState();
 };
