@@ -12,6 +12,7 @@
 #include "HAL/ThreadSafeBool.h"
 #include "LeapC.h"
 #include "UltraleapTrackingData.h"
+#include "IUltraleapTrackingPlugin.h"
 
 /** Interface for the passed callback delegate receiving game thread LeapC callbacks */
 class LeapWrapperCallbackInterface
@@ -74,6 +75,8 @@ public:
 
 	virtual void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 	virtual void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
+
+	virtual FString GetDeviceSerial() = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -156,13 +159,17 @@ public:
 	{
 		return;
 	}
+	virtual FString GetDeviceSerial() override
+	{
+		return TEXT("Unknown");
+	}
 
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
 };
 /** Wraps LeapC API into a threaded and event driven delegate callback format */
-class FLeapWrapper : public IHandTrackingWrapper
+class FLeapWrapper : public IHandTrackingWrapper, public ILeapConnector
 {
 public:
 	// LeapC Vars
@@ -177,7 +184,7 @@ public:
 	virtual ~FLeapWrapper();
 
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
-
+	// IHandTrackingWrapper
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
 	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) override;
 	void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) override;
@@ -227,7 +234,15 @@ public:
 	{
 		return LeapGetNow();
 	}
+	virtual FString GetDeviceSerial() override
+	{
+		return TEXT("LeapWrapper/Connector");
+	}
 	
+	// ILeapConnector
+	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
+	virtual IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) override;
+
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);

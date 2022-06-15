@@ -631,5 +631,15 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 		}	 // switch on msg.type
 	}		 // end while running
 }
-
+void FLeapWrapper::GetDeviceSerials(TArray<FString>& DeviceSerials)
+{
+	for (auto Device : Devices)
+	{
+		DeviceSerials.Add(Device->GetDeviceSerial());
+	}
+}
+IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSerial)
+{
+	return nullptr;
+}
 #pragma endregion LeapC Wrapper

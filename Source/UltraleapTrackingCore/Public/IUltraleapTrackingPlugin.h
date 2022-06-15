@@ -12,7 +12,15 @@
 #include "UltraleapTrackingData.h"
 
 class ULeapComponent;
-
+class ILeapConnector
+{
+public:
+	// get available/active tracking devices
+	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) = 0;
+	// todo: add aggregator/combiner class
+	// if in singular mode pass one tracking device serial
+	virtual class IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) = 0;
+};
 /**
  * The public interface to this module.  In most cases, this interface is only public to sibling modules
  * within this plugin.
@@ -80,4 +88,6 @@ public:
 
 	virtual void SetSwizzles(
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
+
+	virtual ILeapConnector* GetConnector() = 0;
 };

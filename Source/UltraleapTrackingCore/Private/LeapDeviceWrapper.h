@@ -54,6 +54,16 @@ public:
 	{ 
 		return DeviceID; 
 	}
+	virtual FString GetDeviceSerial() override
+	{
+		FString Ret = "Unknown";
+		LEAP_DEVICE_INFO* Info = GetDeviceProperties();
+		if (Info)
+		{
+			Ret = Info->serial;
+		}
+		return Ret;
+	}
 
 private:
 	void Millisleep(int Milliseconds);

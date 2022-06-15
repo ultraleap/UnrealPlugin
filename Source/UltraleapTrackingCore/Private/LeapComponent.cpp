@@ -20,6 +20,9 @@ ULeapComponent::ULeapComponent(const FObjectInitializer& init) : UActorComponent
 
 	CreateTestState();
 
+	OnLeapDeviceAttached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
+	OnLeapDeviceDetached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
+
 }
 void ULeapComponent::CreateTestState()
 {
@@ -52,6 +55,7 @@ void ULeapComponent::InitializeComponent()
 
 	// Attach delegate references
 	IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
+	RefreshDeviceList();
 }
 void ULeapComponent::SetSwizzles(
 	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
@@ -79,7 +83,6 @@ void ULeapComponent::UninitializeComponent()
 }
 #if WITH_EDITOR
 // Property notifications
-// for regular properties:
 void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 {
 	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
@@ -92,5 +95,28 @@ void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 		UpdateMultiDeviceMode(MultiDeviceMode);
 	}
 	Super::PostEditChangeProperty(e);
+}
+void ULeapComponent::RefreshDeviceList() 
+{
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector)
+	{
+		AvailableDeviceSerials.Empty();
+		Connector->GetDeviceSerials(AvailableDeviceSerials);
+	}
+}
+
+void ULeapComponent::OnDeviceAddedOrRemoved(FString DeviceName)
+{
+	RefreshDeviceList();
+	/*auto Property = ULeapComponent::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(ULeapComponent,
+	ActiveDeviceSerial));
+	 FPropertyChangedEvent DeviceListChanged(
+		ULeapComponent::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(ULeapComponent, ActiveDeviceSerial)));
+	PostEditChangeProperty(DeviceListChanged);
+	ForceRefreshDetails();
+	Modify()
+	
+	PostEditChange();*/
 }
 #endif

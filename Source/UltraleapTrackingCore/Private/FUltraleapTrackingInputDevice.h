@@ -22,6 +22,7 @@
 #include "OpenXRToLeapWrapper.h"
 #include "SceneViewExtension.h"
 #include "UltraleapTrackingData.h"
+#include "IUltraleapTrackingPlugin.h"
 /**
  * Stores raw controller data and custom toggles
  */
@@ -85,6 +86,11 @@ public:
 	const TArray<FString>& GetAttachedDevices()
 	{
 		return AttachedDevices;
+	}
+
+	ILeapConnector* GetConnector()
+	{
+		return Connector;
 	}
 	void PostEarlyInit();
 
@@ -173,6 +179,7 @@ private:
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
 	TSharedPtr<IHandTrackingWrapper> Leap;
+	ILeapConnector* Connector;
 
 	// LeapWrapper Callbacks
 	virtual void OnConnect() override;

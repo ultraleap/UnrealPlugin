@@ -155,7 +155,7 @@ void FUltraleapTrackingInputDevice::OnDeviceLost(const char* Serial)
 		AttachedDevices.Remove(SerialString);
 
 		CallFunctionOnComponents(
-			[SerialString](ULeapComponent* Component) { Component->OnLeapDeviceDetatched.Broadcast(SerialString); });
+			[SerialString](ULeapComponent* Component) { Component->OnLeapDeviceDetached.Broadcast(SerialString); });
 	});
 }
 
@@ -305,7 +305,7 @@ void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
 #define START_IN_OPEN_XR_MODE 0
 FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
-	: MessageHandler(InMessageHandler), Leap(nullptr)
+	: MessageHandler(InMessageHandler), Leap(nullptr), Connector(nullptr)
 {
 	// Link callbacks
 
@@ -901,7 +901,7 @@ void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* Event
 	Leap->SetWorld(ComponentWorld);
 	// only add delegates to world
 	if (ComponentWorld->WorldType == EWorldType::Game || ComponentWorld->WorldType == EWorldType::GamePreview ||
-		ComponentWorld->WorldType == EWorldType::PIE)
+		ComponentWorld->WorldType == EWorldType::PIE || ComponentWorld->WorldType == EWorldType::EditorPreview)
 	{
 		if (EventDelegate != nullptr && EventDelegate->IsValidLowLevel())
 		{
@@ -1175,12 +1175,15 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 	}
 	else
 	{
-		Leap = TSharedPtr<IHandTrackingWrapper>(new FLeapWrapper);
+		FLeapWrapper* Wrapper = new FLeapWrapper;
+		Connector = dynamic_cast<ILeapConnector*>(Wrapper);
+		Leap = TSharedPtr<IHandTrackingWrapper>(Wrapper);
 	}
 	if (!UseOpenXRAsSource)
 	{
 		IsWaitingForConnect = true;
 	}
+	
 	Leap->OpenConnection(this);
 }
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
@@ -1472,4 +1475,5 @@ FLeapStats FUltraleapTrackingInputDevice::GetStats()
 {
 	return Stats;
 }
+
 #pragma endregion Leap Input Device

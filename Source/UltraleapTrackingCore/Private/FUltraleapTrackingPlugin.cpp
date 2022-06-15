@@ -171,7 +171,10 @@ void FUltraleapTrackingPlugin::ShutdownLeap()
 		LeapInputDevice->ShutdownLeap();
 	}
 }
-
+ILeapConnector* FUltraleapTrackingPlugin::GetConnector()
+{
+	return LeapInputDevice->GetConnector();
+}
 void* FUltraleapTrackingPlugin::GetLeapHandle()
 {
 	void* NewLeapDLLHandle = nullptr;

@@ -35,7 +35,7 @@ public:
 
 	/** Called when a device disconnects from the leap service*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
-	FLeapDeviceSignature OnLeapDeviceDetatched;
+	FLeapDeviceSignature OnLeapDeviceDetached;
 
 	/** Event called when new tracking data is available, typically every game tick. */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
@@ -127,7 +127,7 @@ public:
 
 	/** Available device list
 	*/
-	UPROPERTY(BlueprintReadWrite, Category = "Leap Devices")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
 	TArray<FString> AvailableDeviceSerials;
 
 	/** Active Device (Singular mode only)
@@ -156,4 +156,11 @@ protected:
 	bool UpdateActiveDevice(const FString& DeviceSerial);
 	// remove before release
 	void CreateTestState();
+
+	// Delegate handlers for state changes
+	UFUNCTION()
+	void OnDeviceAddedOrRemoved(FString Device);
+
+private:
+	void RefreshDeviceList();
 };
