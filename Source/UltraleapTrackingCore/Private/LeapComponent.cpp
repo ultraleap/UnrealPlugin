@@ -65,7 +65,7 @@ bool ULeapComponent::UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode
 }
 bool ULeapComponent::UpdateActiveDevice(const FString& DeviceSerial)
 {
-	// this already be set if Update came from the UI
+	// this will already be set if Update came from the UI
 	// set here for programatically setting it
 	ActiveDeviceSerial = DeviceSerial;
 	return false;
