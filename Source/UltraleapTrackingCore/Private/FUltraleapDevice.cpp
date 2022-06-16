@@ -223,7 +223,8 @@ void FUltraleapDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Time
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
 
-FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper) : Leap(LeapDeviceWrapper)
+FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper) : 
+	Leap(LeapDeviceWrapper), LiveLink(nullptr)
 {
 	// Link callbacks
 
@@ -276,6 +277,7 @@ FUltraleapDevice::~FUltraleapDevice()
 	{
 		// LiveLink cleanup
 		LiveLink->ShutDown();
+		LiveLink = nullptr;
 	}
 #endif
 
@@ -1047,7 +1049,7 @@ void FUltraleapDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHa
 #pragma endregion BodyState
 void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 {
-	if (Leap != nullptr)
+	/* if (Leap != nullptr)
 	{
 		Leap->CloseConnection();
 	}
@@ -1061,7 +1063,7 @@ void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 		FLeapWrapper* Wrapper = new FLeapWrapper;
 		Connector = dynamic_cast<ILeapConnector*>(Wrapper);
 		Leap = TSharedPtr<IHandTrackingWrapper>(Wrapper);
-	}
+	}*/
 	
 	Leap->OpenConnection(this);
 }

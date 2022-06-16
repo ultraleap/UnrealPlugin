@@ -254,7 +254,7 @@ private:
 	LeapWrapperCallbackInterface* GetCallbackDelegateFromDeviceID(const uint32_t DeviceID);
 	
 	// Frame and handle data
-	TArray <TSharedPtr<IHandTrackingWrapper> > Devices;
+	TArray <IHandTrackingWrapper* > Devices;
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
 
 	// Threading variables

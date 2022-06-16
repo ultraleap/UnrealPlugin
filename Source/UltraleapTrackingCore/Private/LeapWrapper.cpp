@@ -386,16 +386,15 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 }
 void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo)
 {
-	TSharedPtr<IHandTrackingWrapper> SPDevice = MakeShared<FLeapDeviceWrapper>(DeviceID, DeviceInfo, this);
-	Devices.Add(SPDevice);
+	IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, this);
+	// TArray manages object lifetime/destructors without needing TSharedPtr
+	Devices.Add(Device);
 	//MapDeviceToCallback.Add(DeviceHandle,)
-	//FLeapDeviceWrapper* DeviceDirect = dynamic_cast<FLeapDeviceWrapper*>(SPDevice.Get());
-	
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
 	MapDeviceToCallback.Remove(DeviceID);
-	TSharedPtr<IHandTrackingWrapper> ToRemove;
+	IHandTrackingWrapper* ToRemove = nullptr;
 
 	// TODO: add map
 	for (auto LeapDeviceWrapper : Devices)
