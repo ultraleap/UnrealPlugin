@@ -286,6 +286,7 @@ void FUltraleapDevice::Tick(float DeltaTime)
 {
 	GameTimeInSec += DeltaTime;
 	FrameTimeInMicros = DeltaTime * 1000000;
+	
 }
 
 // Main loop event emitter
@@ -411,12 +412,14 @@ void FUltraleapDevice::ParseEvents()
 	CheckPinchGesture();
 
 	// Emit tracking data if it is being captured
-	CallFunctionOnComponents([this](ULeapComponent* Component) {
-		// Scale input?
-		// FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters
-		// / 100.f);
-		Component->OnLeapTrackingData.Broadcast(CurrentFrame);
-	});
+	CallFunctionOnComponents(
+		[this](ULeapComponent* Component)
+		{
+			// Scale input?
+			// FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters
+			// / 100.f);
+			Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+		});
 
 	// It's now the past data
 	PastFrame = CurrentFrame;
@@ -448,9 +451,8 @@ void FUltraleapDevice::CheckHandVisibility()
 					{
 						IsLeftVisible = true;
 						const bool LeftVisible = true;
-						CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component) {
-							Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible);
-						});
+						CallFunctionOnComponents([this, LeftVisible](ULeapComponent* Component)
+							{ Component->OnLeftHandVisibilityChanged.Broadcast(LeftVisible); });
 						CallFunctionOnComponents(
 							[Hand](ULeapComponent* Component) { Component->OnHandBeginTracking.Broadcast(Hand); });
 					}
@@ -466,9 +468,8 @@ void FUltraleapDevice::CheckHandVisibility()
 					{
 						IsRightVisible = true;
 						const bool RightVisible = true;
-						CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component) {
-							Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-						});
+						CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+							{ Component->OnRightHandVisibilityChanged.Broadcast(RightVisible); });
 						CallFunctionOnComponents(
 							[Hand](ULeapComponent* Component) { Component->OnHandBeginTracking.Broadcast(Hand); });
 					}
@@ -492,9 +493,8 @@ void FUltraleapDevice::CheckHandVisibility()
 			const FLeapHandData EndHand = LastRightHand;
 			CallFunctionOnComponents([EndHand](ULeapComponent* Component) { Component->OnHandEndTracking.Broadcast(EndHand); });
 			const bool RightVisible = false;
-			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component) {
-				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-			});
+			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+				{ Component->OnRightHandVisibilityChanged.Broadcast(RightVisible); });
 		}
 	}
 	else
@@ -533,9 +533,8 @@ void FUltraleapDevice::CheckHandVisibility()
 		if (PastFrame.RightHandVisible != CurrentFrame.RightHandVisible)
 		{
 			const bool RightVisible = CurrentFrame.RightHandVisible;
-			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component) {
-				Component->OnRightHandVisibilityChanged.Broadcast(RightVisible);
-			});
+			CallFunctionOnComponents([this, RightVisible](ULeapComponent* Component)
+				{ Component->OnRightHandVisibilityChanged.Broadcast(RightVisible); });
 		}
 
 		for (auto& Hand : CurrentFrame.Hands)
