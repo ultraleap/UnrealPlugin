@@ -91,6 +91,7 @@ void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	}
 	Super::PostEditChangeProperty(e);
 }
+#endif
 void ULeapComponent::RefreshDeviceList() 
 {
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
@@ -98,11 +99,16 @@ void ULeapComponent::RefreshDeviceList()
 	{
 		AvailableDeviceSerials.Empty();
 		Connector->GetDeviceSerials(AvailableDeviceSerials);
+#if WITH_EDITOR
 		if (DetailBuilder)
 		{
 			auto DeviceSerialProperty = DetailBuilder->GetProperty("ActiveDeviceSerial");
-			DeviceSerialProperty->NotifyPostChange();
+			if (DeviceSerialProperty->IsValidHandle())
+			{
+				DeviceSerialProperty->NotifyPostChange();
+			}
 		}
+#endif
 	}
 }
 
@@ -124,5 +130,4 @@ void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn
 		RefreshDeviceList();
 	}
 }
-#endif
 #endif
