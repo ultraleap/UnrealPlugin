@@ -892,9 +892,18 @@ void FUltraleapTrackingInputDevice::SetChannelValues(int32 ControllerId, const F
 
 void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
-	UWorld* ComponentWorld = EventDelegate->GetOwner()->GetWorld();
+	UWorld* ComponentWorld = nullptr;
+	if (EventDelegate->GetOwner())
+	{
+		ComponentWorld = EventDelegate->GetOwner()->GetWorld();
+	}
 	if (ComponentWorld == nullptr)
 	{
+		// editor mirror component
+		if (EventDelegate != nullptr && EventDelegate->IsValidLowLevel())
+		{
+			EventDelegates.Add((ULeapComponent*) EventDelegate);
+		}
 		return;
 	}
 	// needed for world time

@@ -12,28 +12,18 @@
 
 ULeapComponent::ULeapComponent(const FObjectInitializer& init) : UActorComponent(init)
 {
+#if WITH_EDITOR
+	DetailBuilder = nullptr;
+#endif
 	bWantsInitializeComponent = true;
 	bAutoActivate = true;
-
+	IsConnectedToInputEvents = false;
 	bAddHmdOrigin = false;
-	DeviceId = 1;	 // default to first device
-
-	CreateTestState();
 
 	OnLeapDeviceAttached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
 	OnLeapDeviceDetached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
 
 }
-void ULeapComponent::CreateTestState()
-{
-
-	AvailableDeviceSerials.Add("John");
-	AvailableDeviceSerials.Add("Paul");
-	AvailableDeviceSerials.Add("Ringo");
-
-	ActiveDeviceSerial = "Paul";
-}
-
 void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
 {
 	// this needs to propagate to all other components with same id
@@ -48,14 +38,19 @@ void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
 {
 	IUltraleapTrackingPlugin::Get().GetLatestFrameData(OutData);
 }
-
-void ULeapComponent::InitializeComponent()
+void ULeapComponent::ConnectToInputEvents()
 {
-	Super::InitializeComponent();
-
 	// Attach delegate references
 	IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
 	RefreshDeviceList();
+
+	IsConnectedToInputEvents = true;
+}
+void ULeapComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	ConnectToInputEvents();
+	
 }
 void ULeapComponent::SetSwizzles(
 	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
@@ -103,20 +98,31 @@ void ULeapComponent::RefreshDeviceList()
 	{
 		AvailableDeviceSerials.Empty();
 		Connector->GetDeviceSerials(AvailableDeviceSerials);
+		if (DetailBuilder)
+		{
+			auto DeviceSerialProperty = DetailBuilder->GetProperty("ActiveDeviceSerial");
+			DeviceSerialProperty->NotifyPostChange();
+		}
 	}
 }
 
 void ULeapComponent::OnDeviceAddedOrRemoved(FString DeviceName)
 {
 	RefreshDeviceList();
-	/*auto Property = ULeapComponent::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(ULeapComponent,
-	ActiveDeviceSerial));
-	 FPropertyChangedEvent DeviceListChanged(
-		ULeapComponent::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(ULeapComponent, ActiveDeviceSerial)));
-	PostEditChangeProperty(DeviceListChanged);
-	ForceRefreshDetails();
-	Modify()
-	
-	PostEditChange();*/
 }
+#if WITH_EDITOR
+void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn)
+{
+	if (!IsConnectedToInputEvents || DetailBuilder != DetailBuilderIn)
+	{
+		DetailBuilder = DetailBuilderIn;
+		// connect also populates the device lists
+		ConnectToInputEvents();
+	}
+	else
+	{
+		RefreshDeviceList();
+	}
+}
+#endif
 #endif

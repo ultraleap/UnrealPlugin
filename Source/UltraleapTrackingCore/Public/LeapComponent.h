@@ -11,7 +11,9 @@
 #include "Components/ActorComponent.h"
 #include "LeapWrapper.h"
 #include "UltraleapTrackingData.h"
-
+#if WITH_EDITOR
+#include "DetailLayoutBuilder.h"
+#endif
 #include "LeapComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
@@ -33,6 +35,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceAttached;
 
+	/** Called when a device disconnects from the leap service*/
 	/** Called when a device disconnects from the leap service*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceDetached;
@@ -102,9 +105,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Properties")
 	bool bAddHmdOrigin;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Properties")
-	int32 DeviceId;
-
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetShouldAddHmdOrigin(bool& bShouldAdd);
 
@@ -127,7 +127,7 @@ public:
 
 	/** Available device list
 	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Devices")
 	TArray<FString> AvailableDeviceSerials;
 
 	/** Active Device (Singular mode only)
@@ -138,11 +138,15 @@ public:
 	UFUNCTION(CallInEditor)
 	TArray<FString> GetSerialOptions() const
 	{
-		return AvailableDeviceSerials;
+		TArray<FString> Ret(AvailableDeviceSerials);
+		Ret.Insert(TEXT("None"), 0);
+		return Ret;
 	}
 #if WITH_EDITOR
 	// property change handlers
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
+	void SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilder);
 #endif
 
 protected:
@@ -163,4 +167,10 @@ protected:
 
 private:
 	void RefreshDeviceList();
+#if WITH_EDITOR
+	// custom detail panel interface
+	IDetailLayoutBuilder* DetailBuilder;
+#endif
+	void ConnectToInputEvents();
+	bool IsConnectedToInputEvents;
 };

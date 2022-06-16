@@ -7,8 +7,8 @@
  ******************************************************************************/
 
 #include "UltraleapTrackingEditorModule.h"
-
 #include "BodyStateAnimInstance.h"
+#include "LeapComponent.h"
 #include "FUltraleapAnimCustomDetailsPanel.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
@@ -25,4 +25,7 @@ void FUltraleapTrackingEditorModule::StartupModule()
 
 	PropertyModule.RegisterCustomClassLayout(UBodyStateAnimInstance::StaticClass()->GetFName(),
 		FOnGetDetailCustomizationInstance::CreateStatic(&FUltraleapAnimCustomDetailsPanel::MakeInstance));
+
+	PropertyModule.RegisterCustomClassLayout(ULeapComponent::StaticClass()->GetFName(),
+		FOnGetDetailCustomizationInstance::CreateStatic(&FUltraleapLeapCustomDetailsPanel::MakeInstance));
 }

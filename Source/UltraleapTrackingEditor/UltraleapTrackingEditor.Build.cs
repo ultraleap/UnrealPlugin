@@ -12,11 +12,49 @@ namespace UnrealBuildTool.Rules
 {
 	public class UltraleapTrackingEditor : ModuleRules
 	{
+		private string ModulePath
+		{
+			get { return ModuleDirectory; }
+		}
+		private bool IsEnginePlugin()
+		{
+			return Path.GetFullPath(ModuleDirectory).EndsWith("Engine\\Plugins\\Runtime\\UltraleapTracking\\Source\\UltraleapTracking");
+		}
+		private string ThirdPartyPath
+		{
+			get
+			{
+				if (IsEnginePlugin())
+				{
+					return Path.GetFullPath(Path.Combine(EngineDirectory, "Source/ThirdParty"));
+				}
+				else
+				{
+					return Path.GetFullPath(Path.Combine(ModulePath, "../ThirdParty/"));
+				}
+			}
+		}
+
+		private string IncludePath
+		{
+			get
+			{
+				if (IsEnginePlugin())
+				{
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "Leap/Include"));
+				}
+				else
+				{
+					return Path.GetFullPath(Path.Combine(ThirdPartyPath, "LeapSDK/Include"));
+				}
+			}
+		}
+
 
 		public UltraleapTrackingEditor(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
+			//OptimizeCode = CodeOptimization.Never;
 			PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
@@ -26,7 +64,7 @@ namespace UnrealBuildTool.Rules
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"UltraleapTrackingEditor/Private",
-					// ... add other private include paths required here ...
+					IncludePath,
 				}
 				);
 
@@ -51,7 +89,8 @@ namespace UnrealBuildTool.Rules
 					"BlueprintGraph",
 					"AnimGraph",
 					"AnimGraphRuntime",
-					"BodyState"
+					"BodyState",
+					
 				}
 				);
 
