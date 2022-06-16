@@ -182,11 +182,14 @@ private:
 	ILeapConnector* Connector;
 
 	// LeapWrapper Callbacks
+	// Global
 	virtual void OnConnect() override;
 	virtual void OnConnectionLost() override;
 	virtual void OnDeviceFound(const LEAP_DEVICE_INFO* props) override;
 	virtual void OnDeviceLost(const char* serial) override;
 	virtual void OnDeviceFailure(const eLeapDeviceStatus failure_code, const LEAP_DEVICE failed_device) override;
+	
+	// Per device
 	virtual void OnFrame(const LEAP_TRACKING_EVENT* frame) override;
 	virtual void OnImage(const LEAP_IMAGE_EVENT* image_event) override;
 	virtual void OnPolicy(const uint32_t current_policies) override;
