@@ -27,34 +27,22 @@
  * Stores raw controller data and custom toggles
  */
 
-class FUltraleapTrackingInputDevice : public IInputDevice, public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface
+
+class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface
 {
 public:
-	FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& MessageHandler);
-	virtual ~FUltraleapTrackingInputDevice();
+	FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper);
+	virtual ~FUltraleapDevice();
 
 	/** Tick the interface (e.g. check for new controllers) */
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime);
 
 	/** Poll for controller state and send events if needed */
-	virtual void SendControllerEvents() override;
+	virtual void SendControllerEvents();
 
 	/** Main input capture and event parsing 'tick' */
 	void CaptureAndEvaluateInput();
 	void ParseEvents();
-
-	/** Set which MessageHandler will get the events from SendControllerEvents. */
-	virtual void SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler) override;
-
-	/** Exec handler to allow console commands to be passed through for debugging
-	 */
-	virtual bool Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar) override;
-
-	/** IForceFeedbackSystem pass through functions **/
-	virtual void SetChannelValue(int32 ControllerId, FForceFeedbackChannelType ChannelType, float Value) override;
-	virtual void SetChannelValues(int32 ControllerId, const FForceFeedbackValues& values) override;
-
-	TSharedRef<FGenericApplicationMessageHandler> MessageHandler;
 
 	void AddEventDelegate(const ULeapComponent* EventDelegate);
 	void RemoveEventDelegate(const ULeapComponent* EventDelegate);
@@ -74,17 +62,8 @@ public:
 	void SetOptions(const FLeapOptions& Options);
 	FLeapOptions GetOptions();
 	FLeapStats GetStats();
-	const TArray<FString>& GetAttachedDevices()
-	{
-		return AttachedDevices;
-	}
-
-	ILeapConnector* GetConnector()
-	{
-		return Connector;
-	}
-	void PostEarlyInit();
-
+	
+	
 private:
 	bool UseTimeBasedVisibilityCheck = false;
 	bool UseTimeBasedGestureCheck = false;
@@ -173,13 +152,6 @@ private:
 	ILeapConnector* Connector;
 
 	// LeapWrapper Callbacks
-	// Global
-	virtual void OnConnect() override;
-	virtual void OnConnectionLost() override;
-	virtual void OnDeviceFound(const LEAP_DEVICE_INFO* props) override;
-	virtual void OnDeviceLost(const char* serial) override;
-	virtual void OnDeviceFailure(const eLeapDeviceStatus failure_code, const LEAP_DEVICE failed_device) override;
-	
 	// Per device
 	virtual void OnFrame(const LEAP_TRACKING_EVENT* frame) override;
 	virtual void OnImage(const LEAP_IMAGE_EVENT* image_event) override;
@@ -203,5 +175,6 @@ private:
 
 	void SwitchTrackingSource(const bool UseOpenXRAsSource);
 
-	bool IsWaitingForConnect = false;
+	void Init();
+	void InitOptions();
 };

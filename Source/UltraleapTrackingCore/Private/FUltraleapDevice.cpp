@@ -6,7 +6,7 @@
  * between Ultraleap and you, your company or other organization.             *
  ******************************************************************************/
 
-#include "FUltraleapTrackingInputDevice.h"
+#include "FUltraleapDevice.h"
 
 #include "BodyStateBPLibrary.h"
 #include "Engine/Engine.h"
@@ -19,14 +19,14 @@
 #include "Skeleton/BodyStateSkeleton.h"
 #include "UltraleapTrackingData.h"
 
-DECLARE_STATS_GROUP(TEXT("UltraleapTracking"), STATGROUP_UltraleapTracking, STATCAT_Advanced);
-DECLARE_CYCLE_STAT(TEXT("Leap Game Input and Events"), STAT_LeapInputTick, STATGROUP_UltraleapTracking);
-DECLARE_CYCLE_STAT(TEXT("Leap BodyState Tick"), STAT_LeapBodyStateTick, STATGROUP_UltraleapTracking);
+DECLARE_STATS_GROUP(TEXT("UltraleapMultiTracking"), STATGROUP_UltraleapMultiTracking, STATCAT_Advanced);
+DECLARE_CYCLE_STAT(TEXT("Multi Leap Game Input and Events"), STAT_MultiLeapInputTick, STATGROUP_UltraleapMultiTracking);
+DECLARE_CYCLE_STAT(TEXT("Multi Leap BodyState Tick"), STAT_MultiLeapBodyStateTick, STATGROUP_UltraleapMultiTracking);
 
 #pragma region Utility
-bool FUltraleapTrackingInputDevice::bUseNewTrackingModeAPI = true;
+bool FUltraleapDevice::bUseNewTrackingModeAPI = true;
 // Function call Utility
-void FUltraleapTrackingInputDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)> InFunction)
+void FUltraleapDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)> InFunction)
 {
 	// Callback optimization
 	if (EventDelegates.Num() <= 0)
@@ -53,7 +53,7 @@ void FUltraleapTrackingInputDevice::CallFunctionOnComponents(TFunction<void(ULea
 }
 
 // UE v4.6 IM event wrappers
-bool FUltraleapTrackingInputDevice::EmitKeyUpEventForKey(FKey Key, int32 User = 0, bool Repeat = false)
+bool FUltraleapDevice::EmitKeyUpEventForKey(FKey Key, int32 User = 0, bool Repeat = false)
 {
 	if (IsInGameThread())
 	{
@@ -63,7 +63,7 @@ bool FUltraleapTrackingInputDevice::EmitKeyUpEventForKey(FKey Key, int32 User = 
 	return false;
 }
 
-bool FUltraleapTrackingInputDevice::EmitKeyDownEventForKey(FKey Key, int32 User = 0, bool Repeat = false)
+bool FUltraleapDevice::EmitKeyDownEventForKey(FKey Key, int32 User = 0, bool Repeat = false)
 {
 	if (IsInGameThread())
 	{
@@ -73,7 +73,7 @@ bool FUltraleapTrackingInputDevice::EmitKeyDownEventForKey(FKey Key, int32 User 
 	return false;
 }
 
-bool FUltraleapTrackingInputDevice::EmitAnalogInputEventForKey(FKey Key, float Value, int32 User = 0, bool Repeat = false)
+bool FUltraleapDevice::EmitAnalogInputEventForKey(FKey Key, float Value, int32 User = 0, bool Repeat = false)
 {
 	if (IsInGameThread())
 	{
@@ -85,125 +85,49 @@ bool FUltraleapTrackingInputDevice::EmitAnalogInputEventForKey(FKey Key, float V
 
 // Utility
 
+const FKey EKeysLeap::LeapPinchL("LeapPinchL");
+const FKey EKeysLeap::LeapGrabL("LeapGrabL");
+const FKey EKeysLeap::LeapPinchR("LeapPinchR");
+const FKey EKeysLeap::LeapGrabR("LeapGrabR");
 
-bool FUltraleapTrackingInputDevice::HandClosed(float Strength)
+
+bool FUltraleapDevice::HandClosed(float Strength)
 {
 	return (Strength == 1.f);
 }
 
-bool FUltraleapTrackingInputDevice::HandPinched(float Strength)
+bool FUltraleapDevice::HandPinched(float Strength)
 {
 	return (Strength > 0.8);
 }
 
-int64 FUltraleapTrackingInputDevice::GetInterpolatedNow()
+int64 FUltraleapDevice::GetInterpolatedNow()
 {
 	return Leap->GetNow() + HandInterpolationTimeOffset;
 }
 
 // comes from service message loop
-void FUltraleapTrackingInputDevice::OnConnect()
+void FUltraleapDevice::InitOptions()
 {
 	FLeapAsync::RunShortLambdaOnGameThread([&] {
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapService: OnConnect."));
-
-		IsWaitingForConnect = false;
 
 		SetOptions(Options);
-
-		CallFunctionOnComponents([&](ULeapComponent* Component) { Component->OnLeapServiceConnected.Broadcast(); });
-	});
-}
-// comes from service message loop
-void FUltraleapTrackingInputDevice::OnConnectionLost()
-{
-	FLeapAsync::RunShortLambdaOnGameThread([&] {
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapService: OnConnectionLost."));
-
-		CallFunctionOnComponents([&](ULeapComponent* Component) { Component->OnLeapServiceDisconnected.Broadcast(); });
-	});
-}
-// already proxied onto game thread in wrapper
-void FUltraleapTrackingInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO* Props)
-{
-	Stats.DeviceInfo.SetFromLeapDevice((_LEAP_DEVICE_INFO*) Props);
-	SetOptions(Options);
-
-	if (LeapImageHandler)
-	{
-		LeapImageHandler->Reset();
-	}
-	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceFound %s %s."), *Stats.DeviceInfo.PID, *Stats.DeviceInfo.Serial);
-
-	AttachedDevices.AddUnique(Stats.DeviceInfo.Serial);
-
-	CallFunctionOnComponents(
-		[&](ULeapComponent* Component) { Component->OnLeapDeviceAttached.Broadcast(Stats.DeviceInfo.Serial); });
-}
-// comes from service message loop
-void FUltraleapTrackingInputDevice::OnDeviceLost(const char* Serial)
-{
-	const FString SerialString = FString(ANSI_TO_TCHAR(Serial));
-
-	FLeapAsync::RunShortLambdaOnGameThread([&, SerialString] {
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("OnDeviceLost %s."), *SerialString);
-
-		AttachedDevices.Remove(SerialString);
-
-		CallFunctionOnComponents(
-			[SerialString](ULeapComponent* Component) { Component->OnLeapDeviceDetached.Broadcast(SerialString); });
 	});
 }
 
-void FUltraleapTrackingInputDevice::OnDeviceFailure(const eLeapDeviceStatus FailureCode, const LEAP_DEVICE FailedDevice)
-{
-	FString ErrorString;
-	switch (FailureCode)
-	{
-		case eLeapDeviceStatus_Streaming:
-			ErrorString = TEXT("Streaming");
-			break;
-		case eLeapDeviceStatus_Paused:
-			ErrorString = TEXT("Paused");
-			break;
-		case eLeapDeviceStatus_Robust:
-			ErrorString = TEXT("Robust");
-			break;
-		case eLeapDeviceStatus_Smudged:
-			ErrorString = TEXT("Smudged");
-			break;
-		case eLeapDeviceStatus_BadCalibration:
-			ErrorString = TEXT("Bad Calibration");
-			break;
-		case eLeapDeviceStatus_BadFirmware:
-			ErrorString = TEXT("Bad Firmware");
-			break;
-		case eLeapDeviceStatus_BadTransport:
-			ErrorString = TEXT("Bad Transport");
-			break;
-		case eLeapDeviceStatus_BadControl:
-			ErrorString = TEXT("Bad Control");
-			break;
-		case eLeapDeviceStatus_UnknownFailure:
-		default:
-			ErrorString = TEXT("Unknown");
-			break;
-	}
-	UE_LOG(UltraleapTrackingLog, Warning, TEXT("OnDeviceFailure: %s (%d)"), *ErrorString, (int32) FailureCode);
-}
 
-void FUltraleapTrackingInputDevice::OnFrame(const LEAP_TRACKING_EVENT* Frame)
+void FUltraleapDevice::OnFrame(const LEAP_TRACKING_EVENT* Frame)
 {
 	// Not used. Polled on separate thread for lower latency.
 }
 
-void FUltraleapTrackingInputDevice::OnImage(const LEAP_IMAGE_EVENT* ImageEvent)
+void FUltraleapDevice::OnImage(const LEAP_IMAGE_EVENT* ImageEvent)
 {
 	// Forward it to the handler
 	LeapImageHandler->OnImage(ImageEvent);
 }
 
-void FUltraleapTrackingInputDevice::OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture)
+void FUltraleapDevice::OnImageCallback(UTexture2D* LeftCapturedTexture, UTexture2D* RightCapturedTexture)
 {
 	// Handler has returned with batched easy-to-parse results, forward callback
 	// on game thread
@@ -213,7 +137,7 @@ void FUltraleapTrackingInputDevice::OnImageCallback(UTexture2D* LeftCapturedText
 	});
 }
 
-void FUltraleapTrackingInputDevice::OnPolicy(const uint32_t CurrentPolicies)
+void FUltraleapDevice::OnPolicy(const uint32_t CurrentPolicies)
 {
 	TArray<TEnumAsByte<ELeapPolicyFlag>> Flags;
 	ELeapMode UpdatedMode = Options.Mode;
@@ -239,7 +163,7 @@ void FUltraleapTrackingInputDevice::OnPolicy(const uint32_t CurrentPolicies)
 		Component->OnLeapPoliciesUpdated.Broadcast(Flags);
 	});
 }
-void FUltraleapTrackingInputDevice::OnTrackingMode(const eLeapTrackingMode CurrentMode)
+void FUltraleapDevice::OnTrackingMode(const eLeapTrackingMode CurrentMode)
 {
 	switch (CurrentMode)
 	{
@@ -260,7 +184,7 @@ void FUltraleapTrackingInputDevice::OnTrackingMode(const eLeapTrackingMode Curre
 		Component->OnLeapTrackingModeUpdated.Broadcast(UpdatedMode);
 	});
 }
-void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Timestamp, const char* Message)
+void FUltraleapDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Timestamp, const char* Message)
 {
 	if (!Message)
 	{
@@ -270,7 +194,6 @@ void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const
 	switch (Severity)
 	{
 		case eLeapLogSeverity_Unknown:
-			break;
 		case eLeapLogSeverity_Critical:
 			if (Options.LeapServiceLogLevel > ELeapServiceLogLevel::LEAP_LOG_NONE)
 			{
@@ -299,9 +222,8 @@ void FUltraleapTrackingInputDevice::OnLog(const eLeapLogSeverity Severity, const
 #pragma region Leap Input Device
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
-#define START_IN_OPEN_XR_MODE 0
-FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
-	: MessageHandler(InMessageHandler), Leap(nullptr), Connector(nullptr)
+
+FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper) : Leap(LeapDeviceWrapper)
 {
 	// Link callbacks
 
@@ -315,21 +237,17 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
 
-	SwitchTrackingSource(START_IN_OPEN_XR_MODE);
-	Options.bUseOpenXRAsSource = START_IN_OPEN_XR_MODE;
+	// TODO: multi open XR for multileap?
+	// probably delete this and create the openXR wrapper at same level as this
+	static const bool StartInOpenXRMode = false;
+	SwitchTrackingSource(StartInOpenXRMode);
+	Options.bUseOpenXRAsSource = StartInOpenXRMode;
 
-	// Multi-device note: attach multiple devices and get another ID?
-	// Origin will be different if mixing vr with desktop/mount
-
-	// Add IM keys
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchL, LOCTEXT("LeapPinchL", "Leap (L) Pinch"), FKeyDetails::GamepadKey));
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
+	Init();
 }
 
 #undef LOCTEXT_NAMESPACE
-void FUltraleapTrackingInputDevice::PostEarlyInit()
+void FUltraleapDevice::Init()
 {
 	// Attach to bodystate
 	Config.DeviceName = "Leap Motion";
@@ -347,9 +265,11 @@ void FUltraleapTrackingInputDevice::PostEarlyInit()
 
 	// Image support
 	LeapImageHandler = MakeShareable(new FLeapImage);
-	LeapImageHandler->OnImageCallback.AddRaw(this, &FUltraleapTrackingInputDevice::OnImageCallback);
+	LeapImageHandler->OnImageCallback.AddRaw(this, &FUltraleapDevice::OnImageCallback);
+
+	InitOptions();
 }
-FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
+FUltraleapDevice::~FUltraleapDevice()
 {
 #if WITH_EDITOR
 	if (LiveLink != nullptr)
@@ -362,21 +282,21 @@ FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 	ShutdownLeap();
 }
 
-void FUltraleapTrackingInputDevice::Tick(float DeltaTime)
+void FUltraleapDevice::Tick(float DeltaTime)
 {
 	GameTimeInSec += DeltaTime;
 	FrameTimeInMicros = DeltaTime * 1000000;
 }
 
 // Main loop event emitter
-void FUltraleapTrackingInputDevice::SendControllerEvents()
+void FUltraleapDevice::SendControllerEvents()
 {
 	CaptureAndEvaluateInput();
 }
 
-void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
+void FUltraleapDevice::CaptureAndEvaluateInput()
 {
-	SCOPE_CYCLE_COUNTER(STAT_LeapInputTick);
+	SCOPE_CYCLE_COUNTER(STAT_MultiLeapInputTick);
 	// Did a device connect?
 	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
@@ -434,7 +354,7 @@ void FUltraleapTrackingInputDevice::CaptureAndEvaluateInput()
 	ParseEvents();
 }
 
-void FUltraleapTrackingInputDevice::ParseEvents()
+void FUltraleapDevice::ParseEvents()
 {
 	// Early exit: no device attached that produces data
 	if (AttachedDevices.Num() < 1)
@@ -503,7 +423,7 @@ void FUltraleapTrackingInputDevice::ParseEvents()
 	LastLeapTime = Leap->GetNow();
 }
 
-void FUltraleapTrackingInputDevice::CheckHandVisibility()
+void FUltraleapDevice::CheckHandVisibility()
 {
 	if (UseTimeBasedVisibilityCheck)
 	{
@@ -643,7 +563,7 @@ void FUltraleapTrackingInputDevice::CheckHandVisibility()
 	}
 }
 
-void FUltraleapTrackingInputDevice::CheckPinchGesture()
+void FUltraleapDevice::CheckPinchGesture()
 {
 	if (UseTimeBasedGestureCheck)
 	{
@@ -754,7 +674,7 @@ void FUltraleapTrackingInputDevice::CheckPinchGesture()
 	}
 }
 
-void FUltraleapTrackingInputDevice::CheckGrabGesture()
+void FUltraleapDevice::CheckGrabGesture()
 {
 	if (UseTimeBasedGestureCheck)
 	{
@@ -864,29 +784,7 @@ void FUltraleapTrackingInputDevice::CheckGrabGesture()
 		}
 	}
 }
-
-void FUltraleapTrackingInputDevice::SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
-{
-	MessageHandler = InMessageHandler;
-}
-
-bool FUltraleapTrackingInputDevice::Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar)
-{
-	// Nothing necessary to do (boilerplate code to complete the interface)
-	return false;
-}
-
-void FUltraleapTrackingInputDevice::SetChannelValue(int32 ControllerId, FForceFeedbackChannelType ChannelType, float Value)
-{
-	// Nothing necessary to do (boilerplate code to complete the interface)
-}
-
-void FUltraleapTrackingInputDevice::SetChannelValues(int32 ControllerId, const FForceFeedbackValues& values)
-{
-	// Nothing necessary to do (boilerplate code to complete the interface)
-}
-
-void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* EventDelegate)
+void FUltraleapDevice::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
 	UWorld* ComponentWorld = nullptr;
 	if (EventDelegate->GetOwner())
@@ -917,14 +815,14 @@ void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* Event
 	}
 }
 
-void FUltraleapTrackingInputDevice::RemoveEventDelegate(const ULeapComponent* EventDelegate)
+void FUltraleapDevice::RemoveEventDelegate(const ULeapComponent* EventDelegate)
 {
 	EventDelegates.Remove((ULeapComponent*) EventDelegate);
 	// UE_LOG(UltraleapTrackingLog, Log, TEXT("RemoveEventDelegate (%d)."),
 	// EventDelegates.Num());
 }
 
-void FUltraleapTrackingInputDevice::ShutdownLeap()
+void FUltraleapDevice::ShutdownLeap()
 {
 	// Detach from body state
 	UBodyStateBPLibrary::DetachDevice(BodyStateDeviceId);
@@ -940,23 +838,23 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 	}
 }
 
-void FUltraleapTrackingInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
+void FUltraleapDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
 {
 	LeftHandIsVisible = CurrentFrame.LeftHandVisible;
 	RightHandIsVisible = CurrentFrame.RightHandVisible;
 }
 
-void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame)
+void FUltraleapDevice::LatestFrame(FLeapFrameData& OutFrame)
 {
 	OutFrame = CurrentFrame;
 }
-void FUltraleapTrackingInputDevice::SetSwizzles(
+void FUltraleapDevice::SetSwizzles(
 	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
 {
 	Leap->SetSwizzles(ToX, ToY, ToZ, ToW);
 }
 // Policies
-void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
+void FUltraleapDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
 	switch (Flag)
 	{
@@ -980,7 +878,7 @@ void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 	}
 }
 // v5 implementation of tracking mode
-void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag)
+void FUltraleapDevice::SetTrackingMode(ELeapMode Flag)
 {
 	switch (Flag)
 	{
@@ -999,9 +897,9 @@ void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag)
 
 #pragma region BodyState
 
-void FUltraleapTrackingInputDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
+void FUltraleapDevice::UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton)
 {
-	SCOPE_CYCLE_COUNTER(STAT_LeapBodyStateTick);
+	SCOPE_CYCLE_COUNTER(STAT_MultiLeapBodyStateTick);
 	// UE_LOG(UltraleapTrackingLog, Log, TEXT("Update requested for %d"),
 	// DeviceID);
 	bool bLeftIsTracking = false;
@@ -1104,14 +1002,7 @@ void FUltraleapTrackingInputDevice::UpdateInput(int32 DeviceID, class UBodyState
 	}
 #endif
 }
-
-void FUltraleapTrackingInputDevice::OnDeviceDetach()
-{
-	ShutdownLeap();
-	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceDetach call from BodyState."));
-}
-
-void FUltraleapTrackingInputDevice::SetBSFingerFromLeapDigit(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
+void FUltraleapDevice::SetBSFingerFromLeapDigit(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
 {
 	Finger->Metacarpal->SetPosition(LeapDigit.Metacarpal.PrevJoint);
 	Finger->Metacarpal->SetOrientation(LeapDigit.Metacarpal.Rotation);
@@ -1128,7 +1019,7 @@ void FUltraleapTrackingInputDevice::SetBSFingerFromLeapDigit(UBodyStateFinger* F
 	Finger->bIsExtended = LeapDigit.IsExtended;
 }
 
-void FUltraleapTrackingInputDevice::SetBSThumbFromLeapThumb(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
+void FUltraleapDevice::SetBSThumbFromLeapThumb(UBodyStateFinger* Finger, const FLeapDigitData& LeapDigit)
 {
 	Finger->Metacarpal->SetPosition(LeapDigit.Proximal.PrevJoint);
 	Finger->Metacarpal->SetOrientation(LeapDigit.Proximal.Rotation);
@@ -1142,7 +1033,7 @@ void FUltraleapTrackingInputDevice::SetBSThumbFromLeapThumb(UBodyStateFinger* Fi
 	Finger->bIsExtended = LeapDigit.IsExtended;
 }
 
-void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHandData& LeapHand)
+void FUltraleapDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHandData& LeapHand)
 {
 	SetBSThumbFromLeapThumb(Hand->ThumbFinger(), LeapHand.Thumb);
 	SetBSFingerFromLeapDigit(Hand->IndexFinger(), LeapHand.Index);
@@ -1152,23 +1043,11 @@ void FUltraleapTrackingInputDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, 
 
 	Hand->Wrist->SetPosition(LeapHand.Arm.NextJoint);
 	Hand->Wrist->SetOrientation(LeapHand.Palm.Orientation);
-
-	// did our confidence change? set it recursively
-	/* 4.0 breaks this as confidence isn't set!
-	if (Hand->Wrist->Meta.Confidence != LeapHand.Confidence)
-	{
-			Hand->Wrist->SetTrackingConfidenceRecursively(LeapHand.Confidence);
-	}*/
 }
 
 #pragma endregion BodyState
-void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
+void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 {
-	if (IsWaitingForConnect)
-	{
-		UE_LOG(UltraleapTrackingLog, Warning,
-			TEXT("FUltraleapTrackingInputDevice::SwitchTrackingSource switch attempted whilst async connect in progress"));
-	}
 	if (Leap != nullptr)
 	{
 		Leap->CloseConnection();
@@ -1184,14 +1063,10 @@ void FUltraleapTrackingInputDevice::SwitchTrackingSource(const bool UseOpenXRAsS
 		Connector = dynamic_cast<ILeapConnector*>(Wrapper);
 		Leap = TSharedPtr<IHandTrackingWrapper>(Wrapper);
 	}
-	if (!UseOpenXRAsSource)
-	{
-		IsWaitingForConnect = true;
-	}
 	
 	Leap->OpenConnection(this);
 }
-void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
+void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 {
 	if (GEngine && GEngine->XRSystem.IsValid())
 	{
@@ -1471,14 +1346,19 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
 }
-FLeapOptions FUltraleapTrackingInputDevice::GetOptions()
+FLeapOptions FUltraleapDevice::GetOptions()
 {
 	return Options;
 }
 
-FLeapStats FUltraleapTrackingInputDevice::GetStats()
+FLeapStats FUltraleapDevice::GetStats()
 {
 	return Stats;
+}
+void FUltraleapDevice::OnDeviceDetach()
+{
+	ShutdownLeap();
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceDetach call from BodyState."));
 }
 
 #pragma endregion Leap Input Device

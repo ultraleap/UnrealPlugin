@@ -13,6 +13,8 @@
 #include "LeapC.h"
 #include "UltraleapTrackingData.h"
 #include "LeapWrapper.h"
+#include "FUltraleapDevice.h"
+
 /** Wraps/Abstracts a Device */
 class FLeapDeviceWrapper : public FLeapWrapperBase
 {
@@ -84,9 +86,6 @@ private:
 	void CleanupLastDevice();
 
 	// Received LeapC callbacks (filtered by device) converted into game thread events
-	void HandleConnectionEvent(const LEAP_CONNECTION_EVENT* ConnectionEvent);
-	void HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT* ConnectionLostEvent);
-	void HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent);
 	void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent);
 	void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent);
 	void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent);
@@ -112,4 +111,7 @@ private:
 	FGraphEventRef TaskRefConfigResponse;
 
 	IHandTrackingWrapper* Connector;
+
+	// manages per device functionality in the same way as InputDevice used to
+	FUltraleapDevice Device;
 };

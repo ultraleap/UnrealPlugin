@@ -13,9 +13,10 @@
 
 #pragma region Leap Device Wrapper
 
+// created when a device is found
 FLeapDeviceWrapper::FLeapDeviceWrapper(
 	const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, IHandTrackingWrapper* ConnectorIn)
-	: bIsRunning(false)
+	: Device((IHandTrackingWrapper*)this), bIsRunning(false)
 {
 	InterpolatedFrame = nullptr;
 	InterpolatedFrameSize = 0;
@@ -201,41 +202,8 @@ void FLeapDeviceWrapper::SetFrame(const LEAP_TRACKING_EVENT* Frame)
 	DataLock->Unlock();
 }
 
-/** Called by ServiceMessageLoop() when a connection event is returned by LeapPollConnection(). */
-void FLeapDeviceWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT* ConnectionEvent)
-{
-	bIsConnected = true;
-	if (CallbackDelegate)
-	{
-		CallbackDelegate->OnConnect();
-	}
-}
 
-/** Called by ServiceMessageLoop() when a connection lost event is returned by LeapPollConnection(). */
-void FLeapDeviceWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT* ConnectionLostEvent)
-{
-	bIsConnected = false;
-	CleanupLastDevice();
 
-	if (CallbackDelegate)
-	{
-		CallbackDelegate->OnConnectionLost();
-	}
-}
-
-/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
-void FLeapDeviceWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent)
-{
-	if (CallbackDelegate)
-	{
-		TaskRefDeviceFailure = FLeapAsync::RunShortLambdaOnGameThread([DeviceFailureEvent, this] {
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnDeviceFailure(DeviceFailureEvent->status, DeviceFailureEvent->hDevice);
-			}
-		});
-	}
-}
 
 /** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
 void FLeapDeviceWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent)

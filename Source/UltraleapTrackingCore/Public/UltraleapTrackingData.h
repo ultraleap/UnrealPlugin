@@ -68,6 +68,15 @@ enum ELeapMultiDeviceMode
 	LEAP_MULTI_DEVICE_COMBINED
 };
 
+struct EKeysLeap
+{
+	static const FKey LeapPinchL;
+	static const FKey LeapGrabL;
+
+	static const FKey LeapPinchR;
+	static const FKey LeapGrabR;
+};
+
 USTRUCT(BlueprintType)
 struct ULTRALEAPTRACKING_API FLeapDevice
 {
