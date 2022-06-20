@@ -81,11 +81,11 @@ void ULeapComponent::UninitializeComponent()
 void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 {
 	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
-	if (PropertyName == "ActiveDeviceSerial")
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ULeapComponent, ActiveDeviceSerial))
 	{
 		UpdateActiveDevice(ActiveDeviceSerial);
 	}
-	else if (PropertyName == "MultiDeviceMode")
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULeapComponent, MultiDeviceMode))
 	{
 		UpdateMultiDeviceMode(MultiDeviceMode);
 	}
@@ -102,7 +102,7 @@ void ULeapComponent::RefreshDeviceList()
 #if WITH_EDITOR
 		if (DetailBuilder)
 		{
-			auto DeviceSerialProperty = DetailBuilder->GetProperty("ActiveDeviceSerial");
+			auto DeviceSerialProperty = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULeapComponent, ActiveDeviceSerial));
 			if (DeviceSerialProperty->IsValidHandle())
 			{
 				DeviceSerialProperty->NotifyPostChange();
