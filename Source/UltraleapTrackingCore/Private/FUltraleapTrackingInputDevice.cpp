@@ -378,7 +378,7 @@ void FUltraleapTrackingInputDevice::InitTrackingSource(const bool UseOpenXRAsSou
 	{
 		IsWaitingForConnect = true;
 	}
-	static const bool UseMultiDevice = false;
+	static const bool UseMultiDevice = true;
 	Leap->OpenConnection(this, UseMultiDevice);
 }
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)

@@ -343,6 +343,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 			return;
 		}
 	}
+	Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
 	AddDevice(DeviceEvent->device.id, DeviceProperties);
 	
 	
@@ -431,13 +432,6 @@ void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* Dev
 /** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent,const uint32_t DeviceID)
 {
-	// temp disable
-	/*if (DeviceId == 2) {
-		return;
-	}*/
-
-	//SetFrame(TrackingEvent);	// support polling tracking data from different thread
-
 	auto CallbackDelegate = GetCallbackDelegateFromDeviceID(DeviceID);
 	// Callback delegate is checked twice since the second call happens on the second thread and may be invalidated!
 	if (CallbackDelegate)
@@ -584,7 +578,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 				continue;
 			}
 		}
-		
+
 		switch (Msg.type)
 		{
 			case eLeapEventType_Connection:
