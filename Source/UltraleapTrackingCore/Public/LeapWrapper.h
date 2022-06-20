@@ -75,7 +75,7 @@ public:
 
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) = 0;
-
+	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) = 0;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;
 	
 	virtual const char* ResultString(eLeapRS Result) = 0;
@@ -145,7 +145,11 @@ public:
 	{
 		return nullptr;
 	}
-
+	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) override
+	{
+		return nullptr;
+	}
+	
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override
 	{
 		return nullptr;
@@ -258,6 +262,7 @@ public:
 
 	/** Uses leap method to get an interpolated frame at a given leap timestamp in microseconds given by e.g. LeapGetNow()*/
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override;
+	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) override;
 
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override
 	{

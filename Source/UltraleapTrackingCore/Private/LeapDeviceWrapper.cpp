@@ -132,7 +132,10 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetFrame()
 
 LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
-	// TODO: proxy to singleton LeapWrapper (service poller)
+	if (Connector)
+	{
+		return Connector->GetInterpolatedFrameAtTimeEx(TimeStamp, DeviceID);
+	}
 	return nullptr;
 }
 

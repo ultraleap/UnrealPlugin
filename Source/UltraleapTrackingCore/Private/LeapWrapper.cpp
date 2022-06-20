@@ -129,7 +129,7 @@ LEAP_DEVICE FLeapWrapper::GetDeviceHandleFromDeviceID(const uint32_t DeviceID)
 	return DeviceHandle;
 }
 void FLeapWrapper::SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID /* = 0*/)
-	{
+{
 	if (!DeviceID)
 	{
 		SetTrackingMode(TrackingMode);
@@ -211,6 +211,39 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 
 		// Grab the new frame
 		LeapInterpolateFrame(ConnectionHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
+	}
+
+	return InterpolatedFrame;
+}
+LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID)
+{
+	if (!DeviceID)
+	{
+		return GetInterpolatedFrameAtTime(TimeStamp);
+	}
+	uint64_t FrameSize = 0;
+	LEAP_DEVICE DeviceHandle = nullptr;
+
+	GetDeviceHandleFromDeviceID(DeviceID);
+	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize );
+
+	// Check validity of frame size
+	if (FrameSize > 0)
+	{
+		// Different frame?
+		if (FrameSize != InterpolatedFrameSize)
+		{
+			// If we already have an allocated frame, free it
+			if (InterpolatedFrame)
+			{
+				free(InterpolatedFrame);
+			}
+			InterpolatedFrame = (LEAP_TRACKING_EVENT*) malloc(FrameSize);
+		}
+		InterpolatedFrameSize = FrameSize;
+
+		// Grab the new frame
+		LeapInterpolateFrameEx(ConnectionHandle,DeviceHandle,TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
 	}
 
 	return InterpolatedFrame;
