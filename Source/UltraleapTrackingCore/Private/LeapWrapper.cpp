@@ -653,4 +653,26 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSeria
 	}
 	return Ret;
 }
+void FLeapWrapper::TickDevices(const float DeltaTime) 
+{
+	for (auto Device : Devices)
+	{
+		auto InternalDevice = Device->GetDevice();
+		if (InternalDevice)
+		{
+			InternalDevice->Tick(DeltaTime);
+		}
+	}
+}
+void FLeapWrapper::TickSendControllerEventsOnDevices()
+{
+	for (auto Device : Devices)
+	{
+		auto InternalDevice = Device->GetDevice();
+		if (InternalDevice)
+		{
+			InternalDevice->SendControllerEvents();
+		}
+	}
+}
 #pragma endregion LeapC Wrapper

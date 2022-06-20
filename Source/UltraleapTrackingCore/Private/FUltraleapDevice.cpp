@@ -118,7 +118,10 @@ void FUltraleapDevice::InitOptions()
 
 void FUltraleapDevice::OnFrame(const LEAP_TRACKING_EVENT* Frame)
 {
-	// Not used. Polled on separate thread for lower latency.
+	if (TrackingDeviceWrapper)
+	{
+		TrackingDeviceWrapper->HandleTrackingEvent(Frame);
+	}
 }
 
 void FUltraleapDevice::OnImage(const LEAP_IMAGE_EVENT* ImageEvent)
@@ -223,8 +226,9 @@ void FUltraleapDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Time
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
 
-FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper) : 
-	Leap(LeapDeviceWrapper), LiveLink(nullptr)
+FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITrackingDeviceWrapper* TrackingDeviceWrapperIn)
+	: 
+	Leap(LeapDeviceWrapper), TrackingDeviceWrapper(TrackingDeviceWrapperIn), LiveLink(nullptr)
 {
 	// Link callbacks
 
@@ -364,12 +368,6 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 
 void FUltraleapDevice::ParseEvents()
 {
-	// Early exit: no device attached that produces data
-	if (AttachedDevices.Num() < 1)
-	{
-		return;
-	}
-
 	// Are we in HMD mode? add our HMD snapshot
 	// Note with Open XR, the data is already transformed for the HMD/player camera
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD && !Options.bUseOpenXRAsSource)

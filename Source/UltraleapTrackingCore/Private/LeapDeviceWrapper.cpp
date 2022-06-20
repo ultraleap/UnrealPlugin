@@ -23,7 +23,7 @@ FLeapDeviceWrapper::FLeapDeviceWrapper(
 	, bIsRunning(false)
 	, Connector(ConnectorIn)
 	// note: device depends on this class being initialised so construct last
-	, Device((IHandTrackingWrapper*) this)
+	, Device((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*)this)
 {
 	SetDevice(&DeviceInfoIn);
 }
@@ -62,7 +62,13 @@ void FLeapDeviceWrapper::SetCallbackDelegate(LeapWrapperCallbackInterface* InCal
 	}
 }
 
-
+LEAP_CONNECTION* FLeapDeviceWrapper::OpenConnection(
+	LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
+{
+	CallbackDelegate = InCallbackDelegate;
+	bIsConnected = true;
+	return nullptr;
+}
 void FLeapDeviceWrapper::CloseConnection()
 {
 	if (!bIsConnected)
@@ -86,6 +92,7 @@ void FLeapDeviceWrapper::CloseConnection()
 
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("Connection successfully closed."));
 }
+
 void FLeapDeviceWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 {
 	// TODO: proxy to singleton LeapWrapper passing in device handle (service poller)
@@ -94,6 +101,7 @@ void FLeapDeviceWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {
 	// TODO: proxy to singleton LeapWrapper passing in device handle (service poller)
 }
+
 
 void FLeapDeviceWrapper::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
 {
@@ -209,21 +217,7 @@ void FLeapDeviceWrapper::SetFrame(const LEAP_TRACKING_EVENT* Frame)
 /** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
 void FLeapDeviceWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent)
 {
-	// temp disable
-	/*if (DeviceId == 2) {
-		return;
-	}*/
-
 	SetFrame(TrackingEvent);	// support polling tracking data from different thread
-
-	// Callback delegate is checked twice since the second call happens on the second thread and may be invalidated!
-	if (CallbackDelegate)
-	{
-		LeapWrapperCallbackInterface* SafeDelegate = CallbackDelegate;
-
-		// Run this on bg thread still
-		CallbackDelegate->OnFrame(TrackingEvent);
-	}
 }
 
 void FLeapDeviceWrapper::HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent)

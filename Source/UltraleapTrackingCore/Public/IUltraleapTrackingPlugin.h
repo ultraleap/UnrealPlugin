@@ -20,6 +20,9 @@ public:
 	// todo: add aggregator/combiner class
 	// if in singular mode pass one tracking device serial
 	virtual class IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) = 0;
+
+	virtual void TickDevices(const float DeltaTime) = 0;
+	virtual void TickSendControllerEventsOnDevices() = 0;
 };
 /**
  * The public interface to this module.  In most cases, this interface is only public to sibling modules

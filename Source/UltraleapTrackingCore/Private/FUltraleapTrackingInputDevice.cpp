@@ -210,13 +210,19 @@ FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 
 void FUltraleapTrackingInputDevice::Tick(float DeltaTime)
 {
-	// TODO: tick any attached devices from here
+	if (Connector)
+	{
+		Connector->TickDevices(DeltaTime);
+	}
 }
 
 // Main loop event emitter
 void FUltraleapTrackingInputDevice::SendControllerEvents()
 {
-	// TODO: proxy to attached device's CaptureAndEvaluate
+	if (Connector)
+	{
+		Connector->TickSendControllerEventsOnDevices();
+	}
 }
 
 void FUltraleapTrackingInputDevice::SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)

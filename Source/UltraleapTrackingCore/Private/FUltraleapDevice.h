@@ -31,14 +31,10 @@
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
 {
 public:
-	FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper);
+	FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn);
 	virtual ~FUltraleapDevice();
 
-	/** Tick the interface (e.g. check for new controllers) */
-	virtual void Tick(float DeltaTime);
-
-	/** Poll for controller state and send events if needed */
-	virtual void SendControllerEvents();
+	
 
 	/** Main input capture and event parsing 'tick' */
 	void CaptureAndEvaluateInput();
@@ -47,6 +43,10 @@ public:
 	// IHandTrackingDevice implementation
 	virtual void AddEventDelegate(const ULeapComponent* EventDelegate) override;
 	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate) override;
+	/** Tick the interface (e.g. check for new controllers) */
+	virtual void Tick(float DeltaTime) override;
+	/** Poll for controller state and send events if needed */
+	virtual void SendControllerEvents() override;
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
@@ -138,7 +138,6 @@ private:
 	FLeapFrameData CurrentFrame;
 	FLeapFrameData PastFrame;
 
-	TArray<FString> AttachedDevices;
 	TArray<int32> PastVisibleHands;
 
 	// Time warp support
@@ -153,6 +152,7 @@ private:
 	// Wrapper link
 	TSharedPtr<IHandTrackingWrapper> Leap;
 	ILeapConnector* Connector;
+	ITrackingDeviceWrapper* TrackingDeviceWrapper;
 
 	// LeapWrapper Callbacks
 	// Per device

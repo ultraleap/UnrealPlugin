@@ -36,6 +36,20 @@ class IHandTrackingDevice
 public:
 	virtual void AddEventDelegate(const ULeapComponent* EventDelegate)  = 0;
 	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate)  = 0;
+
+	virtual void Tick(const float DeltaTime) = 0;
+	virtual void SendControllerEvents() = 0;
+};
+class ITrackingDeviceWrapper
+{
+public:
+	virtual void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent) = 0;
+	virtual void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent) = 0;
+	virtual void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent) = 0;
+	virtual void HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent) = 0;
+	virtual void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent) = 0;
+	virtual void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent) = 0;
+	virtual void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent) = 0;
 };
 class IHandTrackingWrapper
 {
@@ -86,7 +100,7 @@ public:
 	virtual IHandTrackingDevice* GetDevice() = 0;
 };
 
-class FLeapWrapperBase : public IHandTrackingWrapper
+class FLeapWrapperBase : public IHandTrackingWrapper, public ITrackingDeviceWrapper
 {
 public:
 	LEAP_DEVICE_INFO* CurrentDeviceInfo = NULL;
@@ -174,6 +188,30 @@ public:
 	{
 		return nullptr;
 	}
+
+	// ITrackingDeviceWrapper
+	virtual void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent) override
+	{
+	}
+	virtual void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent) override
+	{
+	}
+	virtual void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent) override
+	{
+	}
+	virtual void HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent) override
+	{
+	}
+	virtual void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent) override
+	{
+	}
+	virtual void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent) override
+	{
+	}
+	virtual void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent) override
+	{
+	}
+
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -255,6 +293,8 @@ public:
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) override;
+	virtual void TickDevices(const float DeltaTime);
+	virtual void TickSendControllerEventsOnDevices();
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);

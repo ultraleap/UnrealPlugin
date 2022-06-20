@@ -27,8 +27,11 @@ public:
 
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
 
+	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
+	virtual LEAP_CONNECTION* FLeapDeviceWrapper::OpenConnection(
+		LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode) override;
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
-	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate);
+	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) override;
 
 	/** Close the connection, it will nullify the callback delegate */
 	virtual void CloseConnection() override;
@@ -91,13 +94,14 @@ private:
 	void CleanupLastDevice();
 
 	// Received LeapC callbacks (filtered by device) converted into game thread events
-	void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent);
-	void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent);
-	void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent);
-	void HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent);
-	void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent);
-	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent);
-	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent);
+	// ITrackingDeviceWrapper
+	virtual void HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent) override;
+	virtual void HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent) override;
+	virtual void HandleLogEvent(const LEAP_LOG_EVENT* LogEvent) override;
+	virtual void HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent) override;
+	virtual void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent) override;
+	virtual void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent) override;
+	virtual void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent) override;
 
 	FThreadSafeBool bIsRunning;
 
