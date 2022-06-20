@@ -19,6 +19,7 @@
 #include "Skeleton/BodyStateSkeleton.h"
 #include "UltraleapTrackingData.h"
 
+
 DECLARE_STATS_GROUP(TEXT("UltraleapMultiTracking"), STATGROUP_UltraleapMultiTracking, STATCAT_Advanced);
 DECLARE_CYCLE_STAT(TEXT("Multi Leap Game Input and Events"), STAT_MultiLeapInputTick, STATGROUP_UltraleapMultiTracking);
 DECLARE_CYCLE_STAT(TEXT("Multi Leap BodyState Tick"), STAT_MultiLeapBodyStateTick, STATGROUP_UltraleapMultiTracking);
@@ -228,7 +229,7 @@ void FUltraleapDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Time
 
 FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITrackingDeviceWrapper* TrackingDeviceWrapperIn)
 	: 
-	Leap(LeapDeviceWrapper), TrackingDeviceWrapper(TrackingDeviceWrapperIn), LiveLink(nullptr)
+	Leap(LeapDeviceWrapper), TrackingDeviceWrapper(TrackingDeviceWrapperIn)
 {
 	// Link callbacks
 
