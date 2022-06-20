@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 #pragma once
-
+#include "InputCoreTypes.h" // for FKey
 #include "UltraleapTrackingData.generated.h"
 
 UENUM(BlueprintType)
