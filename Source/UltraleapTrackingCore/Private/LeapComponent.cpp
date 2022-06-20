@@ -10,7 +10,8 @@
 
 #include "IUltraleapTrackingPlugin.h"
 
-ULeapComponent::ULeapComponent(const FObjectInitializer& init) : UActorComponent(init)
+ULeapComponent::ULeapComponent(const FObjectInitializer& init) : 
+	UActorComponent(init), CurrentHandTrackingDevice(nullptr)
 {
 #if WITH_EDITOR
 	DetailBuilder = nullptr;
@@ -24,7 +25,11 @@ ULeapComponent::ULeapComponent(const FObjectInitializer& init) : UActorComponent
 	OnLeapDeviceDetached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
 
 }
-void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
+ULeapComponent::~ULeapComponent() 
+{
+	UnsubscribeFromCurrentDevice();
+}
+	void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
 {
 	// this needs to propagate to all other components with same id
 }
@@ -45,6 +50,9 @@ void ULeapComponent::ConnectToInputEvents()
 	RefreshDeviceList();
 
 	IsConnectedToInputEvents = true;
+
+	// Subscribe to active device
+	UpdateActiveDevice(ActiveDeviceSerial);
 }
 void ULeapComponent::InitializeComponent()
 {
@@ -62,18 +70,62 @@ bool ULeapComponent::UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode
 	MultiDeviceMode = DeviceMode;
 	return false;
 }
+bool ULeapComponent::UnsubscribeFromCurrentDevice()
+{
+	bool Success = false;
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector && CurrentHandTrackingDevice)
+	{
+		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			Device->RemoveEventDelegate(this);
+			Success = true;
+		}
+	}
+
+	return Success;
+}
+bool ULeapComponent::SubscribeToDevice()
+{
+	bool Success = false;
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector)
+	{
+		// disconnect previous first
+		UnsubscribeFromCurrentDevice();
+
+		TArray<FString> DeviceSerials;
+		// when combined/aggregated, this can contain more serials
+		DeviceSerials.Add(ActiveDeviceSerial);
+		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials);
+		Success = (CurrentHandTrackingDevice != nullptr);
+
+		if (Success)
+		{
+			IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
+			if (Device)
+			{
+				Device->AddEventDelegate(this);
+			}
+		}
+	}
+	return Success;
+}
 bool ULeapComponent::UpdateActiveDevice(const FString& DeviceSerial)
 {
+	
 	// this will already be set if Update came from the UI
 	// set here for programatically setting it
 	ActiveDeviceSerial = DeviceSerial;
-	return false;
+	
+	return SubscribeToDevice();
 }
 void ULeapComponent::UninitializeComponent()
 {
 	// remove ourselves from the delegates
 	IUltraleapTrackingPlugin::Get().RemoveEventDelegate(this);
-
+	UnsubscribeFromCurrentDevice();
 	Super::UninitializeComponent();
 }
 #if WITH_EDITOR

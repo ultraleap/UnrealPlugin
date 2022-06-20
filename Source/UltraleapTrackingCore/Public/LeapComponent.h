@@ -31,6 +31,8 @@ class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent
 {
 	GENERATED_UCLASS_BODY()
 public:
+	~ULeapComponent();
+
 	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceAttached;
@@ -167,10 +169,15 @@ protected:
 
 private:
 	void RefreshDeviceList();
+	bool SubscribeToDevice();
+	bool UnsubscribeFromCurrentDevice();
+
 #if WITH_EDITOR
 	// custom detail panel interface
 	IDetailLayoutBuilder* DetailBuilder;
 #endif
 	void ConnectToInputEvents();
 	bool IsConnectedToInputEvents;
+
+	IHandTrackingWrapper* CurrentHandTrackingDevice;
 };

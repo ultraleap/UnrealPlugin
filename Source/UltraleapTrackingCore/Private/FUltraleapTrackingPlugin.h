@@ -37,7 +37,7 @@ public:
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override;
 
 	virtual ILeapConnector* GetConnector() override;
-	
+
 	bool IsActive();
 
 private:

@@ -67,6 +67,11 @@ public:
 		return Ret;
 	}
 
+	virtual IHandTrackingDevice* GetDevice() override
+	{
+		return &Device;
+	}
+
 private:
 	void Millisleep(int Milliseconds);
 

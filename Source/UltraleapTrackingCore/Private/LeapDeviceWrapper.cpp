@@ -16,15 +16,15 @@
 // created when a device is found
 FLeapDeviceWrapper::FLeapDeviceWrapper(
 	const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, IHandTrackingWrapper* ConnectorIn)
-	:	bIsRunning(false),
-		Device((IHandTrackingWrapper*) this)
+	:	
+	DeviceID(DeviceIDIn)
+	, DataLock(new FCriticalSection())
+	, InterpolatedFrame(nullptr), InterpolatedFrameSize(0)
+	, bIsRunning(false)
+	, Connector(ConnectorIn)
+	// note: device depends on this class being initialised so construct last
+	, Device((IHandTrackingWrapper*) this)
 {
-	InterpolatedFrame = nullptr;
-	InterpolatedFrameSize = 0;
-	DataLock = new FCriticalSection();
-
-	DeviceID = DeviceIDIn;
-	Connector = ConnectorIn;
 	SetDevice(&DeviceInfoIn);
 }
 

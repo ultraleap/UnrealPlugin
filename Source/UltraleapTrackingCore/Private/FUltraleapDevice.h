@@ -28,7 +28,7 @@
  */
 
 
-class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface
+class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
 {
 public:
 	FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper);
@@ -44,8 +44,11 @@ public:
 	void CaptureAndEvaluateInput();
 	void ParseEvents();
 
-	void AddEventDelegate(const ULeapComponent* EventDelegate);
-	void RemoveEventDelegate(const ULeapComponent* EventDelegate);
+	// IHandTrackingDevice implementation
+	virtual void AddEventDelegate(const ULeapComponent* EventDelegate) override;
+	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate) override;
+	// end of IHandTrackingDevice implementation
+
 	void ShutdownLeap();
 	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
 	void LatestFrame(FLeapFrameData& OutFrame);

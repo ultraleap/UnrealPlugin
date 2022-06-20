@@ -109,10 +109,10 @@ int64 FUltraleapDevice::GetInterpolatedNow()
 // comes from service message loop
 void FUltraleapDevice::InitOptions()
 {
-	FLeapAsync::RunShortLambdaOnGameThread([&] {
+	//FLeapAsync::RunShortLambdaOnGameThread([&] {
 
 		SetOptions(Options);
-	});
+//	});
 }
 
 
@@ -269,6 +269,11 @@ void FUltraleapDevice::Init()
 	LeapImageHandler->OnImageCallback.AddRaw(this, &FUltraleapDevice::OnImageCallback);
 
 	InitOptions();
+
+	if (Leap)
+	{
+		Leap->SetCallbackDelegate(this);
+	}
 }
 FUltraleapDevice::~FUltraleapDevice()
 {
@@ -785,6 +790,8 @@ void FUltraleapDevice::CheckGrabGesture()
 		}
 	}
 }
+// Device specific events such as tracking mode change will be passed through here
+// in addition to global events such as add remove device.
 void FUltraleapDevice::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
 	UWorld* ComponentWorld = nullptr;

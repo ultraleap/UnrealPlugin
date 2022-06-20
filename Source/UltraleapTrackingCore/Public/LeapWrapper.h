@@ -31,7 +31,12 @@ public:
 	virtual void OnConfigChange(const uint32_t RequestID, const bool Success){};
 	virtual void OnConfigResponse(const uint32_t RequestID, LEAP_VARIANT Value){};
 };
-
+class IHandTrackingDevice
+{
+public:
+	virtual void AddEventDelegate(const ULeapComponent* EventDelegate)  = 0;
+	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate)  = 0;
+};
 class IHandTrackingWrapper
 {
 public:
@@ -77,6 +82,8 @@ public:
 	virtual void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 
 	virtual FString GetDeviceSerial() = 0;
+
+	virtual IHandTrackingDevice* GetDevice() = 0;
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper
@@ -163,7 +170,10 @@ public:
 	{
 		return TEXT("Unknown");
 	}
-
+	virtual IHandTrackingDevice* GetDevice() override
+	{
+		return nullptr;
+	}
 protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -238,7 +248,10 @@ public:
 	{
 		return TEXT("LeapWrapper/Connector");
 	}
-	
+	virtual IHandTrackingDevice* GetDevice() override
+	{
+		return nullptr;
+	}
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) override;

@@ -637,8 +637,20 @@ void FLeapWrapper::GetDeviceSerials(TArray<FString>& DeviceSerials)
 		DeviceSerials.Add(Device->GetDeviceSerial());
 	}
 }
-IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSerial)
+IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSerials)
 {
-	return nullptr;
+	IHandTrackingWrapper* Ret = nullptr;
+	// TODO: create a map
+	// TODO: support aggregation (currently hard wired to first device/singular mode)
+
+	for (auto Device : Devices)
+	{
+		if (DeviceSerials.Contains(Device->GetDeviceSerial()))
+		{
+			Ret = Device;
+			break;
+		}
+	}
+	return Ret;
 }
 #pragma endregion LeapC Wrapper

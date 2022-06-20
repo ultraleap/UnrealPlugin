@@ -225,7 +225,8 @@ void FUltraleapTrackingInputDevice::SetMessageHandler(const TSharedRef<FGenericA
 }
 
 
-
+// Multidevice note, this will receive global events such as device add/remove, connected, disconnected to service
+// Device specific events will be subscribed to from FUltraleapDevice
 void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* EventDelegate)
 {
 	UWorld* ComponentWorld = nullptr;
@@ -371,8 +372,8 @@ void FUltraleapTrackingInputDevice::InitTrackingSource(const bool UseOpenXRAsSou
 	{
 		IsWaitingForConnect = true;
 	}
-	
-	Leap->OpenConnection(this);
+	static const bool UseMultiDevice = false;
+	Leap->OpenConnection(this, UseMultiDevice);
 }
 void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
 {
