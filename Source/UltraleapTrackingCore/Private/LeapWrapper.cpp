@@ -158,7 +158,28 @@ void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetPolicyFlags failed in  FLeapWrapper::SetPolicy."));
 	}
 }
+void FLeapWrapper::SetPolicyEx(int64 Flags, int64 ClearFlags, const uint32_t DeviceID)
+{
+	if (!DeviceID)
+	{
+		SetPolicy(Flags, ClearFlags);
+	}
+	LEAP_DEVICE DeviceHandle = nullptr;
 
+	if (MapDeviceIDToDevice.Contains(DeviceID))
+	{
+		DeviceHandle = MapDeviceIDToDevice[DeviceID];
+	}
+	if (!DeviceHandle)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetPolicyEx failed cannot find device handle"));
+	}
+	eLeapRS Result = LeapSetPolicyFlagsEx(ConnectionHandle, DeviceHandle, Flags, ClearFlags);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetPolicyFlags failed in  FLeapWrapper::SetPolicyEx."));
+	}
+}
 void FLeapWrapper::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
 {
 	if (ShouldSet)

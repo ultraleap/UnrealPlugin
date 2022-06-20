@@ -149,6 +149,32 @@ void ULeapComponent::SetTrackingMode(ELeapMode Mode)
 		CurrentHandTrackingDevice->SetTrackingMode(LeapMode);
 	}
 }
+void ULeapComponent::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
+{
+	if (CurrentHandTrackingDevice)
+	{
+		switch (Flag)
+		{
+			case LEAP_POLICY_BACKGROUND_FRAMES:
+				CurrentHandTrackingDevice->SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
+				break;
+			case LEAP_POLICY_IMAGES:
+				CurrentHandTrackingDevice->SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
+				break;
+			// legacy 3.0 implementation superseded by SetTrackingMode
+			case LEAP_POLICY_OPTIMIZE_HMD:
+				CurrentHandTrackingDevice->SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
+				break;
+			case LEAP_POLICY_ALLOW_PAUSE_RESUME:
+				CurrentHandTrackingDevice->SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
+				break;
+			case LEAP_POLICY_MAP_POINTS:
+				CurrentHandTrackingDevice->SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
+			default:
+				break;
+		}
+	}
+}
 #if WITH_EDITOR
 // Property notifications
 void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)

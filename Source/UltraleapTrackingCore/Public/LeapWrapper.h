@@ -64,6 +64,7 @@ public:
 	virtual void CloseConnection() = 0;
 
 	virtual void SetPolicy(int64 Flags, int64 ClearFlags) = 0;
+	virtual void SetPolicyEx(int64 Flags, int64 ClearFlags, const uint32_t DeviceID = 0) = 0;
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) = 0;
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) = 0;
@@ -121,6 +122,10 @@ public:
 
 	virtual void SetPolicy(int64 Flags, int64 ClearFlags) override
 	{
+	}
+	virtual void SetPolicyEx(int64 Flags, int64 ClearFlags, const uint32_t DeviceID = 0) override
+	{
+
 	}
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override
 	{
@@ -251,6 +256,7 @@ public:
 	virtual void CloseConnection() override;
 
 	virtual void SetPolicy(int64 Flags, int64 ClearFlags) override;
+	virtual void SetPolicyEx(int64 Flags, int64 ClearFlags, const uint32_t DeviceID = 0) override;
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override;
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;

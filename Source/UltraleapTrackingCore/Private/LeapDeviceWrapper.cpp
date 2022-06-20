@@ -101,9 +101,14 @@ void FLeapDeviceWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 	}
 	Connector->SetTrackingModeEx(TrackingMode, DeviceID);
 }
+// Set policy is superceded by SetTrackingMode but still needed for images
 void FLeapDeviceWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {
-	// TODO: proxy to singleton LeapWrapper passing in device handle (service poller)
+	if (!Connector)
+	{
+		return;
+	}
+	Connector->SetPolicyEx(Flags,ClearFlags, DeviceID);
 }
 
 

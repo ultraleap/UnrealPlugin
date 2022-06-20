@@ -301,7 +301,6 @@ void FUltraleapTrackingInputDevice::SetSwizzles(
 // Policies
 void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
 {
-	// TODO: add by device ID or first device
 	switch (Flag)
 	{
 		case LEAP_POLICY_BACKGROUND_FRAMES:
