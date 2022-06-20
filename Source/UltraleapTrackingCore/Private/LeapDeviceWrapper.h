@@ -28,7 +28,7 @@ public:
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
 
 	/** Open the connection and set our static LeapWrapperCallbackInterface delegate */
-	virtual LEAP_CONNECTION* FLeapDeviceWrapper::OpenConnection(
+	virtual LEAP_CONNECTION* OpenConnection(
 		LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode) override;
 	/** Set the LeapWrapperCallbackInterface delegate. Note that only one can be set at any time (static) */
 	void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) override;
