@@ -67,6 +67,7 @@ public:
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) = 0;
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) = 0;
+	virtual void SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID = 0 ) = 0;
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -126,6 +127,9 @@ public:
 	}
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override
+	{
+	}
+	virtual void SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID = 0) override
 	{
 	}
 	// Polling functions
@@ -246,6 +250,7 @@ public:
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override;
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
+	virtual void SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID = 0) override;
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -356,4 +361,6 @@ private:
 
 	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo);
 	void RemoveDevice(const uint32_t DeviceID);
+
+	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);
 };

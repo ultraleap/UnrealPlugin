@@ -95,7 +95,11 @@ void FLeapDeviceWrapper::CloseConnection()
 
 void FLeapDeviceWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 {
-	// TODO: proxy to singleton LeapWrapper passing in device handle (service poller)
+	if (!Connector)
+	{
+		return; 
+	}
+	Connector->SetTrackingModeEx(TrackingMode, DeviceID);
 }
 void FLeapDeviceWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {

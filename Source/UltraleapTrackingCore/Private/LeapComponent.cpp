@@ -128,6 +128,27 @@ void ULeapComponent::UninitializeComponent()
 	UnsubscribeFromCurrentDevice();
 	Super::UninitializeComponent();
 }
+void ULeapComponent::SetTrackingMode(ELeapMode Mode)
+{
+	if (CurrentHandTrackingDevice)
+	{
+		eLeapTrackingMode LeapMode = eLeapTrackingMode::eLeapTrackingMode_Desktop;
+		switch (Mode)
+		{
+			case ELeapMode::LEAP_MODE_DESKTOP:
+				LeapMode = eLeapTrackingMode::eLeapTrackingMode_Desktop;
+				break;
+			case ELeapMode::LEAP_MODE_SCREENTOP:
+				LeapMode = eLeapTrackingMode::eLeapTrackingMode_ScreenTop;
+				break;
+			case ELeapMode::LEAP_MODE_VR:
+				LeapMode = eLeapTrackingMode::eLeapTrackingMode_HMD;
+				break;
+
+		}
+		CurrentHandTrackingDevice->SetTrackingMode(LeapMode);
+	}
+}
 #if WITH_EDITOR
 // Property notifications
 void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)

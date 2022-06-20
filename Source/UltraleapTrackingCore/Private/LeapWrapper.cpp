@@ -113,9 +113,41 @@ void FLeapWrapper::CloseConnection()
 void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 {
 	eLeapRS Result = LeapSetTrackingMode(ConnectionHandle, TrackingMode);
+	
 	if (Result != eLeapRS_Success)
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingMode failed in  FLeapWrapper::SetTrackingMode."));
+	}
+}
+LEAP_DEVICE FLeapWrapper::GetDeviceHandleFromDeviceID(const uint32_t DeviceID)
+{
+	LEAP_DEVICE DeviceHandle = nullptr;
+	if (MapDeviceIDToDevice.Contains(DeviceID))
+	{
+		DeviceHandle = MapDeviceIDToDevice[DeviceID];
+	}
+	return DeviceHandle;
+}
+void FLeapWrapper::SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID /* = 0*/)
+	{
+	if (!DeviceID)
+	{
+		SetTrackingMode(TrackingMode);
+	}
+	LEAP_DEVICE DeviceHandle = nullptr;
+
+	if(MapDeviceIDToDevice.Contains(DeviceID))
+	{
+		DeviceHandle = MapDeviceIDToDevice[DeviceID];
+	}
+	if (!DeviceHandle)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingModeEx failed cannot find device handle"));
+	}
+	eLeapRS Result = LeapSetTrackingModeEx(ConnectionHandle, DeviceHandle, TrackingMode);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingModeEx failed in  FLeapWrapper::SetTrackingModeEx."));
 	}
 }
 void FLeapWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
@@ -345,7 +377,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	}
 	Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
 	AddDevice(DeviceEvent->device.id, DeviceProperties);
-	
+	MapDeviceIDToDevice.Add(DeviceEvent->device.id, DeviceHandle);
 	
 	if (ConnectorCallbackDelegate)
 	{
@@ -395,6 +427,7 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
 	MapDeviceToCallback.Remove(DeviceID);
+	MapDeviceIDToDevice.Remove(DeviceID);
 	IHandTrackingWrapper* ToRemove = nullptr;
 
 	// TODO: add map
