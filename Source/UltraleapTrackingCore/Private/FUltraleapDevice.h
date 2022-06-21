@@ -150,7 +150,7 @@ private:
 	// v5 Tracking mode API
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
-	TSharedPtr<IHandTrackingWrapper> Leap;
+	IHandTrackingWrapper* Leap;
 	ILeapConnector* Connector;
 	ITrackingDeviceWrapper* TrackingDeviceWrapper;
 

@@ -476,23 +476,16 @@ void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
 	MapDeviceToCallback.Remove(DeviceID);
 	MapDeviceIDToDevice.Remove(DeviceID);
-	IHandTrackingWrapper* ToRemove = nullptr;
-
+	
 	// TODO: add map
 	for (auto LeapDeviceWrapper : Devices)
 	{
 		if (LeapDeviceWrapper->GetDeviceID() == DeviceID)
 		{
-			ToRemove = LeapDeviceWrapper;
+			Devices.Remove(LeapDeviceWrapper);
+			delete LeapDeviceWrapper;
+			break;
 		}
-	}
-	if (ToRemove)
-	{
-		Devices.Remove(ToRemove);
-	}
-	else
-	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("FLeapWrapper::RemoveDevice couldn't find removed device"));
 	}
 }
 

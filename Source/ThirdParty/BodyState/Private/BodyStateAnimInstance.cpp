@@ -50,6 +50,7 @@ FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef
 UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Defaults
+	SourceDeviceID = 0;
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
 
@@ -1009,7 +1010,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	// Get our default bodystate skeleton
-	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, SourceDeviceID);
 	SetAnimSkeleton(Skeleton);
 
 	// One hand mapping
@@ -1056,7 +1057,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, SourceDeviceID);
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else

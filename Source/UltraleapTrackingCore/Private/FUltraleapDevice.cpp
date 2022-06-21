@@ -257,7 +257,7 @@ void FUltraleapDevice::Init()
 {
 	// Attach to bodystate
 	
-	Config.DeviceName = FString::Printf(TEXT("Leap Motion %d"), Leap->GetDeviceID());
+	Config.DeviceName = FString::Printf(TEXT("Leap Motion %s"), *Leap->GetDeviceSerial());
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
 	Config.TrackingTags.Add("Hands");
 	Config.TrackingTags.Add("Fingers");

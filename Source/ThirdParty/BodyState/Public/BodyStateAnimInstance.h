@@ -296,6 +296,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	FRotator DebugAddRotation;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
+	int32 SourceDeviceID;
+
 	UFUNCTION(BlueprintPure, Category = "BS Anim Instance")
 	FString BoneMapSummary();
 
