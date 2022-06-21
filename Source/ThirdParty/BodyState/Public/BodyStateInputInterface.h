@@ -33,7 +33,12 @@ public:
 	virtual void OnDeviceDetach() = 0;
 };
 
-
+class BODYSTATE_API IBodyStateDeviceChangeListener
+{
+public:
+	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID) = 0;
+	virtual void OnDeviceRemoved(const uint32 DeviceID) = 0;
+};
 // for uobject and bps
 UINTERFACE(Blueprintable, MinimalAPI)
 class UBodyStateInputInterface : public UInterface

@@ -62,4 +62,9 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 
 	static bool GetAvailableDevices(TArray<FString>& DeviceSerials);
 
+	static void AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
+	static void RemoveDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
+
+	static TArray<IBodyStateDeviceChangeListener*> DeviceChangeListeners;
+
 };

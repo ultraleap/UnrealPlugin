@@ -28,6 +28,8 @@
 #include "FBodyState.h"
 #include "Runtime/Launch/Resources/Version.h"
 
+TArray<IBodyStateDeviceChangeListener*> UBodyStateBPLibrary::DeviceChangeListeners;
+
 UBodyStateBPLibrary::UBodyStateBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
@@ -42,13 +44,23 @@ int32 UBodyStateBPLibrary::AttachDevice(
 int32 UBodyStateBPLibrary::AttachDeviceNative(
 	const FBodyStateDeviceConfig& Configuration, IBodyStateInputRawInterface* InputCallbackDelegate)
 {
-	return IBodyState::Get().AttachDevice(Configuration, InputCallbackDelegate);
+	
+	int32 DeviceID = IBodyState::Get().AttachDevice(Configuration, InputCallbackDelegate);
+	for (auto DeviceListener : DeviceChangeListeners)
+	{
+		DeviceListener->OnDeviceAdded(Configuration.DeviceSerial, DeviceID);
+	}
+	return DeviceID;
 }
 
 bool UBodyStateBPLibrary::DetachDevice(int32 DeviceID)
 {
 	if (IBodyState::IsAvailable())
 	{
+		for (auto DeviceListener : DeviceChangeListeners)
+		{
+			DeviceListener->OnDeviceRemoved(DeviceID);
+		}
 		return IBodyState::Get().DetachDevice(DeviceID);
 	}
 	else
@@ -104,3 +116,12 @@ bool UBodyStateBPLibrary::GetAvailableDevices(TArray<FString>& DeviceSerials)
 {
 	return IBodyState::Get().GetAvailableDevices(DeviceSerials);
 }
+void UBodyStateBPLibrary::AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener)
+{
+	DeviceChangeListeners.AddUnique(Listener);
+}
+void UBodyStateBPLibrary::RemoveDeviceChangeListener(IBodyStateDeviceChangeListener* Listener)
+{
+	DeviceChangeListeners.Remove(Listener);
+}
+

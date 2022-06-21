@@ -58,8 +58,13 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 
 	ModelScaleOffset = ThumbTipScaleOffset = IndexTipScaleOffset = MiddleTipScaleOffset = RingTipScaleOffset = PinkyTipScaleOffset =
 		1.0;
-}
 
+	UBodyStateBPLibrary::AddDeviceChangeListener(this);
+}
+UBodyStateAnimInstance::~UBodyStateAnimInstance()
+{
+	UBodyStateBPLibrary::RemoveDeviceChangeListener(this);
+}
 void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(
 	UPARAM(ref) FMappedBoneAnimData& InMappedBoneData, EBodyStateBasicBoneType BSBone, FName MeshBone)
 {
@@ -1256,6 +1261,14 @@ void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChanged
 void UBodyStateAnimInstance::UpdateDeviceList()
 {
 	UBodyStateBPLibrary::GetAvailableDevices(AvailableDeviceSerials);
+}
+void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
+{
+	UpdateDeviceList();
+}
+void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
+{
+	UpdateDeviceList();
 }
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {

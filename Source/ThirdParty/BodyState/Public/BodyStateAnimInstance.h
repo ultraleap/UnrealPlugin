@@ -23,7 +23,7 @@
 #include "BodyStateEnums.h"
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "Skeleton/BodyStateSkeleton.h"
-
+#include "BodyStateInputInterface.h"
 #include "BodyStateAnimInstance.generated.h"
 
 USTRUCT(BlueprintType)
@@ -196,11 +196,11 @@ struct FBoneSearchNames
 	}
 };
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
-class BODYSTATE_API UBodyStateAnimInstance : public UAnimInstance
+class BODYSTATE_API UBodyStateAnimInstance : public UAnimInstance, public IBodyStateDeviceChangeListener
 {
 public:
 	GENERATED_UCLASS_BODY()
-
+	virtual ~UBodyStateAnimInstance();
 	/** Toggle to freeze the tracking at current state. Useful for debugging your anim instance*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BS Anim Instance - Debug")
 	bool bFreezeTracking;
@@ -340,6 +340,9 @@ public:
 		Ret.Insert(TEXT("None"), 0);
 		return Ret;
 	}
+	// IBodyStateDeviceChangeListener
+	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID);
+	virtual void OnDeviceRemoved(const uint32 DeviceID);
 
 protected:
 	// traverse a bone index node until you hit -1, count the hops
