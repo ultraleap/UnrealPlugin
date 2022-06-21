@@ -204,7 +204,11 @@ void ULeapComponent::RefreshDeviceList()
 			auto DeviceSerialProperty = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULeapComponent, ActiveDeviceSerial));
 			if (DeviceSerialProperty->IsValidHandle())
 			{
+#if ENGINE_MAJOR_VERSION > 4
+				DeviceSerialProperty->NotifyPostChange(EPropertyChangeType::ValueSet);
+#else
 				DeviceSerialProperty->NotifyPostChange();
+#endif
 			}
 		}
 #endif
