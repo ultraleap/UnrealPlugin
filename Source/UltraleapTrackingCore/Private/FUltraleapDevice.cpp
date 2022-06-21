@@ -261,6 +261,7 @@ void FUltraleapDevice::Init()
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
 	Config.TrackingTags.Add("Hands");
 	Config.TrackingTags.Add("Fingers");
+	Config.DeviceSerial = Leap->GetDeviceSerial();
 	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
 #if WITH_EDITOR

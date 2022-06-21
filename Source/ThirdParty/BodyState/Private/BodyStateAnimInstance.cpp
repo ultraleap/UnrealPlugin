@@ -1008,7 +1008,7 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-
+	UpdateDeviceList();
 	// Get our default bodystate skeleton
 	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, SourceDeviceID);
 	SetAnimSkeleton(Skeleton);
@@ -1253,6 +1253,10 @@ void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChanged
 	}
 }
 #endif	  // WITH_EDITOR
+void UBodyStateAnimInstance::UpdateDeviceList()
+{
+	UBodyStateBPLibrary::GetAvailableDevices(AvailableDeviceSerials);
+}
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
 	// Clear our current list

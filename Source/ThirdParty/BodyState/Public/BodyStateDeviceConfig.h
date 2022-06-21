@@ -51,4 +51,8 @@ struct BODYSTATE_API FBodyStateDeviceConfig
 	/** Any specific tracking tags you may wish to expose to various systems, e.g. Finger Hand Tracking, Full Body Tracking*/
 	UPROPERTY()
 	TArray<FString> TrackingTags;
+
+	/** Serial no. of the device generating this input */
+	UPROPERTY()
+	FString DeviceSerial;
 };

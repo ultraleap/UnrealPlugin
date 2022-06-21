@@ -100,3 +100,7 @@ bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction<void(UBodyStateSkeleton
 	IBodyState::Get().AttachMergingFunctionForSkeleton(InFunction);
 	return true;
 }
+bool UBodyStateBPLibrary::GetAvailableDevices(TArray<FString>& DeviceSerials)
+{
+	return IBodyState::Get().GetAvailableDevices(DeviceSerials);
+}

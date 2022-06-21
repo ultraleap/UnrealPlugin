@@ -219,3 +219,15 @@ void FBodyStateSkeletonStorage::CallFunctionOnDevices(TFunction<void(const FBody
 		}
 	}
 }
+bool FBodyStateSkeletonStorage::GetAvailableDevices(TArray<FString>& DeviceSerials)
+{
+	for (auto& Elem : Devices)
+	{
+		auto& Device = Elem.Value;
+		if (!Device.Config.DeviceSerial.IsEmpty())
+		{
+			DeviceSerials.Add(Device.Config.DeviceSerial);
+		}
+	}
+	return true;
+}

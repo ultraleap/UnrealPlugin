@@ -74,7 +74,7 @@ public:
 
 	virtual IHandTrackingDevice* GetDevice() override
 	{
-		return &Device;
+		return Device.Get();
 	}
 
 private:
@@ -125,5 +125,5 @@ private:
 	IHandTrackingWrapper* Connector;
 
 	// manages per device functionality in the same way as InputDevice used to
-	FUltraleapDevice Device;
+	TSharedPtr<FUltraleapDevice> Device;
 };

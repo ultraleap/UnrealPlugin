@@ -92,4 +92,9 @@ public:
 	// Copying movement
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener){};
 	virtual void RemoveBoneSceneListener(UBodyStateBoneComponent* Listener){};
+
+	virtual bool GetAvailableDevices(TArray<FString>& DeviceSerials)
+	{
+		return false;
+	}
 };

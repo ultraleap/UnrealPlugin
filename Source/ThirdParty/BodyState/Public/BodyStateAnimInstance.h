@@ -322,6 +322,24 @@ public:
 
 	UFUNCTION()
 	void ExecuteAutoMapping();
+	
+	/** Available device list
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "BS Anim Instance - Multileap")
+	TArray<FString> AvailableDeviceSerials;
+	
+	/** Active Device (Singular mode only)
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Anim Instance - Multileap", meta = (GetOptions = "GetSerialOptions"))
+	FString ActiveDeviceSerial;
+
+	UFUNCTION(CallInEditor)
+	TArray<FString> GetSerialOptions() const
+	{
+		TArray<FString> Ret(AvailableDeviceSerials);
+		Ret.Insert(TEXT("None"), 0);
+		return Ret;
+	}
 
 protected:
 	// traverse a bone index node until you hit -1, count the hops
@@ -376,6 +394,7 @@ protected:
 
 private:
 	bool GetNamesAndTransforms(TArray<FTransform>& ComponentSpaceTransforms, TArray<FName>& Names, TArray<FNodeItem>& NodeItems) const;
+	void UpdateDeviceList();
 
 public:
 #if WITH_EDITOR

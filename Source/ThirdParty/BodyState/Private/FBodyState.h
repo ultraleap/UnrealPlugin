@@ -55,6 +55,7 @@ public:
 
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener) override;
 	virtual void RemoveBoneSceneListener(UBodyStateBoneComponent* Listener) override;
+	virtual bool GetAvailableDevices(TArray<FString>& DeviceSerials) override;
 
 private:
 	bool bActive = false;

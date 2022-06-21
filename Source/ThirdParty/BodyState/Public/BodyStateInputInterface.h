@@ -33,6 +33,7 @@ public:
 	virtual void OnDeviceDetach() = 0;
 };
 
+
 // for uobject and bps
 UINTERFACE(Blueprintable, MinimalAPI)
 class UBodyStateInputInterface : public UInterface

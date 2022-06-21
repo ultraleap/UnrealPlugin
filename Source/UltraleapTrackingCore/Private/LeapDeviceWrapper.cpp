@@ -24,10 +24,11 @@ FLeapDeviceWrapper::FLeapDeviceWrapper(const uint32_t DeviceIDIn, const LEAP_DEV
 	, InterpolatedFrame(nullptr), InterpolatedFrameSize(0)
 	, bIsRunning(false)
 	, Connector(ConnectorIn)
-	// note: device depends on this class being initialised so construct last
-	, Device((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*)this)
 {
 	SetDevice(&DeviceInfoIn);
+
+	Device = MakeShared<FUltraleapDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this);
+
 }
 
 FLeapDeviceWrapper::~FLeapDeviceWrapper()
