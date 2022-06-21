@@ -27,11 +27,11 @@ void FLeapLiveLinkProducer::Startup(const FString& DeviceSerial)
 	TFunction<void()> StatusChangeLambda = [this] {
 		if (LiveLinkProvider->HasConnection())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Connected. ") + DeviceSerial);
+			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Connected. "));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Disconnected.") + DeviceSerial);
+			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Disconnected."));
 		}
 	};
 	ConnectionStatusChangedHandle = LiveLinkProvider->RegisterConnStatusChangedHandle(
