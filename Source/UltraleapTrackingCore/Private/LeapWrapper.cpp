@@ -14,7 +14,11 @@
 
 #pragma region LeapC Wrapper
 
-FLeapWrapper::FLeapWrapper() : bIsRunning(false)
+FLeapWrapper::FLeapWrapper()
+	: bIsRunning(false)
+	, DataLock(new FCriticalSection())
+	, InterpolatedFrame(nullptr)
+	, InterpolatedFrameSize(0)
 {
 }
 
@@ -134,12 +138,8 @@ void FLeapWrapper::SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint3
 	{
 		SetTrackingMode(TrackingMode);
 	}
-	LEAP_DEVICE DeviceHandle = nullptr;
+	LEAP_DEVICE DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
 
-	if(MapDeviceIDToDevice.Contains(DeviceID))
-	{
-		DeviceHandle = MapDeviceIDToDevice[DeviceID];
-	}
 	if (!DeviceHandle)
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingModeEx failed cannot find device handle"));
@@ -164,12 +164,7 @@ void FLeapWrapper::SetPolicyEx(int64 Flags, int64 ClearFlags, const uint32_t Dev
 	{
 		SetPolicy(Flags, ClearFlags);
 	}
-	LEAP_DEVICE DeviceHandle = nullptr;
-
-	if (MapDeviceIDToDevice.Contains(DeviceID))
-	{
-		DeviceHandle = MapDeviceIDToDevice[DeviceID];
-	}
+	LEAP_DEVICE DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
 	if (!DeviceHandle)
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetPolicyEx failed cannot find device handle"));
@@ -245,7 +240,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTimeEx(int64 TimeStamp,
 	uint64_t FrameSize = 0;
 	LEAP_DEVICE DeviceHandle = nullptr;
 
-	GetDeviceHandleFromDeviceID(DeviceID);
+	DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
 	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize );
 
 	// Check validity of frame size
@@ -429,9 +424,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 			return;
 		}
 	}
-	Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
-	AddDevice(DeviceEvent->device.id, DeviceProperties);
-	MapDeviceIDToDevice.Add(DeviceEvent->device.id, DeviceHandle);
+	AddDevice(DeviceEvent->device.id, DeviceProperties, DeviceHandle);
 	
 	if (ConnectorCallbackDelegate)
 	{
@@ -471,12 +464,13 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	// Why does the old code close the device handle once opened?
 	RemoveDevice(DeviceEvent->device.id);
 }
-void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo)
+void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle)
 {
-	IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, this);
+	IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
 	// TArray manages object lifetime/destructors without needing TSharedPtr
 	Devices.Add(Device);
-	//MapDeviceToCallback.Add(DeviceHandle,)
+	auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
+	MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {

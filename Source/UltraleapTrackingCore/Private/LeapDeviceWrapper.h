@@ -22,7 +22,9 @@ public:
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
 
-	FLeapDeviceWrapper(const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, IHandTrackingWrapper* ConnectorIn);
+	FLeapDeviceWrapper(const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, const LEAP_DEVICE DeviceHandle,
+					   const LEAP_CONNECTION ConnectionHandle,
+					   IHandTrackingWrapper * ConnectorIn);
 	virtual ~FLeapDeviceWrapper();
 
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
@@ -80,8 +82,9 @@ private:
 
 	// Frame and handle data
 	uint32_t DeviceID;
-	LEAP_TRACKING_EVENT* LatestFrame = NULL;
-
+	LEAP_TRACKING_EVENT* LatestFrame = nullptr;
+	LEAP_DEVICE DeviceHandle = nullptr;
+	LEAP_CONNECTION ConnectionHandle = nullptr;
 	// Threading variables
 	FCriticalSection* DataLock;
 	TFuture<void> ProducerLambdaFuture;

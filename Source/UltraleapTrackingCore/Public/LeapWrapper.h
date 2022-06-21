@@ -100,6 +100,8 @@ public:
 	virtual FString GetDeviceSerial() = 0;
 
 	virtual IHandTrackingDevice* GetDevice() = 0;
+
+
 };
 
 class FLeapWrapperBase : public IHandTrackingWrapper, public ITrackingDeviceWrapper
@@ -370,7 +372,7 @@ private:
 
 	bool bIsConnected = false;
 
-	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo);
+	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle);
 	void RemoveDevice(const uint32_t DeviceID);
 
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);

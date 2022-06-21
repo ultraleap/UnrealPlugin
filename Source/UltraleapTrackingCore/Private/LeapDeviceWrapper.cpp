@@ -14,10 +14,12 @@
 #pragma region Leap Device Wrapper
 
 // created when a device is found
-FLeapDeviceWrapper::FLeapDeviceWrapper(
-	const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn, IHandTrackingWrapper* ConnectorIn)
+FLeapDeviceWrapper::FLeapDeviceWrapper(const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn,
+	const LEAP_DEVICE DeviceHandleIn, const LEAP_CONNECTION ConnectionHandleIn, IHandTrackingWrapper* ConnectorIn)
 	:	
 	DeviceID(DeviceIDIn)
+	, DeviceHandle(DeviceHandleIn)
+	, ConnectionHandle(ConnectionHandleIn)
 	, DataLock(new FCriticalSection())
 	, InterpolatedFrame(nullptr), InterpolatedFrameSize(0)
 	, bIsRunning(false)
@@ -137,11 +139,38 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetFrame()
 
 LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
-	if (Connector)
+	uint64_t FrameSize = 0;
+	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
+	
+	if (Result != eLeapRS_Success)
 	{
-		return Connector->GetInterpolatedFrameAtTimeEx(TimeStamp, DeviceID);
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in  FLeapDeviceWrapper::GetInterpolatedFrameAtTime"));
 	}
-	return nullptr;
+	// Check validity of frame size
+	if (FrameSize > 0)
+	{
+		// Different frame?
+		if (FrameSize != InterpolatedFrameSize)
+		{
+			// If we already have an allocated frame, free it
+			if (InterpolatedFrame)
+			{
+				free(InterpolatedFrame);
+			}
+			InterpolatedFrame = (LEAP_TRACKING_EVENT*) malloc(FrameSize);
+		}
+		InterpolatedFrameSize = FrameSize;
+
+		// Grab the new frame
+		Result = LeapInterpolateFrameEx(ConnectionHandle, DeviceHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
+
+		if (Result != eLeapRS_Success)
+		{
+			UE_LOG(UltraleapTrackingLog, Log,
+				TEXT("LeapInterpolateFrameEx failed in  FLeapDeviceWrapper::GetInterpolatedFrameAtTime"));
+		}
+	}
+	return InterpolatedFrame;
 }
 
 LEAP_DEVICE_INFO* FLeapDeviceWrapper::GetDeviceProperties()
