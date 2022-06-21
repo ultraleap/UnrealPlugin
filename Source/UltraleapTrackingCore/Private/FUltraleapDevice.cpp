@@ -256,7 +256,8 @@ FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITra
 void FUltraleapDevice::Init()
 {
 	// Attach to bodystate
-	Config.DeviceName = "Leap Motion";
+	
+	Config.DeviceName = FString::Printf(TEXT("Leap Motion %d"), Leap->GetDeviceID());
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
 	Config.TrackingTags.Add("Hands");
 	Config.TrackingTags.Add("Fingers");
@@ -265,7 +266,7 @@ void FUltraleapDevice::Init()
 #if WITH_EDITOR
 	// LiveLink startup
 	LiveLink = MakeShareable(new FLeapLiveLinkProducer());
-	LiveLink->Startup();
+	LiveLink->Startup(Leap->GetDeviceSerial());
 	LiveLink->SyncSubjectToSkeleton(IBodyState::Get().SkeletonForDevice(BodyStateDeviceId));
 #endif
 
