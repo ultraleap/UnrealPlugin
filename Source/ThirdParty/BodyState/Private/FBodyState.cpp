@@ -85,6 +85,7 @@ int32 FBodyState::AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkel
 }
 bool FBodyState::GetAvailableDevices(TArray<FString>& DeviceSerials)
 {
+	DeviceSerials.Empty();
 	return SkeletonStorage->GetAvailableDevices(DeviceSerials);
 }
 bool FBodyState::RemoveMergingFunction(int32 MergingFunctionId)
