@@ -209,7 +209,8 @@ void FBodyStateSkeletonStorage::ClearMergingFunctions()
 
 void FBodyStateSkeletonStorage::CallFunctionOnDevices(TFunction<void(const FBodyStateDevice&)> InFunction)
 {
-	for (auto& Elem : Devices)
+	TMap<IBodyStateInputRawInterface*, FBodyStateDevice> DevicesCopy = Devices;
+	for (auto& Elem : DevicesCopy)
 	{
 		auto& Device = Elem.Value;
 		if (Device.InputCallbackDelegate != nullptr)
