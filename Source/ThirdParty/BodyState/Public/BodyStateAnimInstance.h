@@ -296,9 +296,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
 	FRotator DebugAddRotation;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance")
-	int32 SourceDeviceID;
-
 	UFUNCTION(BlueprintPure, Category = "BS Anim Instance")
 	FString BoneMapSummary();
 
@@ -332,6 +329,9 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Anim Instance - Multileap", meta = (GetOptions = "GetSerialOptions"))
 	FString ActiveDeviceSerial;
+
+	UPROPERTY()
+	TMap<FString, int32> DeviceSerialToDeviceID;
 
 	UFUNCTION(CallInEditor)
 	TArray<FString> GetSerialOptions() const
@@ -415,4 +415,6 @@ public:
 	 */
 	virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent);
 #endif	  // WITH_EDITOR
+	int32 GetDeviceIDFromDeviceSerial(const FString& DeviceSerial);
+	int32 GetActiveDeviceID();
 };

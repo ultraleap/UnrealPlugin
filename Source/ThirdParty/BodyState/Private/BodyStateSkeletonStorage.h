@@ -70,7 +70,7 @@ public:
 	 */
 	void CallFunctionOnDevices(TFunction<void(const FBodyStateDevice&)> InFunction);
 
-	bool GetAvailableDevices(TArray<FString>& DeviceSerials);
+	bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs);
 
 private:
 	UBodyStateSkeleton* PrivateMergedSkeleton;

@@ -114,9 +114,9 @@ bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction<void(UBodyStateSkeleton
 	IBodyState::Get().AttachMergingFunctionForSkeleton(InFunction);
 	return true;
 }
-bool UBodyStateBPLibrary::GetAvailableDevices(TArray<FString>& DeviceSerials)
+bool UBodyStateBPLibrary::GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs)
 {
-	return IBodyState::Get().GetAvailableDevices(DeviceSerials);
+	return IBodyState::Get().GetAvailableDevices(DeviceSerials, DeviceIDs);
 }
 void UBodyStateBPLibrary::AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener)
 {

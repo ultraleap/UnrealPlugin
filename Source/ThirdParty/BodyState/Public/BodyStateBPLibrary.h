@@ -60,7 +60,7 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 	// BodyState Merging algorithm
 	static bool AttachMergeAlgorithm(TFunction<void(UBodyStateSkeleton*, float)> InFunction);
 
-	static bool GetAvailableDevices(TArray<FString>& DeviceSerials);
+	static bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs);
 
 	static void AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
 	static void RemoveDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);

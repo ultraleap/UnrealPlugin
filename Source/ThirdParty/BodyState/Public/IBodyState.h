@@ -93,7 +93,7 @@ public:
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener){};
 	virtual void RemoveBoneSceneListener(UBodyStateBoneComponent* Listener){};
 
-	virtual bool GetAvailableDevices(TArray<FString>& DeviceSerials)
+	virtual bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs)
 	{
 		return false;
 	}

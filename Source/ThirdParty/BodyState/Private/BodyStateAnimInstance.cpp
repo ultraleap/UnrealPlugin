@@ -50,7 +50,6 @@ FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef
 UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Defaults
-	SourceDeviceID = 0;
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
 
@@ -1015,7 +1014,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 	UpdateDeviceList();
 	// Get our default bodystate skeleton
-	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, SourceDeviceID);
+	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
 	SetAnimSkeleton(Skeleton);
 
 	// One hand mapping
@@ -1062,7 +1061,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, SourceDeviceID);
+		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
@@ -1260,7 +1259,28 @@ void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChanged
 #endif	  // WITH_EDITOR
 void UBodyStateAnimInstance::UpdateDeviceList()
 {
-	UBodyStateBPLibrary::GetAvailableDevices(AvailableDeviceSerials);
+	TArray<int32> DeviceIDs;
+	UBodyStateBPLibrary::GetAvailableDevices(AvailableDeviceSerials, DeviceIDs);
+	DeviceSerialToDeviceID.Empty();
+
+	int Index = 0;
+	for (auto DeviceSerial : AvailableDeviceSerials)
+	{
+		DeviceSerialToDeviceID.Add(DeviceSerial, DeviceIDs[Index++]);
+	}
+}
+int32 UBodyStateAnimInstance::GetDeviceIDFromDeviceSerial(const FString& DeviceSerial)
+{
+	int32 Ret = 0;
+	if (DeviceSerialToDeviceID.Contains(DeviceSerial))
+	{
+		return DeviceSerialToDeviceID[DeviceSerial];
+	}
+	return Ret;
+}
+int32 UBodyStateAnimInstance::GetActiveDeviceID()
+{
+	return GetDeviceIDFromDeviceSerial(ActiveDeviceSerial);
 }
 void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
 {
