@@ -47,11 +47,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	/** Poll for controller state and send events if needed */
 	virtual void SendControllerEvents() override;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
 	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
-	void LatestFrame(FLeapFrameData& OutFrame);
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);

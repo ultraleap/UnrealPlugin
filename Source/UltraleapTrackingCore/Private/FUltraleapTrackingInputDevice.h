@@ -63,19 +63,19 @@ public:
 	void AddEventDelegate(const ULeapComponent* EventDelegate);
 	void RemoveEventDelegate(const ULeapComponent* EventDelegate);
 	void ShutdownLeap();
-	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
-	void LatestFrame(FLeapFrameData& OutFrame);
-	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
+	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial);
+	void LatestFrame(FLeapFrameData& OutFrameconst, const FString& DeviceSerial);
+	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW,const TArray<FString>& DeviceSerials);
 	// Policy and toggles
-	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
-	void SetTrackingMode(ELeapMode Flag);
+	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials);
+	void SetTrackingMode(ELeapMode Flag, const TArray<FString>& DeviceSerials);
 	virtual void OnDeviceDetach();
 
 	FCriticalSection LeapSection;
 
-	void SetOptions(const FLeapOptions& Options);
-	FLeapOptions GetOptions();
-	FLeapStats GetStats();
+	void SetOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials);
+	FLeapOptions GetOptions(const FString& DeviceSerial);
+	FLeapStats GetStats(const FString& DeviceSerial);
 	const TArray<FString>& GetAttachedDevices()
 	{
 		return AttachedDevices;

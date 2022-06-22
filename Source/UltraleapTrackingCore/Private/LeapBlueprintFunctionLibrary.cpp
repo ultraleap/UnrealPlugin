@@ -18,34 +18,53 @@ ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObject
 {
 }
 
-void ULeapBlueprintFunctionLibrary::SetLeapMode(ELeapMode InMode, ELeapTrackingFidelity InTrackingFidelity)
+void ULeapBlueprintFunctionLibrary::SetLeapMode(
+	ELeapMode InMode, const TArray<FString>& DeviceSerials, ELeapTrackingFidelity InTrackingFidelity)
 {
-	FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions();
+	// if empty, default to single device logic
+	if (!DeviceSerials.Num())
+	{
+		FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions("");
 
-	Options.Mode = InMode;
-	Options.TrackingFidelity = InTrackingFidelity;
+		Options.Mode = InMode;
+		Options.TrackingFidelity = InTrackingFidelity;
 
-	SetLeapOptions(Options);
+		SetLeapOptions(Options, DeviceSerials);
+	}
+	else
+	{
+		for (auto DeviceSerial : DeviceSerials)
+		{
+			FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions(DeviceSerial);
+
+			Options.Mode = InMode;
+			Options.TrackingFidelity = InTrackingFidelity;
+
+			TArray<FString> SingleDevice;
+			SingleDevice.Add(DeviceSerial);
+			SetLeapOptions(Options, SingleDevice);
+		}
+	}
 }
 
-void ULeapBlueprintFunctionLibrary::SetLeapOptions(const FLeapOptions& InOptions)
+void ULeapBlueprintFunctionLibrary::SetLeapOptions(const FLeapOptions& InOptions, const TArray<FString>& DeviceSerials)
 {
-	IUltraleapTrackingPlugin::Get().SetOptions(InOptions);
+	IUltraleapTrackingPlugin::Get().SetOptions(InOptions, DeviceSerials);
 }
 
-void ULeapBlueprintFunctionLibrary::GetLeapOptions(FLeapOptions& OutOptions)
+void ULeapBlueprintFunctionLibrary::GetLeapOptions(FLeapOptions& OutOptions, const FString& DeviceSerial)
 {
-	OutOptions = IUltraleapTrackingPlugin::Get().GetOptions();
+	OutOptions = IUltraleapTrackingPlugin::Get().GetOptions(DeviceSerial);
 }
 
-void ULeapBlueprintFunctionLibrary::GetLeapStats(FLeapStats& OutStats)
+void ULeapBlueprintFunctionLibrary::GetLeapStats(FLeapStats& OutStats, const FString& DeviceSerial)
 {
-	OutStats = IUltraleapTrackingPlugin::Get().GetLeapStats();
+	OutStats = IUltraleapTrackingPlugin::Get().GetLeapStats(DeviceSerial);
 }
 
-void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
+void ULeapBlueprintFunctionLibrary::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials)
 {
-	IUltraleapTrackingPlugin::Get().SetLeapPolicy(Flag, Enable);
+	IUltraleapTrackingPlugin::Get().SetLeapPolicy(Flag, Enable, DeviceSerials);
 }
 void ULeapBlueprintFunctionLibrary::GetAttachedLeapDevices(TArray<FString>& Devices)
 {

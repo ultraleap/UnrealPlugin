@@ -36,12 +36,25 @@ ULeapComponent::~ULeapComponent()
 
 void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
 {
-	IUltraleapTrackingPlugin::Get().AreHandsVisible(LeftIsVisible, RightIsVisible);
+	FString DeviceSerial;
+	if (CurrentHandTrackingDevice)
+	{
+		DeviceSerial = CurrentHandTrackingDevice->GetDeviceSerial();
+		
+	}
+	IUltraleapTrackingPlugin::Get().AreHandsVisible(LeftIsVisible, RightIsVisible, DeviceSerial);
 }
 
 void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
 {
-	IUltraleapTrackingPlugin::Get().GetLatestFrameData(OutData);
+	if (CurrentHandTrackingDevice)
+	{
+		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			CurrentHandTrackingDevice->GetFrame();
+		}
+	}
 }
 void ULeapComponent::ConnectToInputEvents()
 {
@@ -63,7 +76,10 @@ void ULeapComponent::InitializeComponent()
 void ULeapComponent::SetSwizzles(
 	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
 {
-	IUltraleapTrackingPlugin::Get().SetSwizzles(ToX, ToY, ToZ, ToW);
+	if (CurrentHandTrackingDevice)
+	{
+		CurrentHandTrackingDevice->SetSwizzles(ToX, ToY, ToZ, ToW);
+	}
 }
 bool ULeapComponent::UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode)
 {

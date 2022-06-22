@@ -32,6 +32,9 @@ public:
 
 	virtual void Tick(const float DeltaTime) = 0;
 	virtual void SendControllerEvents() = 0;
+
+	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
+
 };
 class ITrackingDeviceWrapper
 {
@@ -149,28 +152,28 @@ public:
 	/** Remove an event delegate from the leap input device loop*/
 	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate){};
 
-	virtual FLeapStats GetLeapStats()
+	virtual FLeapStats GetLeapStats(const FString& DeviceSerial)
 	{
 		return FLeapStats();
 	};
 
 	/** Set Leap Options such as time warp, interpolation and tracking modes */
-	virtual void SetOptions(const FLeapOptions& InOptions){};
+	virtual void SetOptions(const FLeapOptions& InOptions, const TArray<FString>& DeviceSerials){};
 
 	/** Get the currently set Leap Options */
-	virtual FLeapOptions GetOptions()
+	virtual FLeapOptions GetOptions(const FString& DeviceSerial)
 	{
 		return FLeapOptions();
 	};
 
 	/** Convenience function to determine hand visibility*/
-	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) = 0;
+	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial) = 0;
 
 	/** Polling method for latest frame data*/
-	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData, const FString& DeviceSerial) = 0;
 
 	/** Set a Leap Policy, such as image streaming or optimization type*/
-	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) = 0;
+	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials) = 0;
 
 	/** List the attached (plugged in) devices */
 	virtual void GetAttachedDevices(TArray<FString>& Devices) = 0;
@@ -178,8 +181,8 @@ public:
 	/** Force shutdown leap, do not call unless you have a very specfic need*/
 	virtual void ShutdownLeap() = 0;
 
-	virtual void SetSwizzles(
-		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
+	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ,
+		ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials) = 0;
 
 	virtual ILeapConnector* GetConnector() = 0;
 };

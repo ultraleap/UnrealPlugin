@@ -308,7 +308,10 @@ void FUltraleapDevice::SendControllerEvents()
 {
 	CaptureAndEvaluateInput();
 }
-
+void FUltraleapDevice::GetLatestFrameData(FLeapFrameData& OutData)
+{
+	OutData = CurrentFrame;
+}
 void FUltraleapDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_MultiLeapInputTick);
@@ -853,10 +856,6 @@ void FUltraleapDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandI
 	RightHandIsVisible = CurrentFrame.RightHandVisible;
 }
 
-void FUltraleapDevice::LatestFrame(FLeapFrameData& OutFrame)
-{
-	OutFrame = CurrentFrame;
-}
 void FUltraleapDevice::SetSwizzles(
 	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
 {

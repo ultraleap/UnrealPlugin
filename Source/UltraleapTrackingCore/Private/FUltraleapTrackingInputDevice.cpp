@@ -280,26 +280,26 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 	}
 }
 
-void FUltraleapTrackingInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
+void FUltraleapTrackingInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial)
 {
 	//TODO: add by device ID or first device
 //	LeftHandIsVisible = CurrentFrame.LeftHandVisible;
 //	RightHandIsVisible = CurrentFrame.RightHandVisible;
 }
 
-void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame)
+void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame, const FString& DeviceSerial)
 {
 	// TODO: add by device ID or first device
 	//OutFrame = CurrentFrame;
 }
 void FUltraleapTrackingInputDevice::SetSwizzles(
-	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
+	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials)
 {
 	// TODO: add by device ID or first device
 	Leap->SetSwizzles(ToX, ToY, ToZ, ToW);
 }
 // Policies
-void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
+void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials)
 {
 	switch (Flag)
 	{
@@ -323,7 +323,7 @@ void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Ena
 	}
 }
 // v5 implementation of tracking mode
-void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag)
+void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag, const TArray<FString>& DeviceSerials)
 {
 	// TODO: add by device ID or first device
 	switch (Flag)
@@ -380,18 +380,18 @@ void FUltraleapTrackingInputDevice::InitTrackingSource(const bool UseOpenXRAsSou
 	static const bool UseMultiDevice = true;
 	Leap->OpenConnection(this, UseMultiDevice);
 }
-void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions)
+void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions, const TArray<FString>& DeviceSerials)
 {
 	// TODO: proxy by device ID
 }
-FLeapOptions FUltraleapTrackingInputDevice::GetOptions()
+FLeapOptions FUltraleapTrackingInputDevice::GetOptions(const FString& DeviceSerial)
 {
 	//TODO: proxy by device ID
 	FLeapOptions Options;
 	return Options;
 }
 
-FLeapStats FUltraleapTrackingInputDevice::GetStats()
+FLeapStats FUltraleapTrackingInputDevice::GetStats(const FString& DeviceSerial)
 {
 	// TODO: proxy by device ID
 	return Stats;
