@@ -57,11 +57,13 @@ bool UBodyStateBPLibrary::DetachDevice(int32 DeviceID)
 {
 	if (IBodyState::IsAvailable())
 	{
+		bool Ret = IBodyState::Get().DetachDevice(DeviceID);
+
 		for (auto DeviceListener : DeviceChangeListeners)
 		{
 			DeviceListener->OnDeviceRemoved(DeviceID);
 		}
-		return IBodyState::Get().DetachDevice(DeviceID);
+		return Ret;
 	}
 	else
 	{
