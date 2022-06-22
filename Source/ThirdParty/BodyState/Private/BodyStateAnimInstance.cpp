@@ -1271,6 +1271,7 @@ void UBodyStateAnimInstance::UpdateDeviceList()
 }
 int32 UBodyStateAnimInstance::GetDeviceIDFromDeviceSerial(const FString& DeviceSerial)
 {
+	// Bodystate Device ID 0 is always the merged skeleton
 	int32 Ret = 0;
 	if (DeviceSerialToDeviceID.Contains(DeviceSerial))
 	{
