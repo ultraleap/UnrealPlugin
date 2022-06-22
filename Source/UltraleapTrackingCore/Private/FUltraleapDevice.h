@@ -51,7 +51,7 @@ public:
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
-	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible);
+	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);

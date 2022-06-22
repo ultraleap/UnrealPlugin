@@ -34,6 +34,7 @@ public:
 	virtual void SendControllerEvents() = 0;
 
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
+	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) = 0;
 
 };
 class ITrackingDeviceWrapper

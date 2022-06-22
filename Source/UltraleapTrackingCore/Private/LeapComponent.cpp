@@ -36,13 +36,15 @@ ULeapComponent::~ULeapComponent()
 
 void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
 {
-	FString DeviceSerial;
 	if (CurrentHandTrackingDevice)
 	{
-		DeviceSerial = CurrentHandTrackingDevice->GetDeviceSerial();
+		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			Device->AreHandsVisible(LeftIsVisible, RightIsVisible);
+		}
 		
 	}
-	IUltraleapTrackingPlugin::Get().AreHandsVisible(LeftIsVisible, RightIsVisible, DeviceSerial);
 }
 
 void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
