@@ -1080,7 +1080,7 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// SN: may want to optimize this at some pt
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
 		SetAnimSkeleton(BodyStateSkeleton);
 	}
 
@@ -1208,7 +1208,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
@@ -1290,6 +1290,10 @@ void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const ui
 void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
 {
 	UpdateDeviceList();
+}
+void UBodyStateAnimInstance::SetActiveDeviceSerial(const FString& DeviceID)
+{
+	ActiveDeviceSerial = DeviceID;
 }
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {

@@ -340,6 +340,9 @@ public:
 		Ret.Insert(TEXT("None"), 0);
 		return Ret;
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
+	void SetActiveDeviceSerial(const FString& DeviceID);
 	// IBodyStateDeviceChangeListener
 	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID);
 	virtual void OnDeviceRemoved(const uint32 DeviceID);
