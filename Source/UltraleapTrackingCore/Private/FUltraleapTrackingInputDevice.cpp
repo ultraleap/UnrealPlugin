@@ -279,64 +279,118 @@ void FUltraleapTrackingInputDevice::ShutdownLeap()
 		Leap->CloseConnection();
 	}
 }
-
-void FUltraleapTrackingInputDevice::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial)
+IHandTrackingDevice* FUltraleapTrackingInputDevice::GetDeviceBySerial(const FString& DeviceSerial)
 {
-	//TODO: add by device ID or first device
-//	LeftHandIsVisible = CurrentFrame.LeftHandVisible;
-//	RightHandIsVisible = CurrentFrame.RightHandVisible;
+	if (!Connector)
+	{
+		return nullptr;
+	}
+
+	TArray<FString> DeviceList;
+	DeviceList.Add(DeviceSerial);
+
+	auto DeviceWrapper = Connector->GetDevice(DeviceList);
+	if (DeviceWrapper)
+	{
+		auto InternalDevice = DeviceWrapper->GetDevice();
+		if (InternalDevice)
+		{
+			return InternalDevice;
+		}
+	}
+	return nullptr;
+}
+IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetDeviceWrapperBySerial(const FString& DeviceSerial)
+{
+	if (!Connector)
+	{
+		return nullptr;
+	}
+	TArray<FString> DeviceList;
+	DeviceList.Add(DeviceSerial);
+
+	return Connector->GetDevice(DeviceList);
+}
+void FUltraleapTrackingInputDevice::AreHandsVisible(
+		bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial)
+{
+	auto InternalDevice = GetDeviceBySerial(DeviceSerial);
+	if (InternalDevice)
+	{
+		InternalDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible);
+	}
 }
 
 void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame, const FString& DeviceSerial)
 {
-	// TODO: add by device ID or first device
-	//OutFrame = CurrentFrame;
+	auto InternalDevice = GetDeviceBySerial(DeviceSerial);
+	if (InternalDevice)
+	{
+		InternalDevice->GetLatestFrameData(OutFrame);
+	}
 }
-void FUltraleapTrackingInputDevice::SetSwizzles(
-	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials)
+void FUltraleapTrackingInputDevice::SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ,
+	ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials)
 {
-	// TODO: add by device ID or first device
-	Leap->SetSwizzles(ToX, ToY, ToZ, ToW);
+	auto DeviceWrapper = Connector->GetDevice(DeviceSerials);
+	if (DeviceWrapper)
+	{
+		DeviceWrapper->SetSwizzles(ToX, ToY, ToZ, ToW);
+	}
 }
 // Policies
 void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials)
 {
-	switch (Flag)
+	for (auto DeviceSerial : DeviceSerials)
 	{
-		case LEAP_POLICY_BACKGROUND_FRAMES:
-			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
-			break;
-		case LEAP_POLICY_IMAGES:
-			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
-			break;
-		// legacy 3.0 implementation superseded by SetTrackingMode
-		case LEAP_POLICY_OPTIMIZE_HMD:
-			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
-			break;
-		case LEAP_POLICY_ALLOW_PAUSE_RESUME:
-			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
-			break;
-		case LEAP_POLICY_MAP_POINTS:
-			Leap->SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
-		default:
-			break;
+		auto DeviceWrapper = GetDeviceWrapperBySerial(DeviceSerial);
+		if (DeviceWrapper)
+		{
+			switch (Flag)
+			{
+				case LEAP_POLICY_BACKGROUND_FRAMES:
+					DeviceWrapper->SetPolicyFlagFromBoolean(eLeapPolicyFlag_BackgroundFrames, Enable);
+					break;
+				case LEAP_POLICY_IMAGES:
+					DeviceWrapper->SetPolicyFlagFromBoolean(eLeapPolicyFlag_Images, Enable);
+					break;
+				// legacy 3.0 implementation superseded by SetTrackingMode
+				case LEAP_POLICY_OPTIMIZE_HMD:
+					DeviceWrapper->SetPolicyFlagFromBoolean(eLeapPolicyFlag_OptimizeHMD, Enable);
+					break;
+				case LEAP_POLICY_ALLOW_PAUSE_RESUME:
+					DeviceWrapper->SetPolicyFlagFromBoolean(eLeapPolicyFlag_AllowPauseResume, Enable);
+					break;
+				case LEAP_POLICY_MAP_POINTS:
+					DeviceWrapper->SetPolicyFlagFromBoolean(eLeapPolicyFlag_MapPoints, Enable);
+				default:
+					break;
+			}
+		}
 	}
+
 }
 // v5 implementation of tracking mode
 void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag, const TArray<FString>& DeviceSerials)
 {
-	// TODO: add by device ID or first device
-	switch (Flag)
+	for (auto DeviceSerial : DeviceSerials)
 	{
-		case LEAP_MODE_DESKTOP:
-			Leap->SetTrackingMode(eLeapTrackingMode_Desktop);
-			break;
-		case LEAP_MODE_VR:
-			Leap->SetTrackingMode(eLeapTrackingMode_HMD);
-			break;
-		case LEAP_MODE_SCREENTOP:
-			Leap->SetTrackingMode(eLeapTrackingMode_ScreenTop);
-			break;
+		auto DeviceWrapper = GetDeviceWrapperBySerial(DeviceSerial);
+		if (DeviceWrapper)
+		{
+			switch (Flag)
+			{
+				case LEAP_MODE_DESKTOP:
+					DeviceWrapper->SetTrackingMode(eLeapTrackingMode_Desktop);
+					break;
+				case LEAP_MODE_VR:
+					DeviceWrapper->SetTrackingMode(eLeapTrackingMode_HMD);
+					break;
+				case LEAP_MODE_SCREENTOP:
+					DeviceWrapper->SetTrackingMode(eLeapTrackingMode_ScreenTop);
+					break;
+			}
+		}
 	}
 }
 #pragma endregion Leap Input Device
