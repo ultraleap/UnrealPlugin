@@ -1293,7 +1293,12 @@ void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
 }
 void UBodyStateAnimInstance::SetActiveDeviceSerial(const FString& DeviceID)
 {
-	ActiveDeviceSerial = DeviceID;
+	if (ActiveDeviceSerial != DeviceID)
+	{
+		ActiveDeviceSerial = DeviceID;
+		//force recache of skeleton
+		BodyStateSkeleton = nullptr;
+	}
 }
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
