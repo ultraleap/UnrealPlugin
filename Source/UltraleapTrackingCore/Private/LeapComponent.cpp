@@ -54,7 +54,7 @@ void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
 		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
 		if (Device)
 		{
-			CurrentHandTrackingDevice->GetFrame();
+			Device->GetLatestFrameData(OutData);
 		}
 	}
 }
