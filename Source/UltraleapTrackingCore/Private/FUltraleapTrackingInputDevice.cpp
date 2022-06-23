@@ -280,7 +280,6 @@ IHandTrackingDevice* FUltraleapTrackingInputDevice::GetDeviceBySerial(const FStr
 	TArray<FString> DeviceList;
 	DeviceList.Add(DeviceSerial);
 
-	// TODO: fallback for no device serials (backwards compat)
 	auto DeviceWrapper = Connector->GetDevice(DeviceList);
 	if (DeviceWrapper)
 	{
@@ -350,7 +349,10 @@ void FUltraleapTrackingInputDevice::SetLeapPolicyBySerial(ELeapPolicyFlag Flag, 
 	{
 		DeviceWrapper = GetFallbackDeviceWrapper();
 	}
-	DeviceWrapper = GetDeviceWrapperBySerial(DeviceSerial);
+	else
+	{
+		DeviceWrapper = GetDeviceWrapperBySerial(DeviceSerial);
+	}
 	if (DeviceWrapper)
 	{
 		switch (Flag)
@@ -392,7 +394,10 @@ void FUltraleapTrackingInputDevice::SetTrackingModeBySerial(ELeapMode Flag, cons
 	{
 		DeviceWrapper = GetFallbackDeviceWrapper();
 	}
-	DeviceWrapper = GetDeviceWrapperBySerial(DeviceSerial);
+	else
+	{
+		DeviceWrapper = GetDeviceWrapperBySerial(DeviceSerial);
+	}
 	if (DeviceWrapper)
 	{
 		switch (Flag)
