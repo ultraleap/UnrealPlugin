@@ -108,7 +108,7 @@ void FUltraleapTrackingInputDevice::OnConnectionLost()
 void FUltraleapTrackingInputDevice::OnDeviceFound(const LEAP_DEVICE_INFO* Props)
 {
 	
-	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceFound %d %s."), (int32)Props->pid, *FString(Props->serial));
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceFound PID %x DeviceSerial %s."), (int32)Props->pid, *FString(Props->serial));
 
 	AttachedDevices.AddUnique(FString(Props->serial));
 
