@@ -48,10 +48,13 @@ public:
 	/** Poll for controller state and send events if needed */
 	virtual void SendControllerEvents() override;
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
+	FLeapOptions GetOptions() override;
+	FLeapStats GetStats() override;
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
+	virtual void SetOptions(const FLeapOptions& Options) override;
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
@@ -62,9 +65,8 @@ public:
 
 	FCriticalSection LeapSection;
 
-	void SetOptions(const FLeapOptions& Options);
-	FLeapOptions GetOptions();
-	FLeapStats GetStats();
+	
+	
 	
 	
 private:

@@ -35,6 +35,9 @@ public:
 
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) = 0;
+	virtual void SetOptions(const FLeapOptions& InOptions) = 0;
+	virtual FLeapOptions GetOptions() = 0;
+	virtual FLeapStats GetStats() = 0;
 
 };
 class ITrackingDeviceWrapper

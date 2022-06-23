@@ -106,7 +106,6 @@ private:
 	// Wrapper link
 	TSharedPtr<IHandTrackingWrapper> Leap;
 	ILeapConnector* Connector;
-	FLeapStats Stats;
 	// LeapWrapper Callbacks
 	// Global
 	virtual void OnConnect() override;
@@ -117,6 +116,10 @@ private:
 
 	IHandTrackingDevice* GetDeviceBySerial(const FString& DeviceSerial);
 	IHandTrackingWrapper* GetDeviceWrapperBySerial(const FString& DeviceSerial);
+	void SetTrackingModeBySerial(ELeapMode Flag, const FString& DeviceSerial);
+	void SetLeapPolicyBySerial(ELeapPolicyFlag Flag, bool Enable, const FString& DeviceSerial);
+
+	IHandTrackingWrapper* GetFallbackDeviceWrapper();
 
 	bool IsWaitingForConnect = false;
 };
