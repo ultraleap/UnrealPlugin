@@ -710,7 +710,11 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSeria
 	IHandTrackingWrapper* Ret = nullptr;
 	// TODO: create a map
 	// TODO: support aggregation (currently hard wired to first device/singular mode)
-
+	//backwards compatibility fallback, default to first device
+	if (DeviceSerials.Num() == 0 && Devices.Num())
+	{
+		return Devices[0];
+	}
 	for (auto Device : Devices)
 	{
 		if (DeviceSerials.Contains(Device->GetDeviceSerial()))
