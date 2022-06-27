@@ -278,8 +278,12 @@ IHandTrackingDevice* FUltraleapTrackingInputDevice::GetDeviceBySerial(const FStr
 	}
 
 	TArray<FString> DeviceList;
-	DeviceList.Add(DeviceSerial);
 
+	// leave list empty if no device serial (backwards compatibilty fallback to default device)
+	if (!DeviceSerial.IsEmpty())
+	{
+		DeviceList.Add(DeviceSerial);
+	}
 	auto DeviceWrapper = Connector->GetDevice(DeviceList);
 	if (DeviceWrapper)
 	{
@@ -298,7 +302,11 @@ IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetDeviceWrapperBySerial(co
 		return nullptr;
 	}
 	TArray<FString> DeviceList;
-	DeviceList.Add(DeviceSerial);
+	// leave list empty if no device serial (backwards compatibilty fallback to default device)
+	if (!DeviceSerial.IsEmpty())
+	{
+		DeviceList.Add(DeviceSerial);
+	}
 
 	return Connector->GetDevice(DeviceList);
 }
