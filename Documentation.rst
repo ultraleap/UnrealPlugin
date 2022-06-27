@@ -1321,7 +1321,8 @@ There's several steps to build for this setup:
    (https://developer.pico-interactive.com/docs/en/12058/unreal-xr-sdk-quickstart/)
 -  In Project Settings, switch on arm 64 bit then switch off arm 32 bit
    support for Android
--  In Project Settings, disable Vulkan mobile support
+-  In Project Settings, disable Vulkan mobile support OR turn off
+   multiview
 -  In Project Settings, set the Min And Max Android SDK to 29
 -  Uncheck the Oculus OpenXR plugin
 -  Package for ANDROID_ASTC and deploy using in the install batch file
