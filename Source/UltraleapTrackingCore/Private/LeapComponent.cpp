@@ -10,6 +10,9 @@
 
 #include "IUltraleapTrackingPlugin.h"
 
+const FString ULeapComponent::NameConstantNone = "None";
+
+
 ULeapComponent::ULeapComponent(const FObjectInitializer& init) : 
 	UActorComponent(init), CurrentHandTrackingDevice(nullptr)
 {
@@ -115,7 +118,11 @@ bool ULeapComponent::SubscribeToDevice()
 
 		TArray<FString> DeviceSerials;
 		// when combined/aggregated, this can contain more serials
-		DeviceSerials.Add(ActiveDeviceSerial);
+		// if uninitialised, fallback to default device for backwards compatibility
+		if (!ActiveDeviceSerial.IsEmpty() && ActiveDeviceSerial != NameConstantNone )
+		{
+			DeviceSerials.Add(ActiveDeviceSerial);
+		}
 		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials);
 		Success = (CurrentHandTrackingDevice != nullptr);
 

@@ -147,7 +147,7 @@ public:
 	TArray<FString> GetSerialOptions() const
 	{
 		TArray<FString> Ret(AvailableDeviceSerials);
-		Ret.Insert(TEXT("None"), 0);
+		Ret.Insert(NameConstantNone, 0);
 		return Ret;
 	}
 #if WITH_EDITOR
@@ -186,4 +186,6 @@ private:
 	bool IsConnectedToInputEvents;
 
 	IHandTrackingWrapper* CurrentHandTrackingDevice;
+
+	static const FString NameConstantNone;
 };
