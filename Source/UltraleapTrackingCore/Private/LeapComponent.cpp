@@ -32,7 +32,7 @@ ULeapComponent::~ULeapComponent()
 {
 	UnsubscribeFromCurrentDevice();
 }
-	void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
+void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
 {
 	// this needs to propagate to all other components with same id
 }
@@ -89,7 +89,8 @@ void ULeapComponent::SetSwizzles(
 bool ULeapComponent::UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode)
 {
 	MultiDeviceMode = DeviceMode;
-	return false;
+	SubscribeToDevice();
+	return true;
 }
 bool ULeapComponent::UnsubscribeFromCurrentDevice()
 {
@@ -115,13 +116,20 @@ bool ULeapComponent::SubscribeToDevice()
 	{
 		// disconnect previous first
 		UnsubscribeFromCurrentDevice();
-
 		TArray<FString> DeviceSerials;
-		// when combined/aggregated, this can contain more serials
-		// if uninitialised, fallback to default device for backwards compatibility
-		if (!ActiveDeviceSerial.IsEmpty() && ActiveDeviceSerial != NameConstantNone )
+		
+		if (MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_SINGULAR)
 		{
-			DeviceSerials.Add(ActiveDeviceSerial);
+			// if uninitialised, fallback to default device for backwards compatibility (Empty List = default)
+			if (!ActiveDeviceSerial.IsEmpty() && ActiveDeviceSerial != NameConstantNone)
+			{
+				DeviceSerials.Add(ActiveDeviceSerial);
+			}
+		}
+		// Combined device mode
+		else
+		{
+			DeviceSerials = CombinedDeviceSerials;
 		}
 		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials);
 		Success = (CurrentHandTrackingDevice != nullptr);
@@ -210,6 +218,10 @@ void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 		UpdateActiveDevice(ActiveDeviceSerial);
 	}
 	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULeapComponent, MultiDeviceMode))
+	{
+		UpdateMultiDeviceMode(MultiDeviceMode);
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(ULeapComponent, CombinedDeviceSerials))
 	{
 		UpdateMultiDeviceMode(MultiDeviceMode);
 	}

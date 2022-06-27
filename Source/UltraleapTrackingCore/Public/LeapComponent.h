@@ -150,6 +150,13 @@ public:
 		Ret.Insert(NameConstantNone, 0);
 		return Ret;
 	}
+
+	/** Combined device list
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
+	TArray<FString> CombinedDeviceSerials;
+
+
 #if WITH_EDITOR
 	// property change handlers
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -166,8 +173,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool UpdateActiveDevice(const FString& DeviceSerial);
-	// remove before release
-	void CreateTestState();
 
 	// Delegate handlers for state changes
 	UFUNCTION()

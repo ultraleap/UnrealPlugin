@@ -137,8 +137,12 @@ public:
 	virtual void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent) override
 	{
 	}
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials) override
+	{
+		return false;
+	}
 
-protected:
+ protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
 };
@@ -219,6 +223,10 @@ public:
 	{
 		return nullptr;
 	}
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials) override
+	{
+		return false;
+	}
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) override;
@@ -236,7 +244,12 @@ private:
 	LeapWrapperCallbackInterface* GetCallbackDelegateFromDeviceID(const uint32_t DeviceID);
 	
 	// Frame and handle data
+	// Actual connected devices
 	TArray <IHandTrackingWrapper*> Devices;
+
+	// Aggregated/combined devices
+	TArray<IHandTrackingWrapper*> CombinedDevices;
+
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
 
 	// Threading variables
@@ -287,4 +300,8 @@ private:
 	void RemoveDevice(const uint32_t DeviceID);
 
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);
+	
+	IHandTrackingWrapper* FindAggregator(const TArray<FString>& DeviceSerials);
+	IHandTrackingWrapper* CreateAggregator(const TArray<FString>& DeviceSerials);
+	
 };

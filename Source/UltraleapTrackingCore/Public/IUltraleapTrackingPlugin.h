@@ -118,6 +118,9 @@ public:
 	virtual FString GetDeviceSerial() = 0;
 
 	virtual IHandTrackingDevice* GetDevice() = 0;
+
+	// device combination, does this device aggregate the given Devices
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials) = 0;
 };
 
 /**

@@ -705,6 +705,34 @@ void FLeapWrapper::GetDeviceSerials(TArray<FString>& DeviceSerials)
 		DeviceSerials.Add(Device->GetDeviceSerial());
 	}
 }
+IHandTrackingWrapper* FLeapWrapper::FindAggregator(const TArray<FString>& DeviceSerials)
+{
+	IHandTrackingWrapper* Ret = nullptr;
+	for (auto Combiner : CombinedDevices)
+	{
+		if (Combiner->MatchDevices(DeviceSerials))
+		{
+			return Combiner;
+		}
+	}
+	return Ret;
+}
+// TODO pass combiner class/type
+IHandTrackingWrapper* FLeapWrapper::CreateAggregator(const TArray<FString>& DeviceSerials)
+{
+	// use existing if already there
+	IHandTrackingWrapper* Ret = FindAggregator(DeviceSerials);
+
+	if (Ret)
+	{
+		return Ret;
+	}
+	// create a new combiner otherwise
+	//Ret = new FCombinerWrapper(this, DeviceSerials);
+
+	CombinedDevices.Add(Ret);
+	return Ret;
+}
 IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSerials)
 {
 	IHandTrackingWrapper* Ret = nullptr;
@@ -715,13 +743,23 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSeria
 	{
 		return Devices[0];
 	}
-	for (auto Device : Devices)
+
+	// singular mode, find the device
+	if (DeviceSerials.Num() == 1)
 	{
-		if (DeviceSerials.Contains(Device->GetDeviceSerial()))
+		for (auto Device : Devices)
 		{
-			Ret = Device;
-			break;
+			if (DeviceSerials.Contains(Device->GetDeviceSerial()))
+			{
+				Ret = Device;
+				break;
+			}
 		}
+	}
+	// multi mode, create/find aggregator/combiner
+	else if (DeviceSerials.Num() > 1)
+	{
+		return CreateAggregator(DeviceSerials);
 	}
 	return Ret;
 }
