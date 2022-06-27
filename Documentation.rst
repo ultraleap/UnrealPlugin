@@ -1308,8 +1308,7 @@ Android/Pico
 The Ultraleap Tracking Plugin builds and deploys to Pico headsets.
 There's several steps to build for this setup:
 
--  Install the android tools installed as specified in the Unreal
-   Android guide
+-  Install the android tools as specified in the Unreal Android guide
    (https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Mobile/Android/Setup/AndroidStudio/).
 -  Install the tracking service APK on your Pico (using adb Install)
 -  Setup your project as usual (see the top of this document)
@@ -1340,8 +1339,7 @@ pinch to click buttons)
 
 Steps to setup:
 
--  Install the android tools installed as specified in the Unreal
-   Android guide
+-  Install the android tools as specified in the Unreal Android guide
    (https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Mobile/Android/Setup/AndroidStudio/).
 -  Enable Hand Tracking on your Quest
 -  Setup your project as usual (see the top of this document)

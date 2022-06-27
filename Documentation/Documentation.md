@@ -767,7 +767,7 @@ Below is a link to an example video for packaging for windows. The user here had
 
 The Ultraleap Tracking Plugin builds and deploys to Pico headsets. There's several steps to build for this setup:
 
-- Install the android tools installed as specified in the Unreal Android guide (https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Mobile/Android/Setup/AndroidStudio/).
+- Install the android tools as specified in the Unreal Android guide (https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Mobile/Android/Setup/AndroidStudio/).
 - Install the tracking service APK on your Pico (using adb Install)
 - Setup your project as usual (see the top of this document)
 - Locate the PicoXR SDK install guide (https://developer.pico-interactive.com/sdk/index?device_id=1&platform_id=2)
@@ -786,7 +786,7 @@ The Ultraleap Tracking Plugin builds and deploys to Oculus Quest headsets and ca
 Note that functionality that requires pinch and grasp events won’t work as this is not provided via OpenXR (for example, distance interaction pinch to click buttons)
 
 Steps to setup:
-- Install the android tools installed as specified in the Unreal Android guide (https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Mobile/Android/Setup/AndroidStudio/).
+- Install the android tools as specified in the Unreal Android guide (https://docs.unrealengine.com/4.27/en-US/SharingAndReleasing/Mobile/Android/Setup/AndroidStudio/).
 - Enable Hand Tracking on your Quest
 - Setup your project as usual (see the top of this document)
 - Set the minimum and maximum Android SDK version to 29 in the project settings
