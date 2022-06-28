@@ -729,8 +729,10 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(const TArray<FString>& Devi
 	}
 	// create a new combiner otherwise
 	//Ret = new FDeviceCombiner(this, DeviceSerials);
-
-	CombinedDevices.Add(Ret);
+	if (Ret)
+	{
+		CombinedDevices.Add(Ret);
+	}
 	return Ret;
 }
 IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSerials)
@@ -765,7 +767,12 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSeria
 }
 void FLeapWrapper::TickDevices(const float DeltaTime) 
 {
-	for (auto Device : Devices)
+	TArray<IHandTrackingWrapper*> AllDevices;
+
+	// tick real devices first
+	AllDevices.Append(Devices);
+	AllDevices.Append(CombinedDevices);
+	for (auto Device : AllDevices)
 	{
 		auto InternalDevice = Device->GetDevice();
 		if (InternalDevice)
@@ -776,7 +783,13 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 }
 void FLeapWrapper::TickSendControllerEventsOnDevices()
 {
-	for (auto Device : Devices)
+	TArray<IHandTrackingWrapper*> AllDevices;
+
+	// tick real devices first
+	AllDevices.Append(Devices);
+	AllDevices.Append(CombinedDevices);
+
+	for (auto Device : AllDevices)
 	{
 		auto InternalDevice = Device->GetDevice();
 		if (InternalDevice)
