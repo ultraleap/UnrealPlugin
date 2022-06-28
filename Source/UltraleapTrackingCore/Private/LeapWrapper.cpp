@@ -728,7 +728,7 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(const TArray<FString>& Devi
 		return Ret;
 	}
 	// create a new combiner otherwise
-	//Ret = new FCombinerWrapper(this, DeviceSerials);
+	//Ret = new FDeviceCombiner(this, DeviceSerials);
 
 	CombinedDevices.Add(Ret);
 	return Ret;
