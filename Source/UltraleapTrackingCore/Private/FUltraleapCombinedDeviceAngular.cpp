@@ -7,3 +7,7 @@
  ******************************************************************************/
 
 #include "FUltraleapCombinedDeviceAngular.h"
+ 
+void FUltraleapCombinedDeviceAngular::CombineFrame(const TArray<FLeapFrameData>& SourceFrames)
+{
+}

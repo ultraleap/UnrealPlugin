@@ -19,9 +19,23 @@ public:
 	}
 	
 protected:
-	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override
-	{
-	}
+	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override;
 
+public:
+	float Cam1Alpha;
+	float Cam2Alpha;
+
+	float LeftAngle;
+	float RightAngle;
+
+	float MaxInterpolationAngle = 60;
+
+
+	FTransform MidpointDevices;	  // used to calculate relative angle and weight hands accordingly. Transform should face direction
+								  // that bisects FOV of devices
 private:
+	FVector TempHandPalmPosition;
+	FVector MidDevicePointPosition;
+	FVector MidDevicePointForward;
+	FVector MidDevicePointUp;
 };
