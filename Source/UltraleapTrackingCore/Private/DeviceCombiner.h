@@ -22,8 +22,8 @@ public:
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
 
-	FDeviceCombiner(const LEAP_CONNECTION ConnectionHandle,
-					   IHandTrackingWrapper * ConnectorIn);
+	FDeviceCombiner(
+		const LEAP_CONNECTION ConnectionHandle, IHandTrackingWrapper* ConnectorIn, const TArray<IHandTrackingWrapper*>& DevicesToCombine);
 	virtual ~FDeviceCombiner();
 
 	// Function Calls for plugin. Mainly uses Open/Close Connection.
@@ -62,20 +62,16 @@ public:
 	}
 	virtual FString GetDeviceSerial() override
 	{
-		FString Ret = "Unknown";
-		LEAP_DEVICE_INFO* Info = GetDeviceProperties();
-		if (Info)
-		{
-			Ret = Info->serial;
-		}
+		FString Ret = "CombinedDevice";
+		
 		return Ret;
 	}
 
 	virtual IHandTrackingDevice* GetDevice() override
 	{
-		return nullptr;
-		//return Device.Get();
+		return Device.Get();
 	}
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials) override;
 
 private:
 	void Millisleep(int Milliseconds);
@@ -126,5 +122,9 @@ private:
 	IHandTrackingWrapper* Connector;
 
 	// manages per device functionality in the same way as InputDevice used to
-	//TSharedPtr<FUltraleapDevice> Device;
+	// in this case this will be a device combiner
+	TSharedPtr<FUltraleapDevice> Device;
+
+	TArray<IHandTrackingWrapper*> DevicesToCombine;
+
 };

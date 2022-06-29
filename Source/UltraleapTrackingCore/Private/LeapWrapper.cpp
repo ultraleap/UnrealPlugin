@@ -727,14 +727,36 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(const TArray<FString>& Devi
 	{
 		return Ret;
 	}
+	TArray<IHandTrackingWrapper*> DevicesToCombine;
+	for (auto DeviceSerial : DeviceSerials)
+	{
+		auto DeviceWrapper = GetSingularDeviceBySerial(DeviceSerial);
+		if (DeviceWrapper)
+		{
+			DevicesToCombine.Add(DeviceWrapper);
+		}
+	}
 	// create a new combiner otherwise
-	//Ret = new FDeviceCombiner(this, DeviceSerials);
+	Ret = new FDeviceCombiner(ConnectionHandle,this, DevicesToCombine);
 	if (Ret)
 	{
 		CombinedDevices.Add(Ret);
 	}
 	return Ret;
 }
+// gets a singular device from the real devices
+IHandTrackingWrapper* FLeapWrapper::GetSingularDeviceBySerial(const FString& DeviceSerial)
+{
+	for (auto Device : Devices)
+	{
+		if (Device->GetDeviceSerial() == DeviceSerial)
+		{
+			return Device;
+		}
+	}
+	return nullptr;
+}
+// gets a device, finds or creates combined device
 IHandTrackingWrapper* FLeapWrapper::GetDevice(const TArray<FString>& DeviceSerials)
 {
 	IHandTrackingWrapper* Ret = nullptr;

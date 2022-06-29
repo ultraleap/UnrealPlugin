@@ -9,21 +9,24 @@
 #include "DeviceCombiner.h"
 #include "LeapAsync.h"
 #include "LeapUtility.h"
+#include "FUltraleapCombinedDevice.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region Combiner
 
 // created when a device is found
-FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHandTrackingWrapper* ConnectorIn)
-	:	
+FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHandTrackingWrapper* ConnectorIn,
+	const TArray<IHandTrackingWrapper*>& DevicesToCombineIn)
+	:
 	ConnectionHandle(ConnectionHandleIn)
 	, DataLock(new FCriticalSection())
 	, bIsRunning(false)
 	, Connector(ConnectorIn)
+	, DevicesToCombine(DevicesToCombineIn)
 {
 	//SetDevice(&DeviceInfoIn);
 
-	//Device = MakeShared<FUltraleapDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this);
+	Device = MakeShared<FUltraleapCombinedDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
 
 }
 
@@ -308,7 +311,21 @@ void FDeviceCombiner::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT
 		});
 	}
 }
-
+bool FDeviceCombiner::MatchDevices(const TArray<FString> DeviceSerials)
+{
+	if (DevicesToCombine.Num() != DeviceSerials.Num())
+	{
+		return false;
+	}
+	for (auto DeviceToCombine : DevicesToCombine)
+	{
+		if (!DeviceSerials.Contains(DeviceToCombine->GetDeviceSerial()))
+		{
+			return false;
+		}
+	}
+	return true;
+}
 
 
 #pragma endregion Leap Device Wrapper

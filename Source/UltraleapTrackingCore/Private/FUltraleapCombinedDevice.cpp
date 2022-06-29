@@ -29,5 +29,16 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 }
 void FUltraleapCombinedDevice::CombineFrame()
 {
+	TArray<FLeapFrameData> SourceFrames;
 	// add combiner logic based on DevicesToCombine List. All devices will have ticked before this is called
+	for (auto SourceDevice : DevicesToCombine)
+	{
+		auto InternalSourceDevice = SourceDevice->GetDevice();
+		if (InternalSourceDevice)
+		{
+			FLeapFrameData SourceFrame;
+			InternalSourceDevice->GetLatestFrameData(SourceFrame);
+			SourceFrames.Add(SourceFrame);
+		}
+	}
 }

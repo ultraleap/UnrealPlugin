@@ -24,7 +24,9 @@ protected:
 	// override this in any custom combiners
 	virtual void CombineFrame();
 
-private:
+
 	// the combined devices
 	TArray<IHandTrackingWrapper*> DevicesToCombine;
+
+private:
 };

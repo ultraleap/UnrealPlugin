@@ -299,6 +299,7 @@ private:
 	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle);
 	void RemoveDevice(const uint32_t DeviceID);
 
+	IHandTrackingWrapper* GetSingularDeviceBySerial(const FString& DeviceSerial);
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);
 	
 	IHandTrackingWrapper* FindAggregator(const TArray<FString>& DeviceSerials);
