@@ -234,6 +234,7 @@ FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITra
 	// Link callbacks
 
 	// Open the connection
+	DeltaTimeFromTick = 0;
 	TimewarpTween = 0.5f;
 	SlerpTween = 0.5f;
 	GameTimeInSec = 0.f;
@@ -300,6 +301,7 @@ void FUltraleapDevice::Tick(float DeltaTime)
 {
 	GameTimeInSec += DeltaTime;
 	FrameTimeInMicros = DeltaTime * 1000000;
+	DeltaTimeFromTick = DeltaTime;
 	
 }
 

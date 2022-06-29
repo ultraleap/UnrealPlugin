@@ -77,6 +77,16 @@ struct EKeysLeap
 	static const FKey LeapGrabR;
 };
 
+UENUM(BlueprintType)
+enum ELeapDeviceType
+{
+	LEAP_DEVICE_TYPE_RIGEL,
+	LEAP_DEVICE_TYPE_SIR170, //same as RIGEL?	  
+	LEAP_DEVICE_TYPE_3DI,
+	LEAP_DEVICE_TYPE_PERIPHERAL,
+	LEAP_DEVICE_TYPE_COMBINED
+};
+
 USTRUCT(BlueprintType)
 struct ULTRALEAPTRACKING_API FLeapDevice
 {

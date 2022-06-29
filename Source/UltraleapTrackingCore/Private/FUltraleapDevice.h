@@ -64,8 +64,10 @@ public:
 
 	
 	
-	
-	
+protected:
+	FLeapFrameData CurrentFrame;
+	float DeltaTimeFromTick;
+
 private:
 	bool UseTimeBasedVisibilityCheck = false;
 	bool UseTimeBasedGestureCheck = false;
@@ -134,7 +136,7 @@ private:
 	int64 FrameTimeInMicros;
 
 	// Game thread Data
-	FLeapFrameData CurrentFrame;
+	
 	FLeapFrameData PastFrame;
 
 	TArray<int32> PastVisibleHands;

@@ -38,6 +38,7 @@ public:
 	virtual void SetOptions(const FLeapOptions& InOptions) = 0;
 	virtual FLeapOptions GetOptions() = 0;
 	virtual FLeapStats GetStats() = 0;
+	virtual ELeapDeviceType GetDeviceType() = 0;
 
 };
 class ITrackingDeviceWrapper

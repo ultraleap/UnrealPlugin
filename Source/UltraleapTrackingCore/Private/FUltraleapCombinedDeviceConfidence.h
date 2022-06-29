@@ -11,6 +11,8 @@
 
 
 // placeholder for complile test
+// this is more of a component level item as it accesses the camera
+// and other jointocclusion components in the scene in Unity
 class JointOcclusion
 {
 
@@ -69,7 +71,7 @@ public:
 	}
 
 protected:
-	ITrackingDeviceWrapper* Provider;
+	IHandTrackingDevice* Provider;
 	TArray<FVector> Positions;
 	TArray<float> Times;
 	int Index;
@@ -202,64 +204,82 @@ public:
 	}
 	
 protected:
-	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override
-	{
-	}
+	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override;
+	
 
 public:
 	 //If true, the overall hand confidence is affected by the duration a new hand has been visible for. When a new hand is seen for the first time, its confidence is 0. After a hand has been visible for a second, its confidence is determined by the below palm factors and palm confidences
-     bool ignoreRecentNewHands = true;
+     bool IgnoreRecentNewHands = true;
 
      // factors that get multiplied to the corresponding confidence values to get an overall weighted confidence value
      //How much should the Palm position relative to the tracking camera influence the overall hand confidence? A confidence value is determined by whether the hand is within the optimal FOV of the tracking camera")]
      //[Range(0f, 1f)]
-     float palmPosFactor = 0;
+     float PalmPosFactor = 0;
      // How much should the Palm orientation relative to the tracking camera influence the overall hand confidence? A confidence value is determined by looking at the angle between the palm normal and the direction from hand to camera
      // [Range(0f, 1f)]
-     float palmRotFactor = 0;
+     float PalmRotFactor = 0;
        
       //How much should the Palm velocity relative to the tracking camera influence the overall hand confidence?")]
       //  [Range(0f, 1f)]
-      float palmVelocityFactor = 0;
+      float PalmVelocityFactor = 0;
 
       //How much should the joint rotation relative to the tracking camera influence the overall hand confidence? A confidence value is determined for a joint by looking at the angle between the joint normal and the direction from hand to camera.
       //  [Range(0f, 1f)]
-      float jointRotFactor = 0;
+      float JointRotFactor = 0;
       
       //How much should the joint rotation relative to the palm normal influence the overall hand confidence?
       //  [Range(0f, 1f)]
-      float jointRotToPalmFactor = 0;
+      float JointRotToPalmFactor = 0;
       //How much should joint occlusion influence the overall hand confidence?
       //   [Range(0f, 1f)]
-      float jointOcclusionFactor = 0;
+      float JointOcclusionFactor = 0;
 
 
-      bool debugJointOrigins = false;
+      bool DebugJointOrigins = false;
      
-    TMap<ITrackingDeviceWrapper*, FHandPositionHistory> LastLeftHandPositions;
-	TMap<ITrackingDeviceWrapper*, FHandPositionHistory> LastRightHandPositions;
+    TMap<IHandTrackingDevice*, FHandPositionHistory> LastLeftHandPositions;
+	TMap<IHandTrackingDevice*, FHandPositionHistory> LastRightHandPositions;
 
-	TMap<ITrackingDeviceWrapper*, float> LeftHandFirstVisible;
-	TMap<ITrackingDeviceWrapper*, float> RightHandFirstVisible;
+	TMap<IHandTrackingDevice*, float> LeftHandFirstVisible;
+	TMap<IHandTrackingDevice*, float> RightHandFirstVisible;
 
     TArray<JointOcclusion> JointOcclusions;
 
 	// todo: init size as in Unity = new FVector3[VectorHand.NUM_JOINT_POSITIONS];
-    TArray<FVector> mergedJointPositions;
+    TArray<FVector> MergedJointPositions;
 	
 
 private:
 
 	TArray<TArray<float>> JointConfidences;
-	TArray<TArray<float>> Confidences_jointRot;
-	TArray<TArray<float>> Confidences_jointPalmRot;
-	TArray<TArray<float>> Confidences_jointOcclusion;
+	TArray<TArray<float>> ConfidencesJointRot;
+	TArray<TArray<float>> ConfidencesJointPalmRot;
+	TArray<TArray<float>> ConfidencesJointOcclusion;
 
-    TMap<ITrackingDeviceWrapper*, FJointConfidenceHistory> jointConfidenceHistoriesLeft;
-	TMap<ITrackingDeviceWrapper*, FJointConfidenceHistory> jointConfidenceHistoriesRight;
+    TMap<IHandTrackingDevice*, FJointConfidenceHistory> JointConfidenceHistoriesLeft;
+	TMap<IHandTrackingDevice*, FJointConfidenceHistory> JointConfidenceHistoriesRight;
 	
 
-    TMap<ITrackingDeviceWrapper*, FHandConfidenceHistory> handConfidenceHistoriesLeft;
-	TMap<ITrackingDeviceWrapper*, FHandConfidenceHistory> handConfidenceHistoriesRight;
+    TMap<IHandTrackingDevice*, FHandConfidenceHistory> HandConfidenceHistoriesLeft;
+	TMap<IHandTrackingDevice*, FHandConfidenceHistory> HandConfidenceHistoriesRight;
 
+	void MergeFrames(const TArray<FLeapFrameData>& SourceFrames, FLeapFrameData& CombinedFrame);
+	void SetupJointOcclusion();
+	void AddFrameToTimeVisibleDicts(const TArray<FLeapFrameData>& Frames, const int FrameIdx);
+	float CalculateHandConfidence(int FrameIdx, const FLeapHandData& Hand);
+	float ConfidenceRelativeHandPos(IHandTrackingDevice* Provider, const FTransform& DeviceOrigin, const FVector& HandPos);
+	float ConfidenceRelativeHandRot(const FTransform& DeviceOrigin, const FVector& HandPos, const FVector& PalmNormal);
+	float ConfidenceRelativeHandVelocity(
+		IHandTrackingDevice* Provider, const FTransform& DeviceOrigin, const FVector HandPos, const bool isLeft);
+	float ConfidenceTimeSinceHandFirstVisible(IHandTrackingDevice* Provider, const bool isLeft);
+
+	void CalculateJointConfidence(
+		const int FrameIdx, const FLeapHandData& Hand, TArray<float>& RetConfidences);
+
+	TArray<float> ConfidenceRelativeJointRot(TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
+	TArray<float> ConfidenceRelativeJointRotToPalmRot(
+		const TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
+
+	void MergeHands(TArray<const FLeapHandData*> Hands, const TArray<float>& HandConfidences,
+		const TArray<TArray<float>>& JointConfidences, FLeapHandData& HandRet);
 };
