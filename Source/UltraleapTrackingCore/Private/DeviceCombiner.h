@@ -62,7 +62,7 @@ public:
 	}
 	virtual FString GetDeviceSerial() override
 	{
-		FString Ret = "CombinedDevice";
+		FString Ret = CombinedDeviceSerial;
 		
 		return Ret;
 	}
@@ -126,5 +126,7 @@ private:
 	TSharedPtr<FUltraleapDevice> Device;
 
 	TArray<IHandTrackingWrapper*> DevicesToCombine;
+
+	FString CombinedDeviceSerial;
 
 };

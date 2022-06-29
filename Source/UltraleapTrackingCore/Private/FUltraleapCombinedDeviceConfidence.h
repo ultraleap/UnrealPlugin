@@ -7,26 +7,21 @@
  ******************************************************************************/
 
 #pragma once
-#include "FUltraleapDevice.h"
+#include "FUltraleapCombinedDevice.h"
 
-class FUltraleapCombinedDevice : public FUltraleapDevice
+class FUltraleapCombinedDeviceConfidence : public FUltraleapCombinedDevice
 {
 public:
-	FUltraleapCombinedDevice(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn, TArray<IHandTrackingWrapper*> DevicesToCombineIn);
-	virtual ~FUltraleapCombinedDevice();
-
+	FUltraleapCombinedDeviceConfidence(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn,
+		TArray<IHandTrackingWrapper*> DevicesToCombineIn)
+		: FUltraleapCombinedDevice(LeapDeviceWrapperIn, TrackingDeviceWrapperIn, DevicesToCombineIn)
+	{
+	}
 	
-
-	/** Poll for controller state and send events if needed */
-	virtual void SendControllerEvents() override;
-		
 protected:
-	// override this in any custom combiners
-	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) = 0;
-
-
-	// the combined devices
-	TArray<IHandTrackingWrapper*> DevicesToCombine;
+	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override
+	{
+	}
 
 private:
 };

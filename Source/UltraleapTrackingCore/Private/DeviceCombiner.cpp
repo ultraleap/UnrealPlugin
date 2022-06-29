@@ -10,6 +10,7 @@
 #include "LeapAsync.h"
 #include "LeapUtility.h"
 #include "FUltraleapCombinedDevice.h"
+#include "FUltraleapCombinedDeviceAngular.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region Combiner
@@ -25,8 +26,15 @@ FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHand
 	, DevicesToCombine(DevicesToCombineIn)
 {
 	//SetDevice(&DeviceInfoIn);
+	CombinedDeviceSerial = "Combined - ";
 
-	Device = MakeShared<FUltraleapCombinedDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
+	// list of last 4 chars of the serial number
+	for (auto DeviceToCombine : DevicesToCombineIn)
+	{
+		CombinedDeviceSerial += DeviceToCombine->GetDeviceSerial().Right(4);
+		CombinedDeviceSerial += " ";
+	}
+	Device = MakeShared<FUltraleapCombinedDeviceAngular>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
 
 }
 

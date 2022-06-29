@@ -24,11 +24,6 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 {
 	// Create combined frame here and call parse
 	// the parent class will then behave as if it had one device
-	CombineFrame();
-	ParseEvents();
-}
-void FUltraleapCombinedDevice::CombineFrame()
-{
 	TArray<FLeapFrameData> SourceFrames;
 	// add combiner logic based on DevicesToCombine List. All devices will have ticked before this is called
 	for (auto SourceDevice : DevicesToCombine)
@@ -41,4 +36,7 @@ void FUltraleapCombinedDevice::CombineFrame()
 			SourceFrames.Add(SourceFrame);
 		}
 	}
+	
+	CombineFrame(SourceFrames);
+	ParseEvents();
 }
