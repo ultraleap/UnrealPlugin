@@ -23,9 +23,6 @@
 #include "SceneViewExtension.h"
 #include "UltraleapTrackingData.h"
 #include "IUltraleapTrackingPlugin.h"
-/**
- * Stores raw controller data and custom toggles
- */
 
 
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
