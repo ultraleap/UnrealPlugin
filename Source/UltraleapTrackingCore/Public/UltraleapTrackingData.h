@@ -403,6 +403,9 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	void ScaleHand(float Scale);
 	void RotateHand(const FRotator& InRotation);
 	void TranslateHand(const FVector& InTranslation);
+
+	void InitFromEmpty(const EHandType HandTypeIn);
+	void UpdateFromDigits();
 };
 
 USTRUCT(BlueprintType)

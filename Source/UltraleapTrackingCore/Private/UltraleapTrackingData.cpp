@@ -120,7 +120,43 @@ void FLeapFrameData::TranslateFrame(const FVector& InTranslation)
 		Hand.TranslateHand(InTranslation);
 	}
 }
+void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
+{
+	static int HandID = 0;
 
+	Confidence = 1.0;
+	GrabAngle = 100;
+	GrabStrength = 0.5;
+	PinchStrength = 0.5;
+
+	Id = HandID++;
+
+	for (int i = 0; i < MAX_DIGITS; i++)
+	{
+		if (Digits.Num() <= i)	  // will only pay the cost of filling once
+		{
+			FLeapDigitData DigitData;
+			Digits.Add(DigitData);
+		}
+	}
+
+	PinchDistance = 50;
+	
+
+	HandType = HandTypeIn;
+
+	VisibleTime = 1;
+}
+void FLeapHandData::UpdateFromDigits()
+{
+	//TODO: check thumb isn't first
+	//TODO2: check recursive copy of bones
+	Index = Digits[0];
+	Middle = Digits[1];
+	Ring = Digits[2];
+	Pinky = Digits[3];
+	Thumb = Digits[4];
+}
 void FLeapHandData::SetFromLeapHand(struct _LEAP_HAND* hand)
 {
 	Arm.SetFromLeapBone((_LEAP_BONE*) &hand->arm);

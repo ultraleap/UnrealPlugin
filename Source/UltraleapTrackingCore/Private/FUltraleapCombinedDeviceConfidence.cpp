@@ -9,9 +9,7 @@
 #include "FUltraleapCombinedDeviceConfidence.h"
 #include "LeapBlueprintFunctionLibrary.h" // for AngleBetweenVectors()
 
-// TODO: pull this in from somewhere
-static const int NUM_JOINT_POSITIONS = 25;
-// VectorHand.NUM_JOINT_POSITIONS
+
 float GetTime()
 {
 	return FPlatformTime::Seconds();
@@ -159,7 +157,7 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	}
 
 	// normalize joint confidences:
-	for (int JointIdx = 0; JointIdx < NUM_JOINT_POSITIONS; JointIdx++)
+	for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 	{
 		Sum = Sum2DFloatArray(LeftJointConfidences);
 
@@ -321,7 +319,7 @@ FTransform GetDeviceOrigin(IHandTrackingDevice* Device)
 {
 	return FTransform();
 }
-	/// <summary>
+/// <summary>
 /// combine different confidence functions to get an overall confidence for the given hand
 /// uses frame_idx to find the corresponding provider that saw this hand
 /// </summary>
@@ -542,10 +540,10 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	// todo: why are these recreated as they're set above
 	if (JointConfidences.Num() != NumProviders)
 	{
-		JointConfidences.AddZeroed(NUM_JOINT_POSITIONS);
-		ConfidencesJointRot.AddZeroed(NUM_JOINT_POSITIONS);
-		ConfidencesJointPalmRot.AddZeroed(NUM_JOINT_POSITIONS);
-		ConfidencesJointOcclusion.AddZeroed(NUM_JOINT_POSITIONS);
+		JointConfidences.AddZeroed(NumJointPositions);
+		ConfidencesJointRot.AddZeroed(NumJointPositions);
+		ConfidencesJointPalmRot.AddZeroed(NumJointPositions);
+		ConfidencesJointOcclusion.AddZeroed(NumJointPositions);
 	}
 	FTransform DeviceOrigin = GetDeviceOrigin(DevicesToCombine[FrameIdx]->GetDevice());
 
@@ -628,29 +626,32 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*>
 
 	// joints
 	TArray<FVector> MergedJointPositions;
-	MergedJointPositions.AddZeroed(NUM_JOINT_POSITIONS);
+	MergedJointPositions.AddZeroed(NumJointPositions);
 
-	/* TArray<VectorHand> VectorHands;
+	 TArray<TArray<FVector>> JointPositionsList;
 	
-	// looks like vector hand is used here to just get the hand vectors in a
-	// linear list which is in local coords
+	// in Unity, vector hand is used here to get the hand vectors in a
+	// linear list which is in local space relative to palm
 	for(auto Hand : Hands)
 	{
-		VectorHands.Add(VectorHand(Hand));
+		TArray<FVector> JointPositions;
+		CreateLocalLinearJointList(*Hand, JointPositions);
+		// should be 25 vectors in here
+		JointPositionsList.Add(JointPositions);
 	}
 
 	for (int HandsIdx = 0; HandsIdx < Hands.Num(); HandsIdx++)
 	{
-		for (int JointIdx = 0; JointIdx < NUM_JOINT_POSITIONS; JointIdx++)
+		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-			MergedJointPositions[JointIdx] += VectorHands[HandsIdx].JointPositions[JointIdx] * JointConfidences[HandsIdx][JointIdx];
+			MergedJointPositions[JointIdx] +=
+				JointPositionsList[HandsIdx][JointIdx] * JointConfidences[HandsIdx][JointIdx];
 		}
 	}
 
 	// combine everything to a hand
+	ConvertToWorldSpaceHand(HandRet, IsLeft, MergedPalmPos, MergedPalmRot, MergedJointPositions);
 	
-	new VectorHand(isLeft, mergedPalmPos, mergedPalmRot, mergedJointPositions).Decode(HandRet);
-	*/
 	// visualize the joint merge:
 	/* if (DebugJointOrigins && IsLeft && debugHandLeft != null)
 		VisualizeMergedJoints(debugHandLeft, jointConfidences);
@@ -670,7 +671,7 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 {
 	if (Confidences.Num() == 0)
 	{
-		Confidences.AddZeroed(NUM_JOINT_POSITIONS);
+		Confidences.AddZeroed(NumJointPositions);
 	}
 	static const int NumBones = 4;
 	for(auto Finger : Hand.Digits)
@@ -715,7 +716,7 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPa
 {
 	if (Confidences.Num() == 0)
 	{
-		Confidences.AddZeroed(NUM_JOINT_POSITIONS);
+		Confidences.AddZeroed(NumJointPositions);
 	}
 
 	for(auto Finger : Hand.Digits)

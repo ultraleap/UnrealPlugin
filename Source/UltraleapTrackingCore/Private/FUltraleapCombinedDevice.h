@@ -28,5 +28,17 @@ protected:
 	// the combined devices
 	TArray<IHandTrackingWrapper*> DevicesToCombine;
 
+	// Helpers ported from VectorHand.cs, used from multiple Combiners
+	// Equivalent of VectorHand.Encode
+	void CreateLocalLinearJointList(const FLeapHandData& Hand, TArray<FVector>& JointsPositions);
+	// Equivalent of VectorHand.Decode
+	void ConvertToWorldSpaceHand(FLeapHandData& Hand,
+		const bool IsLeft, const FVector& PalmPos, const FQuat& PalmRot, const TArray<FVector>& JointPositions);
+
+	void CreateLinearJointListInterp(const FLeapHandData& Hand, TArray<FVector>& Joints);
+
+	// Based on VectorHand.NUM_JOINT_POSITIONS
+	static const int NumJointPositions = 25;
+	
 private:
 };
