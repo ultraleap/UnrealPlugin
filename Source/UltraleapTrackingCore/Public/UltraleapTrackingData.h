@@ -76,15 +76,33 @@ struct EKeysLeap
 	static const FKey LeapPinchR;
 	static const FKey LeapGrabR;
 };
-
+// see eLeapDevicePID (Blueprint equivalent)
 UENUM(BlueprintType)
 enum ELeapDeviceType
 {
-	LEAP_DEVICE_TYPE_RIGEL,
-	LEAP_DEVICE_TYPE_SIR170, //same as RIGEL?	  
-	LEAP_DEVICE_TYPE_3DI,
-	LEAP_DEVICE_TYPE_PERIPHERAL,
-	LEAP_DEVICE_TYPE_COMBINED
+	/** An unknown device that is compatible with the tracking software. @since 3.1.3 */
+	LEAP_DEVICE_TYPE_UNKNOWN = 0x0000,
+
+	/** The Leap Motion Controller (the first consumer peripheral). @since 3.0.0 */
+	LEAP_DEVICE_TYPE_PERIPHERAL = 0x0003,
+
+	/** Internal research product codename "Dragonfly". @since 3.0.0 */
+	LEAP_DEVICE_TYPE_DRAGONFLY = 0x1102,
+
+	/** Internal research product codename "Nightcrawler". @since 3.0.0 */
+	LEAP_DEVICE_TYPE_NIGHTCRAWLER = 0x1201,
+
+	/** Research product codename "Rigel". @since 4.0.0 */
+	LEAP_DEVICE_TYPE_RIGEL = 0x1202,
+
+	/** The Ultraleap Stereo IR 170 (SIR170) hand tracking module. @since 5.3.0 */
+	LEAP_DEVICE_TYPE_SIR170 = 0x1203,
+
+	/** The Ultraleap 3Di hand tracking camera. @since 5.3.0 */
+	LEAP_DEVICE_TYPE_3DI = 0x1204,
+
+	/** An invalid device type. Not currently in use. @since 3.1.3 */
+	LEAP_DEVICE_INVALID = 0xFFFFFFFF
 };
 
 USTRUCT(BlueprintType)

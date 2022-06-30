@@ -10,7 +10,7 @@
 #include "LeapBlueprintFunctionLibrary.h" // for AngleBetweenVectors()
 
 // TODO: pull this in from somewhere
-static const int NUM_JOINT_POSITIONS = 21;
+static const int NUM_JOINT_POSITIONS = 25;
 // VectorHand.NUM_JOINT_POSITIONS
 float GetTime()
 {
@@ -22,6 +22,22 @@ float SumFloatArray(const TArray<float>& ToSum)
 	for (auto Value : ToSum)
 	{
 		Ret += Value;
+	}
+	return Ret;
+}
+float SumFloatArray(const TArray<float>& ToSum, const int NumElements)
+{
+	float Ret = 0;
+	int Index = 0;
+	for (auto Value : ToSum)
+	{
+		if (Index == NumElements)
+		{
+			break;
+		}
+		Ret += Value;
+		
+		Index++;
 	}
 	return Ret;
 }
@@ -385,9 +401,10 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 	// presumable to allow you to chain aggregators together?
 	// leaving as all IRL devices for the moment, with a special enum for combined LEAP_DEVICE_TYPE_COMBINED
 	// if the frame is coming from a LeapServiceProvider, use different values depending on the type of device
-	auto DeviceType = Provider->GetDeviceType();
-	if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_RIGEL || DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_SIR170 ||
-		DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_3DI)
+	auto ProviderDeviceType = Provider->GetDeviceType();
+	if (ProviderDeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_RIGEL ||
+		ProviderDeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_SIR170 ||
+		ProviderDeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_3DI)
 	{
 		// Depth: Between 10cm to 75cm preferred, up to 1m maximum
 		// Field Of View: 170 x 170 degrees typical (160 x 160 degrees minimum)
@@ -412,7 +429,7 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 			a = -0.55f / (PI / 2.0) * FMath::Atan(50 * (CurrentDepth - 0.875f)) + 0.5f;
 		}
 	}
-	else if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
+	else if (ProviderDeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 	{
 		// Depth: Between 10cm to 60cm preferred, up to 80cm maximum
 		// Field Of View: 140 x 120 degrees typical
@@ -595,25 +612,28 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 /// </summary>
 void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*> Hands,const TArray<float>& HandConfidences,const TArray<TArray<float>>& JointConfidencesIn, FLeapHandData& HandRet)
 {
-	bool IsLeft = Hands[0].HandType == EHandType::LEAP_HAND_LEFT;
-	FVector MergedPalmPos = Hands[0].Palm.Position * HandConfidences[0];
-	Quaternion MergedPalmRot = Hands[0].Rotation.ToQuaternion();
+	bool IsLeft = (Hands[0]->HandType == EHandType::LEAP_HAND_LEFT);
+	FVector MergedPalmPos = Hands[0]->Palm.Position * HandConfidences[0];
+	FQuat MergedPalmRot = Hands[0]->Palm.Orientation.Quaternion();
 
 	for (int HandsIdx = 1; HandsIdx < Hands.Num(); HandsIdx++)
 	{
 		// position
-		MergedPalmPos += Hands[HandsIdx].Palm.Position * HandConfidences[HandsIdx];
+		MergedPalmPos += Hands[HandsIdx]->Palm.Position * HandConfidences[HandsIdx];
 
 		// rotation
-		float LerpValue = HandConfidences.Take(HandsIdx).Sum() / HandConfidences.Take(HandsIdx + 1).Sum();
-		MergedPalmRot = Quaternion.Lerp(Hands[HandsIdx].Rotation.ToQuaternion(), MergedPalmRot, LerpValue);
+		float LerpValue = SumFloatArray(HandConfidences, HandsIdx) / SumFloatArray(HandConfidences,HandsIdx + 1);
+		MergedPalmRot = FQuat::FastLerp(Hands[HandsIdx]->Palm.Orientation.Quaternion(), MergedPalmRot, LerpValue);
 	}
 
 	// joints
-	int Count = MergedJointPositions.Num();
-	MergedJointPositions.Empty();
-	MergedJointPositions.AddZeroed(Count);
-	TArray<VectorHand> VectorHands;
+	TArray<FVector> MergedJointPositions;
+	MergedJointPositions.AddZeroed(NUM_JOINT_POSITIONS);
+
+	/* TArray<VectorHand> VectorHands;
+	
+	// looks like vector hand is used here to just get the hand vectors in a
+	// linear list which is in local coords
 	for(auto Hand : Hands)
 	{
 		VectorHands.Add(VectorHand(Hand));
@@ -628,16 +648,16 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*>
 	}
 
 	// combine everything to a hand
-	FLeapHandData MergedHand = new Hand();
-	new VectorHand(isLeft, mergedPalmPos, mergedPalmRot, mergedJointPositions).Decode(mergedHand);
-
+	
+	new VectorHand(isLeft, mergedPalmPos, mergedPalmRot, mergedJointPositions).Decode(HandRet);
+	*/
 	// visualize the joint merge:
-	if (debugJointOrigins && isLeft && debugHandLeft != null)
+	/* if (DebugJointOrigins && IsLeft && debugHandLeft != null)
 		VisualizeMergedJoints(debugHandLeft, jointConfidences);
 	else if (debugJointOrigins && !isLeft && debugHandRight != null)
-		VisualizeMergedJoints(debugHandRight, jointConfidences);
+		VisualizeMergedJoints(debugHandRight, jointConfidences);*/
 
-	return mergedHand;
+	return;
 }
 
 
@@ -646,35 +666,44 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*>
 /// to calculate per-joint confidence values
 /// </summary>
 TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
-	const TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand)
+	TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand)
 {
 	if (Confidences.Num() == 0)
 	{
-		Confidences. = new float[VectorHand.NUM_JOINT_POSITIONS];
+		Confidences.AddZeroed(NUM_JOINT_POSITIONS);
 	}
-
-	foreach(var finger in hand.Fingers)
+	static const int NumBones = 4;
+	for(auto Finger : Hand.Digits)
 	{
-		for (int bone_idx = 0; bone_idx < 4; bone_idx++)
+		for (int BoneIdx = 0; BoneIdx < NumBones; BoneIdx++)
 		{
-			int key = (int) finger.Type * 4 + bone_idx;
+			// TODO: verify FingerID can be used to generate key
+			// was finger type in Unity
+			int Key = Finger.FingerId * NumBones + BoneIdx;
 
-			Vector3 jointPos = finger.Bone((Bone.BoneType) bone_idx).NextJoint.ToVector3();
-			Vector3 jointNormalVector = new Vector3();
-			if ((int) finger.Type == 0)
-				jointNormalVector = finger.Bone((Bone.BoneType) bone_idx).Rotation.ToQuaternion() * Vector3.right;
+			FVector JointPos = Finger.Bones[BoneIdx].NextJoint;
+			FVector JointNormalVector;
+		
+			// TODO make sure we still want right vector and up in Leap Space?
+			if ((int) Finger.FingerId == 0)
+			{
+				JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::RightVector;
+			}
 			else
-				jointNormalVector = finger.Bone((Bone.BoneType) bone_idx).Rotation.ToQuaternion() * Vector3.up * -1;
+			{
+				JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::UpVector * -1;
+			}
 
-			float angle = Vector3.Angle(jointPos - deviceOrigin.position, jointNormalVector);
+			float Angle =
+				ULeapBlueprintFunctionLibrary::AngleBetweenVectors(JointPos - DeviceOrigin.GetLocation(), JointNormalVector);
 
 			// get confidence based on a cos where it should be 1 if the angle is 0 or 180 degrees,
 			// and it should be 0 if it is 90 degrees
-			confidences[key] = (Mathf.Cos(Mathf.Deg2Rad * 2 * angle) + 1f) / 2;
+			Confidences[Key] = (FMath::Cos(FMath::DegreesToRadians(2 * Angle)) + 1.0f) / 2.0;
 		}
 	}
-
-	return confidences;
+	// TODO: why return a copy when passed by ref?
+	return Confidences;
 }
 
 /// <summary>
@@ -682,30 +711,35 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 /// to calculate per-joint confidence values
 /// </summary>
 TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
-	const TArray<float>& Confidences, const FTransform& DeviceOrigin,const FLeapHandData& Hand)
+	TArray<float>& Confidences, const FTransform& DeviceOrigin,const FLeapHandData& Hand)
 {
-	if (confidences == null)
+	if (Confidences.Num() == 0)
 	{
-		confidences = new float[VectorHand.NUM_JOINT_POSITIONS];
+		Confidences.AddZeroed(NUM_JOINT_POSITIONS);
 	}
 
-	foreach(var finger in hand.Fingers)
+	for(auto Finger : Hand.Digits)
 	{
-		for (int bone_idx = 0; bone_idx < 4; bone_idx++)
+		static const int NumBones = 4;
+		for (int BoneIdx = 0; BoneIdx < NumBones; BoneIdx++)
 		{
-			int key = (int) finger.Type * 4 + bone_idx;
+			// TODO: again check finger ID ok for Key vs Type in Unity
+			int Key = Finger.FingerId * NumBones + BoneIdx;
 
-			Vector3 jointPos = finger.Bone((Bone.BoneType) bone_idx).NextJoint.ToVector3();
-			Vector3 jointNormalVector = new Vector3();
-			jointNormalVector = finger.Bone((Bone.BoneType) bone_idx).Rotation.ToQuaternion() * Vector3.up * -1;
+			FVector JointPos = Finger.Bones[BoneIdx].NextJoint;
+			FVector JointNormalVector;
 
-			float angle = Vector3.Angle(hand.PalmNormal.ToVector3(), jointNormalVector);
+			// TODO: check we still want up in Leap Space?
+			JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::UpVector * -1;
+
+			float Angle = ULeapBlueprintFunctionLibrary::AngleBetweenVectors(Hand.Palm.Normal, JointNormalVector);
 
 			// get confidence based on a cos where it should be 1 if the angle is 0,
 			// and it should be 0 if the angle is 180 degrees
-			confidences[key] = (Mathf.Cos(Mathf.Deg2Rad * angle) + 1f) / 2;
+			Confidences[Key] = (FMath::Cos(FMath::DegreesToRadians(Angle)) + 1.0f) / 2.0;
 		}
 	}
 
-	return confidences;
+	// TODO: why return a copy when we passed in a ref?
+	return Confidences;
 }

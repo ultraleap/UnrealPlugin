@@ -47,6 +47,10 @@ public:
 	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
 	FLeapOptions GetOptions() override;
 	FLeapStats GetStats() override;
+	virtual ELeapDeviceType GetDeviceType()
+	{
+		return DeviceType;
+	}
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
@@ -166,7 +170,7 @@ private:
 	// Bodystate link
 	int32 BodyStateDeviceId;
 	FBodyStateDeviceConfig Config;
-
+	ELeapDeviceType DeviceType = ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;
 #if WITH_EDITOR
 	// LiveLink
 	TSharedPtr<FLeapLiveLinkProducer> LiveLink;

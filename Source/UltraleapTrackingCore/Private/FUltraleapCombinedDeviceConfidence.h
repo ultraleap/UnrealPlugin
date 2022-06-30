@@ -244,11 +244,6 @@ public:
 	TMap<IHandTrackingDevice*, float> RightHandFirstVisible;
 
     TArray<JointOcclusion> JointOcclusions;
-
-	// todo: init size as in Unity = new FVector3[VectorHand.NUM_JOINT_POSITIONS];
-    TArray<FVector> MergedJointPositions;
-	
-
 private:
 
 	TArray<TArray<float>> JointConfidences;
@@ -278,7 +273,7 @@ private:
 
 	TArray<float> ConfidenceRelativeJointRot(TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
 	TArray<float> ConfidenceRelativeJointRotToPalmRot(
-		const TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
+		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
 
 	void MergeHands(TArray<const FLeapHandData*> Hands, const TArray<float>& HandConfidences,
 		const TArray<TArray<float>>& JointConfidences, FLeapHandData& HandRet);

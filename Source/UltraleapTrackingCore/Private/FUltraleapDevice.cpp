@@ -262,7 +262,10 @@ void FUltraleapDevice::Init()
 	Config.InputType = EBodyStateDeviceInputType::HMD_MOUNTED_INPUT_TYPE;
 	Config.TrackingTags.Add("Hands");
 	Config.TrackingTags.Add("Fingers");
-	Config.DeviceSerial = Leap->GetDeviceSerial();
+	if (Leap)
+	{
+		Config.DeviceSerial = Leap->GetDeviceSerial();
+	}
 	BodyStateDeviceId = UBodyStateBPLibrary::AttachDeviceNative(Config, this);
 
 #if WITH_EDITOR
@@ -281,6 +284,11 @@ void FUltraleapDevice::Init()
 	if (Leap)
 	{
 		Leap->SetCallbackDelegate(this);
+		if (Leap->GetDeviceProperties())
+		{
+			DeviceType = (ELeapDeviceType) Leap->GetDeviceProperties()->pid;
+		}
+
 	}
 }
 FUltraleapDevice::~FUltraleapDevice()
@@ -1109,9 +1117,6 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	// Set main options
 	Options = InOptions;
 
-	// Cache device type
-	FString DeviceType = Stats.DeviceInfo.PID;
-
 	// If our tracking fidelity is not custom, set the parameters to good defaults
 	// for each platform
 	if (InOptions.TrackingFidelity == ELeapTrackingFidelity::LEAP_CUSTOM)
@@ -1152,7 +1157,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.FingerInterpFactor = -1.f;
 					break;
 				case ELeapTrackingFidelity::LEAP_WIRELESS:
-					if (DeviceType == TEXT("Peripheral"))
+					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 					{
 						Options.bUseTimeWarp = true;
 						Options.bUseInterpolation = true;
@@ -1205,7 +1210,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 
 					break;
 				case ELeapTrackingFidelity::LEAP_NORMAL:
-					if (DeviceType == TEXT("Peripheral"))
+					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 					{
 						Options.TimewarpOffset = 20000;
 					}
@@ -1261,7 +1266,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 
 					break;
 				case ELeapTrackingFidelity::LEAP_NORMAL:
-					if (DeviceType == TEXT("Peripheral"))
+					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 					{
 						Options.TimewarpOffset = 20000;
 					}
