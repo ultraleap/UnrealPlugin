@@ -147,9 +147,9 @@ protected:
 class FHandConfidenceHistory
 {
 public:
-	FHandConfidenceHistory(int Length = 60)
+	FHandConfidenceHistory(int LengthIn = 60)
 	{
-		Length = Length;
+		Length = LengthIn;
 		HandConfidences.AddZeroed(Length);
 		Index = 0;
 	}
