@@ -254,9 +254,9 @@ void FUltraleapCombinedDeviceConfidence::SetupJointOcclusion()
 		LeapXRServiceProvider xrProvider = providers[i] as LeapXRServiceProvider;
 		if (xrProvider != null)
 		{
-			Transform deviceOrigin = GetDeviceOrigin(providers[i]);
+			Transform SourceDeviceOrigin = DevicesToCombine[i]->GetDevice()->GetDeviceOrigin();;
 
-			JointOcclusions[i].transform.SetPose(deviceOrigin.GetPose());
+			JointOcclusions[i].transform.SetPose(SourceDeviceOrigin.GetPose());
 			JointOcclusions[i].transform.Rotate(new Vector3(-90, 0, 180));
 		}
 	}*/
@@ -314,11 +314,6 @@ void FUltraleapCombinedDeviceConfidence::AddFrameToTimeVisibleDicts(const TArray
 		RightHandFirstVisible[DevicesToCombine[FrameIdx]->GetDevice()] = 0;
 	}
 }
-// TODO: this will be pulled in from UI components
-FTransform GetDeviceOrigin(IHandTrackingDevice* Device)
-{
-	return FTransform();
-}
 /// <summary>
 /// combine different confidence functions to get an overall confidence for the given hand
 /// uses frame_idx to find the corresponding provider that saw this hand
@@ -327,14 +322,12 @@ float FUltraleapCombinedDeviceConfidence::CalculateHandConfidence(int FrameIdx,c
 {
 	float Confidence = 0;
 
-	FTransform DeviceOrigin = GetDeviceOrigin(DevicesToCombine[FrameIdx]->GetDevice());
+	FTransform SourceDeviceOrigin = DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin();
 
-	Confidence = PalmPosFactor *
-				 ConfidenceRelativeHandPos(DevicesToCombine[FrameIdx]->GetDevice(), DeviceOrigin, Hand.Palm.Position);
-	Confidence +=
-		PalmRotFactor * ConfidenceRelativeHandRot(DeviceOrigin, Hand.Palm.Position, Hand.Palm.Normal);
+	Confidence = PalmPosFactor * ConfidenceRelativeHandPos(DevicesToCombine[FrameIdx]->GetDevice(), SourceDeviceOrigin, Hand.Palm.Position);
+	Confidence += PalmRotFactor * ConfidenceRelativeHandRot(SourceDeviceOrigin, Hand.Palm.Position, Hand.Palm.Normal);
 	
-	Confidence += PalmVelocityFactor * ConfidenceRelativeHandVelocity(DevicesToCombine[FrameIdx]->GetDevice(), DeviceOrigin,
+	Confidence += PalmVelocityFactor * ConfidenceRelativeHandVelocity(DevicesToCombine[FrameIdx]->GetDevice(), SourceDeviceOrigin,
 										   Hand.Palm.Position, Hand.HandType == EHandType::LEAP_HAND_LEFT);
 
 	// if ignoreRecentNewHands is true, then
@@ -375,10 +368,10 @@ float FUltraleapCombinedDeviceConfidence::CalculateHandConfidence(int FrameIdx,c
 /// the distance from hand to device
 /// </summary>
 float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
-	IHandTrackingDevice* Provider, const FTransform& DeviceOrigin,const FVector& HandPos)
+	IHandTrackingDevice* Provider, const FTransform& SourceDeviceOrigin, const FVector& HandPos)
 {
 	// TODO could be inversetransform vector, was inversetransform point?
-	FVector RelativeHandPos = DeviceOrigin.InverseTransformPosition(HandPos);
+	FVector RelativeHandPos = SourceDeviceOrigin.InverseTransformPosition(HandPos);
 
 	// 2d gauss
 
@@ -465,11 +458,10 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 /// uses the palm normal relative to the direction from hand to device to calculate a confidence
 /// </summary>
 float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandRot(
-	const FTransform& DeviceOrigin, const FVector& HandPos,const FVector& PalmNormal)
+	const FTransform& SourceDeviceOrigin, const FVector& HandPos, const FVector& PalmNormal)
 {
 	// angle between palm normal and the direction from hand pos to device origin
-	float PalmAngle =
-		ULeapBlueprintFunctionLibrary::AngleBetweenVectors(PalmNormal, DeviceOrigin.GetLocation() - HandPos);
+	float PalmAngle = ULeapBlueprintFunctionLibrary::AngleBetweenVectors(PalmNormal, SourceDeviceOrigin.GetLocation() - HandPos);
 
 	// get confidence based on a cos where it should be 1 if the angle is 0 or 180 degrees,
 	// and it should be 0 if it is 90 degrees
@@ -484,7 +476,7 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandRot(
 /// Returns 0, if the hand hasn't been consistently tracked for about the last 10 frames
 /// </summary>
 float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandVelocity(
-	IHandTrackingDevice* Provider, const FTransform& DeviceOrigin, const FVector HandPos, const bool IsLeft)
+	IHandTrackingDevice* Provider, const FTransform& SourceDeviceOrigin, const FVector HandPos, const bool IsLeft)
 {
 	FVector OldPosition;
 	float OldTime;
@@ -545,15 +537,15 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 		ConfidencesJointPalmRot.AddZeroed(NumJointPositions);
 		ConfidencesJointOcclusion.AddZeroed(NumJointPositions);
 	}
-	FTransform DeviceOrigin = GetDeviceOrigin(DevicesToCombine[FrameIdx]->GetDevice());
+	FTransform SourceDeviceOrigin = DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin();
 
 	if (JointRotFactor != 0)
 	{
-		ConfidencesJointRot[idx] = ConfidenceRelativeJointRot(ConfidencesJointRot[idx], DeviceOrigin, Hand);
+		ConfidencesJointRot[idx] = ConfidenceRelativeJointRot(ConfidencesJointRot[idx], SourceDeviceOrigin, Hand);
 	}
 	if (JointRotToPalmFactor != 0)
 	{
-		ConfidencesJointPalmRot[idx] = ConfidenceRelativeJointRotToPalmRot(ConfidencesJointPalmRot[idx], DeviceOrigin, Hand);
+		ConfidencesJointPalmRot[idx] = ConfidenceRelativeJointRotToPalmRot(ConfidencesJointPalmRot[idx], SourceDeviceOrigin, Hand);
 	}
 	if (JointOcclusionFactor != 0)
 	{
@@ -667,7 +659,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*>
 /// to calculate per-joint confidence values
 /// </summary>
 TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
-	TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand)
+	TArray<float>& Confidences, const FTransform& SourceDeviceOrigin, const FLeapHandData& Hand)
 {
 	if (Confidences.Num() == 0)
 	{
@@ -696,7 +688,7 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 			}
 
 			float Angle =
-				ULeapBlueprintFunctionLibrary::AngleBetweenVectors(JointPos - DeviceOrigin.GetLocation(), JointNormalVector);
+				ULeapBlueprintFunctionLibrary::AngleBetweenVectors(JointPos - SourceDeviceOrigin.GetLocation(), JointNormalVector);
 
 			// get confidence based on a cos where it should be 1 if the angle is 0 or 180 degrees,
 			// and it should be 0 if it is 90 degrees
@@ -712,7 +704,7 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 /// to calculate per-joint confidence values
 /// </summary>
 TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
-	TArray<float>& Confidences, const FTransform& DeviceOrigin,const FLeapHandData& Hand)
+	TArray<float>& Confidences, const FTransform& SourceDeviceOrigin, const FLeapHandData& Hand)
 {
 	if (Confidences.Num() == 0)
 	{

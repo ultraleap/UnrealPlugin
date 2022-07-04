@@ -51,6 +51,14 @@ public:
 	{
 		return DeviceType;
 	}
+	virtual FTransform& GetDeviceOrigin() override
+	{
+		return DeviceOrigin;
+	}
+	virtual void SetDeviceOrigin(const FTransform& DeviceOriginIn) override
+	{
+		DeviceOrigin = DeviceOriginIn;
+	}
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
@@ -100,6 +108,7 @@ private:
 	int64_t LastLeapTime = 0;
 	FLeapHandData LastLeftHand;
 	FLeapHandData LastRightHand;
+	FTransform DeviceOrigin;
 
 	// Private UProperties
 	

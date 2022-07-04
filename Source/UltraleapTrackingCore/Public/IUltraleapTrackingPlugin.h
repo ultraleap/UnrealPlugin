@@ -39,6 +39,8 @@ public:
 	virtual FLeapOptions GetOptions() = 0;
 	virtual FLeapStats GetStats() = 0;
 	virtual ELeapDeviceType GetDeviceType() = 0;
+	virtual FTransform& GetDeviceOrigin() = 0;
+	virtual void SetDeviceOrigin(const FTransform& DeviceOriginIn) = 0;
 
 };
 class ITrackingDeviceWrapper
