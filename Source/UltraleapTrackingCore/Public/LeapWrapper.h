@@ -141,7 +141,6 @@ public:
 	{
 		return false;
 	}
-
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -232,6 +231,7 @@ public:
 	virtual IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) override;
 	virtual void TickDevices(const float DeltaTime);
 	virtual void TickSendControllerEventsOnDevices();
+	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) override;
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);

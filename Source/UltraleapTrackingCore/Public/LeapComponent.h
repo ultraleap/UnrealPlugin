@@ -156,6 +156,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
 	TArray<FString> CombinedDeviceSerials;
 
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
+	ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial);
 
 #if WITH_EDITOR
 	// property change handlers

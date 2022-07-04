@@ -820,4 +820,13 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 		}
 	}
 }
+ELeapDeviceType FLeapWrapper::GetDeviceTypeFromSerial(const FString& DeviceSerial)
+{
+	auto Device = GetSingularDeviceBySerial(DeviceSerial);
+	if (Device)
+	{
+		return Device->GetDevice()->GetDeviceType();
+	}
+	return ELeapDeviceType::LEAP_DEVICE_INVALID;
+}
 #pragma endregion LeapC Wrapper

@@ -256,6 +256,15 @@ void ULeapComponent::OnDeviceAddedOrRemoved(FString DeviceName)
 {
 	RefreshDeviceList();
 }
+ELeapDeviceType ULeapComponent::GetDeviceTypeFromSerial(const FString& DeviceSerial)
+{
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector)
+	{
+		return Connector->GetDeviceTypeFromSerial(DeviceSerial);
+	}
+	return ELeapDeviceType::LEAP_DEVICE_INVALID;
+}
 #if WITH_EDITOR
 void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn)
 {

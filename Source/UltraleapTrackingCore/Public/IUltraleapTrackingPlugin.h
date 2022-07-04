@@ -23,6 +23,8 @@ public:
 
 	virtual void TickDevices(const float DeltaTime) = 0;
 	virtual void TickSendControllerEventsOnDevices() = 0;
+
+	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) = 0;
 };
 class IHandTrackingDevice
 {
