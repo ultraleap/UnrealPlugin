@@ -284,7 +284,7 @@ IHandTrackingDevice* FUltraleapTrackingInputDevice::GetDeviceBySerial(const FStr
 	{
 		DeviceList.Add(DeviceSerial);
 	}
-	auto DeviceWrapper = Connector->GetDevice(DeviceList);
+	auto DeviceWrapper = Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
 	if (DeviceWrapper)
 	{
 		auto InternalDevice = DeviceWrapper->GetDevice();
@@ -308,7 +308,7 @@ IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetDeviceWrapperBySerial(co
 		DeviceList.Add(DeviceSerial);
 	}
 
-	return Connector->GetDevice(DeviceList);
+	return Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
 }
 // get default device for backwards compatibility
 IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetFallbackDeviceWrapper()
@@ -319,7 +319,7 @@ IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetFallbackDeviceWrapper()
 	}
 	// empty device list means 'give me the default'
 	TArray<FString> DeviceList;
-	return Connector->GetDevice(DeviceList);
+	return Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
 }
 void FUltraleapTrackingInputDevice::AreHandsVisible(
 		bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial)
@@ -342,7 +342,7 @@ void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame, const 
 void FUltraleapTrackingInputDevice::SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ,
 	ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials)
 {
-	auto DeviceWrapper = Connector->GetDevice(DeviceSerials);
+	auto DeviceWrapper = Connector->GetDevice(DeviceSerials, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
 	if (DeviceWrapper)
 	{
 		DeviceWrapper->SetSwizzles(ToX, ToY, ToZ, ToW);

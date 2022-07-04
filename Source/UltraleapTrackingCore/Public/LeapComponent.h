@@ -11,6 +11,7 @@
 #include "Components/ActorComponent.h"
 #include "LeapWrapper.h"
 #include "UltraleapTrackingData.h"
+
 #if WITH_EDITOR
 #include "DetailLayoutBuilder.h"
 #endif
@@ -155,6 +156,9 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
 	TArray<FString> CombinedDeviceSerials;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
+	TEnumAsByte<ELeapDeviceCombinerClass> DeviceCombinerClass;
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
 	ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial);

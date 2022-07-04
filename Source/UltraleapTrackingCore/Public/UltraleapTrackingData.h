@@ -104,8 +104,15 @@ enum ELeapDeviceType
 	/** An invalid device type. Not currently in use. @since 3.1.3 */
 	LEAP_DEVICE_INVALID = 0xFFFFFFFF
 };
-
-USTRUCT(BlueprintType)
+UENUM(BlueprintType)
+enum ELeapDeviceCombinerClass
+{
+	LEAP_DEVICE_COMBINER_UNKNOWN,
+	LEAP_DEVICE_COMBINER_CONFIDENCE,
+	LEAP_DEVICE_COMBINER_ANGULAR
+	// add your custom classes here and add them to the class factory in LeapWrapper
+};
+	USTRUCT(BlueprintType)
 struct ULTRALEAPTRACKING_API FLeapDevice
 {
 	GENERATED_USTRUCT_BODY()

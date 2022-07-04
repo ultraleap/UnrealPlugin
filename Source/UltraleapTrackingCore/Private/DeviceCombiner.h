@@ -22,8 +22,8 @@ public:
 	LEAP_IMAGE_FRAME_DESCRIPTION* ImageDescription = NULL;
 	void* ImageBuffer = NULL;
 
-	FDeviceCombiner(
-		const LEAP_CONNECTION ConnectionHandle, IHandTrackingWrapper* ConnectorIn, const TArray<IHandTrackingWrapper*>& DevicesToCombine);
+	FDeviceCombiner(const LEAP_CONNECTION ConnectionHandle, IHandTrackingWrapper* ConnectorIn,
+		const TArray<IHandTrackingWrapper*>& DevicesToCombine, const ELeapDeviceCombinerClass DeviceCombinerClass);
 	virtual ~FDeviceCombiner();
 
 	// Function Calls for plugin. Mainly uses Open/Close Connection.

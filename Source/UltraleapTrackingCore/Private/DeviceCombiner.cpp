@@ -17,7 +17,7 @@
 
 // created when a device is found
 FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHandTrackingWrapper* ConnectorIn,
-	const TArray<IHandTrackingWrapper*>& DevicesToCombineIn)
+	const TArray<IHandTrackingWrapper*>& DevicesToCombineIn, const ELeapDeviceCombinerClass DeviceCombinerClass)
 	:
 	ConnectionHandle(ConnectionHandleIn)
 	, DataLock(new FCriticalSection())
@@ -34,8 +34,25 @@ FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHand
 		CombinedDeviceSerial += DeviceToCombine->GetDeviceSerial().Right(4);
 		CombinedDeviceSerial += " ";
 	}
-	Device = MakeShared<FUltraleapCombinedDeviceAngular>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
-
+	// create a new combiner otherwise
+	switch (DeviceCombinerClass)
+	{
+		case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE:
+		{
+			Device = MakeShared<FUltraleapCombinedDeviceAngular>(
+				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
+			break;
+		}
+		case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_ANGULAR:
+		{
+			Device = MakeShared<FUltraleapCombinedDeviceAngular>(
+				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
+			break;
+		}
+		default:
+			Device = MakeShared<FUltraleapCombinedDeviceAngular>(
+				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
+	}
 }
 
 FDeviceCombiner::~FDeviceCombiner()

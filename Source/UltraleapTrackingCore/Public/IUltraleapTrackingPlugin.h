@@ -19,7 +19,7 @@ public:
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) = 0;
 	// todo: add aggregator/combiner class
 	// if in singular mode pass one tracking device serial
-	virtual class IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) = 0;
+	virtual class IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial,const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
 
 	virtual void TickDevices(const float DeltaTime) = 0;
 	virtual void TickSendControllerEventsOnDevices() = 0;

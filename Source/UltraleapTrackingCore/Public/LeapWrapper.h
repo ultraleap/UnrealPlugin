@@ -228,7 +228,8 @@ public:
 	}
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
-	virtual IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial) override;
+	virtual IHandTrackingWrapper* GetDevice(
+		const TArray<FString>& DeviceSerial, const ELeapDeviceCombinerClass DeviceCombinerClass) override;
 	virtual void TickDevices(const float DeltaTime);
 	virtual void TickSendControllerEventsOnDevices();
 	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) override;
@@ -303,6 +304,7 @@ private:
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);
 	
 	IHandTrackingWrapper* FindAggregator(const TArray<FString>& DeviceSerials);
-	IHandTrackingWrapper* CreateAggregator(const TArray<FString>& DeviceSerials);
+	IHandTrackingWrapper* CreateAggregator(
+		const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass);
 	
 };
