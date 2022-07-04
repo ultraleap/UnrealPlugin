@@ -32,9 +32,9 @@ public:
 	virtual bool ShouldTickIfViewportsOnly() const override;
 
 	/** Tick that runs ONLY in the editor viewport.*/
-	UFUNCTION(BlueprintImplementableEvent, CallInEditor, Category = "Events")
+	UFUNCTION(BlueprintImplementableEvent, CallInEditor, Category = "Ultraleap Events")
 	void EditorTick(float DeltaTime);
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Ultraleap Events")
 	bool bTickInEditor;
 };
