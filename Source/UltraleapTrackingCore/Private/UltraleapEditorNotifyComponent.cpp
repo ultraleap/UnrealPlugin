@@ -7,10 +7,10 @@
  ******************************************************************************/
 
 
-#include "UltraleapEditorNotifyComponent.h"
+#include "UltraleapEditorNotifyComponent2.h"
 
 
-void UUltraleapEditorNotifyComponent::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport/* = ETeleportType::None*/)
+void UUltraleapEditorNotifyComponent2::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport/* = ETeleportType::None*/)
 {
 	HandleComponentMove(true);
 }

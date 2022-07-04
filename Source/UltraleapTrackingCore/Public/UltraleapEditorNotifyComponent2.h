@@ -10,12 +10,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/StaticMeshComponent.h"
-#include "UltraleapEditorNotifyComponent.generated.h"
+#include "UltraleapEditorNotifyComponent2.generated.h"
 /**
  * 
  */
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class ULTRALEAPTRACKING_API UUltraleapEditorNotifyComponent : public UStaticMeshComponent
+class ULTRALEAPTRACKING_API UUltraleapEditorNotifyComponent2 : public UStaticMeshComponent
 {
 	GENERATED_BODY()
 public:
