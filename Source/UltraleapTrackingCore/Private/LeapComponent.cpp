@@ -266,6 +266,18 @@ ELeapDeviceType ULeapComponent::GetDeviceTypeFromSerial(const FString& DeviceSer
 	}
 	return ELeapDeviceType::LEAP_DEVICE_INVALID;
 }
+void ULeapComponent::UpdateDeviceOrigin(const FTransform& DeviceOriginIn)
+{
+	if (CurrentHandTrackingDevice)
+	{
+		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			Device->SetDeviceOrigin(DeviceOriginIn);
+		}
+	}
+
+}
 #if WITH_EDITOR
 void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn)
 {

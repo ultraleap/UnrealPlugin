@@ -25,6 +25,7 @@ FUltraleapLeapCustomDetailsPanel::FUltraleapLeapCustomDetailsPanel()
 
 FUltraleapLeapCustomDetailsPanel::~FUltraleapLeapCustomDetailsPanel()
 {
+
 }
 
 TSharedRef<IDetailCustomization> FUltraleapLeapCustomDetailsPanel::MakeInstance()
@@ -49,8 +50,15 @@ bool FUltraleapLeapCustomDetailsPanel::PassDetailsToLeapComponent(IDetailLayoutB
 		// so this instance is not the actual live in editor but a copy
 		ULeapComponent* LeapComponentGen = Cast<ULeapComponent>(Object.Get());
 		LeapComponentGen->SetCustomDetailsPanel(&DetailBuilder);
-		
+		ComponentsReferenced.AddUnique(LeapComponentGen);
 		IsValid = true;
 	}
 	return IsValid;
+}
+void FUltraleapLeapCustomDetailsPanel::PendingDelete()
+{
+	for(auto Component : ComponentsReferenced)
+	{
+		Component->SetCustomDetailsPanel(nullptr);
+	}
 }

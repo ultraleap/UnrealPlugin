@@ -159,6 +159,10 @@ public:
 	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
 	ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial);
 
+
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
+	void UpdateDeviceOrigin(const FTransform& DeviceOriginIn);
+
 #if WITH_EDITOR
 	// property change handlers
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

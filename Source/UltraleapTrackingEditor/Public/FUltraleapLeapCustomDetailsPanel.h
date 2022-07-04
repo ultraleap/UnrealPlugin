@@ -11,6 +11,7 @@
 #include "CoreMinimal.h"
 #include "IDetailCustomization.h"
 #include "Input/Reply.h"
+#include "LeapComponent.h"
 /**
  * Helper class to enable live updates of the detail tab on the leap component from device events
  * This is needed as by default, component parameters are not bound 'upwards' to the device panel when changed from 
@@ -32,4 +33,7 @@ public:
 
 	/* IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
+	virtual void PendingDelete() override;
+
+	TArray<ULeapComponent*> ComponentsReferenced;
 };
