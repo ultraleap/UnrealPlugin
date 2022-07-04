@@ -325,8 +325,6 @@ const char* FLeapWrapper::ResultString(eLeapRS Result)
 
 void FLeapWrapper::EnableImageStream(bool bEnable)
 {
-	// TODO: test the image/buffer stream code
-
 	if (ImageDescription == NULL)
 	{
 		ImageDescription = new LEAP_IMAGE_FRAME_DESCRIPTION;
@@ -447,21 +445,25 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 /** Called by ServiceMessageLoop() when a device lost event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 {
-	// todo: remove device handles matched here
-	// DeviceHandles.Remove(DeviceHandle);
-	
 	if (ConnectorCallbackDelegate)
 	{
 		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, this] {
 				if (ConnectorCallbackDelegate)
 			{
-					// todo get device serial from device by handle in DeviceEvent
-					ConnectorCallbackDelegate->OnDeviceLost(nullptr);
+					FString DeviceSerial;
+					for (auto LeapDeviceWrapper : Devices)
+					{
+						if (LeapDeviceWrapper->GetDeviceID() == DeviceEvent->device.id)
+						{
+							DeviceSerial = LeapDeviceWrapper->GetDeviceSerial();
+							break;
+						}
+					}
+					ConnectorCallbackDelegate->OnDeviceLost(TCHAR_TO_ANSI(*DeviceSerial));
 			}
 		});
 	}
-	// TODO: is the handle in the struct the same thing?
-	// Why does the old code close the device handle once opened?
+	//TODO: Why does the old code close the device handle once opened?
 	RemoveDevice(DeviceEvent->device.id);
 }
 void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle)
@@ -731,7 +733,6 @@ IHandTrackingWrapper* FLeapWrapper::FindAggregator(
 	}
 	return Ret;
 }
-// TODO pass combiner class/type
 IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass)
 {
@@ -775,9 +776,6 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass)
 {
 	IHandTrackingWrapper* Ret = nullptr;
-	// TODO: create a map
-	// TODO: support aggregation (currently hard wired to first device/singular mode)
-	//backwards compatibility fallback, default to first device
 	if (DeviceSerials.Num() == 0 && Devices.Num())
 	{
 		return Devices[0];
