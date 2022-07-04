@@ -125,7 +125,7 @@ public:
 	virtual IHandTrackingDevice* GetDevice() = 0;
 
 	// device combination, does this device aggregate the given Devices
-	virtual bool MatchDevices(const TArray<FString> DeviceSerials) = 0;
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
 };
 
 /**

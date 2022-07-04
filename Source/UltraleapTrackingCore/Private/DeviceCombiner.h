@@ -71,7 +71,7 @@ public:
 	{
 		return Device.Get();
 	}
-	virtual bool MatchDevices(const TArray<FString> DeviceSerials) override;
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass CombinerClass) override;
 
 private:
 	void Millisleep(int Milliseconds);
@@ -128,5 +128,6 @@ private:
 	TArray<IHandTrackingWrapper*> DevicesToCombine;
 
 	FString CombinedDeviceSerial;
+	ELeapDeviceCombinerClass DeviceCombinerClass;
 
 };

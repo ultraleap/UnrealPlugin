@@ -17,13 +17,13 @@
 
 // created when a device is found
 FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHandTrackingWrapper* ConnectorIn,
-	const TArray<IHandTrackingWrapper*>& DevicesToCombineIn, const ELeapDeviceCombinerClass DeviceCombinerClass)
-	:
-	ConnectionHandle(ConnectionHandleIn)
+	const TArray<IHandTrackingWrapper*>& DevicesToCombineIn, const ELeapDeviceCombinerClass DeviceCombinerClassIn)
+	: ConnectionHandle(ConnectionHandleIn)
 	, DataLock(new FCriticalSection())
 	, bIsRunning(false)
 	, Connector(ConnectorIn)
 	, DevicesToCombine(DevicesToCombineIn)
+	, DeviceCombinerClass(DeviceCombinerClassIn)
 {
 	//SetDevice(&DeviceInfoIn);
 	CombinedDeviceSerial = "Combined - ";
@@ -336,9 +336,13 @@ void FDeviceCombiner::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT
 		});
 	}
 }
-bool FDeviceCombiner::MatchDevices(const TArray<FString> DeviceSerials)
+bool FDeviceCombiner::MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClassIn)
 {
 	if (DevicesToCombine.Num() != DeviceSerials.Num())
+	{
+		return false;
+	}
+	if (DeviceCombinerClass != DeviceCombinerClassIn)
 	{
 		return false;
 	}

@@ -137,7 +137,7 @@ public:
 	virtual void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent) override
 	{
 	}
-	virtual bool MatchDevices(const TArray<FString> DeviceSerials) override
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) override
 	{
 		return false;
 	}
@@ -222,7 +222,7 @@ public:
 	{
 		return nullptr;
 	}
-	virtual bool MatchDevices(const TArray<FString> DeviceSerials) override
+	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) override
 	{
 		return false;
 	}
@@ -303,7 +303,7 @@ private:
 	IHandTrackingWrapper* GetSingularDeviceBySerial(const FString& DeviceSerial);
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);
 	
-	IHandTrackingWrapper* FindAggregator(const TArray<FString>& DeviceSerials);
+	IHandTrackingWrapper* FindAggregator(const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass);
 	IHandTrackingWrapper* CreateAggregator(
 		const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass);
 	
