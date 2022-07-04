@@ -211,25 +211,6 @@ LEAP_DEVICE_INFO* FDeviceCombiner::GetDeviceProperties()
 
 void FDeviceCombiner::EnableImageStream(bool bEnable)
 {
-	// TODO: test the image/buffer stream code
-
-	if (ImageDescription == NULL)
-	{
-		ImageDescription = new LEAP_IMAGE_FRAME_DESCRIPTION;
-		ImageDescription->pBuffer = NULL;
-	}
-
-	int OldLength = ImageDescription->buffer_len;
-
-	// if the size is different realloc the buffer
-	if (ImageDescription->buffer_len != OldLength)
-	{
-		if (ImageDescription->pBuffer != NULL)
-		{
-			free(ImageDescription->pBuffer);
-		}
-		ImageDescription->pBuffer = (void*) malloc(ImageDescription->buffer_len);
-	}
 }
 
 void FDeviceCombiner::Millisleep(int milliseconds)
