@@ -254,6 +254,37 @@ FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITra
 }
 
 #undef LOCTEXT_NAMESPACE
+ELeapDeviceType ToBlueprintDeviceType(eLeapDevicePID LeapType)
+{
+	switch(LeapType)
+	{
+		case eLeapDevicePID_Unknown:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;
+			break;
+		case eLeapDevicePID_Peripheral:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL;
+			break;
+
+		case eLeapDevicePID_Dragonfly:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_DRAGONFLY;
+			break;
+		case eLeapDevicePID_Nightcrawler:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_NIGHTCRAWLER;
+			break;
+		case eLeapDevicePID_Rigel:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_RIGEL;
+			break;
+		case eLeapDevicePID_SIR170:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_SIR170;
+			break;
+		case eLeapDevicePID_3Di:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_3DI;
+			break;
+		default:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;
+	}
+}
+
 void FUltraleapDevice::Init()
 {
 	// Attach to bodystate
@@ -286,7 +317,7 @@ void FUltraleapDevice::Init()
 		Leap->SetCallbackDelegate(this);
 		if (Leap->GetDeviceProperties())
 		{
-			DeviceType = (ELeapDeviceType) Leap->GetDeviceProperties()->pid;
+			DeviceType = ToBlueprintDeviceType(Leap->GetDeviceProperties()->pid);
 		}
 
 	}

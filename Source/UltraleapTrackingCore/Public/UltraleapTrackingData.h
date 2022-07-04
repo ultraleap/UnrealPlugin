@@ -81,25 +81,25 @@ UENUM(BlueprintType)
 enum ELeapDeviceType
 {
 	/** An unknown device that is compatible with the tracking software. @since 3.1.3 */
-	LEAP_DEVICE_TYPE_UNKNOWN = 0x0000,
+	LEAP_DEVICE_TYPE_UNKNOWN,
 
 	/** The Leap Motion Controller (the first consumer peripheral). @since 3.0.0 */
-	LEAP_DEVICE_TYPE_PERIPHERAL = 0x0003,
+	LEAP_DEVICE_TYPE_PERIPHERAL,
 
 	/** Internal research product codename "Dragonfly". @since 3.0.0 */
-	LEAP_DEVICE_TYPE_DRAGONFLY = 0x1102,
+	LEAP_DEVICE_TYPE_DRAGONFLY,
 
 	/** Internal research product codename "Nightcrawler". @since 3.0.0 */
-	LEAP_DEVICE_TYPE_NIGHTCRAWLER = 0x1201,
+	LEAP_DEVICE_TYPE_NIGHTCRAWLER,
 
 	/** Research product codename "Rigel". @since 4.0.0 */
-	LEAP_DEVICE_TYPE_RIGEL = 0x1202,
+	LEAP_DEVICE_TYPE_RIGEL,
 
 	/** The Ultraleap Stereo IR 170 (SIR170) hand tracking module. @since 5.3.0 */
-	LEAP_DEVICE_TYPE_SIR170 = 0x1203,
+	LEAP_DEVICE_TYPE_SIR170,
 
 	/** The Ultraleap 3Di hand tracking camera. @since 5.3.0 */
-	LEAP_DEVICE_TYPE_3DI = 0x1204,
+	LEAP_DEVICE_TYPE_3DI,
 
 	/** An invalid device type. Not currently in use. @since 3.1.3 */
 	LEAP_DEVICE_INVALID = 0xFFFFFFFF

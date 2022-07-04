@@ -261,7 +261,8 @@ ELeapDeviceType ULeapComponent::GetDeviceTypeFromSerial(const FString& DeviceSer
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
 	if (Connector)
 	{
-		return Connector->GetDeviceTypeFromSerial(DeviceSerial);
+		auto Ret = Connector->GetDeviceTypeFromSerial(DeviceSerial);
+		return Ret;
 	}
 	return ELeapDeviceType::LEAP_DEVICE_INVALID;
 }
