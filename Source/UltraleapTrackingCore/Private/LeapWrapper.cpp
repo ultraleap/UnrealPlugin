@@ -466,27 +466,40 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 }
 void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle)
 {
-	IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
-	// TArray manages object lifetime/destructors without needing TSharedPtr
-	Devices.Add(Device);
-	auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
-	MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+	AsyncTask(ENamedThreads::GameThread,
+		[this,DeviceInfo, DeviceID, DeviceHandle]()
+		{
+			IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
+			// TArray manages object lifetime/destructors without needing TSharedPtr
+			Devices.Add(Device);
+			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
+			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+
+			UE_LOG(
+				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
+		});
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
-	MapDeviceToCallback.Remove(DeviceID);
-	MapDeviceIDToDevice.Remove(DeviceID);
-	
-	// TODO: add map
-	for (auto LeapDeviceWrapper : Devices)
-	{
-		if (LeapDeviceWrapper->GetDeviceID() == DeviceID)
+	AsyncTask(ENamedThreads::GameThread,
+		[this, DeviceID]()
 		{
-			Devices.Remove(LeapDeviceWrapper);
-			delete LeapDeviceWrapper;
-			break;
-		}
-	}
+			MapDeviceToCallback.Remove(DeviceID);
+			MapDeviceIDToDevice.Remove(DeviceID);
+	
+			// TODO: add map
+			for (auto LeapDeviceWrapper : Devices)
+			{
+				if (LeapDeviceWrapper->GetDeviceID() == DeviceID)
+				{
+					UE_LOG(UltraleapTrackingLog, Log, TEXT("Remove Device %s %d."), *(LeapDeviceWrapper->GetDeviceSerial().Right(4)),
+						LeapDeviceWrapper->GetDeviceID());
+					Devices.Remove(LeapDeviceWrapper);
+					delete LeapDeviceWrapper;
+					break;
+				}
+			}
+		});
 }
 
 /** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
