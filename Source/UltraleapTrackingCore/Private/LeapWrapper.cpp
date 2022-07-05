@@ -489,7 +489,6 @@ void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 			MapDeviceToCallback.Remove(DeviceID);
 			MapDeviceIDToDevice.Remove(DeviceID);
 	
-			// TODO: add map
 			for (auto LeapDeviceWrapper : Devices)
 			{
 				if (LeapDeviceWrapper->GetDeviceID() == DeviceID)

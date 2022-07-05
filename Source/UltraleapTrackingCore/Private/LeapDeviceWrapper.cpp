@@ -185,8 +185,6 @@ LEAP_DEVICE_INFO* FLeapDeviceWrapper::GetDeviceProperties()
 
 void FLeapDeviceWrapper::EnableImageStream(bool bEnable)
 {
-	// TODO: test the image/buffer stream code
-
 	if (ImageDescription == NULL)
 	{
 		ImageDescription = new LEAP_IMAGE_FRAME_DESCRIPTION;
