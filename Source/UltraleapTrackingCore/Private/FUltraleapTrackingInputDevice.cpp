@@ -387,7 +387,10 @@ void FUltraleapTrackingInputDevice::SetLeapPolicyBySerial(ELeapPolicyFlag Flag, 
 }
 void FUltraleapTrackingInputDevice::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials)
 {
-	// TODO: fallback for no device serials (backwards compat)
+	if (DeviceSerials.Num() == 0)
+	{
+		SetLeapPolicyBySerial(Flag, Enable, "");
+	}
 	for (auto DeviceSerial : DeviceSerials)
 	{
 		SetLeapPolicyBySerial(Flag, Enable, DeviceSerial);
