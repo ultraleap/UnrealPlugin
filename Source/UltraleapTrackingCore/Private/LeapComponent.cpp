@@ -23,13 +23,19 @@ ULeapComponent::ULeapComponent(const FObjectInitializer& init) :
 	bAutoActivate = true;
 	IsConnectedToInputEvents = false;
 	bAddHmdOrigin = false;
-
-	OnLeapDeviceAttached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
-	OnLeapDeviceDetached.AddDynamic(this, &ULeapComponent::OnDeviceAddedOrRemoved);
-
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector)
+	{
+		Connector->AddLeapConnectorCallback(this);
+	}
 }
 ULeapComponent::~ULeapComponent() 
 {
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector)
+	{
+		Connector->RemoveLeapConnnectorCallback(this);
+	}
 	UnsubscribeFromCurrentDevice();
 }
 void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
@@ -63,8 +69,6 @@ void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
 }
 void ULeapComponent::ConnectToInputEvents()
 {
-	// Attach delegate references
-	IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
 	RefreshDeviceList();
 
 	IsConnectedToInputEvents = true;
@@ -104,6 +108,8 @@ bool ULeapComponent::UnsubscribeFromCurrentDevice()
 			Device->RemoveEventDelegate(this);
 			Success = true;
 		}
+		CurrentHandTrackingDevice = nullptr;
+		
 	}
 
 	return Success;
@@ -132,6 +138,7 @@ bool ULeapComponent::SubscribeToDevice()
 			DeviceSerials = CombinedDeviceSerials;
 		}
 		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials, DeviceCombinerClass);
+		
 		Success = (CurrentHandTrackingDevice != nullptr);
 
 		if (Success)
@@ -256,10 +263,6 @@ void ULeapComponent::RefreshDeviceList()
 	}
 }
 
-void ULeapComponent::OnDeviceAddedOrRemoved(FString DeviceName)
-{
-	RefreshDeviceList();
-}
 ELeapDeviceType ULeapComponent::GetDeviceTypeFromSerial(const FString& DeviceSerial)
 {
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
@@ -285,15 +288,36 @@ void ULeapComponent::UpdateDeviceOrigin(const FTransform& DeviceOriginIn)
 #if WITH_EDITOR
 void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn)
 {
+	if (!DetailBuilderIn)
+	{
+		DetailBuilder = DetailBuilderIn;
+		return;
+	}
 	if (!IsConnectedToInputEvents || DetailBuilder != DetailBuilderIn)
 	{
 		DetailBuilder = DetailBuilderIn;
 		// connect also populates the device lists
 		ConnectToInputEvents();
+		// Attach delegate references
+		IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
 	}
 	else
 	{
 		RefreshDeviceList();
 	}
+}
+
+void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
+{
+	RefreshDeviceList();
+}
+void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
+{
+	if (CurrentHandTrackingDevice == DeviceWrapper)
+	{
+		UnsubscribeFromCurrentDevice();
+		CurrentHandTrackingDevice = nullptr;
+	}
+	RefreshDeviceList();
 }
 #endif

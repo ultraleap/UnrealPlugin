@@ -477,8 +477,10 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
 			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
 
+			NotifyDeviceAdded(Device);
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
+		
 		});
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
@@ -495,7 +497,11 @@ void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 				{
 					UE_LOG(UltraleapTrackingLog, Log, TEXT("Remove Device %s %d."), *(LeapDeviceWrapper->GetDeviceSerial().Right(4)),
 						LeapDeviceWrapper->GetDeviceID());
+					
+					
+					
 					Devices.Remove(LeapDeviceWrapper);
+					NotifyDeviceRemoved(LeapDeviceWrapper);
 					delete LeapDeviceWrapper;
 					break;
 				}
@@ -840,5 +846,30 @@ ELeapDeviceType FLeapWrapper::GetDeviceTypeFromSerial(const FString& DeviceSeria
 		return Device->GetDevice()->GetDeviceType();
 	}
 	return ELeapDeviceType::LEAP_DEVICE_INVALID;
+}
+// custom callback system as event delegates don't work in editor
+// due to a filter for callineditor deep in UObject
+void FLeapWrapper::AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback)
+{
+	LeapConnectorCallbacks.AddUnique(Callback);
+}
+void FLeapWrapper::RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback)
+{
+	LeapConnectorCallbacks.Remove(Callback);
+}
+// Must be called from the game thread
+void FLeapWrapper::NotifyDeviceAdded(IHandTrackingWrapper* Device)
+{
+	for (auto Callback : LeapConnectorCallbacks)
+	{
+		Callback->OnDeviceAdded(Device);
+	}
+}
+void FLeapWrapper::NotifyDeviceRemoved(IHandTrackingWrapper* Device)
+{
+	for (auto Callback : LeapConnectorCallbacks)
+	{
+		Callback->OnDeviceRemoved(Device);
+	}
 }
 #pragma endregion LeapC Wrapper

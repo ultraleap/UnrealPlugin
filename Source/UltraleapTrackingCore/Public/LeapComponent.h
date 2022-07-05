@@ -28,7 +28,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapTrackingModeSignature, ELeapMod
 
 UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
-class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent
+class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent, public ILeapConnectorCallbacks
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -38,7 +38,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceAttached;
 
-	/** Called when a device disconnects from the leap service*/
 	/** Called when a device disconnects from the leap service*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceDetached;
@@ -177,6 +176,10 @@ public:
 	void SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilder);
 #endif
 
+	// ILeapConnectorCallbacks implementation
+	virtual void OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper) override;
+	virtual void OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper) override;
+
 protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
@@ -190,10 +193,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool IsActiveDevicePluggedIn();
 
-	// Delegate handlers for state changes
-	UFUNCTION()
-	void OnDeviceAddedOrRemoved(FString Device);
-
 private:
 	void RefreshDeviceList();
 	bool SubscribeToDevice();
@@ -206,7 +205,7 @@ private:
 	void ConnectToInputEvents();
 	bool IsConnectedToInputEvents;
 
-	IHandTrackingWrapper* CurrentHandTrackingDevice;
+	IHandTrackingWrapper* CurrentHandTrackingDevice = nullptr;
 
 	static const FString NameConstantNone;
 };

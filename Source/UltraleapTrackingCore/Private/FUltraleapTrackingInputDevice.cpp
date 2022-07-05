@@ -236,7 +236,7 @@ void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* Event
 		// editor mirror component
 		if (EventDelegate != nullptr && EventDelegate->IsValidLowLevel())
 		{
-			EventDelegates.Add((ULeapComponent*) EventDelegate);
+			EventDelegates.AddUnique((ULeapComponent*) EventDelegate);
 		}
 		return;
 	}
@@ -248,7 +248,7 @@ void FUltraleapTrackingInputDevice::AddEventDelegate(const ULeapComponent* Event
 	{
 		if (EventDelegate != nullptr && EventDelegate->IsValidLowLevel())
 		{
-			EventDelegates.Add((ULeapComponent*) EventDelegate);
+			EventDelegates.AddUnique((ULeapComponent*) EventDelegate);
 		}
 
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("AddEventDelegate (%d)."), EventDelegates.Num());

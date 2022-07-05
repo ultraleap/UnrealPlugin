@@ -12,6 +12,14 @@
 #include "UltraleapTrackingData.h"
 
 class ULeapComponent;
+
+class ILeapConnectorCallbacks
+{
+public:
+	virtual void OnDeviceAdded(class IHandTrackingWrapper* DeviceWrapper) = 0;
+	// call before device cleaned up
+	virtual void OnDeviceRemoved(class IHandTrackingWrapper* DeviceWrapper) = 0;
+};
 class ILeapConnector
 {
 public:
@@ -25,6 +33,11 @@ public:
 	virtual void TickSendControllerEventsOnDevices() = 0;
 
 	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) = 0;
+
+	virtual void AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
+	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
+
+
 };
 class IHandTrackingDevice
 {

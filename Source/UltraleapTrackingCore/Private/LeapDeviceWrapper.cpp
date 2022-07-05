@@ -77,7 +77,7 @@ void FLeapDeviceWrapper::CloseConnection()
 	if (!bIsConnected)
 	{
 		// Not connected, already done
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Attempt at closing an already closed connection."));
+		// UE_LOG(UltraleapTrackingLog, Log, TEXT("Attempt at closing an already closed connection."));
 		return;
 	}
 	bIsConnected = false;

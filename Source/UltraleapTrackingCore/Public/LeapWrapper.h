@@ -233,6 +233,9 @@ public:
 	virtual void TickDevices(const float DeltaTime);
 	virtual void TickSendControllerEventsOnDevices();
 	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) override;
+	virtual void AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback) override;
+	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) override;
+	// End of ILeapConnector
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
@@ -250,6 +253,8 @@ private:
 
 	// Aggregated/combined devices
 	TArray<IHandTrackingWrapper*> CombinedDevices;
+
+	TArray<ILeapConnectorCallbacks*> LeapConnectorCallbacks;
 
 	LEAP_TRACKING_EVENT* LatestFrame = NULL;
 
@@ -307,4 +312,6 @@ private:
 	IHandTrackingWrapper* CreateAggregator(
 		const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass);
 	
+	void NotifyDeviceAdded(IHandTrackingWrapper* Device);
+	void NotifyDeviceRemoved(IHandTrackingWrapper* Device);
 };
