@@ -154,6 +154,10 @@ bool ULeapComponent::UpdateActiveDevice(const FString& DeviceSerial)
 	
 	return SubscribeToDevice();
 }
+bool ULeapComponent::IsActiveDevicePluggedIn()
+{
+	return CurrentHandTrackingDevice != nullptr;
+}
 void ULeapComponent::UninitializeComponent()
 {
 	// remove ourselves from the delegates

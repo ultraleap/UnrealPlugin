@@ -184,6 +184,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool UpdateActiveDevice(const FString& DeviceSerial);
 
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool IsActiveDevicePluggedIn();
+
 	// Delegate handlers for state changes
 	UFUNCTION()
 	void OnDeviceAddedOrRemoved(FString Device);
