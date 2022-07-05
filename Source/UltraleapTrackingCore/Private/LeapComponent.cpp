@@ -298,8 +298,6 @@ void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn
 		DetailBuilder = DetailBuilderIn;
 		// connect also populates the device lists
 		ConnectToInputEvents();
-		// Attach delegate references
-		IUltraleapTrackingPlugin::Get().AddEventDelegate(this);
 	}
 	else
 	{
@@ -309,7 +307,14 @@ void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn
 
 void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 {
-	RefreshDeviceList();
+	if (DeviceWrapper->GetDeviceSerial() == ActiveDeviceSerial)
+	{
+		ConnectToInputEvents();
+	}
+	else
+	{
+		RefreshDeviceList();
+	}
 }
 void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 {
