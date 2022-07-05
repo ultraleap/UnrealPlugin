@@ -141,7 +141,7 @@ public:
 
 	/** Active Device (Singular mode only)
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions", EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_SINGULAR"))
 	FString ActiveDeviceSerial;
 
 	UFUNCTION(CallInEditor)
@@ -154,10 +154,12 @@ public:
 
 	/** Combined device list
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions", EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_COMBINED"))
 	TArray<FString> CombinedDeviceSerials;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions"))
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices",
+		meta = (GetOptions = "GetSerialOptions" , EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_COMBINED"))
 	TEnumAsByte<ELeapDeviceCombinerClass> DeviceCombinerClass;
 
 	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
