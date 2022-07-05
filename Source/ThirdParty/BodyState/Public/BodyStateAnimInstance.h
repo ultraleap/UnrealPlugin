@@ -26,6 +26,21 @@
 #include "BodyStateInputInterface.h"
 #include "BodyStateAnimInstance.generated.h"
 
+
+UENUM(BlueprintType)
+enum EBSMultiDeviceMode
+{
+	BS_MULTI_DEVICE_SINGULAR = 0,
+	BS_MULTI_DEVICE_COMBINED
+};
+UENUM(BlueprintType)
+enum EBSDeviceCombinerClass
+{
+	BS_DEVICE_COMBINER_UNKNOWN,
+	BS_DEVICE_COMBINER_CONFIDENCE,
+	BS_DEVICE_COMBINER_ANGULAR
+	// add your custom classes here and add them to the class factory
+};
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FBodyStateIndexedBone
 {
@@ -320,14 +335,23 @@ public:
 	UFUNCTION()
 	void ExecuteAutoMapping();
 	
+	/** Multidevice configuration, Singular subscribes to a single device.
+	Combined subscribes to multiple devices combined into one device
+	*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Multi device")
+	TEnumAsByte<EBSMultiDeviceMode> MultiDeviceMode;
+
+
 	/** Available device list
 	 */
-	UPROPERTY(BlueprintReadOnly, Category = "BS Anim Instance - Multileap")
+	UPROPERTY(BlueprintReadOnly, Category = "BS Anim Instance - Multi device")
 	TArray<FString> AvailableDeviceSerials;
 	
 	/** Active Device (Singular mode only)
 	 */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Anim Instance - Multileap", meta = (GetOptions = "GetSerialOptions"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Anim Instance - Multi device",
+		meta = (GetOptions = "GetSerialOptions",
+			EditCondition = "MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR"))
 	FString ActiveDeviceSerial;
 
 	UPROPERTY()
@@ -340,8 +364,19 @@ public:
 		Ret.Insert(TEXT("None"), 0);
 		return Ret;
 	}
+	/** Combined device list
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Anim Instance - Multi device",
+		meta = (GetOptions = "GetSerialOptions",
+			EditCondition = "MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_COMBINED"))
+	TArray<FString> CombinedDeviceSerials;
 
-	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "BS Anim Instance - Multi device",
+		meta = (GetOptions = "GetSerialOptions",
+			EditCondition = "MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_COMBINED"))
+	TEnumAsByte<EBSDeviceCombinerClass> DeviceCombinerClass;
+
+	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance - Multi device")
 	void SetActiveDeviceSerial(const FString& DeviceID);
 	// IBodyStateDeviceChangeListener
 	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID);

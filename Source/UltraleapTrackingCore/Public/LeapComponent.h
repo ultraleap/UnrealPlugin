@@ -128,6 +128,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
+	
 	/** Multidevice configuration, Singular subscribes to a single device. 
 	Combined subscribes to multiple devices combined into one device
 	*/
