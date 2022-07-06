@@ -213,10 +213,10 @@ public:
      // factors that get multiplied to the corresponding confidence values to get an overall weighted confidence value
      //How much should the Palm position relative to the tracking camera influence the overall hand confidence? A confidence value is determined by whether the hand is within the optimal FOV of the tracking camera")]
      //[Range(0f, 1f)]
-     float PalmPosFactor = 0;
+     float PalmPosFactor = 1;
      // How much should the Palm orientation relative to the tracking camera influence the overall hand confidence? A confidence value is determined by looking at the angle between the palm normal and the direction from hand to camera
      // [Range(0f, 1f)]
-     float PalmRotFactor = 0;
+     float PalmRotFactor = 0.2;
        
       //How much should the Palm velocity relative to the tracking camera influence the overall hand confidence?")]
       //  [Range(0f, 1f)]
@@ -224,11 +224,11 @@ public:
 
       //How much should the joint rotation relative to the tracking camera influence the overall hand confidence? A confidence value is determined for a joint by looking at the angle between the joint normal and the direction from hand to camera.
       //  [Range(0f, 1f)]
-      float JointRotFactor = 0;
+      float JointRotFactor = 1;
       
       //How much should the joint rotation relative to the palm normal influence the overall hand confidence?
       //  [Range(0f, 1f)]
-      float JointRotToPalmFactor = 0;
+      float JointRotToPalmFactor = 0.2;
       //How much should joint occlusion influence the overall hand confidence?
       //   [Range(0f, 1f)]
       float JointOcclusionFactor = 0;

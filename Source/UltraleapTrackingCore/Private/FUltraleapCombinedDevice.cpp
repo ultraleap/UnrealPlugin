@@ -70,7 +70,7 @@ void FUltraleapCombinedDevice::CreateLocalLinearJointList(const FLeapHandData& H
 }
 
 
-FLeapBoneData* GetBone(FLeapHandData& Hand, const int BoneIndex)
+FLeapBoneData* GetBone( FLeapHandData& Hand, const int BoneIndex)
 {
 	return &Hand.Digits[BoneIndex / 4].Bones[BoneIndex % 4];
 }
@@ -135,9 +135,9 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 										   , 1, 
 										   BoneRot);
 		}
-		// Copy digits we just filled into top level data structures
-		Hand.UpdateFromDigits();
 	}
+	// Copy digits we just filled into top level data structures
+	Hand.UpdateFromDigits();
 
 	// Fill arm data.
 	FillBone(Hand.Arm, ToWorld(FVector(0.0f, 0.0f, -30.0f), PalmPos, PalmRot),

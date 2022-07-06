@@ -620,6 +620,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHandData*>& Hands,const TArray<float>& HandConfidences,const TArray<TArray<float>>& JointConfidencesIn, FLeapHandData& HandRet)
 {
 	bool IsLeft = (Hands[0]->HandType == EHandType::LEAP_HAND_LEFT);
+
 	FVector MergedPalmPos = Hands[0]->Palm.Position * HandConfidences[0];
 	FQuat MergedPalmRot = Hands[0]->Palm.Orientation.Quaternion();
 
@@ -654,8 +655,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-			MergedJointPositions[JointIdx] +=
-				JointPositionsList[HandsIdx][JointIdx] * JointConfidences[HandsIdx][JointIdx];
+			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * JointConfidencesIn[HandsIdx][JointIdx];
 		}
 	}
 

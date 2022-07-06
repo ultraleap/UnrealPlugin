@@ -123,6 +123,7 @@ void FLeapFrameData::TranslateFrame(const FVector& InTranslation)
 void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
 {
 	static int HandID = 0;
+	static int FingerID = 0;
 
 	Confidence = 1.0;
 	GrabAngle = 100;
@@ -136,6 +137,8 @@ void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
 		if (Digits.Num() <= i)	  // will only pay the cost of filling once
 		{
 			FLeapDigitData DigitData;
+			DigitData.Bones.AddZeroed(4);
+			DigitData.FingerId = ++FingerID;
 			Digits.Add(DigitData);
 		}
 	}
@@ -146,11 +149,25 @@ void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
 	HandType = HandTypeIn;
 
 	VisibleTime = 1;
+
+	Flags = 0;
 }
 void FLeapHandData::UpdateFromDigits()
 {
 	//TODO: check thumb isn't first
-	//TODO2: check recursive copy of bones
+	// The hand merger only sets the bone arrays
+	// Set the high level digits and digit members here
+	for (auto& Digit : Digits)
+	{
+		Digit.Metacarpal = Digit.Bones[0];
+		Digit.Proximal = Digit.Bones[1];
+		Digit.Intermediate = Digit.Bones[2];
+		Digit.Distal = Digit.Bones[3];
+	
+		// this could be a merged state
+		Digit.IsExtended = false;
+	}
+
 	Index = Digits[0];
 	Middle = Digits[1];
 	Ring = Digits[2];
