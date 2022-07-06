@@ -232,7 +232,12 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	if (LeftHands.Num() > 0)
 	{
 		FLeapHandData Hand;
-		
+		if (GEngine)
+		{
+			FString Message;
+			Message = FString::Printf(TEXT("Num Left Hands %d"), LeftHands.Num());
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
+		}
 		MergeHands(LeftHands, LeftHandConfidences, LeftJointConfidences, Hand);
 		MergedHands.Add(Hand);
 	}
@@ -240,6 +245,12 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	if (RightHands.Num() > 0)
 	{
 		FLeapHandData Hand;
+		if (GEngine)
+		{
+			FString Message;
+			Message = FString::Printf(TEXT("Num Right Hands %d"), RightHands.Num());
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
+		}
 		MergeHands(RightHands, RightHandConfidences, RightJointConfidences, Hand);
 		MergedHands.Add(Hand);
 	}
@@ -665,8 +676,15 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * JointConfidencesIn[HandsIdx][JointIdx];
+	//		MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * JointConfidencesIn[HandsIdx][JointIdx];
+			// JIM: temp passthrough direct test
+			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx];
 		}
+	}
+	// JIM: temp passthrough test, just average the two sets of locations
+	for (int JointIdx = 0; JointIdx < NumJointPositions && Hands.Num(); JointIdx++)
+	{
+		MergedJointPositions[JointIdx] /= Hands.Num();
 	}
 
 	// combine everything to a hand

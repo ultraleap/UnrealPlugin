@@ -130,7 +130,7 @@ void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
 	GrabStrength = 0.5;
 	PinchStrength = 0.5;
 
-	Id = HandID++;
+	Id = ++HandID;
 
 	for (int i = 0; i < MAX_DIGITS; i++)
 	{
@@ -154,7 +154,6 @@ void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
 }
 void FLeapHandData::UpdateFromDigits()
 {
-	//TODO: check thumb isn't first
 	// The hand merger only sets the bone arrays
 	// Set the high level digits and digit members here
 	for (auto& Digit : Digits)
@@ -168,11 +167,12 @@ void FLeapHandData::UpdateFromDigits()
 		Digit.IsExtended = false;
 	}
 
-	Index = Digits[0];
-	Middle = Digits[1];
-	Ring = Digits[2];
-	Pinky = Digits[3];
-	Thumb = Digits[4];
+	Thumb = Digits[0];
+	Index = Digits[1];
+	Middle = Digits[2];
+	Ring = Digits[3];
+	Pinky = Digits[4];
+	
 }
 void FLeapHandData::SetFromLeapHand(struct _LEAP_HAND* hand)
 {

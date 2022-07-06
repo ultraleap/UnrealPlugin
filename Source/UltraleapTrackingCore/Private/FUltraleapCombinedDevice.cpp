@@ -122,7 +122,8 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 			else
 			{
 				// TODO: check up and right for LeapSpace v Unity and that FindBetweenNormals is correct as LookRotation replacement
-				FVector Cross = FVector::CrossProduct(Normalized,(FingerIdx == 0 ? (IsLeft ? -FVector::UpVector : FVector::UpVector) : FVector::RightVector));
+				FVector Cross = FVector::CrossProduct(Normalized,
+					(FingerIdx == 0 ? (IsLeft ? -FVector::ForwardVector : FVector::ForwardVector) : FVector::RightVector));
 				BoneRot = FQuat::FindBetweenNormals(Normalized, Cross );
 			}
 
@@ -145,9 +146,9 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 		5,PalmRot);
 	
 	// Palm members
-	Hand.Palm.Direction = PalmRot.GetForwardVector();
-	// why zero in Unity?
-	Hand.Palm.Normal = FVector::ZeroVector;
+	// Up vector as in LeapSpace Z is forwards and these are UE space APIs
+	Hand.Palm.Direction = PalmRot.GetUpVector();
+	Hand.Palm.Normal = FVector::ZeroVector;		// Unused elsewhere
 	Hand.Palm.Orientation = PalmRot.Rotator();
 	Hand.Palm.Position = PalmPos;
 	Hand.Palm.StabilizedPosition = PalmPos;
