@@ -72,6 +72,7 @@ public:
 		return Device.Get();
 	}
 	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass CombinerClass) override;
+	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) override;
 
 private:
 	void Millisleep(int Milliseconds);

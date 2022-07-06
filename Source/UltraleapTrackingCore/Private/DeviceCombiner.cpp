@@ -11,6 +11,7 @@
 #include "LeapUtility.h"
 #include "FUltraleapCombinedDevice.h"
 #include "FUltraleapCombinedDeviceAngular.h"
+#include "FUltraleapCombinedDeviceConfidence.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region Combiner
@@ -39,7 +40,7 @@ FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHand
 	{
 		case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE:
 		{
-			Device = MakeShared<FUltraleapCombinedDeviceAngular>(
+			Device = MakeShared<FUltraleapCombinedDeviceConfidence>(
 				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
 			break;
 		}
@@ -50,7 +51,7 @@ FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHand
 			break;
 		}
 		default:
-			Device = MakeShared<FUltraleapCombinedDeviceAngular>(
+			Device = MakeShared<FUltraleapCombinedDeviceConfidence>(
 				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
 	}
 }
@@ -336,6 +337,8 @@ bool FDeviceCombiner::MatchDevices(const TArray<FString> DeviceSerials, const EL
 	}
 	return true;
 }
-
-
+bool FDeviceCombiner::ContainsDevice(IHandTrackingWrapper* DeviceWrapper)
+{
+	return DevicesToCombine.Contains(DeviceWrapper);
+}
 #pragma endregion Leap Device Wrapper

@@ -55,7 +55,27 @@ float Sum2DFloatArray(const TArray<TArray<float>>& ToSum)
 	return Ret;
 }
 
+FUltraleapCombinedDeviceConfidence::FUltraleapCombinedDeviceConfidence(IHandTrackingWrapper* LeapDeviceWrapperIn,
+	ITrackingDeviceWrapper* TrackingDeviceWrapperIn,
+	TArray<IHandTrackingWrapper*> DevicesToCombineIn)
+	: FUltraleapCombinedDevice(LeapDeviceWrapperIn, TrackingDeviceWrapperIn, DevicesToCombineIn)
+{
+	// Maps need filling with defaults as they don't auto size with the array operator
+	for (auto DeviceWrapper : DevicesToCombine)
+	{
+		LeftHandFirstVisible.Add(DeviceWrapper->GetDevice(), 0);
+		RightHandFirstVisible.Add(DeviceWrapper->GetDevice(), 0);
 
+		LastLeftHandPositions.Add(DeviceWrapper->GetDevice(), FHandPositionHistory());
+		LastRightHandPositions.Add(DeviceWrapper->GetDevice(), FHandPositionHistory());
+
+		JointConfidenceHistoriesLeft.Add(DeviceWrapper->GetDevice(), FJointConfidenceHistory());
+		JointConfidenceHistoriesRight.Add(DeviceWrapper->GetDevice(), FJointConfidenceHistory());
+
+		HandConfidenceHistoriesLeft.Add(DeviceWrapper->GetDevice(), FHandConfidenceHistory());
+		HandConfidenceHistoriesRight.Add(DeviceWrapper->GetDevice(), FHandConfidenceHistory());
+	}
+}
 void FUltraleapCombinedDeviceConfidence::CombineFrame(const TArray<FLeapFrameData>& SourceFrames)
 {
 	MergeFrames(SourceFrames, CurrentFrame);
@@ -307,7 +327,7 @@ void FUltraleapCombinedDeviceConfidence::AddFrameToTimeVisibleDicts(const TArray
 
 	if (!HandsVisible[0])
 	{
-		LeftHandFirstVisible[DevicesToCombine[FrameIdx]->GetDevice()] = 0;
+		LeftHandFirstVisible[DevicesToCombine[FrameIdx]->GetDevice()] =  0;
 	}
 	if (!HandsVisible[1])
 	{

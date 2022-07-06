@@ -198,10 +198,7 @@ class FUltraleapCombinedDeviceConfidence : public FUltraleapCombinedDevice
 {
 public:
 	FUltraleapCombinedDeviceConfidence(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn,
-		TArray<IHandTrackingWrapper*> DevicesToCombineIn)
-		: FUltraleapCombinedDevice(LeapDeviceWrapperIn, TrackingDeviceWrapperIn, DevicesToCombineIn)
-	{
-	}
+		TArray<IHandTrackingWrapper*> DevicesToCombineIn);
 	
 protected:
 	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override;

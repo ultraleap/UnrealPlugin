@@ -141,6 +141,10 @@ public:
 	{
 		return false;
 	}
+	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) override
+	{
+		return false;
+	}
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -223,6 +227,10 @@ public:
 		return nullptr;
 	}
 	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) override
+	{
+		return false;
+	}
+	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) override
 	{
 		return false;
 	}
@@ -314,4 +322,5 @@ private:
 	
 	void NotifyDeviceAdded(IHandTrackingWrapper* Device);
 	void NotifyDeviceRemoved(IHandTrackingWrapper* Device);
+	void CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper* Device);
 };

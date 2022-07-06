@@ -501,6 +501,7 @@ void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 					
 					
 					Devices.Remove(LeapDeviceWrapper);
+					CleanupCombinedDevicesReferencingDevice(LeapDeviceWrapper);
 					NotifyDeviceRemoved(LeapDeviceWrapper);
 					delete LeapDeviceWrapper;
 					break;
@@ -761,6 +762,7 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	if (Ret)
 	{
 		CombinedDevices.Add(Ret);
+		NotifyDeviceAdded(Ret);
 	}
 	return Ret;
 }
@@ -871,5 +873,24 @@ void FLeapWrapper::NotifyDeviceRemoved(IHandTrackingWrapper* Device)
 	{
 		Callback->OnDeviceRemoved(Device);
 	}
+}
+void FLeapWrapper::CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper* Device)
+{
+	TArray<IHandTrackingWrapper*> CombinedDevicesToCleanup;
+	// make sure any aggregated/combined devices that reference the removed device get cleaned up
+	for (auto CombinedDevice : CombinedDevices)
+	{
+		if (CombinedDevice->ContainsDevice(Device))
+		{
+			CombinedDevicesToCleanup.Add(CombinedDevice);
+		}
+	}
+	for (auto CombinedDevice : CombinedDevicesToCleanup)
+	{
+		CombinedDevices.Remove(CombinedDevice);
+		NotifyDeviceRemoved(CombinedDevice);
+		delete CombinedDevice;
+	}
+
 }
 #pragma endregion LeapC Wrapper
