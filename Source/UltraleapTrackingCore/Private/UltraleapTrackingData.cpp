@@ -120,9 +120,8 @@ void FLeapFrameData::TranslateFrame(const FVector& InTranslation)
 		Hand.TranslateHand(InTranslation);
 	}
 }
-void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
+void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn, const int HandID)
 {
-	static int HandID = 0;
 	static int FingerID = 0;
 
 	Confidence = 1.0;
@@ -130,7 +129,7 @@ void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn)
 	GrabStrength = 0.5;
 	PinchStrength = 0.5;
 
-	Id = ++HandID;
+	Id = HandID;
 
 	for (int i = 0; i < MAX_DIGITS; i++)
 	{

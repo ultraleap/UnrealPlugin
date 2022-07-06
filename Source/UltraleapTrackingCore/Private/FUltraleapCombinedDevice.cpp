@@ -8,11 +8,16 @@
 
 #include "FUltraleapCombinedDevice.h"
 
+
+int FUltraleapCombinedDevice::HandID = 0;
+
 FUltraleapCombinedDevice::FUltraleapCombinedDevice(IHandTrackingWrapper* LeapDeviceWrapper,
 	ITrackingDeviceWrapper* TrackingDeviceWrapperIn, TArray<IHandTrackingWrapper*> DevicesToCombineIn) : 
 	FUltraleapDevice(LeapDeviceWrapper, TrackingDeviceWrapperIn),
 	DevicesToCombine(DevicesToCombineIn)
 {
+	// static
+	++HandID;
 }
 
 FUltraleapCombinedDevice::~FUltraleapCombinedDevice()
@@ -88,12 +93,13 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 {
 	// Create data structure
 	EHandType HandType = EHandType::LEAP_HAND_RIGHT;
-
+	int HandIDToSet = HandID*2;
 	if (IsLeft)
 	{
+		HandIDToSet++;
 		HandType = EHandType::LEAP_HAND_LEFT;
 	}
-	Hand.InitFromEmpty(HandType);
+	Hand.InitFromEmpty(HandType, HandIDToSet);
 
 	int BoneIdx = 0;
 	FVector PrevJoint = FVector::ZeroVector;
@@ -121,10 +127,7 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 			}
 			else
 			{
-				// TODO: check up and right for LeapSpace v Unity and that FindBetweenNormals is correct as LookRotation replacement
-				FVector Cross = FVector::CrossProduct(Normalized,
-					(FingerIdx == 0 ? (IsLeft ? -FVector::ForwardVector : FVector::ForwardVector) : FVector::RightVector));
-				BoneRot = FQuat::FindBetweenNormals(Normalized, Cross );
+				BoneRot = Normalized.Rotation().Quaternion();
 			}
 
 			// Convert to world space from palm space.
@@ -141,8 +144,8 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 	Hand.UpdateFromDigits();
 
 	// Fill arm data.
-	FillBone(Hand.Arm, ToWorld(FVector(0.0f, 0.0f, -30.0f), PalmPos, PalmRot),
-		ToWorld(FVector(0.0f, 0.0f, -5.5f), PalmPos, PalmRot),
+	// TODO: this is hardwired and would be better off using tracked elbow positions from the leapdata
+	FillBone(Hand.Arm, ToWorld(FVector(-30.0f, 0.0f, 0), PalmPos, PalmRot), ToWorld(FVector(-5.5f, 0.0f, 0), PalmPos, PalmRot),
 		5,PalmRot);
 	
 	// Palm members

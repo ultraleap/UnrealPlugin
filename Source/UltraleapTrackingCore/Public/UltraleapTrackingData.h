@@ -411,7 +411,7 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	void RotateHand(const FRotator& InRotation);
 	void TranslateHand(const FVector& InTranslation);
 
-	void InitFromEmpty(const EHandType HandTypeIn);
+	void InitFromEmpty(const EHandType HandTypeIn, const int HandID);
 	void UpdateFromDigits();
 };
 

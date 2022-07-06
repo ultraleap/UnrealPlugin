@@ -39,6 +39,7 @@ protected:
 
 	// Based on VectorHand.NUM_JOINT_POSITIONS
 	static const int NumJointPositions = 25;
+	static int HandID;
 	
 private:
 };

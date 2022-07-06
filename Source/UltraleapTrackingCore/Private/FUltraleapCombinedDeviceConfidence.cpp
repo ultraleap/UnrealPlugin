@@ -676,16 +676,16 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-	//		MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * JointConfidencesIn[HandsIdx][JointIdx];
+			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * JointConfidencesIn[HandsIdx][JointIdx];
 			// JIM: temp passthrough direct test
-			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx];
+		//	MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx];
 		}
 	}
 	// JIM: temp passthrough test, just average the two sets of locations
-	for (int JointIdx = 0; JointIdx < NumJointPositions && Hands.Num(); JointIdx++)
+	/* for (int JointIdx = 0; JointIdx < NumJointPositions && Hands.Num(); JointIdx++)
 	{
 		MergedJointPositions[JointIdx] /= Hands.Num();
-	}
+	}*/
 
 	// combine everything to a hand
 	ConvertToWorldSpaceHand(HandRet, IsLeft, MergedPalmPos, MergedPalmRot, MergedJointPositions);
