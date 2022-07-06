@@ -10,6 +10,15 @@
 #include "LeapBlueprintFunctionLibrary.h" // for AngleBetweenVectors()
 
 
+// Leap data is X Up, Y Right, Z Forward
+// UE is X Forward, Y Right, Z Up
+FTransform ConvertUEToLeapTransform(const FTransform& TransformUE)
+{
+	FTransform Ret = TransformUE;
+	Ret.SetLocation(FVector(TransformUE.GetLocation().Z, TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
+
+	return Ret;
+}
 float GetTime()
 {
 	return FPlatformTime::Seconds();
@@ -279,7 +288,7 @@ void FUltraleapCombinedDeviceConfidence::SetupJointOcclusion()
 		LeapXRServiceProvider xrProvider = providers[i] as LeapXRServiceProvider;
 		if (xrProvider != null)
 		{
-			Transform SourceDeviceOrigin = DevicesToCombine[i]->GetDevice()->GetDeviceOrigin();;
+			Transform SourceDeviceOrigin = ConvertUEToLeapTransform(DevicesToCombine[i]->GetDevice()->GetDeviceOrigin());
 
 			JointOcclusions[i].transform.SetPose(SourceDeviceOrigin.GetPose());
 			JointOcclusions[i].transform.Rotate(new Vector3(-90, 0, 180));
@@ -347,7 +356,7 @@ float FUltraleapCombinedDeviceConfidence::CalculateHandConfidence(int FrameIdx,c
 {
 	float Confidence = 0;
 
-	FTransform SourceDeviceOrigin = DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin();
+	FTransform SourceDeviceOrigin = ConvertUEToLeapTransform(DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin());
 
 	Confidence = PalmPosFactor * ConfidenceRelativeHandPos(DevicesToCombine[FrameIdx]->GetDevice(), SourceDeviceOrigin, Hand.Palm.Position);
 	Confidence += PalmRotFactor * ConfidenceRelativeHandRot(SourceDeviceOrigin, Hand.Palm.Position, Hand.Palm.Normal);
@@ -397,7 +406,7 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 {
 	// TODO could be inversetransform vector, was inversetransform point?
 	FVector RelativeHandPos = SourceDeviceOrigin.InverseTransformPosition(HandPos);
-
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("HandPosIn %f %f %f"), HandPos.X, HandPos.Y, HandPos.Z);
 	// 2d gauss
 
 	// amplitude
@@ -555,7 +564,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	int idx = FrameIdx * 2 + (Hand.HandType == EHandType::LEAP_HAND_LEFT ? 0 : 1);
 	const int NumProviders = DevicesToCombine.Num();
 	
-	FTransform SourceDeviceOrigin = DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin();
+	FTransform SourceDeviceOrigin = ConvertUEToLeapTransform(DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin());
 
 	if (JointRotFactor != 0)
 	{
