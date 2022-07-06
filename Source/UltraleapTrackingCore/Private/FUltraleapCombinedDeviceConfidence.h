@@ -84,11 +84,15 @@ class FJointConfidenceHistory
 {
 
 public:
-	FJointConfidenceHistory(const int LengthIn = 60)
+	FJointConfidenceHistory(const int NumJointPositions, const int LengthIn = 60)
 	{
 		Length = LengthIn;
-		// TODO get vector hand equivalent
-		//JointConfidences = new float[Length, 1 /* VectorHand.NUM_JOINT_POSITIONS*/];
+		JointConfidences.AddZeroed(Length);
+
+		for (int i = 0; i < Length; ++i)
+		{
+			JointConfidences[i].AddZeroed(NumJointPositions);
+		}
 		Index = 0;
 	}
 
@@ -119,10 +123,8 @@ public:
 			return EmptyRet;
 		}
 
-		// TODO: check,
-		// size was JointConfidences.GetLength(1) in Unity
 		AverageConfidences.Empty();
-		AverageConfidences.AddZeroed(Length);
+		AverageConfidences.AddZeroed(JointConfidences[0].Num());
 
 		for (int i = 0; i < AverageConfidences.Num(); i++)
 		{
@@ -272,6 +274,6 @@ private:
 	TArray<float> ConfidenceRelativeJointRotToPalmRot(
 		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
 
-	void MergeHands(TArray<const FLeapHandData*> Hands, const TArray<float>& HandConfidences,
+	void MergeHands(const TArray<const FLeapHandData*>& Hands, const TArray<float>& HandConfidences,
 		const TArray<TArray<float>>& JointConfidences, FLeapHandData& HandRet);
 };

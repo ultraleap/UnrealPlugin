@@ -69,8 +69,8 @@ FUltraleapCombinedDeviceConfidence::FUltraleapCombinedDeviceConfidence(IHandTrac
 		LastLeftHandPositions.Add(DeviceWrapper->GetDevice(), FHandPositionHistory());
 		LastRightHandPositions.Add(DeviceWrapper->GetDevice(), FHandPositionHistory());
 
-		JointConfidenceHistoriesLeft.Add(DeviceWrapper->GetDevice(), FJointConfidenceHistory());
-		JointConfidenceHistoriesRight.Add(DeviceWrapper->GetDevice(), FJointConfidenceHistory());
+		JointConfidenceHistoriesLeft.Add(DeviceWrapper->GetDevice(), FJointConfidenceHistory(NumJointPositions));
+		JointConfidenceHistoriesRight.Add(DeviceWrapper->GetDevice(), FJointConfidenceHistory(NumJointPositions));
 
 		HandConfidenceHistoriesLeft.Add(DeviceWrapper->GetDevice(), FHandConfidenceHistory());
 		HandConfidenceHistoriesRight.Add(DeviceWrapper->GetDevice(), FHandConfidenceHistory());
@@ -597,7 +597,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	{
 		if (!JointConfidenceHistoriesLeft.Contains(DevicesToCombine[FrameIdx]->GetDevice()))
 		{
-			JointConfidenceHistoriesLeft.Add(DevicesToCombine[FrameIdx]->GetDevice(), FJointConfidenceHistory());
+			JointConfidenceHistoriesLeft.Add(DevicesToCombine[FrameIdx]->GetDevice(), FJointConfidenceHistory(NumJointPositions));
 		}
 		JointConfidenceHistoriesLeft[DevicesToCombine[FrameIdx]->GetDevice()].AddConfidences(JointConfidences[idx]);
 		JointConfidences[idx] = JointConfidenceHistoriesLeft[DevicesToCombine[FrameIdx]->GetDevice()].GetAveragedConfidences();
@@ -606,7 +606,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	{
 		if (!JointConfidenceHistoriesRight.Contains(DevicesToCombine[FrameIdx]->GetDevice()))
 		{
-			JointConfidenceHistoriesRight.Add(DevicesToCombine[FrameIdx]->GetDevice(), FJointConfidenceHistory());
+			JointConfidenceHistoriesRight.Add(DevicesToCombine[FrameIdx]->GetDevice(), FJointConfidenceHistory(NumJointPositions));
 		}
 		JointConfidenceHistoriesRight[DevicesToCombine[FrameIdx]->GetDevice()].AddConfidences(JointConfidences[idx]);
 		JointConfidences[idx] = JointConfidenceHistoriesRight[DevicesToCombine[FrameIdx]->GetDevice()].GetAveragedConfidences();
@@ -617,7 +617,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 /// <summary>
 /// Merge hands based on hand confidences and joint confidences
 /// </summary>
-void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*> Hands,const TArray<float>& HandConfidences,const TArray<TArray<float>>& JointConfidencesIn, FLeapHandData& HandRet)
+void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHandData*>& Hands,const TArray<float>& HandConfidences,const TArray<TArray<float>>& JointConfidencesIn, FLeapHandData& HandRet)
 {
 	bool IsLeft = (Hands[0]->HandType == EHandType::LEAP_HAND_LEFT);
 	FVector MergedPalmPos = Hands[0]->Palm.Position * HandConfidences[0];
@@ -644,6 +644,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(TArray<const FLeapHandData*>
 	for(auto Hand : Hands)
 	{
 		TArray<FVector> JointPositions;
+		JointPositions.AddZeroed(NumJointPositions);
 		CreateLocalLinearJointList(*Hand, JointPositions);
 		// should be 25 vectors in here
 		JointPositionsList.Add(JointPositions);
