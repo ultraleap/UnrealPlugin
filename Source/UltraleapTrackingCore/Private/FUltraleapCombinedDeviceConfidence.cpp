@@ -406,20 +406,20 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 {
 	// TODO could be inversetransform vector, was inversetransform point?
 	FVector RelativeHandPos = SourceDeviceOrigin.InverseTransformPosition(HandPos);
-	UE_LOG(UltraleapTrackingLog, Log, TEXT("HandPosIn %f %f %f"), HandPos.X, HandPos.Y, HandPos.Z);
+	//UE_LOG(UltraleapTrackingLog, Log, TEXT("HandPosIn %f %f %f"), HandPos.X, HandPos.Y, HandPos.Z);
 	// 2d gauss
 
 	// amplitude
-	float a = 1 - RelativeHandPos.Y;
+	float a = 1 - RelativeHandPos.X;
 	// pos of center of peak
 	float x0 = 0;
 	float y0 = 0;
 	// spread
-	float SigmaX = RelativeHandPos.Y;
-	float SigmaY = RelativeHandPos.Y;
+	float SigmaX = RelativeHandPos.X;
+	float SigmaY = RelativeHandPos.X;
 
 	// input pos
-	float x = RelativeHandPos.X;
+	float x = RelativeHandPos.Y;
 	float y = RelativeHandPos.Z;
 
 	//TODO: there was some logic here to decide if this was a provider/real device
@@ -434,7 +434,7 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 		// Depth: Between 10cm to 75cm preferred, up to 1m maximum
 		// Field Of View: 170 x 170 degrees typical (160 x 160 degrees minimum)
 		// TODO: double check coord system as we're in leap space here vs Unity?
-		float CurrentDepth = RelativeHandPos.Y;
+		float CurrentDepth = RelativeHandPos.X;
 
 		float RequiredWidth = (CurrentDepth / 2.0) / FMath::Sin(FMath::DegreesToRadians(170.0 / 2.0));
 		SigmaX = 0.2f * RequiredWidth;
@@ -458,7 +458,7 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 	{
 		// Depth: Between 10cm to 60cm preferred, up to 80cm maximum
 		// Field Of View: 140 x 120 degrees typical
-		float CurrentDepth = RelativeHandPos.Y;
+		float CurrentDepth = RelativeHandPos.X;
 		float RequiredWidthX = (CurrentDepth / 2) / FMath::Sin(FMath::DegreesToRadians(120.0 / 2.0));
 		float RequiredWidthY = (CurrentDepth / 2) / FMath::Sin(FMath::DegreesToRadians(140.0 / 2.0));
 		SigmaX = 0.2f * RequiredWidthX;
