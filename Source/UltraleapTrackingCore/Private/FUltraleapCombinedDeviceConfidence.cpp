@@ -75,6 +75,22 @@ FUltraleapCombinedDeviceConfidence::FUltraleapCombinedDeviceConfidence(IHandTrac
 		HandConfidenceHistoriesLeft.Add(DeviceWrapper->GetDevice(), FHandConfidenceHistory());
 		HandConfidenceHistoriesRight.Add(DeviceWrapper->GetDevice(), FHandConfidenceHistory());
 	}
+	const int NumProviders = DevicesToCombine.Num();
+	const int NumHandsPerProvider = 2;	  // until we evolve more
+	
+	// per hand
+	JointConfidences.AddZeroed(NumProviders * NumHandsPerProvider);
+	ConfidencesJointRot.AddZeroed(NumProviders * NumHandsPerProvider);
+	ConfidencesJointPalmRot.AddZeroed(NumProviders * NumHandsPerProvider);
+	ConfidencesJointOcclusion.AddZeroed(NumProviders * NumHandsPerProvider);
+
+	for (int i = 0; i < (NumProviders * NumHandsPerProvider); ++i)
+	{
+		JointConfidences[i].AddZeroed(NumJointPositions);
+		ConfidencesJointRot[i].AddZeroed(NumJointPositions);
+		ConfidencesJointPalmRot[i].AddZeroed(NumJointPositions);
+		ConfidencesJointOcclusion[i].AddZeroed(NumJointPositions);
+	}
 }
 void FUltraleapCombinedDeviceConfidence::CombineFrame(const TArray<FLeapFrameData>& SourceFrames)
 {
@@ -82,19 +98,7 @@ void FUltraleapCombinedDeviceConfidence::CombineFrame(const TArray<FLeapFrameDat
 }
 // direct port from Unity
 void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData>& SourceFrames, FLeapFrameData& CombinedFrame )
-{
-	
-	const int NumProviders = DevicesToCombine.Num();
-	const int NumHandsPerProvider = 2; // until we evolve more
-
-	if (JointConfidences.Num() != (NumProviders * NumHandsPerProvider))
-	{
-		JointConfidences.AddZeroed(NumProviders * NumHandsPerProvider);
-		ConfidencesJointRot.AddZeroed(NumProviders * NumHandsPerProvider);
-		ConfidencesJointPalmRot.AddZeroed(NumProviders * NumHandsPerProvider);
-		ConfidencesJointOcclusion.AddZeroed(NumProviders * NumHandsPerProvider);
-	}
-	
+{	
 	TArray<const FLeapHandData*> LeftHands;
 	TArray<const FLeapHandData*> RightHands;
 
@@ -549,14 +553,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	// get index in confidence arrays
 	int idx = FrameIdx * 2 + (Hand.HandType == EHandType::LEAP_HAND_LEFT ? 0 : 1);
 	const int NumProviders = DevicesToCombine.Num();
-	// todo: why are these recreated as they're set above
-	if (JointConfidences.Num() != NumProviders)
-	{
-		JointConfidences.AddZeroed(NumJointPositions);
-		ConfidencesJointRot.AddZeroed(NumJointPositions);
-		ConfidencesJointPalmRot.AddZeroed(NumJointPositions);
-		ConfidencesJointOcclusion.AddZeroed(NumJointPositions);
-	}
+	
 	FTransform SourceDeviceOrigin = DevicesToCombine[FrameIdx]->GetDevice()->GetDeviceOrigin();
 
 	if (JointRotFactor != 0)
@@ -578,7 +575,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	{
 		for (int BoneIdx = 0; BoneIdx < 5; BoneIdx++)
 		{
-			int key = FingerIdx * 5 + FingerIdx;
+			int key = FingerIdx * 5 + BoneIdx;
 			JointConfidences[idx][key] = JointRotFactor * ConfidencesJointRot[idx][key] +
 										 JointRotToPalmFactor * ConfidencesJointPalmRot[idx][key] +
 										 JointOcclusionFactor * ConfidencesJointOcclusion[idx][key];
