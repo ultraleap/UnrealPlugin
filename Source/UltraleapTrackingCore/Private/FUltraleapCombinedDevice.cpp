@@ -91,7 +91,7 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 
 	if (IsLeft)
 	{
-		HandType = EHandType::LEAP_HAND_RIGHT;
+		HandType = EHandType::LEAP_HAND_LEFT;
 	}
 	Hand.InitFromEmpty(HandType);
 

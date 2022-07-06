@@ -238,6 +238,7 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	// create new frame and add merged hands to it
 	// TODO: what about the other members of FLeapFrameData?
 	CombinedFrame.Hands = MergedHands;
+	CombinedFrame.NumberOfHandsVisible = MergedHands.Num();
 }
 
 /// create joint occlusion gameobjects if they are not there yet and update the position of all joint occlusion gameobjects that are
