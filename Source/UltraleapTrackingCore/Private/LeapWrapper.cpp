@@ -24,6 +24,16 @@ FLeapWrapper::FLeapWrapper()
 
 FLeapWrapper::~FLeapWrapper()
 {
+	for (auto CombinedDevice : CombinedDevices)
+	{
+		delete CombinedDevice;
+	}
+	CombinedDevices.Empty();
+	for (auto Device : Devices)
+	{
+		delete Device;
+	}
+	Devices.Empty();
 	bIsRunning = false;
 	// map device to callback delegate
 	MapDeviceToCallback.Empty();
