@@ -712,13 +712,14 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 		Confidences.AddZeroed(NumJointPositions);
 	}
 	static const int NumBones = 4;
+	int FingerIndex = 0;
 	for(auto Finger : Hand.Digits)
 	{
 		for (int BoneIdx = 0; BoneIdx < NumBones; BoneIdx++)
 		{
 			// TODO: verify FingerID can be used to generate key
 			// was finger type in Unity
-			int Key = Finger.FingerId * NumBones + BoneIdx;
+			int Key = FingerIndex * NumBones + BoneIdx;
 
 			FVector JointPos = Finger.Bones[BoneIdx].NextJoint;
 			FVector JointNormalVector;
@@ -730,7 +731,8 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 			}
 			else
 			{
-				JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::UpVector * -1;
+				// Changed to Forward as X is Up in leap space
+				JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::ForwardVector * -1;
 			}
 
 			float Angle =
@@ -740,6 +742,7 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 			// and it should be 0 if it is 90 degrees
 			Confidences[Key] = (FMath::Cos(FMath::DegreesToRadians(2 * Angle)) + 1.0f) / 2.0;
 		}
+		++FingerIndex;
 	}
 	// TODO: why return a copy when passed by ref?
 	return Confidences;
@@ -760,16 +763,17 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPa
 	for(auto Finger : Hand.Digits)
 	{
 		static const int NumBones = 4;
+		int FingerIndex = 0;
 		for (int BoneIdx = 0; BoneIdx < NumBones; BoneIdx++)
 		{
 			// TODO: again check finger ID ok for Key vs Type in Unity
-			int Key = Finger.FingerId * NumBones + BoneIdx;
+			int Key = FingerIndex * NumBones + BoneIdx;
 
 			FVector JointPos = Finger.Bones[BoneIdx].NextJoint;
 			FVector JointNormalVector;
 
-			// TODO: check we still want up in Leap Space?
-			JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::UpVector * -1;
+			// TODO: check we still want up in Leap Space (changed up to forward as X is up)?
+			JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::ForwardVector * -1;
 
 			float Angle = ULeapBlueprintFunctionLibrary::AngleBetweenVectors(Hand.Palm.Normal, JointNormalVector);
 
@@ -777,6 +781,7 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPa
 			// and it should be 0 if the angle is 180 degrees
 			Confidences[Key] = (FMath::Cos(FMath::DegreesToRadians(Angle)) + 1.0f) / 2.0;
 		}
+		++FingerIndex;
 	}
 
 	// TODO: why return a copy when we passed in a ref?
