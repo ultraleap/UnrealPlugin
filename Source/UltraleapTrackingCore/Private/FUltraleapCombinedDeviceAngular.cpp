@@ -18,13 +18,11 @@ void FUltraleapCombinedDeviceAngular::CombineFrame(const TArray<FLeapFrameData>&
 	CurrentFrame.Hands.Empty();
 	MergeHands(SourceFrames, CurrentFrame.Hands);
 }
-
+/*
+ * Utility function of running average
+ */
 float AprxAvg(float Avg, float NewSample)
 {
-	/*
-	 * Utility function of running average
-	 */
-
 	Avg -= Avg / 2;
 	Avg += NewSample / 2;
 
@@ -36,7 +34,7 @@ float AprxAvg(float Avg, float NewSample)
  */
 void FUltraleapCombinedDeviceAngular::MergeHands(const TArray<FLeapFrameData>& SourceFrames, TArray<FLeapHandData>& MergedHands)
 {
-	 // Sort Left and Right hands (some values may be null since never know how many hands are visible, but we clean it up at the
+	// Sort Left and Right hands (some values may be null since never know how many hands are visible, but we clean it up at the
 	// end)
 	TArray<const FLeapHandData*> LeftHands;
 	TArray<const FLeapHandData*> RightHands;
@@ -149,15 +147,15 @@ bool FUltraleapCombinedDeviceAngular::AngularInterpolate(
 		MidDevicePointPosition = MidpointDevices.GetLocation();
 
 		// TODO, double check this, sets .forward in Unity
-		MidDevicePointForward = MidpointDevices.GetRotation().GetForwardVector();
+		MidDevicePointForward = MidpointDevices.GetRotation().GetUpVector();
 		// double check, up in unity, = what in leap space
-		MidDevicePointUp = MidpointDevices.GetRotation().GetUpVector();
+		MidDevicePointUp = MidpointDevices.GetRotation().GetForwardVector();
 
 		FVector AngleCalculationHandPosition = MergedHand.Palm.Position;
 
 		Angle = AngleSigned(AngleCalculationHandPosition,
 			// check re leap space, up then forward in Unity
-			MidpointDevices.GetLocation() + MidpointDevices.GetRotation().GetUpVector(), MidpointDevices.GetRotation().GetForwardVector());
+			MidpointDevices.GetLocation() + MidpointDevices.GetRotation().GetForwardVector(), MidpointDevices.GetRotation().GetUpVector());
 		
 		Alpha = FMath::Clamp(Angle, -MaxInterpolationAngle / 2, MaxInterpolationAngle / 2);
 		Alpha = ((Alpha + (MaxInterpolationAngle / 2)) / (MaxInterpolationAngle));	  // normalize to a 0-1 scale
