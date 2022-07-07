@@ -678,12 +678,6 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	// combine everything to a hand
 	ConvertToWorldSpaceHand(HandRet, IsLeft, MergedPalmPos, MergedPalmRot, MergedJointPositions);
 	
-	// visualize the joint merge:
-	/* if (DebugJointOrigins && IsLeft && debugHandLeft != null)
-		VisualizeMergedJoints(debugHandLeft, jointConfidences);
-	else if (debugJointOrigins && !isLeft && debugHandRight != null)
-		VisualizeMergedJoints(debugHandRight, jointConfidences);*/
-
 	return;
 }
 

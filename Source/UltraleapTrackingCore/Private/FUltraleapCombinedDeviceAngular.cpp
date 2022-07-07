@@ -99,9 +99,11 @@ bool FUltraleapCombinedDeviceAngular::AngularInterpolate(
 // find average palm position since we don't exactly know which provider is closest to reality:
 	bool HandInit = false;
 	int NumValidHands = 0;
-
+	bool IsLeft = false;
 	for(auto Hand : HandList)
 	{
+		IsLeft = Hand->HandType == LEAP_HAND_LEFT;
+
 		if (Hand->Confidence > 0.98f &&
 			Hand->VisibleTime > 0.5f)	// only use hands with high confidence to avoid when hand is barely in view
 		{
@@ -165,22 +167,15 @@ bool FUltraleapCombinedDeviceAngular::AngularInterpolate(
 		Alpha = ((Alpha + (MaxInterpolationAngle / 2)) / (MaxInterpolationAngle));	  // normalize to a 0-1 scale
 
 		// Interpolate using alpha:
-
-		// TODO: why on a copy as set below back to merged hand?
-		FLeapHandData InterpolateHand;
-
-		if (NumValidHands == 1)
+		if (NumValidHands > 1)	   // Note: this implementation only works with first 2 hands:
 		{
-			InterpolateHand = MergedHand;
+			TArray<FVector> JointsCombined;
+			FVector MergedPalmPos;
+			FQuat MergedPalmRot;
+		
+			CreateLinearJointListInterp(*HandList[0], *HandList[1], JointsCombined, Alpha, MergedPalmPos, MergedPalmRot);
+			ConvertToWorldSpaceHand(MergedHand, IsLeft, MergedPalmPos, MergedPalmRot, JointsCombined);
 		}
-		else if (NumValidHands > 1)	   // Note: this implementation only works with first 2 hands:
-		{
-			//TODO port vector hand interp filler
-		//	CreateLinearJointListInterp(new VectorHand(handList[0]), new VectorHand(handList[1]), alpha);
-		//	vectorInterpolatedHand.Decode(interpolateHand);
-		}
-
-		MergedHand = InterpolateHand;
 	}
 	return HandInit;
 }

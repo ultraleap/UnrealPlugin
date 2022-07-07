@@ -167,9 +167,34 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 	Hand.Palm.Velocity = PalmPos;	// why palmpos in unity?
 	Hand.Palm.Width = 8.5;
 }
-void FUltraleapCombinedDevice::CreateLinearJointListInterp(const FLeapHandData& Hand, TArray<FVector>& Joints)
+void FUltraleapCombinedDevice::CreateLinearJointListInterp(
+	const FLeapHandData& HandA, const FLeapHandData& HandB, TArray<FVector>& Joints, const float Alpha, FVector& PalmPos, FQuat& PalmRot)
 {
-	 // TODO used by Angular combiner
+	TArray<FVector> JointsA;
+	TArray<FVector> JointsB;
+
+	Joints.Empty();
+	Joints.AddZeroed(NumJointPositions);
+
+	CreateLocalLinearJointList(HandA, JointsA);
+	CreateLocalLinearJointList(HandB, JointsB);
+
+	if (HandA.HandType != HandB.HandType)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("FUltraleapCombinedDevice::CreateLinearJointListInterp hands have mixed chirality"));
+		return;
+	}
+	const bool IsLeft = HandA.HandType == LEAP_HAND_LEFT;
+
+	PalmPos = FMath::Lerp(HandA.Palm.Position, HandB.Palm.Position, Alpha);
+	// this does slerp under the hood
+	PalmRot = FMath::Lerp(HandA.Palm.Orientation.Quaternion(), HandB.Palm.Orientation.Quaternion(), Alpha);
+	
+	for (int i = 0; i < Joints.Num(); i++)
+	{
+		Joints[i] =FMath::Lerp(JointsA[i], JointsB[i], Alpha);
+	}
+	return;
 }
 FTransform FUltraleapCombinedDevice::GetSourceDeviceOrigin(const int ProviderIndex)
 {

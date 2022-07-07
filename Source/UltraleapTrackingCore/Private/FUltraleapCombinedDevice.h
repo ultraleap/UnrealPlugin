@@ -35,7 +35,9 @@ protected:
 	void ConvertToWorldSpaceHand(FLeapHandData& Hand,
 		const bool IsLeft, const FVector& PalmPos, const FQuat& PalmRot, const TArray<FVector>& JointPositions);
 
-	void CreateLinearJointListInterp(const FLeapHandData& Hand, TArray<FVector>& Joints);
+	// Equivalent of VectorHand.FillLerped
+	void CreateLinearJointListInterp(const FLeapHandData& HandA, const FLeapHandData& HandB, TArray<FVector>& Joints,
+		const float Alpha, FVector& PalmPos, FQuat& PalmRot);
 
 	// Based on VectorHand.NUM_JOINT_POSITIONS
 	static const int NumJointPositions = 25;
