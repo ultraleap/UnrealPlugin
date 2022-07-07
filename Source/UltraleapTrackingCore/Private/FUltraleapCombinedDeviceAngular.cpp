@@ -15,14 +15,9 @@ void FUltraleapCombinedDeviceAngular::CombineFrame(const TArray<FLeapFrameData>&
 		return;
 	}
 
-	//const FLeapFrameData& MergedFrame = SourceFrames[0];
-
 	TArray<FLeapHandData> MergedHands;
 
 	MergeHands(SourceFrames, CurrentFrame.Hands);
-		//	Hand[] mergedHands = MergeHands(frames);
-//	mergedFrame.Hands = mergedHands == null ? new List<Hand>() : new List<Hand>(MergeHands(frames));
-	//CurrentFrame = MergedFrame;
 }
 
 float AprxAvg(float Avg, float NewSample)
@@ -47,8 +42,6 @@ void FUltraleapCombinedDeviceAngular::MergeHands(const TArray<FLeapFrameData>& S
 	TArray<const FLeapHandData*> LeftHands;
 	TArray<const FLeapHandData*> RightHands;
 	
-	LeftHands.AddZeroed(DevicesToCombine.Num());
-	RightHands.AddZeroed(DevicesToCombine.Num());
 
 
 	for (int i = 0; i < SourceFrames.Num(); i++)
@@ -56,9 +49,13 @@ void FUltraleapCombinedDeviceAngular::MergeHands(const TArray<FLeapFrameData>& S
 		for(auto& TempHand : SourceFrames[i].Hands)
 		{
 			if (TempHand.HandType == LEAP_HAND_LEFT)
-				LeftHands[i] = &TempHand;
+			{
+				LeftHands.Add(&TempHand);
+			}
 			else
-				RightHands[i] = &TempHand;
+			{
+				RightHands.Add(&TempHand);
+			}
 		}
 	}
 

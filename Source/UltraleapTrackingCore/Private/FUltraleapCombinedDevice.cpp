@@ -192,7 +192,7 @@ void FUltraleapCombinedDevice::CreateLinearJointListInterp(
 	
 	for (int i = 0; i < Joints.Num(); i++)
 	{
-		Joints[i] =FMath::Lerp(JointsA[i], JointsB[i], Alpha);
+		Joints[i] = FMath::Lerp(JointsA[i], JointsB[i], Alpha);
 	}
 	return;
 }
