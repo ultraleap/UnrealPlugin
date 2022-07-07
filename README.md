@@ -13,7 +13,7 @@ This repository contains code for Ultraleap's Unreal Plugin which has been desig
 
 ### Prerequisites
 
-*N.B. This plugin only supports 64-bit Windows builds*
+*N.B. This plugin only supports 64-bit Windows, Android and Linux builds*
 
 To use this Plugin you will need the following:
 
