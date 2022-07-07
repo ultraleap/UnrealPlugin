@@ -33,9 +33,14 @@ public:
 
 	FTransform MidpointDevices;	  // used to calculate relative angle and weight hands accordingly. Transform should face direction
 								  // that bisects FOV of devices
+
 private:
-	FVector TempHandPalmPosition;
+	
 	FVector MidDevicePointPosition;
 	FVector MidDevicePointForward;
 	FVector MidDevicePointUp;
+
+	void MergeHands(const TArray<FLeapFrameData>& SourceFrames, TArray<FLeapHandData>& Hands);
+	static float AngleSigned(const FVector& V1, const FVector& V2, const FVector& N);
+	bool AngularInterpolate(const TArray<const FLeapHandData*>& HandList, float& Alpha, float& Angle, FLeapHandData& Hand);
 };

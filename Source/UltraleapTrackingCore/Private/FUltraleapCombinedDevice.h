@@ -41,5 +41,8 @@ protected:
 	static const int NumJointPositions = 25;
 	static int HandID;
 	
+	FTransform GetSourceDeviceOrigin(const int ProviderIndex);
+	
+
 private:
 };
