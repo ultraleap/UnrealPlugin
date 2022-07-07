@@ -9,7 +9,7 @@
 #include "FUltraleapCombinedDeviceConfidence.h"
 #include "LeapBlueprintFunctionLibrary.h" // for AngleBetweenVectors()
 
-
+#define PRINT_ONSCREEN_DEBUG (0 && WITH_EDITOR) 
 // Leap data is X Up, Y Right, Z Forward
 // UE is X Forward, Y Right, Z Up
 FTransform ConvertUEToLeapTransform(const FTransform& TransformUE)
@@ -230,12 +230,15 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	if (LeftHands.Num() > 0)
 	{
 		FLeapHandData Hand;
+		
+#if PRINT_ONSCREEN_DEBUG
 		if (GEngine)
 		{
 			FString Message;
 			Message = FString::Printf(TEXT("Num Left Hands %d"), LeftHands.Num());
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
 		}
+#endif //PRINT_ONSCREEN_DEBUG
 		MergeHands(LeftHands, LeftHandConfidences, LeftJointConfidences, Hand);
 		MergedHands.Add(Hand);
 	}
@@ -243,12 +246,15 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	if (RightHands.Num() > 0)
 	{
 		FLeapHandData Hand;
+
+#if PRINT_ONSCREEN_DEBUG
 		if (GEngine)
 		{
 			FString Message;
 			Message = FString::Printf(TEXT("Num Right Hands %d"), RightHands.Num());
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
 		}
+#endif
 		MergeHands(RightHands, RightHandConfidences, RightJointConfidences, Hand);
 		MergedHands.Add(Hand);
 	}

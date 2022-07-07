@@ -772,7 +772,7 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	if (Ret)
 	{
 		CombinedDevices.Add(Ret);
-		NotifyDeviceAdded(Ret);
+		//NotifyDeviceAdded(Ret);
 	}
 	return Ret;
 }

@@ -22,7 +22,6 @@ FUltraleapCombinedDevice::FUltraleapCombinedDevice(IHandTrackingWrapper* LeapDev
 
 FUltraleapCombinedDevice::~FUltraleapCombinedDevice()
 {
-	FUltraleapDevice::~FUltraleapDevice();
 }
 // Main loop event emitter and handler
 void FUltraleapCombinedDevice::SendControllerEvents()
