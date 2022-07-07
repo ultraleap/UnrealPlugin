@@ -48,19 +48,17 @@ float SumFloatArray(const TArray<float>& ToSum, const int NumElements)
 	}
 	return Ret;
 }
-float Sum2DFloatArray(const TArray<TArray<float>>& ToSum)
+float Sum2DFloatArray(const TArray<TArray<float>>& ToSum, const int Index)
 {
 	float Ret = 0;
-	for (auto ArrayIndex : ToSum)
+	if (ToSum.Num() < (Index + 1))
 	{
-		for (auto jValue : ArrayIndex)
-		{
-			Ret += jValue;
-		}
-		
+		return 0;
 	}
-	// TODO check this is the same
-	//LeftJointConfidences.Sum(x = > x[joint_idx] from Unity
+	for (auto jValue : ToSum[Index])
+	{
+		Ret += jValue;
+	}
 	return Ret;
 }
 
@@ -192,7 +190,7 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	// normalize joint confidences:
 	for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 	{
-		Sum = Sum2DFloatArray(LeftJointConfidences);
+		Sum = Sum2DFloatArray(LeftJointConfidences, JointIdx);
 
 		if (Sum != 0)
 		{
@@ -209,7 +207,7 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 			}
 		}
 
-		Sum = Sum2DFloatArray(RightJointConfidences);
+		Sum = Sum2DFloatArray(RightJointConfidences, JointIdx);
 		if (Sum != 0)
 		{
 			for (int HandsIdx = 0; HandsIdx < RightJointConfidences.Num(); HandsIdx++)
@@ -417,7 +415,7 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 {
 	// TODO could be inversetransform vector, was inversetransform point?
 	FVector RelativeHandPos = SourceDeviceOrigin.InverseTransformPosition(HandPos);
-	//UE_LOG(UltraleapTrackingLog, Log, TEXT("HandPosIn %f %f %f"), HandPos.X, HandPos.Y, HandPos.Z);
+	
 	// 2d gauss
 
 	// amplitude
@@ -444,7 +442,6 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 	{
 		// Depth: Between 10cm to 75cm preferred, up to 1m maximum
 		// Field Of View: 170 x 170 degrees typical (160 x 160 degrees minimum)
-		// TODO: double check coord system as we're in leap space here vs Unity?
 		float CurrentDepth = RelativeHandPos.X;
 
 		float RequiredWidth = (CurrentDepth / 2.0) / FMath::Sin(FMath::DegreesToRadians(170.0 / 2.0));
@@ -579,11 +576,11 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 
 	if (JointRotFactor != 0)
 	{
-		ConfidencesJointRot[idx] = ConfidenceRelativeJointRot(ConfidencesJointRot[idx], SourceDeviceOrigin, Hand);
+		ConfidenceRelativeJointRot(ConfidencesJointRot[idx], SourceDeviceOrigin, Hand);
 	}
 	if (JointRotToPalmFactor != 0)
 	{
-		ConfidencesJointPalmRot[idx] = ConfidenceRelativeJointRotToPalmRot(ConfidencesJointPalmRot[idx], SourceDeviceOrigin, Hand);
+		ConfidenceRelativeJointRotToPalmRot(ConfidencesJointPalmRot[idx], SourceDeviceOrigin, Hand);
 	}
 	if (JointOcclusionFactor != 0)
 	{
@@ -676,17 +673,10 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * JointConfidencesIn[HandsIdx][JointIdx];
-			// JIM: temp passthrough direct test
-		//	MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx];
+			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * (JointConfidencesIn[HandsIdx][JointIdx]);
 		}
 	}
-	// JIM: temp passthrough test, just average the two sets of locations
-	/* for (int JointIdx = 0; JointIdx < NumJointPositions && Hands.Num(); JointIdx++)
-	{
-		MergedJointPositions[JointIdx] /= Hands.Num();
-	}*/
-
+	
 	// combine everything to a hand
 	ConvertToWorldSpaceHand(HandRet, IsLeft, MergedPalmPos, MergedPalmRot, MergedJointPositions);
 	
@@ -704,7 +694,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 /// uses the normal vector of a joint / bone (outwards pointing one) and the direction from joint to device
 /// to calculate per-joint confidence values
 /// </summary>
-TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
+void FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 	TArray<float>& Confidences, const FTransform& SourceDeviceOrigin, const FLeapHandData& Hand)
 {
 	if (Confidences.Num() == 0)
@@ -717,15 +707,12 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 	{
 		for (int BoneIdx = 0; BoneIdx < NumBones; BoneIdx++)
 		{
-			// TODO: verify FingerID can be used to generate key
-			// was finger type in Unity
 			int Key = FingerIndex * NumBones + BoneIdx;
 
 			FVector JointPos = Finger.Bones[BoneIdx].NextJoint;
 			FVector JointNormalVector;
 		
-			// TODO make sure we still want right vector and up in Leap Space?
-			if ((int) Finger.FingerId == 0)
+			if ( FingerIndex == 0)
 			{
 				JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::RightVector;
 			}
@@ -744,15 +731,13 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRot(
 		}
 		++FingerIndex;
 	}
-	// TODO: why return a copy when passed by ref?
-	return Confidences;
 }
 
 /// <summary>
 /// uses the normal vector of a joint / bone (outwards pointing one) and the palm normal vector
 /// to calculate per-joint confidence values
 /// </summary>
-TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
+void FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
 	TArray<float>& Confidences, const FTransform& SourceDeviceOrigin, const FLeapHandData& Hand)
 {
 	if (Confidences.Num() == 0)
@@ -766,13 +751,11 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPa
 		int FingerIndex = 0;
 		for (int BoneIdx = 0; BoneIdx < NumBones; BoneIdx++)
 		{
-			// TODO: again check finger ID ok for Key vs Type in Unity
 			int Key = FingerIndex * NumBones + BoneIdx;
 
 			FVector JointPos = Finger.Bones[BoneIdx].NextJoint;
 			FVector JointNormalVector;
 
-			// TODO: check we still want up in Leap Space (changed up to forward as X is up)?
 			JointNormalVector = Finger.Bones[BoneIdx].Rotation.Quaternion() * FVector::ForwardVector * -1;
 
 			float Angle = ULeapBlueprintFunctionLibrary::AngleBetweenVectors(Hand.Palm.Normal, JointNormalVector);
@@ -784,6 +767,5 @@ TArray<float> FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPa
 		++FingerIndex;
 	}
 
-	// TODO: why return a copy when we passed in a ref?
-	return Confidences;
+	return;
 }

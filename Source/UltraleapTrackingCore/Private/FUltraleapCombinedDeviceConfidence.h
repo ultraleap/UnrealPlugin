@@ -270,8 +270,8 @@ private:
 	void CalculateJointConfidence(
 		const int FrameIdx, const FLeapHandData& Hand, TArray<float>& RetConfidences);
 
-	TArray<float> ConfidenceRelativeJointRot(TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
-	TArray<float> ConfidenceRelativeJointRotToPalmRot(
+	void ConfidenceRelativeJointRot(TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
+	void ConfidenceRelativeJointRotToPalmRot(
 		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
 
 	void MergeHands(const TArray<const FLeapHandData*>& Hands, const TArray<float>& HandConfidences,
