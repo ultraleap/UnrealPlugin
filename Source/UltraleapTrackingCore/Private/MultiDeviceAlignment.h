@@ -10,6 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "FKabschSolver.h"
 #include "MultiDeviceAlignment.generated.h"
 
 
@@ -31,13 +32,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
 	float AlignmentVariance;
 
+#if WITH_EDITOR
+	// property change handlers
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void UpdateTrackingDevices();
 
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
+	FKabschSolver KabschSolver;
 };

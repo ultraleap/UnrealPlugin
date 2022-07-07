@@ -11,6 +11,7 @@
 // Sets default values for this component's properties
 UMultiDeviceAlignment::UMultiDeviceAlignment()
 {
+	AlignmentVariance = 0.2;
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
@@ -24,7 +25,7 @@ void UMultiDeviceAlignment::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	UpdateTrackingDevices();
 	
 }
 
@@ -36,4 +37,23 @@ void UMultiDeviceAlignment::TickComponent(float DeltaTime, ELevelTick TickType, 
 
 	// ...
 }
+void UMultiDeviceAlignment::UpdateTrackingDevices()
+{
 
+}
+#if WITH_EDITOR
+// Property notifications
+void UMultiDeviceAlignment::PostEditChangeProperty(struct FPropertyChangedEvent& e)
+{
+	FName PropertyName = (e.Property != NULL) ? e.Property->GetFName() : NAME_None;
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UMultiDeviceAlignment, SourceDevice))
+	{
+		UpdateTrackingDevices();
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(UMultiDeviceAlignment, TargetDevice))
+	{
+		UpdateTrackingDevices();
+	}
+	Super::PostEditChangeProperty(e);
+}
+#endif

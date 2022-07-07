@@ -9,12 +9,47 @@
 #pragma once
 #include "CoreMinimal.h"
 
+class FromMatrixExtension
+{
+public:
+	static FVector GetVector3(FMatrix M)
+	{
+		return M.GetColumn(3);
+	}
+	static FQuat GetQuaternion(FMatrix M)
+	{
+		if (M.GetColumn(2) == M.GetColumn(1))
+		{
+			return FQuat::Identity;
+		}
+		// double check, was look rotation in Unity
+		return FQuat::FindBetween(M.GetColumn(2), M.GetColumn(1));
+	}
+};
+
 class FKabschSolver
 {
 public:
 	FKabschSolver();
+	
+	FMatrix SolveKabsch(const TArray<FVector>& InPoints, const TArray<FVector>& RefPoints,
+		const int OptimalRotationIterations = 9,
+		const bool SolveScale = false);
+
+	
 
 protected:
-	
+		// https://animation.rwth-aachen.de/media/papers/2016-MIG-StableRotation.pdf
+		void ExtractRotation(const TArray<FVector>& A, FQuat& Q, const int OptimalRotationIterations = 9);
+
 private:
+	// Calculate Covariance Matrices --------------------------------------------------
+	TArray<FVector> TransposeMult(const TArray<FVector>& Vec1, const TArray<FVector>& Vec2, const TArray<FVector>& Covariance);
+	static TArray<FVector> MatrixFromQuaternion(const FQuat& Q,const TArray<FVector>& Covariance);
+
+	TArray<FVector> QuatBasis;
+	TArray<FVector> DataCovariance;
+	FVector Translation;
+	FQuat OptimalRotation = FQuat::Identity;
+	float ScaleRatio = 1.0f;
 };
