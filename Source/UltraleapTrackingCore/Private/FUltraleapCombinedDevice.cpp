@@ -176,6 +176,9 @@ void FUltraleapCombinedDevice::CreateLinearJointListInterp(
 	Joints.Empty();
 	Joints.AddZeroed(NumJointPositions);
 
+	JointsA.AddZeroed(NumJointPositions);
+	JointsB.AddZeroed(NumJointPositions);
+
 	CreateLocalLinearJointList(HandA, JointsA);
 	CreateLocalLinearJointList(HandB, JointsB);
 
@@ -187,8 +190,7 @@ void FUltraleapCombinedDevice::CreateLinearJointListInterp(
 	const bool IsLeft = HandA.HandType == LEAP_HAND_LEFT;
 
 	PalmPos = FMath::Lerp(HandA.Palm.Position, HandB.Palm.Position, Alpha);
-	// this does slerp under the hood
-	PalmRot = FMath::Lerp(HandA.Palm.Orientation.Quaternion(), HandB.Palm.Orientation.Quaternion(), Alpha);
+	PalmRot = FQuat::FastLerp(HandA.Palm.Orientation.Quaternion(), HandB.Palm.Orientation.Quaternion(), Alpha);
 	
 	for (int i = 0; i < Joints.Num(); i++)
 	{

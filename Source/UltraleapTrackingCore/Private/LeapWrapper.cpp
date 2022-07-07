@@ -771,6 +771,7 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	Ret = new FDeviceCombiner(ConnectionHandle, this, DevicesToCombine, DeviceCombinerClass);
 	if (Ret)
 	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Created new aggregator"));
 		CombinedDevices.Add(Ret);
 		//NotifyDeviceAdded(Ret);
 	}

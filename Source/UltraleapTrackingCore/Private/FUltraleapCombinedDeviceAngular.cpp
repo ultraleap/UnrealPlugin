@@ -15,8 +15,7 @@ void FUltraleapCombinedDeviceAngular::CombineFrame(const TArray<FLeapFrameData>&
 		return;
 	}
 
-	TArray<FLeapHandData> MergedHands;
-
+	CurrentFrame.Hands.Empty();
 	MergeHands(SourceFrames, CurrentFrame.Hands);
 }
 
