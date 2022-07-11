@@ -9,6 +9,7 @@ Versions
 * Fixed plugin not packaging due to missing Metahuman reference 
 * Fixed plugin not packaging when OpenXR plugin disabled
 * Changed debug mirror to use Scene Final Color (Scene capture works on Android)
+* Updated documentation on getting started with Android/XR2 platforms
 
 Known issues:
 
