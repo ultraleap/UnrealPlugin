@@ -11,6 +11,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "FKabschSolver.h"
+#include "TrackingDeviceBaseActor.h"
 #include "MultiDeviceAlignment.generated.h"
 
 
@@ -24,10 +25,10 @@ public:
 	UMultiDeviceAlignment();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
-	AActor* SourceDevice;
+	ATrackingDeviceBaseActor* SourceDevice;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
-	AActor* TargetDevice;
+	ATrackingDeviceBaseActor* TargetDevice;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
 	float AlignmentVariance;
