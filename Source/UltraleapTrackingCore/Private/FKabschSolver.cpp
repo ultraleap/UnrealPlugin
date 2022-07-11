@@ -22,7 +22,7 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 	{
 		return FMatrix::Identity;
 	}
-	// TODO: why copy
+	
 	TArray<FVector> InPts(InPoints);
 	TArray<FVector> RefPts(RefPoints);
 

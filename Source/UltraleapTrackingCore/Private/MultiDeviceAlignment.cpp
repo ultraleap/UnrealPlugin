@@ -81,14 +81,7 @@ const FLeapHandData* GetHandFromFrame(const FLeapFrameData& Frame, const EHandTy
 	}
 	return nullptr;
 }
-// port from LeapUnityExtensions
-void Transform(FTransform& ThisTransform, const FMatrix& Transform)
-{
-	FMatrix NewTransform = Transform * ThisTransform.ToMatrixWithScale();
-	ThisTransform.SetLocation(NewTransform.GetOrigin());
-	ThisTransform.SetRotation(NewTransform.ToQuat());
-	//ThisTransform.SetScale(FVector::Scale(thisTransform.localScale, transform.lossyScale);
-}
+
 FVector CalcCentre(const FVector& PrevJoint, const FVector& NextJoint)
 {
 	return FMath::Lerp(PrevJoint, NextJoint, 0.5);
@@ -153,12 +146,8 @@ void UMultiDeviceAlignment::Update()
 				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPoints, SourceHandPoints, 200);
 
 				FTransform ActorTransform = TargetDevice->GetActorTransform();
-				//Transform(ActorTransform, DeviceToOriginDeviceMatrix);
-				// TODO: double check this is the same as the Transform util
-				ActorTransform = FTransform(DeviceToOriginDeviceMatrix) * ActorTransform;
-				TargetDevice->SetActorTransform(ActorTransform);
-				//TransformToOrigin.TransformLocation(ActorTransform.);
-					//.transform.Transform(deviceToOriginDeviceMatrix);
+				ActorTransform = FTransform(DeviceToOriginDeviceMatrix);
+				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
 
 				return;
 			}
