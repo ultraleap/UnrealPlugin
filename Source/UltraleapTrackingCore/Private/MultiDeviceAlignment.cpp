@@ -94,7 +94,7 @@ FVector CalcCentre(const FVector& PrevJoint, const FVector& NextJoint)
 	return FMath::Lerp(PrevJoint, NextJoint, 0.5);
 }
 void UMultiDeviceAlignment::Update()
-	{
+{
 	if (!TargetDevice || !SourceDevice)
 	{
 		return;
