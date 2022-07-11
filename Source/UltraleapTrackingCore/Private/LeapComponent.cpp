@@ -137,6 +137,10 @@ bool ULeapComponent::SubscribeToDevice()
 		{
 			DeviceSerials = CombinedDeviceSerials;
 		}
+		if (ActiveDeviceSerial == NameConstantNone)
+		{
+			return false;
+		}
 		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials, DeviceCombinerClass);
 		
 		Success = (CurrentHandTrackingDevice != nullptr);
