@@ -8,4 +8,9 @@
  * between Ultraleap and you, your company or other organization.             *
  ******************************************************************************/
 #include "TrackingDeviceBaseActor.h"
+#include "LeapComponent.h"
 
+ATrackingDeviceBaseActor::ATrackingDeviceBaseActor() : AUltraleapTickInEditorBaseActor()
+{
+	LeapComponent = CreateDefaultSubobject<ULeapComponent>(TEXT("Leap component"));
+}

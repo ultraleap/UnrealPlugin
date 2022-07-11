@@ -33,6 +33,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
 	float AlignmentVariance;
 
+	
+
 #if WITH_EDITOR
 	// property change handlers
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -49,5 +51,13 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FKabschSolver KabschSolver;
+	FKabschSolver Solver;
+
+private:
+
+	bool PositioningComplete = false;
+
+	void ReAlignProvider();
+	void Update();
+
 };

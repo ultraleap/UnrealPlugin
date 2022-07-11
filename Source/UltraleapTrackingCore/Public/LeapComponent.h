@@ -180,6 +180,10 @@ public:
 	virtual void OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper) override;
 	virtual void OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper) override;
 
+	
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool IsActiveDevicePluggedIn();
+
 protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
@@ -189,9 +193,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool UpdateActiveDevice(const FString& DeviceSerial);
-
-	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	bool IsActiveDevicePluggedIn();
 
 private:
 	void RefreshDeviceList();

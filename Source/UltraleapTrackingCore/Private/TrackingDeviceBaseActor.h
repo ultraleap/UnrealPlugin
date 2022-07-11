@@ -19,5 +19,11 @@ UCLASS()
 class ATrackingDeviceBaseActor : public AUltraleapTickInEditorBaseActor
 {
 	GENERATED_BODY()
-	
+
+public:
+	ATrackingDeviceBaseActor();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class ULeapComponent* LeapComponent;
+
 };
