@@ -23,7 +23,7 @@ class ATrackingDeviceBaseActor : public AUltraleapTickInEditorBaseActor
 public:
 	ATrackingDeviceBaseActor();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices")
 	class ULeapComponent* LeapComponent;
 
 };
