@@ -92,7 +92,7 @@ FTransform ConvertLeapToUETransform(const FTransform& TransformLeap)
 {
 	FTransform Ret = TransformLeap;
 	Ret.SetLocation(FVector(TransformLeap.GetLocation().Z, TransformLeap.GetLocation().Y, TransformLeap.GetLocation().X));
-
+	// TODO: convert rotations
 	return Ret;
 }
 void UMultiDeviceAlignment::Update()

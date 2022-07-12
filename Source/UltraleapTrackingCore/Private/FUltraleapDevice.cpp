@@ -34,7 +34,7 @@ FTransform FUltraleapDevice::ConvertUEToLeapTransform(const FTransform& Transfor
 {
 	FTransform Ret = TransformUE;
 	Ret.SetLocation(FVector(TransformUE.GetLocation().Z, TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
-
+	// TODO: convert rotations
 	return Ret;
 }
 // Function call Utility
