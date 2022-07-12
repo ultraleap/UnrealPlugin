@@ -44,7 +44,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	/** Poll for controller state and send events if needed */
 	virtual void SendControllerEvents() override;
-	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData,const bool ApplyDeviceOrigin = false) override;
 	FLeapOptions GetOptions() override;
 	FLeapStats GetStats() override;
 	virtual ELeapDeviceType GetDeviceType()
@@ -194,4 +194,6 @@ private:
 
 	void Init();
 	void InitOptions();
+
+	void ApplyDeviceOrigin(FLeapFrameData& OutData);
 };

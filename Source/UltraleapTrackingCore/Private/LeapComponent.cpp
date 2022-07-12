@@ -56,14 +56,14 @@ void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
 	}
 }
 
-void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData)
+void ULeapComponent::GetLatestFrameData(FLeapFrameData& OutData, const bool ApplyDeviceOrigin)
 {
 	if (CurrentHandTrackingDevice)
 	{
 		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
 		if (Device)
 		{
-			Device->GetLatestFrameData(OutData);
+			Device->GetLatestFrameData(OutData, ApplyDeviceOrigin);
 		}
 	}
 }

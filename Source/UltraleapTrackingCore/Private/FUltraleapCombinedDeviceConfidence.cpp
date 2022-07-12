@@ -640,6 +640,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	FVector MergedPalmPos = Hands[0]->Palm.Position * HandConfidences[0];
 	FQuat MergedPalmRot = Hands[0]->Palm.Orientation.Quaternion();
 
+	
 	for (int HandsIdx = 1; HandsIdx < Hands.Num(); HandsIdx++)
 	{
 		// position

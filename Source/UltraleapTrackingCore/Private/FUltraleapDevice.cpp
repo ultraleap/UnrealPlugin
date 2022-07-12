@@ -349,9 +349,21 @@ void FUltraleapDevice::SendControllerEvents()
 {
 	CaptureAndEvaluateInput();
 }
-void FUltraleapDevice::GetLatestFrameData(FLeapFrameData& OutData)
+void FUltraleapDevice::GetLatestFrameData(FLeapFrameData& OutData,const bool ApplyDeviceOriginIn /* = false */)
 {
 	OutData = CurrentFrame;
+
+	if (ApplyDeviceOriginIn)
+	{
+		ApplyDeviceOrigin(OutData);
+	}
+}
+void FUltraleapDevice::ApplyDeviceOrigin(FLeapFrameData& OutData)
+{
+	const FTransform& Origin = GetDeviceOrigin();
+
+	OutData.RotateFrame(Origin.GetRotation().Rotator());
+	OutData.TranslateFrame(Origin.GetLocation());
 }
 void FUltraleapDevice::CaptureAndEvaluateInput()
 {

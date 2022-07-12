@@ -48,7 +48,7 @@ public:
 	virtual void Tick(const float DeltaTime) = 0;
 	virtual void SendControllerEvents() = 0;
 
-	virtual void GetLatestFrameData(FLeapFrameData& OutData) = 0;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData, const bool ApplyDeviceOrigin  = false) = 0;
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) = 0;
 	virtual void SetOptions(const FLeapOptions& InOptions) = 0;
 	virtual FLeapOptions GetOptions() = 0;

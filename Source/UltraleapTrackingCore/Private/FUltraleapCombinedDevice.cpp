@@ -46,7 +46,7 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 		if (InternalSourceDevice)
 		{
 			FLeapFrameData SourceFrame;
-			InternalSourceDevice->GetLatestFrameData(SourceFrame);
+			InternalSourceDevice->GetLatestFrameData(SourceFrame, true);
 			SourceFrames.Add(SourceFrame);
 		}
 	}
@@ -62,6 +62,7 @@ FVector ToWorld(const FVector& LocalPoint,const FVector& LocalOrigin,const FQuat
 {
 	return (LocalRot * LocalPoint) + LocalOrigin;
 }
+// create local joint list from Hand (relative to palm)
 void FUltraleapCombinedDevice::CreateLocalLinearJointList(const FLeapHandData& Hand, TArray<FVector>& JointPositions)
 {
 	FVector PalmPos = Hand.Palm.Position;
@@ -96,7 +97,7 @@ void FillBone(FLeapBoneData& Bone, const FVector& PrevJoint, const FVector& Next
 	Bone.Rotation = Rotation.Rotator();
 	Bone.Width = Width;
 }
-// Construct a hand from local space bones
+// Construct a hand from local space bones (relative to palm to relative to world)
 void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 	FLeapHandData& Hand, const bool IsLeft, const FVector& PalmPos, const FQuat& PalmRot, const TArray<FVector>& JointPositions)
 {

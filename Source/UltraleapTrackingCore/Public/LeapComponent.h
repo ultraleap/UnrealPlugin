@@ -116,7 +116,7 @@ public:
 
 	/** Polling function to get latest data */
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	void GetLatestFrameData(FLeapFrameData& OutData);
+	void GetLatestFrameData(FLeapFrameData& OutData, const bool ApplyDeviceOrigin = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);

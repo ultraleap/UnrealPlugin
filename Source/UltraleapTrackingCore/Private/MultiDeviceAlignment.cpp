@@ -12,7 +12,7 @@
 // Sets default values for this component's properties
 UMultiDeviceAlignment::UMultiDeviceAlignment()
 {
-	AlignmentVariance = 0.2;
+	AlignmentVariance = 2;
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
@@ -102,7 +102,7 @@ void UMultiDeviceAlignment::Update()
 		FLeapFrameData TargetFrame;
 
 		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrame);
-		TargetDevice->LeapComponent->GetLatestFrameData(TargetFrame);
+		TargetDevice->LeapComponent->GetLatestFrameData(TargetFrame, true);
 
 		TArray<FVector> SourceHandPoints;
 		TArray<FVector> TargetHandPoints;
@@ -110,7 +110,8 @@ void UMultiDeviceAlignment::Update()
 		for (auto& SourceHand : SourceFrame.Hands)
 		{
 			auto TargetHand = GetHandFromFrame(TargetFrame, SourceHand.HandType);
-			
+			auto TargetOrigin = TargetDevice->GetActorLocation();
+
 			static const int NumFingers = 5;
 			static const int NumJoints = 4;
 
@@ -121,7 +122,11 @@ void UMultiDeviceAlignment::Update()
 					for (int k = 0; k < NumJoints; k++)
 					{
 						SourceHandPoints.Add(CalcCentre(SourceHand.Digits[j].Bones[k].PrevJoint,SourceHand.Digits[j].Bones[k].NextJoint));
-						TargetHandPoints.Add(CalcCentre(TargetHand->Digits[j].Bones[k].PrevJoint,TargetHand->Digits[j].Bones[k].NextJoint));
+						
+						auto TargetCentre = CalcCentre(TargetHand->Digits[j].Bones[k].PrevJoint,
+						TargetHand->Digits[j].Bones[k].NextJoint);
+						//TargetCentre -= TargetOrigin;
+						TargetHandPoints.Add(TargetCentre);
 					}
 				}
 
@@ -130,7 +135,16 @@ void UMultiDeviceAlignment::Update()
 
 				for (int i = 0; i < SourceHandPoints.Num(); i++)
 				{
-					if (FVector::Distance(SourceHandPoints[i], TargetHandPoints[i]) > AlignmentVariance)
+					const auto Distance = FVector::Distance(SourceHandPoints[i], TargetHandPoints[i]);
+					
+					if (GEngine)
+					{
+						FString ToPrint = FString::Printf(TEXT("Distance %f"), Distance);
+						
+						
+						GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, ToPrint);
+					}	
+					if (Distance > AlignmentVariance)
 					{
 						// we are already as aligned as we need to be, we can exit the alignment stage
 						PositioningComplete = false;
