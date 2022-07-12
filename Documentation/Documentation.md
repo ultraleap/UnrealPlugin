@@ -647,16 +647,7 @@ Triggers when a given finger points in a given direction over a given angle tole
 # Metahuman support
 
 You can use automapping functionality along with a custom pawn to use tracked hands combined with a metahuman.
-This can be run in VR as an embodied avatar or in desktop mode. There's also an example project with a couple of metahumans and an example scene ready made.
-
-## Using the example project
-
-The example project is available on the Unreal Marketplace. Run the default map in VR mode to access the preset metahumans. A male and female metahuman is mapped.
-Import your own metahumans into the project and change the **MetahumanBPClass** member of **IEPawnHands_Metahuman_Hadley** to your imported metahuman blueprint.
-![](https://imgur.com/NzHLdCp)
-
-
-Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new project for re-use.
+This can be run in VR as an embodied avatar or in desktop mode. 
 
 ## Importing and mapping a metahuman from scratch
 
@@ -684,9 +675,6 @@ Copy/rename **IEPawnHands_Metahuman_Hadley** and migrate the pawn to a new proje
 
 ## Walking animations
 A place holder is left in the template anim graph to add idle to walking animation blendspace 2D. See the example project for more information. The example project uses retargeted animations from the default UE4 mannequin.
-
-## Lip sync
-See the **FaceLipSync_AnimBP** blueprint in the example project on the marketplace for a setup where the mouth moves with the mic input.
 
 ## FAQs
 
