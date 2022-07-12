@@ -26,6 +26,17 @@ DECLARE_CYCLE_STAT(TEXT("Multi Leap BodyState Tick"), STAT_MultiLeapBodyStateTic
 
 #pragma region Utility
 bool FUltraleapDevice::bUseNewTrackingModeAPI = true;
+
+// Leap data is X Up, Y Right, Z Forward
+// UE is X Forward, Y Right, Z Up
+
+FTransform FUltraleapDevice::ConvertUEToLeapTransform(const FTransform& TransformUE)
+{
+	FTransform Ret = TransformUE;
+	Ret.SetLocation(FVector(TransformUE.GetLocation().Z, TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
+
+	return Ret;
+}
 // Function call Utility
 void FUltraleapDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)> InFunction)
 {
@@ -360,6 +371,7 @@ void FUltraleapDevice::GetLatestFrameData(FLeapFrameData& OutData,const bool App
 }
 void FUltraleapDevice::ApplyDeviceOrigin(FLeapFrameData& OutData)
 {
+	// in Leap Space
 	const FTransform& Origin = GetDeviceOrigin();
 
 	OutData.RotateFrame(Origin.GetRotation().Rotator());

@@ -248,6 +248,11 @@ void FLeapHandData::RotateHand(const FRotator& InRotation)
 	Thumb.RotateDigit(InRotation);
 
 	Palm.RotatePalm(InRotation);
+
+	for (auto& Digit : Digits)
+	{
+		Digit.RotateDigit(InRotation);
+	}
 }
 
 void FLeapHandData::TranslateHand(const FVector& InTranslation)
@@ -261,6 +266,11 @@ void FLeapHandData::TranslateHand(const FVector& InTranslation)
 	Thumb.TranslateDigit(InTranslation);
 
 	Palm.TranslatePalm(InTranslation);
+
+	for(auto& Digit : Digits)
+	{
+		Digit.TranslateDigit(InTranslation);
+	}
 }
 
 void FLeapBoneData::SetFromLeapBone(struct _LEAP_BONE* bone)
@@ -314,28 +324,28 @@ void FLeapDigitData::SetFromLeapDigit(struct _LEAP_DIGIT* digit)
 
 void FLeapDigitData::ScaleDigit(float InScale)
 {
-	/*for (auto& Bone : Bones)	//should the array also be used?
-	{
-		Bone.ScaleByInScale(InScale);
-	}*/
-
 	Distal.ScaleBone(InScale);
 	Intermediate.ScaleBone(InScale);
 	Metacarpal.ScaleBone(InScale);
 	Proximal.ScaleBone(InScale);
+
+	for (auto& Bone : Bones)
+	{
+		Bone.ScaleBone(InScale);
+	}
 }
 
 void FLeapDigitData::RotateDigit(const FRotator& InRotation)
 {
-	/*for (auto& Bone : Bones)
-	{
-		Bone.RotateBone(InRotation);
-	}*/
-
 	Distal.RotateBone(InRotation);
 	Intermediate.RotateBone(InRotation);
 	Metacarpal.RotateBone(InRotation);
 	Proximal.RotateBone(InRotation);
+
+	for (auto& Bone : Bones)
+	{
+		Bone.RotateBone(InRotation);
+	}
 }
 
 void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
@@ -344,6 +354,11 @@ void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
 	Intermediate.TranslateBone(InTranslation);
 	Metacarpal.TranslateBone(InTranslation);
 	Proximal.TranslateBone(InTranslation);
+
+	for (auto& Bone : Bones)
+	{
+		Bone.TranslateBone(InTranslation);
+	}
 }
 
 void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)

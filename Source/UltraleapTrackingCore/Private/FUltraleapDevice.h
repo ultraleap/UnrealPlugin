@@ -55,9 +55,10 @@ public:
 	{
 		return DeviceOrigin;
 	}
-	virtual void SetDeviceOrigin(const FTransform& DeviceOriginIn) override
+	virtual void SetDeviceOrigin(const FTransform& UESpaceDeviceOriginIn) override
 	{
-		DeviceOrigin = DeviceOriginIn;
+		// at device level, we're in LeapSpace
+		DeviceOrigin = ConvertUEToLeapTransform(UESpaceDeviceOriginIn);
 	}
 	// end of IHandTrackingDevice implementation
 
@@ -74,7 +75,7 @@ public:
 
 	FCriticalSection LeapSection;
 
-	
+	static FTransform ConvertUEToLeapTransform(const FTransform& TransformUE);
 	
 protected:
 	FLeapFrameData CurrentFrame;

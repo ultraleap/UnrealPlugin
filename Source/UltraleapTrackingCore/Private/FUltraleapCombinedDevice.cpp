@@ -11,15 +11,7 @@
 
 int FUltraleapCombinedDevice::HandID = 0;
 
-// Leap data is X Up, Y Right, Z Forward
-// UE is X Forward, Y Right, Z Up
-FTransform ConvertUEToLeapTransform(const FTransform& TransformUE)
-{
-	FTransform Ret = TransformUE;
-	Ret.SetLocation(FVector(TransformUE.GetLocation().Z, TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
 
-	return Ret;
-}
 
 FUltraleapCombinedDevice::FUltraleapCombinedDevice(IHandTrackingWrapper* LeapDeviceWrapper,
 	ITrackingDeviceWrapper* TrackingDeviceWrapperIn, TArray<IHandTrackingWrapper*> DevicesToCombineIn) : 
@@ -201,5 +193,5 @@ void FUltraleapCombinedDevice::CreateLinearJointListInterp(
 }
 FTransform FUltraleapCombinedDevice::GetSourceDeviceOrigin(const int ProviderIndex)
 {
-	return ConvertUEToLeapTransform(DevicesToCombine[ProviderIndex]->GetDevice()->GetDeviceOrigin());
+	return DevicesToCombine[ProviderIndex]->GetDevice()->GetDeviceOrigin();
 }

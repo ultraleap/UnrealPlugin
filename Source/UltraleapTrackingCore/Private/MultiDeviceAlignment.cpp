@@ -86,6 +86,15 @@ FVector CalcCentre(const FVector& PrevJoint, const FVector& NextJoint)
 {
 	return FMath::Lerp(PrevJoint, NextJoint, 0.5);
 }
+// Leap data is X Up, Y Right, Z Forward
+// UE is X Forward, Y Right, Z Up
+FTransform ConvertLeapToUETransform(const FTransform& TransformLeap)
+{
+	FTransform Ret = TransformLeap;
+	Ret.SetLocation(FVector(TransformLeap.GetLocation().Z, TransformLeap.GetLocation().Y, TransformLeap.GetLocation().X));
+
+	return Ret;
+}
 void UMultiDeviceAlignment::Update()
 {
 	if (!TargetDevice || !SourceDevice)
@@ -101,21 +110,41 @@ void UMultiDeviceAlignment::Update()
 		FLeapFrameData SourceFrame;
 		FLeapFrameData TargetFrame;
 
-		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrame);
+		FLeapFrameData SourceFrameRaw;
+		FLeapFrameData TargetFrameRaw;
+
+
+		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrame, true);
 		TargetDevice->LeapComponent->GetLatestFrameData(TargetFrame, true);
+
+		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrameRaw, false);
+		TargetDevice->LeapComponent->GetLatestFrameData(TargetFrameRaw, false);
 
 		TArray<FVector> SourceHandPoints;
 		TArray<FVector> TargetHandPoints;
+		TArray<FVector> SourceHandPointsRaw;
+		TArray<FVector> TargetHandPointsRaw;
 		
-		for (auto& SourceHand : SourceFrame.Hands)
+#ifdef DEBUG_ALIGNMENT
+		if (GEngine)
 		{
-			auto TargetHand = GetHandFromFrame(TargetFrame, SourceHand.HandType);
-			auto TargetOrigin = TargetDevice->GetActorLocation();
+			FString ToPrint = FString::Printf(TEXT("Num Hands %d %d"), SourceFrame.Hands.Num(), TargetFrame.Hands.Num());
 
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, ToPrint);
+		}	
+#endif
+		int SourceIndex = 0;
+		for (auto& SourceHand : SourceFrame.Hands )
+		{
+			auto& SourceHandRaw = SourceFrameRaw.Hands[SourceIndex];
+
+			auto TargetHand = GetHandFromFrame(TargetFrame, SourceHand.HandType);
+			auto TargetHandRaw = GetHandFromFrame(TargetFrameRaw, SourceHand.HandType);
+			
 			static const int NumFingers = 5;
 			static const int NumJoints = 4;
 
-			if (TargetHand != nullptr)
+			if (TargetHand != nullptr && TargetHandRaw  != nullptr)
 			{
 				for (int j = 0; j < NumFingers; j++)
 				{
@@ -123,29 +152,35 @@ void UMultiDeviceAlignment::Update()
 					{
 						SourceHandPoints.Add(CalcCentre(SourceHand.Digits[j].Bones[k].PrevJoint,SourceHand.Digits[j].Bones[k].NextJoint));
 						
-						auto TargetCentre = CalcCentre(TargetHand->Digits[j].Bones[k].PrevJoint,
-						TargetHand->Digits[j].Bones[k].NextJoint);
-						//TargetCentre -= TargetOrigin;
-						TargetHandPoints.Add(TargetCentre);
+						TargetHandPoints.Add(
+							CalcCentre(TargetHand->Digits[j].Bones[k].PrevJoint, TargetHand->Digits[j].Bones[k].NextJoint));
+
+						SourceHandPointsRaw.Add(
+							CalcCentre(SourceHandRaw.Digits[j].Bones[k].PrevJoint, SourceHandRaw.Digits[j].Bones[k].NextJoint));
+						
+						TargetHandPointsRaw.Add(
+							CalcCentre(TargetHandRaw->Digits[j].Bones[k].PrevJoint, TargetHandRaw->Digits[j].Bones[k].NextJoint));
 					}
 				}
 
 				// This is temporary while we check if any of the hands points are not close enough to eachother
 				PositioningComplete = true;
 
-				for (int i = 0; i < SourceHandPoints.Num(); i++)
+				for (int i = 0; i < SourceHandPointsRaw.Num(); i++)
 				{
 					const auto Distance = FVector::Distance(SourceHandPoints[i], TargetHandPoints[i]);
+					const auto DistanceRaw = FVector::Distance(SourceHandPointsRaw[i], TargetHandPointsRaw[i]);
 					
-					if (GEngine)
-					{
-						FString ToPrint = FString::Printf(TEXT("Distance %f"), Distance);
-						
-						
-						GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, ToPrint);
-					}	
 					if (Distance > AlignmentVariance)
 					{
+#ifdef DEBUG_ALIGNMENT
+						if (GEngine)
+						{
+							FString ToPrint = FString::Printf(TEXT("Distance %f %f"), Distance, DistanceRaw);
+
+							GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, ToPrint);
+						}
+#endif
 						// we are already as aligned as we need to be, we can exit the alignment stage
 						PositioningComplete = false;
 						break;
@@ -157,10 +192,13 @@ void UMultiDeviceAlignment::Update()
 					return;
 				}
 
-				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPoints, SourceHandPoints, 200);
+				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPointsRaw, SourceHandPointsRaw, 200);
 
-				FTransform ActorTransform = TargetDevice->GetActorTransform();
-				ActorTransform = FTransform(DeviceToOriginDeviceMatrix);
+				//FTransform ActorTransform =  ConvertLeapToUETransform(TargetDevice->GetActorTransform());
+				FTransform ActorTransform = FTransform(DeviceToOriginDeviceMatrix);
+				
+				// to move the target device, we need to be in UE space. This layer is in LeapSpace so convert
+				ActorTransform = ConvertLeapToUETransform(ActorTransform);
 				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
 
 				return;
