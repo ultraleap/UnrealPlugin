@@ -56,6 +56,7 @@ public:
 	virtual ELeapDeviceType GetDeviceType() = 0;
 	virtual FTransform& GetDeviceOrigin() = 0;
 	virtual void SetDeviceOrigin(const FTransform& DeviceOriginIn) = 0;
+	virtual void UpdateJointOcclusions(class AJointOcclusionActor* Actor) = 0;
 
 };
 class ITrackingDeviceWrapper

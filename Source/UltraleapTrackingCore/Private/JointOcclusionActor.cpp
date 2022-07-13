@@ -30,9 +30,17 @@ void AJointOcclusionActor::BeginPlay()
 	Super::BeginPlay();
 	
 }
-void AJointOcclusionActor::CountColoursInSceneCapture(const USceneCaptureComponent2D* SceneCapture)
+void AJointOcclusionActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	TMap<FLinearColor, int32> ColourCountMap;
+	for (auto Map : ColourCountMaps)
+	{
+		delete Map;
+	}
+	Super::EndPlay(EndPlayReason);
+}
+void AJointOcclusionActor::CountColoursInSceneCapture(
+	const USceneCaptureComponent2D* SceneCapture, const FString& DeviceSerial, TMap<FLinearColor, int32>& ColourCountMap)
+{
 	auto RenderTarget = SceneCapture->TextureTarget->GameThread_GetRenderTargetResource();
 	if (RenderTarget)
 	{
@@ -66,10 +74,31 @@ void AJointOcclusionActor::CountColoursInSceneCapture(const USceneCaptureCompone
 void AJointOcclusionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	for(const auto SceneCapture: SceneCaptures)
+	TArray<FString> DeviceSerials;
+
+	DeviceToSceneCaptures.GetKeys(DeviceSerials);
+
+	if (DeviceSerials.Num() == 0)
 	{
-		// update device confidence values
-		CountColoursInSceneCapture(SceneCapture);
+		return;
 	}
+	auto DeviceInterface = LeapComponent->GetCombinedDeviceBySerials(DeviceSerials);
+	
+	if (DeviceInterface == nullptr)
+	{
+		return;
+	}
+
+	int Index = 0;
+	for (const auto KeyValuePair : DeviceToSceneCaptures)
+	{
+		if (ColourCountMaps.Num() < (Index-1))
+		{
+			ColourCountMaps.Add(new FColourMap(KeyValuePair.Key));
+		}
+		// update device confidence values
+		CountColoursInSceneCapture(KeyValuePair.Value,KeyValuePair.Key, ColourCountMaps[Index++]->ColourCountMap);
+	}
+	DeviceInterface->UpdateJointOcclusions(this);
 }
 

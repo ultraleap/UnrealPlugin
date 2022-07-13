@@ -7,7 +7,8 @@
  ******************************************************************************/
 
 #include "LeapComponent.h"
-
+#include "JointOcclusionActor.h"
+#include "Kismet/GameplayStatics.h"
 #include "IUltraleapTrackingPlugin.h"
 
 const FString ULeapComponent::NameConstantNone = "None";
@@ -266,7 +267,19 @@ void ULeapComponent::RefreshDeviceList()
 #endif
 	}
 }
-
+IHandTrackingDevice* ULeapComponent::GetCombinedDeviceBySerials(const TArray<FString>& DeviceSerials)
+{
+	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
+	if (Connector)
+	{
+		auto Wrapper = Connector->GetDevice(DeviceSerials, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE);
+		if (Wrapper) 
+		{
+			return Wrapper->GetDevice();
+		}
+	}
+	return nullptr;
+}
 ELeapDeviceType ULeapComponent::GetDeviceTypeFromSerial(const FString& DeviceSerial)
 {
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();

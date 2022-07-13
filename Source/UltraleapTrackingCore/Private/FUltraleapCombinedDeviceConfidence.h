@@ -8,7 +8,7 @@
 
 #pragma once
 #include "FUltraleapCombinedDevice.h"
-
+#include "JointOcclusionActor.h"
 
 // placeholder for complile test
 // this is more of a component level item as it accesses the camera
@@ -202,6 +202,8 @@ public:
 	FUltraleapCombinedDeviceConfidence(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn,
 		TArray<IHandTrackingWrapper*> DevicesToCombineIn);
 	
+	virtual void UpdateJointOcclusions(AJointOcclusionActor* Actor) override;
+
 protected:
 	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override;
 	
@@ -273,6 +275,10 @@ private:
 	void ConfidenceRelativeJointRot(TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
 	void ConfidenceRelativeJointRotToPalmRot(
 		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
+
+	void StoreConfidenceJointOcclusion(AJointOcclusionActor*,
+		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& hand, IHandTrackingDevice* Provider);
+
 
 	void MergeHands(const TArray<const FLeapHandData*>& Hands, const TArray<float>& HandConfidences,
 		const TArray<TArray<float>>& JointConfidences, FLeapHandData& HandRet);

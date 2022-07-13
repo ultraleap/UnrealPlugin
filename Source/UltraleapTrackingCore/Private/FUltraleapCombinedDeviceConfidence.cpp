@@ -91,6 +91,27 @@ FUltraleapCombinedDeviceConfidence::FUltraleapCombinedDeviceConfidence(IHandTrac
 		ConfidencesJointOcclusion[i].AddZeroed(NumJointPositions);
 	}
 }
+// if a joint occlusion actor is in the scene, this will get called in tick
+// is the serial list/combined device matches this one
+void FUltraleapCombinedDeviceConfidence::UpdateJointOcclusions(AJointOcclusionActor* Actor)
+{
+	if (!Actor || JointOcclusionFactor == 0)
+	{
+		return;
+	}
+	const auto& ColourCountMaps = Actor->GetColourCountMaps();
+	
+	for (auto Device : DevicesToCombine)
+	{
+		for (const auto Map : ColourCountMaps)
+		{
+			if (Map->DeviceSerial == Device->GetDeviceSerial())
+			{
+
+			}
+		}
+	}
+}
 void FUltraleapCombinedDeviceConfidence::CombineFrame(const TArray<FLeapFrameData>& SourceFrames)
 {
 	MergeFrames(SourceFrames, CurrentFrame);
@@ -107,10 +128,6 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	TArray<TArray<float>> LeftJointConfidences;
 	TArray<TArray<float>> RightJointConfidences;
 
-	if (JointOcclusionFactor != 0)
-	{
-		SetupJointOcclusion();
-	}
 
 	// make lists of all left and right hands found in each frame and also make a list of their confidences
 	for (int FrameIdx = 0; FrameIdx < SourceFrames.Num(); FrameIdx++)
@@ -761,4 +778,65 @@ void FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
 	}
 
 	return;
+}
+/// <summary>
+/// return an array of joint confidences that is determined by joint occlusion.
+/// It uses a capsule hand rendered on a camera sitting at the deviceOrigin.
+/// Note that as the capsule hand doesn't have metacarpal bones, their corresponding confidence will be zero)
+/// </summary>
+void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences,
+	const FTransform& DeviceOrigin, const FLeapHandData& Hand, IHandTrackingDevice* Provider)
+{
+	if (Confidences.Num() == 0)
+	{
+		Confidences.AddZeroed(NumJointPositions);
+	}
+
+	TArray<int> PixelsSeenCount;
+	PixelsSeenCount.AddZeroed(Confidences.Num());
+
+	TArray<int> OptimalPixelsCount;
+	OptimalPixelsCount.AddZeroed(Confidences.Num());
+
+	int FingerIndex = 0;
+	for(auto& Finger : Hand.Digits)
+	{
+		static const int NumFingers = 5;
+		static const int NumJoints = 4;
+		for (int j = 0; j < NumJoints; j++)
+		{
+			// as the capsule hands doesn't render metacarpal bones, the indexing of capsule hand colors is different
+			// from the indexing of the jointPositions on a VectorHand (which is used for confidence indexing)
+			int Key = (int) FingerIndex * NumFingers + j + 1;
+			
+			// in unreal we render all bones?
+			int CapsuleHandKey = Key;	 //(int) FingerIndex * NumJoints + j;
+
+			OptimalPixelsCount[Key] = (int) (8);
+
+			if (Hand.HandType == LEAP_HAND_LEFT)
+			{
+				FLinearColor TestColour = JointOcclusionActor->SphereColoursLeft[Key];
+				// TODO: lookup colour map by device. and add pixel count per colour
+			//	pixelsSeenCount[key] =
+				//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsLeft[capsuleHandKey]) < 0.01f).Count();
+			}
+			else
+			{
+				FLinearColor TestColour = JointOcclusionActor->SphereColoursRight[Key];
+				// TODO: lookup colour map by device. and add pixel count per colour
+			//	pixelsSeenCount[key] =
+				//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsRight[capsuleHandKey]) < 0.01f).Count();
+			}
+			FingerIndex++;
+		}
+	}
+
+	for (int i = 0; i < Confidences.Num(); i++)
+	{
+		if (OptimalPixelsCount[i] != 0)
+		{
+			Confidences[i] = (float) PixelsSeenCount[i] / OptimalPixelsCount[i];
+		}
+	}
 }

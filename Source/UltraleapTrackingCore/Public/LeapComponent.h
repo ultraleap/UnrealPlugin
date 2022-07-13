@@ -184,6 +184,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool IsActiveDevicePluggedIn();
 
+	class IHandTrackingDevice* GetCombinedDeviceBySerials(const TArray<FString>& DeviceSerials);
+
 protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;

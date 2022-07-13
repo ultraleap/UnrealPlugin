@@ -60,6 +60,9 @@ public:
 		// at device level, we're in LeapSpace
 		DeviceOrigin = ConvertUEToLeapTransform(UESpaceDeviceOriginIn);
 	}
+	virtual void UpdateJointOcclusions(class AJointOcclusionActor* Actor) override
+	{
+	}
 	// end of IHandTrackingDevice implementation
 
 	void ShutdownLeap();
