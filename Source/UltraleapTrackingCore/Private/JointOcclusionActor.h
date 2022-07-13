@@ -16,8 +16,14 @@ public:
 	AJointOcclusionActor();
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices - Joint Occlusion")
 	class ULeapComponent* LeapComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices - Joint Occlusion")
+	TArray<FLinearColor> SphereColoursLeft;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices - Joint Occlusion")
+	TArray<FLinearColor> SphereColoursRight;
 
 protected:
 	// Called when the game starts or when spawned

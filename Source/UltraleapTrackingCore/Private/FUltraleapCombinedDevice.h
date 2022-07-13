@@ -20,6 +20,9 @@ public:
 	/** Poll for controller state and send events if needed */
 	virtual void SendControllerEvents() override;
 		
+	// Based on VectorHand.NUM_JOINT_POSITIONS
+	static const int NumJointPositions = 25;
+
 protected:
 	// override this in any custom combiners
 	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) = 0;
@@ -39,8 +42,7 @@ protected:
 	void CreateLinearJointListInterp(const FLeapHandData& HandA, const FLeapHandData& HandB, TArray<FVector>& Joints,
 		const float Alpha, FVector& PalmPos, FQuat& PalmRot);
 
-	// Based on VectorHand.NUM_JOINT_POSITIONS
-	static const int NumJointPositions = 25;
+	
 	static int HandID;
 	
 	FTransform GetSourceDeviceOrigin(const int ProviderIndex);

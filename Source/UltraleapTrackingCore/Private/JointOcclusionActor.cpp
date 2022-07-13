@@ -3,6 +3,7 @@
 
 #include "JointOcclusionActor.h"
 #include "LeapComponent.h"
+#include "FUltraleapCombinedDevice.h"
 
 // Sets default values
 AJointOcclusionActor::AJointOcclusionActor()
@@ -12,6 +13,11 @@ AJointOcclusionActor::AJointOcclusionActor()
 
 	LeapComponent = CreateDefaultSubobject<ULeapComponent>(TEXT("Leap component"));
 
+	for (int i = 0; i < FUltraleapCombinedDevice::NumJointPositions; i++)
+	{
+		SphereColoursLeft.Add(FLinearColor::LerpUsingHSV(FColor::Red, FColor::Green, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+		SphereColoursRight.Add(FLinearColor::LerpUsingHSV(FColor::Yellow, FColor::Blue, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+	}
 }
 
 // Called when the game starts or when spawned
