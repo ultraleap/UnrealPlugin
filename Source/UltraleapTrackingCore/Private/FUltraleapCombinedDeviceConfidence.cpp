@@ -785,7 +785,7 @@ void FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
 /// Note that as the capsule hand doesn't have metacarpal bones, their corresponding confidence will be zero)
 /// </summary>
 void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences,
-	const FTransform& DeviceOrigin, const FLeapHandData& Hand, IHandTrackingDevice* Provider)
+	const FTransform& DeviceOriginIn, const FLeapHandData& Hand, IHandTrackingDevice* Provider)
 {
 	if (Confidences.Num() == 0)
 	{
