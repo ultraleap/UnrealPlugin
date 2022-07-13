@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "JointOcclusionActor.generated.h"
 
 UCLASS()
@@ -25,6 +26,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices - Joint Occlusion")
 	TArray<FLinearColor> SphereColoursRight;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices - Joint Occlusion")
+	TArray<USceneCaptureComponent2D*> SceneCaptures;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -32,5 +36,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+private:
+	void CountColoursInSceneCapture(const USceneCaptureComponent2D* SceneCapture);
 
 };

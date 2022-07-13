@@ -4,6 +4,10 @@
 #include "JointOcclusionActor.h"
 #include "LeapComponent.h"
 #include "FUltraleapCombinedDevice.h"
+#include "Engine/TextureRenderTarget2D.h"
+
+
+
 
 // Sets default values
 AJointOcclusionActor::AJointOcclusionActor()
@@ -26,11 +30,46 @@ void AJointOcclusionActor::BeginPlay()
 	Super::BeginPlay();
 	
 }
+void AJointOcclusionActor::CountColoursInSceneCapture(const USceneCaptureComponent2D* SceneCapture)
+{
+	TMap<FLinearColor, int32> ColourCountMap;
+	auto RenderTarget = SceneCapture->TextureTarget->GameThread_GetRenderTargetResource();
+	if (RenderTarget)
+	{
+		TArray<FLinearColor> Output;
+		bool Success = RenderTarget->ReadLinearColorPixels(Output);
+		
+		if (Success)
+		{
+			const auto SizeX = RenderTarget->GetSizeX();
+			const auto SizeY = RenderTarget->GetSizeY();
 
+			for (const auto& Color : Output)
+			{
+				if (Color.IsAlmostBlack())
+				{
+					continue;
+				}
+				if (ColourCountMap.Find(Color))
+				{
+					ColourCountMap[Color] = ColourCountMap[Color]+1;
+				}
+				else
+				{
+					ColourCountMap.Add(Color, 1);
+				}
+			}
+		}
+	}
+}
 // Called every frame
 void AJointOcclusionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	for(const auto SceneCapture: SceneCaptures)
+	{
+		// update device confidence values
+		CountColoursInSceneCapture(SceneCapture);
+	}
 }
 
