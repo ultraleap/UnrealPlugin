@@ -10,6 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "LeapComponent.h"
 #include "JointOcclusionComponent.generated.h"
 
 
@@ -21,6 +22,9 @@ class UJointOcclusionComponent : public USceneComponent
 public:	
 	// Sets default values for this component's properties
 	UJointOcclusionComponent();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
+	ULeapComponent* LeapComponent;
 
 protected:
 	// Called when the game starts
