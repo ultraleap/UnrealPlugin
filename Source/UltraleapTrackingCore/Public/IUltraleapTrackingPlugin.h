@@ -57,6 +57,7 @@ public:
 	virtual FTransform& GetDeviceOrigin() = 0;
 	virtual void SetDeviceOrigin(const FTransform& DeviceOriginIn) = 0;
 	virtual void UpdateJointOcclusions(class AJointOcclusionActor* Actor) = 0;
+	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) = 0;
 
 };
 class ITrackingDeviceWrapper

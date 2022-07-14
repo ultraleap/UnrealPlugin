@@ -40,6 +40,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Leap Devices - Joint Occlusion")
 	TMap<FString, USceneCaptureComponent2D*> DeviceToSceneCaptures;
 
+	
+	UFUNCTION(BlueprintCallable, Category = "Leap Devices - Joint Occlusion")
+	bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right);
+	
 	const TArray<FColourMap*>& GetColourCountMaps()
 	{
 		return ColourCountMaps;

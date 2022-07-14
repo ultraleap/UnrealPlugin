@@ -8,8 +8,14 @@
 
 
 
+FLinearColor LerpLinearColor(const FLinearColor& Left, const FLinearColor& Right, const float Alpha)
+{
+	FLinearColor Ret(FMath::Lerp(Left.R, Right.R, Alpha),
+	FMath::Lerp(Left.G, Right.G, Alpha), FMath::Lerp(Left.B, Right.B, Alpha));
 
-// Sets default values
+	return Ret;
+}
+	// Sets default values
 AJointOcclusionActor::AJointOcclusionActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -17,10 +23,31 @@ AJointOcclusionActor::AJointOcclusionActor()
 
 	LeapComponent = CreateDefaultSubobject<ULeapComponent>(TEXT("Leap component"));
 
+	static const bool DebugSimpleColours = false;
+	static const bool UseLinearLerp = false;
 	for (int i = 0; i < FUltraleapCombinedDevice::NumJointPositions; i++)
 	{
-		SphereColoursLeft.Add(FLinearColor::LerpUsingHSV(FColor::Red, FColor::Green, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
-		SphereColoursRight.Add(FLinearColor::LerpUsingHSV(FColor::Yellow, FColor::Blue, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+		if (DebugSimpleColours)
+		{
+			SphereColoursLeft.Add(FColor::Red);
+			SphereColoursRight.Add(FColor::Green);
+		}
+		else if (UseLinearLerp)
+		{
+			SphereColoursLeft.Add(
+				LerpLinearColor(
+				FColor::Red, FColor::Green, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+			SphereColoursRight.Add(
+				LerpLinearColor(
+				FColor::Yellow, FColor::Blue, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+		}
+		else
+		{
+			SphereColoursLeft.Add(FLinearColor::LerpUsingHSV(
+				FColor::Red, FColor::Green, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+			SphereColoursRight.Add(FLinearColor::LerpUsingHSV(
+				FColor::Yellow, FColor::Blue, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+		}
 	}
 }
 
@@ -52,6 +79,8 @@ void AJointOcclusionActor::CountColoursInSceneCapture(
 			const auto SizeX = RenderTarget->GetSizeX();
 			const auto SizeY = RenderTarget->GetSizeY();
 
+			ColourCountMap.Empty();
+			
 			for (const auto& Color : Output)
 			{
 				if (Color.IsAlmostBlack())
@@ -67,10 +96,37 @@ void AJointOcclusionActor::CountColoursInSceneCapture(
 					ColourCountMap.Add(Color, 1);
 				}
 			}
+			auto ColourCountMapCopy = ColourCountMap;
+			for (auto& KeyPair : ColourCountMapCopy)
+			{
+				if (KeyPair.Value < 2)
+				{
+					ColourCountMap.Remove(KeyPair.Key);
+				}
+			}
 		}
 	}
 }
-// Called every frame
+// for debugging only
+bool AJointOcclusionActor::GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right)
+{
+	TArray<FString> DeviceSerials;
+
+	DeviceToSceneCaptures.GetKeys(DeviceSerials);
+
+	if (DeviceSerials.Num() == 0)
+	{
+		return false;
+	}
+	auto DeviceInterface = LeapComponent->GetCombinedDeviceBySerials(DeviceSerials);
+
+	if (DeviceInterface == nullptr)
+	{
+		return false;
+	}
+	return DeviceInterface->GetJointOcclusionConfidences(DeviceSerial,  Left, Right);
+}
+	// Called every frame
 void AJointOcclusionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -98,6 +154,18 @@ void AJointOcclusionActor::Tick(float DeltaTime)
 		}
 		// update device confidence values
 		CountColoursInSceneCapture(KeyValuePair.Value,KeyValuePair.Key, ColourCountMaps[Index++]->ColourCountMap);
+		if (Index == 1)
+		{
+			if (GEngine)
+			{
+				for (auto& KeyPair : ColourCountMaps[0]->ColourCountMap)
+				{
+					FString Message;
+					Message = FString::Printf(TEXT("ColourMap 1 %f %f %f %d"), KeyPair.Key.R, KeyPair.Key.G, KeyPair.Key.B, KeyPair.Value);
+					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
+				}
+			}
+		}
 	}
 	DeviceInterface->UpdateJointOcclusions(this);
 }

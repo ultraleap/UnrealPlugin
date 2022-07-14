@@ -203,6 +203,7 @@ public:
 		TArray<IHandTrackingWrapper*> DevicesToCombineIn);
 	
 	virtual void UpdateJointOcclusions(AJointOcclusionActor* Actor) override;
+	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) override;
 
 protected:
 	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override;

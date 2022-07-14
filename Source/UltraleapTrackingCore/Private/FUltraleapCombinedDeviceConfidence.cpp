@@ -115,6 +115,26 @@ void FUltraleapCombinedDeviceConfidence::UpdateJointOcclusions(AJointOcclusionAc
 		FrameIndex++;
 	}
 }
+// for debug only
+bool FUltraleapCombinedDeviceConfidence::GetJointOcclusionConfidences(
+	const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right)
+{
+	int FrameIndex = 0;
+	for (auto Device : DevicesToCombine)
+	{
+		if (Device->GetDeviceSerial() == DeviceSerial)
+		{
+			int IdxLeft = FrameIndex * 2;
+			int IdxRight = FrameIndex * 2 + 1;
+			Left = ConfidencesJointOcclusion[IdxLeft];
+			Right = ConfidencesJointOcclusion[IdxRight];
+			return true;
+		}
+		FrameIndex++;
+	}
+
+	return false;
+}
 FColourMap* GetColourMapForDevice(AJointOcclusionActor* Actor, IHandTrackingWrapper* Device)
 {
 	const auto& ColourCountMaps = Actor->GetColourCountMaps();
