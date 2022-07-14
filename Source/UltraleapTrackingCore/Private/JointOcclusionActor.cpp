@@ -92,7 +92,7 @@ void AJointOcclusionActor::Tick(float DeltaTime)
 	int Index = 0;
 	for (const auto KeyValuePair : DeviceToSceneCaptures)
 	{
-		if (ColourCountMaps.Num() < (Index-1))
+		if (ColourCountMaps.Num() < (Index+1))
 		{
 			ColourCountMaps.Add(new FColourMap(KeyValuePair.Key));
 		}

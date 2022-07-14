@@ -269,6 +269,11 @@ void ULeapComponent::RefreshDeviceList()
 }
 IHandTrackingDevice* ULeapComponent::GetCombinedDeviceBySerials(const TArray<FString>& DeviceSerials)
 {
+	// no combined device as not enough devices asked for
+	if (DeviceSerials.Num() < 2)
+	{
+		return nullptr;
+	}
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
 	if (Connector)
 	{
