@@ -91,7 +91,7 @@ FUltraleapCombinedDeviceConfidence::FUltraleapCombinedDeviceConfidence(IHandTrac
 		ConfidencesJointOcclusion[i].AddZeroed(NumJointPositions);
 	}
 }
-// if a joint occlusion actor is in the scene, this will get called in tick
+// if a joint occlusion actor is in the scene, this will get called on tick
 // is the serial list/combined device matches this one
 void FUltraleapCombinedDeviceConfidence::UpdateJointOcclusions(AJointOcclusionActor* Actor)
 {
@@ -99,18 +99,34 @@ void FUltraleapCombinedDeviceConfidence::UpdateJointOcclusions(AJointOcclusionAc
 	{
 		return;
 	}
-	const auto& ColourCountMaps = Actor->GetColourCountMaps();
 	
+	
+	int FrameIndex = 0;
 	for (auto Device : DevicesToCombine)
 	{
-		for (const auto Map : ColourCountMaps)
+		FTransform SourceDeviceOrigin = GetSourceDeviceOrigin(FrameIndex);
+		for (int Hand = 0; Hand < 2; Hand++)
 		{
-			if (Map->DeviceSerial == Device->GetDeviceSerial())
-			{
+			// get index in confidence arrays
+			int Idx = FrameIndex * 2 + (Hand);
+			
+			StoreConfidenceJointOcclusion(Actor, ConfidencesJointOcclusion[Idx], SourceDeviceOrigin,(EHandType)Hand,Device);
+		}
+		FrameIndex++;
+	}
+}
+FColourMap* GetColourMapForDevice(AJointOcclusionActor* Actor, IHandTrackingWrapper* Device)
+{
+	const auto& ColourCountMaps = Actor->GetColourCountMaps();
 
-			}
+	for (const auto Map : ColourCountMaps)
+	{
+		if (Map->DeviceSerial == Device->GetDeviceSerial())
+		{
+			return Map;
 		}
 	}
+	return nullptr;
 }
 void FUltraleapCombinedDeviceConfidence::CombineFrame(const TArray<FLeapFrameData>& SourceFrames)
 {
@@ -601,7 +617,7 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	{
 		// todo joint occlusion component
 	//	ConfidencesJointOcclusion[idx] =
-	//		JointOcclusions[FrameIdx].ConfidenceJointOcclusion(ConfidencesJointOcclusion[idx], DeviceOrigin, Hand);
+	//		JointOcclusions[FrameIdx].StoreConfidenceJointOcclusion(ConfidencesJointOcclusion[idx], DeviceOrigin, Hand);
 	}
 
 	for (int FingerIdx = 0; FingerIdx < 5; FingerIdx++)
@@ -784,24 +800,28 @@ void FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
 /// It uses a capsule hand rendered on a camera sitting at the deviceOrigin.
 /// Note that as the capsule hand doesn't have metacarpal bones, their corresponding confidence will be zero)
 /// </summary>
-void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences,
-	const FTransform& DeviceOriginIn, const FLeapHandData& Hand, IHandTrackingDevice* Provider)
+void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences, const FTransform& DeviceOriginIn, const EHandType HandType, IHandTrackingWrapper* Provider)
 {
 	if (Confidences.Num() == 0)
 	{
 		Confidences.AddZeroed(NumJointPositions);
 	}
-
+	const auto ColourMap = GetColourMapForDevice(JointOcclusionActor, Provider);
+	if (!ColourMap)
+	{
+		return;
+	}
+	
 	TArray<int> PixelsSeenCount;
 	PixelsSeenCount.AddZeroed(Confidences.Num());
 
 	TArray<int> OptimalPixelsCount;
 	OptimalPixelsCount.AddZeroed(Confidences.Num());
 
-	int FingerIndex = 0;
-	for(auto& Finger : Hand.Digits)
+	static const int NumFingers = 5;
+		
+	for(int FingerIndex = 0; FingerIndex < NumFingers; ++FingerIndex)
 	{
-		static const int NumFingers = 5;
 		static const int NumJoints = 4;
 		for (int j = 0; j < NumJoints; j++)
 		{
@@ -813,22 +833,28 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 			int CapsuleHandKey = Key;	 //(int) FingerIndex * NumJoints + j;
 
 			OptimalPixelsCount[Key] = (int) (8);
-
-			if (Hand.HandType == LEAP_HAND_LEFT)
+			FLinearColor TestColour;
+			if (HandType == LEAP_HAND_LEFT)
 			{
-				FLinearColor TestColour = JointOcclusionActor->SphereColoursLeft[Key];
-				// TODO: lookup colour map by device. and add pixel count per colour
-			//	pixelsSeenCount[key] =
-				//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsLeft[capsuleHandKey]) < 0.01f).Count();
+				TestColour = JointOcclusionActor->SphereColoursLeft[Key];	
 			}
 			else
 			{
-				FLinearColor TestColour = JointOcclusionActor->SphereColoursRight[Key];
-				// TODO: lookup colour map by device. and add pixel count per colour
-			//	pixelsSeenCount[key] =
-				//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsRight[capsuleHandKey]) < 0.01f).Count();
+				TestColour = JointOcclusionActor->SphereColoursRight[Key];
 			}
-			FingerIndex++;
+			const int32* NumPixelsOfColour = ColourMap->ColourCountMap.Find(TestColour);
+			// TODO: lookup colour map by device. and add pixel count per colour
+			//	pixelsSeenCount[key] =
+			//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsLeft[capsuleHandKey]) < 0.01f).Count();
+	
+			if (NumPixelsOfColour)
+			{
+				PixelsSeenCount[Key] = *NumPixelsOfColour;
+			}
+			else
+			{
+				PixelsSeenCount[Key] = 0;
+			}
 		}
 	}
 

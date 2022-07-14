@@ -276,8 +276,8 @@ private:
 	void ConfidenceRelativeJointRotToPalmRot(
 		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& Hand);
 
-	void StoreConfidenceJointOcclusion(AJointOcclusionActor*,
-		TArray<float>& Confidences, const FTransform& DeviceOrigin, const FLeapHandData& hand, IHandTrackingDevice* Provider);
+	void StoreConfidenceJointOcclusion(AJointOcclusionActor*, TArray<float>& Confidences, const FTransform& DeviceOrigin,
+		const EHandType HandType, IHandTrackingWrapper* Provider);
 
 
 	void MergeHands(const TArray<const FLeapHandData*>& Hands, const TArray<float>& HandConfidences,
