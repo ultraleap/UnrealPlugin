@@ -866,14 +866,20 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 			// TODO: lookup colour map by device. and add pixel count per colour
 			//	pixelsSeenCount[key] =
 			//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsLeft[capsuleHandKey]) < 0.01f).Count();
-	
+			PixelsSeenCount[Key] = 0;
+		
 			if (NumPixelsOfColour)
 			{
 				PixelsSeenCount[Key] = *NumPixelsOfColour;
 			}
 			else
 			{
-				PixelsSeenCount[Key] = 0;
+				for (auto& KeyPair : ColourMap->ColourCountMap)
+				{
+					TestColour.Equals(KeyPair.Key, 0.01);
+					PixelsSeenCount[Key] = KeyPair.Value;
+					break;
+				}
 			}
 		}
 	}
