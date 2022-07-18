@@ -828,10 +828,10 @@ float DistanceBetweenColors(const FLinearColor& Color1,const FLinearColor& Color
 /// </summary>
 void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences, const FTransform& DeviceOriginIn, const EHandType HandType, IHandTrackingWrapper* Provider)
 {
-	if (HandType == LEAP_HAND_LEFT)
+	/* if (HandType == LEAP_HAND_LEFT)
 	{
 		return;
-	}
+	}*/
 	if (Confidences.Num() == 0)
 	{
 		Confidences.AddZeroed(NumJointPositions);
@@ -855,12 +855,9 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 		static const int NumJoints = 4;
 		for (int j = 0; j < NumJoints; j++)
 		{
-			// as the capsule hands doesn't render metacarpal bones, the indexing of capsule hand colors is different
-			// from the indexing of the jointPositions on a VectorHand (which is used for confidence indexing)
-			//int Key = (int) FingerIndex * NumFingers + j + 1;
-			int Key = (int) FingerIndex * NumFingers + j;
+			int Key = FingerIndex * NumJoints + j;
 			// in unreal we render all bones?
-			int CapsuleHandKey = Key;	 //(int) FingerIndex * NumJoints + j;
+			int CapsuleHandKey = Key;
 
 			OptimalPixelsCount[Key] = (int) (8);
 			FLinearColor TestColour;
@@ -873,9 +870,6 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 				TestColour = JointOcclusionActor->SphereColoursRight[Key];
 			}
 			const int32* NumPixelsOfColour = ColourMap->ColourCountMap.Find(TestColour);
-			// TODO: lookup colour map by device. and add pixel count per colour
-			//	pixelsSeenCount[key] =
-			//	tempPixels.Where(x = > DistanceBetweenColors(x, occlusionSphereColorsLeft[capsuleHandKey]) < 0.01f).Count();
 			PixelsSeenCount[Key] = 0;
 		
 			if (NumPixelsOfColour)
@@ -887,7 +881,7 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 				for (auto& KeyPair : ColourMap->ColourCountMap)
 				{
 					const float Distance = DistanceBetweenColors(TestColour, KeyPair.Key);
-					if (Distance < 0.1)
+					if (Distance < 0.01)
 					//if (TestColour.Equals(KeyPair.Key, 0.01))
 					{
 						PixelsSeenCount[Key] = KeyPair.Value;
@@ -902,7 +896,7 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 	{
 		if (OptimalPixelsCount[i] != 0)
 		{
-			Confidences[i] = (float) PixelsSeenCount[i] / OptimalPixelsCount[i];
+			Confidences[i] = (float) PixelsSeenCount[i] / (float) OptimalPixelsCount[i];
 		}
 	}
 }
