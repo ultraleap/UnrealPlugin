@@ -10,14 +10,6 @@
 #include "FUltraleapCombinedDevice.h"
 #include "JointOcclusionActor.h"
 
-// placeholder for complile test
-// this is more of a component level item as it accesses the camera
-// and other jointocclusion components in the scene in Unity
-class JointOcclusion
-{
-
-};
-
 class FHandPositionHistory
 {
 public:
@@ -244,8 +236,6 @@ public:
 
 	TMap<IHandTrackingDevice*, float> LeftHandFirstVisible;
 	TMap<IHandTrackingDevice*, float> RightHandFirstVisible;
-
-    TArray<JointOcclusion> JointOcclusions;
 private:
 
 	TArray<TArray<float>> JointConfidences;
@@ -261,7 +251,6 @@ private:
 	TMap<IHandTrackingDevice*, FHandConfidenceHistory> HandConfidenceHistoriesRight;
 
 	void MergeFrames(const TArray<FLeapFrameData>& SourceFrames, FLeapFrameData& CombinedFrame);
-	void SetupJointOcclusion();
 	void AddFrameToTimeVisibleDicts(const TArray<FLeapFrameData>& Frames, const int FrameIdx);
 	float CalculateHandConfidence(int FrameIdx, const FLeapHandData& Hand);
 	float ConfidenceRelativeHandPos(IHandTrackingDevice* Provider, const FTransform& DeviceOrigin, const FVector& HandPos);

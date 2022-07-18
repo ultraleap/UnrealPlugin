@@ -92,7 +92,11 @@ FUltraleapCombinedDeviceConfidence::FUltraleapCombinedDeviceConfidence(IHandTrac
 	}
 }
 // if a joint occlusion actor is in the scene, this will get called on tick
-// is the serial list/combined device matches this one
+// if the serial list/combined device matches this one
+//
+// Note this is called from the joint occlusion actor tick and will fill the 
+// Joint Occlusion confidence arrays which will get picked up separately
+// when this component is ticked (still the same thread = game thread, but different tick timing)
 void FUltraleapCombinedDeviceConfidence::UpdateJointOcclusions(AJointOcclusionActor* Actor)
 {
 	if (!Actor || JointOcclusionFactor == 0)
@@ -126,8 +130,26 @@ bool FUltraleapCombinedDeviceConfidence::GetJointOcclusionConfidences(
 		{
 			int IdxLeft = FrameIndex * 2;
 			int IdxRight = FrameIndex * 2 + 1;
-			Left = ConfidencesJointOcclusion[IdxLeft];
-			Right = ConfidencesJointOcclusion[IdxRight];
+			Left.AddZeroed(NumJointPositions);
+			Right.AddZeroed(NumJointPositions);
+
+			static const int NumFingers = 5;
+			for (int FingerIndex = 0; FingerIndex < NumFingers; ++FingerIndex)
+			{
+				static const int NumJoints = 4;
+				for (int j = 0; j < NumJoints; j++)
+				{
+					// in unreal we render 4 bones per finger
+					int JointColoursKey = FingerIndex * NumJoints + j;
+
+					// confidence keys are stored as if we have 5 bones per finger
+					int ConfidenceKey = FingerIndex * 5 + j;
+
+					Left[JointColoursKey] = ConfidencesJointOcclusion[IdxLeft][ConfidenceKey];
+					Right[JointColoursKey] = ConfidencesJointOcclusion[IdxRight][ConfidenceKey];
+				}
+			}
+			
 			return true;
 		}
 		FrameIndex++;
@@ -310,51 +332,6 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	CombinedFrame.NumberOfHandsVisible = MergedHands.Num();
 }
 
-/// create joint occlusion gameobjects if they are not there yet and update the position of all joint occlusion gameobjects that are
-/// attached to a xr service provider
-void FUltraleapCombinedDeviceConfidence::SetupJointOcclusion()
-{
-	if (JointOcclusions.Num() == 0)
-	{
-		for(auto Provider : DevicesToCombine)
-		{
-			//TODO: how to create these in the scene from C++?
-			// Ideally pass them down from creation in Blueprint
-			/* JointOcclusion JointOcclusion = provider.gameObject.GetComponentInChildren<JointOcclusion>();
-
-			if (JointOcclusion == null)
-			{
-				JointOcclusion = GameObject.Instantiate(Resources.Load<GameObject>("JointOcclusionPrefab"), provider.transform)
-									 .GetComponent<JointOcclusion>();
-
-				foreach(CapsuleHand JointOcclusionHand in JointOcclusion.GetComponentsInChildren<CapsuleHand>(true))
-				{
-					JointOcclusionHand.leapProvider = Provider;
-				}
-			}
-
-			jointOcclusions.Add(jointOcclusion);*/
-		}
-
-		for(JointOcclusion JointOcclusion : JointOcclusions)
-		{
-			//jointOcclusion.Setup();
-		}
-	}
-	/*
-	// if any providers are xr providers, update their jointOcclusions position and rotation
-	for (int i = 0; i < JointOcclusions.Num(); i++)
-	{
-		LeapXRServiceProvider xrProvider = providers[i] as LeapXRServiceProvider;
-		if (xrProvider != null)
-		{
-			Transform SourceDeviceOrigin = GetSourceDeviceOrigin(i);
-
-			JointOcclusions[i].transform.SetPose(SourceDeviceOrigin.GetPose());
-			JointOcclusions[i].transform.Rotate(new Vector3(-90, 0, 180));
-		}
-	}*/
-}
 
 /// add all hands in the frame given by frames[frameIdx] to the Dictionaries lastLeftHandPositions and lastRightHandPositions,
 /// and update leftHandFirstVisible and rightHandFirstVisible
@@ -633,12 +610,6 @@ void FUltraleapCombinedDeviceConfidence::CalculateJointConfidence(
 	{
 		ConfidenceRelativeJointRotToPalmRot(ConfidencesJointPalmRot[idx], SourceDeviceOrigin, Hand);
 	}
-	if (JointOcclusionFactor != 0)
-	{
-		// todo joint occlusion component
-	//	ConfidencesJointOcclusion[idx] =
-	//		JointOcclusions[FrameIdx].StoreConfidenceJointOcclusion(ConfidencesJointOcclusion[idx], DeviceOrigin, Hand);
-	}
 
 	for (int FingerIdx = 0; FingerIdx < 5; FingerIdx++)
 	{
@@ -851,26 +822,30 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 		static const int NumJoints = 4;
 		for (int j = 0; j < NumJoints; j++)
 		{
-			int Key = FingerIndex * NumJoints + j;
-			// in unreal we render all bones?
-			int CapsuleHandKey = Key;
+			// in unreal we render 4 bones per finger
+			int JointColoursKey = FingerIndex * NumJoints + j;
 
-			OptimalPixelsCount[Key] = (int) (12);
+			// confidence keys are stored as if we have 5 bones per finger
+			int ConfidenceKey = FingerIndex * 5 + j;
+		
+			
+
+			OptimalPixelsCount[ConfidenceKey] = (int) (12);
 			FLinearColor TestColour;
 			if (HandType == LEAP_HAND_LEFT)
 			{
-				TestColour = JointOcclusionActor->SphereColoursLeft[Key];	
+				TestColour = JointOcclusionActor->SphereColoursLeft[JointColoursKey];	
 			}
 			else
 			{
-				TestColour = JointOcclusionActor->SphereColoursRight[Key];
+				TestColour = JointOcclusionActor->SphereColoursRight[JointColoursKey];
 			}
 			const int32* NumPixelsOfColour = ColourMap->ColourCountMap.Find(TestColour);
-			PixelsSeenCount[Key] = 0;
+			PixelsSeenCount[ConfidenceKey] = 0;
 		
 			if (NumPixelsOfColour)
 			{
-				PixelsSeenCount[Key] = *NumPixelsOfColour;
+				PixelsSeenCount[ConfidenceKey] = *NumPixelsOfColour;
 			}
 			else
 			{
@@ -879,7 +854,7 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 					const float Distance = DistanceBetweenColors(TestColour, KeyPair.Key);
 					if (Distance < 0.01)
 					{
-						PixelsSeenCount[Key] = KeyPair.Value;
+						PixelsSeenCount[ConfidenceKey] = KeyPair.Value;
 						break;
 					}
 				}

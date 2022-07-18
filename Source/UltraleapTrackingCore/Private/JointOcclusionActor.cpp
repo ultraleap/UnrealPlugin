@@ -80,9 +80,6 @@ void AJointOcclusionActor::CountColoursInSceneCapture(
 		
 		if (Success)
 		{
-			const auto SizeX = RenderTarget->GetSizeX();
-			const auto SizeY = RenderTarget->GetSizeY();
-
 			ColourCountMap.Empty();
 			
 			for (const auto& Color : Output)
@@ -100,6 +97,7 @@ void AJointOcclusionActor::CountColoursInSceneCapture(
 					ColourCountMap.Add(Color, 1);
 				}
 			}
+			// filter out odd pixels we don't care about
 			auto ColourCountMapCopy = ColourCountMap;
 			for (auto& KeyPair : ColourCountMapCopy)
 			{
