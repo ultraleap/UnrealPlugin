@@ -815,6 +815,12 @@ void FUltraleapCombinedDeviceConfidence::ConfidenceRelativeJointRotToPalmRot(
 
 	return;
 }
+float DistanceBetweenColors(const FLinearColor& Color1,const FLinearColor& Color2)
+{
+	FLinearColor ColorDifference = Color1 - Color2;
+	FVector DiffVector(ColorDifference.R, ColorDifference.G, ColorDifference.B);
+	return DiffVector.Size();
+}
 /// <summary>
 /// return an array of joint confidences that is determined by joint occlusion.
 /// It uses a capsule hand rendered on a camera sitting at the deviceOrigin.
@@ -876,9 +882,12 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 			{
 				for (auto& KeyPair : ColourMap->ColourCountMap)
 				{
-					TestColour.Equals(KeyPair.Key, 0.01);
-					PixelsSeenCount[Key] = KeyPair.Value;
-					break;
+					if (DistanceBetweenColors(TestColour, KeyPair.Key) < 0.01)
+					//if (TestColour.Equals(KeyPair.Key, 0.01))
+					{
+						PixelsSeenCount[Key] = KeyPair.Value;
+						break;
+					}
 				}
 			}
 		}
