@@ -859,7 +859,7 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 			// in unreal we render all bones?
 			int CapsuleHandKey = Key;
 
-			OptimalPixelsCount[Key] = (int) (8);
+			OptimalPixelsCount[Key] = (int) (12);
 			FLinearColor TestColour;
 			if (HandType == LEAP_HAND_LEFT)
 			{
