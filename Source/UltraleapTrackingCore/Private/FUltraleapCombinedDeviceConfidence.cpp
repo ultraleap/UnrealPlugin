@@ -828,6 +828,10 @@ float DistanceBetweenColors(const FLinearColor& Color1,const FLinearColor& Color
 /// </summary>
 void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences, const FTransform& DeviceOriginIn, const EHandType HandType, IHandTrackingWrapper* Provider)
 {
+	if (HandType == LEAP_HAND_LEFT)
+	{
+		return;
+	}
 	if (Confidences.Num() == 0)
 	{
 		Confidences.AddZeroed(NumJointPositions);
@@ -853,8 +857,8 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 		{
 			// as the capsule hands doesn't render metacarpal bones, the indexing of capsule hand colors is different
 			// from the indexing of the jointPositions on a VectorHand (which is used for confidence indexing)
-			int Key = (int) FingerIndex * NumFingers + j + 1;
-			
+			//int Key = (int) FingerIndex * NumFingers + j + 1;
+			int Key = (int) FingerIndex * NumFingers + j;
 			// in unreal we render all bones?
 			int CapsuleHandKey = Key;	 //(int) FingerIndex * NumJoints + j;
 
@@ -882,7 +886,8 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 			{
 				for (auto& KeyPair : ColourMap->ColourCountMap)
 				{
-					if (DistanceBetweenColors(TestColour, KeyPair.Key) < 0.01)
+					const float Distance = DistanceBetweenColors(TestColour, KeyPair.Key);
+					if (Distance < 0.1)
 					//if (TestColour.Equals(KeyPair.Key, 0.01))
 					{
 						PixelsSeenCount[Key] = KeyPair.Value;

@@ -23,8 +23,15 @@ AJointOcclusionActor::AJointOcclusionActor()
 
 	LeapComponent = CreateDefaultSubobject<ULeapComponent>(TEXT("Leap component"));
 
-	static const bool DebugSimpleColours = false;
+	static const bool DebugSimpleColours = true;
 	static const bool UseLinearLerp = false;
+	SetupColours(DebugSimpleColours, UseLinearLerp);
+}
+void AJointOcclusionActor::SetupColours(const bool DebugSimpleColours, const bool UseLinearLerp)
+{
+	SphereColoursLeft.Empty();
+	SphereColoursRight.Empty();
+
 	for (int i = 0; i < FUltraleapCombinedDevice::NumJointPositions; i++)
 	{
 		if (DebugSimpleColours)
@@ -35,11 +42,9 @@ AJointOcclusionActor::AJointOcclusionActor()
 		else if (UseLinearLerp)
 		{
 			SphereColoursLeft.Add(
-				LerpLinearColor(
-				FColor::Red, FColor::Green, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+				LerpLinearColor(FColor::Red, FColor::Green, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
 			SphereColoursRight.Add(
-				LerpLinearColor(
-				FColor::Yellow, FColor::Blue, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
+				LerpLinearColor(FColor::Yellow, FColor::Blue, (float) i / (float) FUltraleapCombinedDevice::NumJointPositions));
 		}
 		else
 		{
@@ -50,7 +55,6 @@ AJointOcclusionActor::AJointOcclusionActor()
 		}
 	}
 }
-
 // Called when the game starts or when spawned
 void AJointOcclusionActor::BeginPlay()
 {
@@ -156,7 +160,7 @@ void AJointOcclusionActor::Tick(float DeltaTime)
 		CountColoursInSceneCapture(KeyValuePair.Value,KeyValuePair.Key, ColourCountMaps[Index++]->ColourCountMap);
 		if (Index == 1)
 		{
-			if (GEngine)
+			/* if (GEngine)
 			{
 				for (auto& KeyPair : ColourCountMaps[0]->ColourCountMap)
 				{
@@ -164,7 +168,7 @@ void AJointOcclusionActor::Tick(float DeltaTime)
 					Message = FString::Printf(TEXT("ColourMap 1 %f %f %f %d"), KeyPair.Key.R, KeyPair.Key.G, KeyPair.Key.B, KeyPair.Value);
 					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
 				}
-			}
+			}*/
 		}
 	}
 	DeviceInterface->UpdateJointOcclusions(this);

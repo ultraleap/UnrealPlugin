@@ -48,6 +48,8 @@ public:
 	{
 		return ColourCountMaps;
 	}
+	UFUNCTION(BlueprintCallable, Category = "Leap Devices - Joint Occlusion")
+	void SetupColours(const bool DebugSimpleColours, const bool UseLinearLerp);
 
 protected:
 	// Called when the game starts or when spawned
