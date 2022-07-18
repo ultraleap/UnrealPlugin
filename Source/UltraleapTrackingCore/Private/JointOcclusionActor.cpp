@@ -130,7 +130,20 @@ bool AJointOcclusionActor::GetJointOcclusionConfidences(const FString& DeviceSer
 	}
 	return DeviceInterface->GetJointOcclusionConfidences(DeviceSerial,  Left, Right);
 }
-	// Called every frame
+void DebugPrintColourMap(const TMap<FLinearColor, int32>& ColourCountMap)
+{
+#if WITH_EDITOR
+	if (GEngine)
+	{
+			for (auto& KeyPair : ColourCountMap)
+			{
+				FString Message;
+				Message = FString::Printf(TEXT("ColourMap 1 %f %f %f %d"), KeyPair.Key.R, KeyPair.Key.G, KeyPair.Key.B,
+	KeyPair.Value); GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
+			}
+	}
+#endif //WITH_EDITOR
+}
 void AJointOcclusionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -158,18 +171,6 @@ void AJointOcclusionActor::Tick(float DeltaTime)
 		}
 		// update device confidence values
 		CountColoursInSceneCapture(KeyValuePair.Value,KeyValuePair.Key, ColourCountMaps[Index++]->ColourCountMap);
-		if (Index == 1)
-		{
-			/* if (GEngine)
-			{
-				for (auto& KeyPair : ColourCountMaps[0]->ColourCountMap)
-				{
-					FString Message;
-					Message = FString::Printf(TEXT("ColourMap 1 %f %f %f %d"), KeyPair.Key.R, KeyPair.Key.G, KeyPair.Key.B, KeyPair.Value);
-					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
-				}
-			}*/
-		}
 	}
 	DeviceInterface->UpdateJointOcclusions(this);
 }

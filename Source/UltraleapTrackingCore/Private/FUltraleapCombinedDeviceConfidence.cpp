@@ -828,10 +828,6 @@ float DistanceBetweenColors(const FLinearColor& Color1,const FLinearColor& Color
 /// </summary>
 void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcclusionActor* JointOcclusionActor, TArray<float>& Confidences, const FTransform& DeviceOriginIn, const EHandType HandType, IHandTrackingWrapper* Provider)
 {
-	/* if (HandType == LEAP_HAND_LEFT)
-	{
-		return;
-	}*/
 	if (Confidences.Num() == 0)
 	{
 		Confidences.AddZeroed(NumJointPositions);
@@ -882,7 +878,6 @@ void FUltraleapCombinedDeviceConfidence::StoreConfidenceJointOcclusion(AJointOcc
 				{
 					const float Distance = DistanceBetweenColors(TestColour, KeyPair.Key);
 					if (Distance < 0.01)
-					//if (TestColour.Equals(KeyPair.Key, 0.01))
 					{
 						PixelsSeenCount[Key] = KeyPair.Value;
 						break;
