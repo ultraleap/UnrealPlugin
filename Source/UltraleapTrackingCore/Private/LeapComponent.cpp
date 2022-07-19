@@ -307,6 +307,14 @@ void ULeapComponent::UpdateDeviceOrigin(const FTransform& DeviceOriginIn)
 	}
 
 }
+void ULeapComponent::SetupMultidevice(
+	const TArray<FString>& DeviceSerials, const ELeapMultiDeviceMode MultiDeviceModeIn, const ELeapDeviceCombinerClass CombinerClass)
+{
+	CombinedDeviceSerials = DeviceSerials;
+	MultiDeviceMode = MultiDeviceModeIn;
+	DeviceCombinerClass = CombinerClass;
+	UpdateMultiDeviceMode(MultiDeviceMode);
+}
 #if WITH_EDITOR
 void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn)
 {

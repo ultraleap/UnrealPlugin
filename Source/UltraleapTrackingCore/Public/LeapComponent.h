@@ -162,12 +162,17 @@ public:
 		meta = (GetOptions = "GetSerialOptions" , EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_COMBINED"))
 	TEnumAsByte<ELeapDeviceCombinerClass> DeviceCombinerClass;
 
-	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
 	ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial);
 
 
-	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Functions")
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
 	void UpdateDeviceOrigin(const FTransform& DeviceOriginIn);
+
+	// Setup multidevice programmatically in one call
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
+	void SetupMultidevice(
+		const TArray<FString>& DeviceSerials, const ELeapMultiDeviceMode MultiDeviceModeIn, const ELeapDeviceCombinerClass CombinerClass);
 
 #if WITH_EDITOR
 	// property change handlers

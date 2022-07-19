@@ -16,7 +16,7 @@ void FUltraleapCombinedDeviceAngular::CombineFrame(const TArray<FLeapFrameData>&
 	}
 
 	CurrentFrame.Hands.Empty();
-	MergeHands(SourceFrames, CurrentFrame.Hands);
+	MergeHands(SourceFrames, CurrentFrame.Hands, CurrentFrame.LeftHandVisible, CurrentFrame.RightHandVisible);
 }
 /*
  * Utility function of running average
@@ -32,7 +32,7 @@ float AprxAvg(float Avg, float NewSample)
  * This function returns one set of hands from multiple Leap Providers, weighing their influence using hands' positions relative
  * to devices.
  */
-void FUltraleapCombinedDeviceAngular::MergeHands(const TArray<FLeapFrameData>& SourceFrames, TArray<FLeapHandData>& MergedHands)
+void FUltraleapCombinedDeviceAngular::MergeHands(const TArray<FLeapFrameData>& SourceFrames, TArray<FLeapHandData>& MergedHands, bool& LeftHandVisible, bool& RightHandVisible)
 {
 	// Sort Left and Right hands (some values may be null since never know how many hands are visible, but we clean it up at the
 	// end)
@@ -67,10 +67,12 @@ void FUltraleapCombinedDeviceAngular::MergeHands(const TArray<FLeapFrameData>& S
 	if (LeftValid)
 	{
 		MergedHands.Add(ConfidentLeft);
+		LeftHandVisible = true;
 	}
 	if (RightValid)
 	{
 		MergedHands.Add(ConfidentRight);
+		RightHandVisible = true;
 	}
 }
 

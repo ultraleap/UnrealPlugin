@@ -293,11 +293,12 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 
 	// combine hands using their confidences
 	TArray<FLeapHandData> MergedHands;
-
+	bool LeftHandVisible = false;
+	bool RightHandVisible = false;
 	if (LeftHands.Num() > 0)
 	{
 		FLeapHandData Hand;
-		
+		LeftHandVisible = true;
 #if PRINT_ONSCREEN_DEBUG
 		if (GEngine)
 		{
@@ -313,7 +314,7 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	if (RightHands.Num() > 0)
 	{
 		FLeapHandData Hand;
-
+		RightHandVisible = true;
 #if PRINT_ONSCREEN_DEBUG
 		if (GEngine)
 		{
@@ -330,6 +331,8 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	// TODO: what about the other members of FLeapFrameData?
 	CombinedFrame.Hands = MergedHands;
 	CombinedFrame.NumberOfHandsVisible = MergedHands.Num();
+	CombinedFrame.LeftHandVisible = LeftHandVisible;
+	CombinedFrame.RightHandVisible = RightHandVisible;
 }
 
 
