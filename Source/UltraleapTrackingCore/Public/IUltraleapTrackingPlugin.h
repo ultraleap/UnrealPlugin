@@ -13,32 +13,8 @@
 
 class ULeapComponent;
 
-class ILeapConnectorCallbacks
-{
-public:
-	virtual void OnDeviceAdded(class IHandTrackingWrapper* DeviceWrapper) = 0;
-	// call before device cleaned up
-	virtual void OnDeviceRemoved(class IHandTrackingWrapper* DeviceWrapper) = 0;
-};
-class ILeapConnector
-{
-public:
-	// get available/active tracking devices
-	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) = 0;
-	// todo: add aggregator/combiner class
-	// if in singular mode pass one tracking device serial
-	virtual class IHandTrackingWrapper* GetDevice(const TArray<FString>& DeviceSerial,const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
-
-	virtual void TickDevices(const float DeltaTime) = 0;
-	virtual void TickSendControllerEventsOnDevices() = 0;
-
-	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) = 0;
-
-	virtual void AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
-	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
 
 
-};
 class IHandTrackingDevice
 {
 public:
@@ -143,7 +119,31 @@ public:
 	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
 	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 };
+class ILeapConnectorCallbacks
+{
+public:
+	virtual void OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper) = 0;
+	// call before device cleaned up
+	virtual void OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper) = 0;
+};
+class ILeapConnector
+{
+public:
+	// get available/active tracking devices
+	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) = 0;
+	// todo: add aggregator/combiner class
+	// if in singular mode pass one tracking device serial
+	virtual class IHandTrackingWrapper* GetDevice(
+		const TArray<FString>& DeviceSerial, const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
 
+	virtual void TickDevices(const float DeltaTime) = 0;
+	virtual void TickSendControllerEventsOnDevices() = 0;
+
+	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) = 0;
+
+	virtual void AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
+	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
+};
 /**
  * The public interface to this module.  In most cases, this interface is only public to sibling modules
  * within this plugin.

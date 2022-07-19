@@ -11,6 +11,7 @@
 #include "Components/ActorComponent.h"
 #include "LeapWrapper.h"
 #include "UltraleapTrackingData.h"
+#include "IUltraleapTrackingPlugin.h"
 
 #if WITH_EDITOR
 #include "DetailLayoutBuilder.h"

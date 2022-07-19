@@ -334,7 +334,7 @@ void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn
 		RefreshDeviceList();
 	}
 }
-
+#endif
 void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 {
 	if (DeviceWrapper->GetDeviceSerial() == ActiveDeviceSerial)
@@ -355,4 +355,3 @@ void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 	}
 	RefreshDeviceList();
 }
-#endif
