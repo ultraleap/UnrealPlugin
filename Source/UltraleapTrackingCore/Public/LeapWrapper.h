@@ -319,7 +319,7 @@ private:
 	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle);
 	void RemoveDevice(const uint32_t DeviceID);
 
-	void AddOpenXRDevice();
+	void AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDelegate);
 
 	IHandTrackingWrapper* GetSingularDeviceBySerial(const FString& DeviceSerial);
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);

@@ -64,6 +64,12 @@ void FLeapWrapper::SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallb
 }
 LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
+
+	if (UseOpenXR)
+	{
+		AddOpenXRDevice(InCallbackDelegate);
+		return nullptr;
+	}
 	ConnectorCallbackDelegate = InCallbackDelegate;
 	// Don't use config for now
 	LEAP_CONNECTION_CONFIG Config = {0};
@@ -95,10 +101,7 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 			});
 		}
 	}
-	if (UseOpenXR)
-	{
-		AddOpenXRDevice();
-	}
+	
 	return &ConnectionHandle;
 }
 LeapWrapperCallbackInterface* FLeapWrapper::GetCallbackDelegateFromDeviceID(const uint32_t DeviceID)
@@ -930,12 +933,12 @@ void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 {
 	DevicesToCleanup.AddUnique(DeviceWrapper);	
 }
-void FLeapWrapper::AddOpenXRDevice()
+void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
 	// this has to run once the system starts ticking
 	// as it needs GEngine
 	AsyncTask(ENamedThreads::GameThread,
-		[this]()
+		[this, InCallbackDelegate]()
 		{
 			IHandTrackingWrapper* Device = new FOpenXRToLeapWrapper();
 
@@ -945,12 +948,20 @@ void FLeapWrapper::AddOpenXRDevice()
 				delete Device;
 				return;
 			}
+			// if we're replacint the leap connect
+			// callback here so the caller gets a connected notification
+			if (InCallbackDelegate)
+			{
+				InCallbackDelegate->OnConnect();
+			}
 			// TArray manages object lifetime/destructors without needing TSharedPtr
 			Devices.Add(Device);
 
 			NotifyDeviceAdded(Device);
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
+		
+		
 		});
 }
 #pragma endregion LeapC Wrapper

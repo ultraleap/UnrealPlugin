@@ -51,7 +51,7 @@ public:
 	virtual FString GetDeviceSerial() override
 	{
 		// NOTE: When we support device serials in OpenXR we can return them here
-		return FString::Printf(TEXT("OpenXR Device %d"), DeviceID);
+		return FString::Printf(TEXT("OpenXR Device %d"), DeviceID - OpenXRBaseDeviceID);
 	}
 
 	virtual IHandTrackingDevice* GetDevice() override;
@@ -76,4 +76,8 @@ private:
 
 	int32 DeviceID = 0;
 	TSharedPtr<class FUltraleapDevice> Device;
+	
+	// prevent overlap with Leap Device IDs just in case we want to mix the two
+	static const int32 OpenXRBaseDeviceID = 10000;
+
 };

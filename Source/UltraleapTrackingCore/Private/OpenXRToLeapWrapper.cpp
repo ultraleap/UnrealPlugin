@@ -19,7 +19,7 @@
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
-	static int OpenXRDeviceID = 0;
+	static int32 OpenXRDeviceID = OpenXRBaseDeviceID;
 
 	OpenXRDeviceID++;
 	DeviceID = OpenXRDeviceID;
