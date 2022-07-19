@@ -27,7 +27,9 @@
  * Stores raw controller data and custom toggles
  */
 
-class FUltraleapTrackingInputDevice : public IInputDevice, public LeapWrapperCallbackInterface
+class FUltraleapTrackingInputDevice : public IInputDevice,
+									  public LeapWrapperCallbackInterface,
+									  public IBodyStateDeviceManagerRawInterface
 {
 public:
 	FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& MessageHandler);
@@ -65,7 +67,8 @@ public:
 	void ShutdownLeap();
 	void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial);
 	void LatestFrame(FLeapFrameData& OutFrameconst, const FString& DeviceSerial);
-	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW,const TArray<FString>& DeviceSerials);
+	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW,
+		const TArray<FString>& DeviceSerials);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials);
 	void SetTrackingMode(ELeapMode Flag, const TArray<FString>& DeviceSerials);
@@ -86,6 +89,10 @@ public:
 		return Connector;
 	}
 	void PostEarlyInit();
+
+	// IBodyStateDeviceManagerRawInterface implementation
+	virtual int32 RequestCombinedDevice(
+		const TArray<FString>& DeviceSerials, const enum EBSDeviceCombinerClass CombinerClass) override;
 
 private:
 	// Private UProperties

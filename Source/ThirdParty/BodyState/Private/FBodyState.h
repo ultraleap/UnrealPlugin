@@ -56,6 +56,8 @@ public:
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener) override;
 	virtual void RemoveBoneSceneListener(UBodyStateBoneComponent* Listener) override;
 	virtual bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs) override;
+	virtual void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface) override;
+	virtual int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials, const EBSDeviceCombinerClass CombinerClass) override;
 
 private:
 	bool bActive = false;

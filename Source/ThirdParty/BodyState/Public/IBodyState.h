@@ -97,4 +97,14 @@ public:
 	{
 		return false;
 	}
+
+	// Global interface for device management, set to nullptr to clear
+	virtual void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
+	{
+	}
+
+	virtual int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials, const EBSDeviceCombinerClass CombinerClass)
+	{
+		return -1;
+	}
 };

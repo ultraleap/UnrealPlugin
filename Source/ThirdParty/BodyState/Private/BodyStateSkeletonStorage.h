@@ -71,7 +71,20 @@ public:
 	void CallFunctionOnDevices(TFunction<void(const FBodyStateDevice&)> InFunction);
 
 	bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs);
-
+	
+	void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
+	{
+		GlobalDeviceManager = CallbackInterface;
+	}
+	int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials,
+		const EBSDeviceCombinerClass CombinerClass)
+	{
+		if (GlobalDeviceManager)
+		{
+			return GlobalDeviceManager->RequestCombinedDevice(DeviceSerials, CombinerClass);
+		}
+		return -1;
+	}
 private:
 	UBodyStateSkeleton* PrivateMergedSkeleton;
 
@@ -84,4 +97,6 @@ private:
 	// Merging functions attached to skeletons
 	TMap<int32, TFunction<void(UBodyStateSkeleton*, float)> > MergingFunctions;
 	int32 MergingFunctionIndexCount;
+
+	IBodyStateDeviceManagerRawInterface* GlobalDeviceManager = nullptr;
 };

@@ -33,14 +33,7 @@ enum EBSMultiDeviceMode
 	BS_MULTI_DEVICE_SINGULAR = 0,
 	BS_MULTI_DEVICE_COMBINED
 };
-UENUM(BlueprintType)
-enum EBSDeviceCombinerClass
-{
-	BS_DEVICE_COMBINER_UNKNOWN,
-	BS_DEVICE_COMBINER_CONFIDENCE,
-	BS_DEVICE_COMBINER_ANGULAR
-	// add your custom classes here and add them to the class factory
-};
+
 USTRUCT(BlueprintType)
 struct BODYSTATE_API FBodyStateIndexedBone
 {

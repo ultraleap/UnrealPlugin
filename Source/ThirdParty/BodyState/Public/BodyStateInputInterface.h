@@ -32,6 +32,21 @@ public:
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) = 0;
 	virtual void OnDeviceDetach() = 0;
 };
+UENUM(BlueprintType)
+enum EBSDeviceCombinerClass
+{
+	BS_DEVICE_COMBINER_UNKNOWN,
+	BS_DEVICE_COMBINER_CONFIDENCE,
+	BS_DEVICE_COMBINER_ANGULAR
+	// add your custom classes here and add them to the class factory
+};
+class BODYSTATE_API IBodyStateDeviceManagerRawInterface
+{
+public:
+	// return bodystate device ID for combined device
+	// device may already exist if requested elsewhere, created if not
+	virtual int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials,const EBSDeviceCombinerClass CombinerClass) = 0;
+};
 
 class BODYSTATE_API IBodyStateDeviceChangeListener
 {

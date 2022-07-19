@@ -77,7 +77,14 @@ UBodyStateSkeleton* FBodyState::SkeletonForDevice(int32 DeviceID)
 {
 	return SkeletonStorage->SkeletonForDevice(DeviceID);
 }
-
+void FBodyState::SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
+{
+	SkeletonStorage->SetupGlobalDeviceManager(CallbackInterface);
+}
+int32 FBodyState::RequestCombinedDevice(const TArray<FString>& DeviceSerials, const EBSDeviceCombinerClass CombinerClass)
+{
+	return SkeletonStorage->RequestCombinedDevice(DeviceSerials, CombinerClass);
+}
 int32 FBodyState::AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId /*= 0*/)
 {
 	// NB: skeleton id is ignored for now, skeleton is always the merged one atm

@@ -188,6 +188,8 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
+
+	IBodyState::Get().SetupGlobalDeviceManager(this);
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -196,6 +198,7 @@ void FUltraleapTrackingInputDevice::PostEarlyInit()
 }
 FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 {
+	IBodyState::Get().SetupGlobalDeviceManager(nullptr);
 	ShutdownLeap();
 }
 
@@ -443,7 +446,34 @@ void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag, const TArray
 
 #pragma region BodyState
 
-
+int32 FUltraleapTrackingInputDevice::RequestCombinedDevice(
+	const TArray<FString>& DeviceSerials, const EBSDeviceCombinerClass CombinerClass)
+{
+	if (Connector == nullptr)
+	{
+		return -1;
+	}
+	ELeapDeviceCombinerClass LeapCombinerClass = ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN;
+	switch (CombinerClass)
+	{
+		case EBSDeviceCombinerClass::BS_DEVICE_COMBINER_CONFIDENCE:
+			LeapCombinerClass = ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE;
+			break;
+		case EBSDeviceCombinerClass::BS_DEVICE_COMBINER_ANGULAR:
+			LeapCombinerClass = ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_ANGULAR;
+			break;
+	}
+	auto DeviceWrapper = Connector->GetDevice(DeviceSerials, LeapCombinerClass);
+	if (DeviceWrapper)
+	{
+		auto InternalDevice = DeviceWrapper->GetDevice();
+		if (InternalDevice)
+		{
+			return InternalDevice->GetBodyStateDeviceID();
+		}
+	}
+	return -1;
+}
 void FUltraleapTrackingInputDevice::OnDeviceDetach()
 {
 	ShutdownLeap();

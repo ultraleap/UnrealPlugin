@@ -63,9 +63,13 @@ public:
 	virtual void UpdateJointOcclusions(class AJointOcclusionActor* Actor) override
 	{
 	}
-	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right)
+	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) override
 	{
 		return false;
+	}
+	virtual int32 GetBodyStateDeviceID() override
+	{
+		return BodyStateDeviceId;
 	}
 	// end of IHandTrackingDevice implementation
 

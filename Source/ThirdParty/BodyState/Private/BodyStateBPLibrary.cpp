@@ -70,7 +70,13 @@ bool UBodyStateBPLibrary::DetachDevice(int32 DeviceID)
 		return false;
 	}
 }
-
+void UBodyStateBPLibrary::SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
+{
+	if (IBodyState::IsAvailable())
+	{
+		IBodyState::Get().SetupGlobalDeviceManager(CallbackInterface);
+	}
+}
 UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContextObject, int32 DeviceID /*= 0*/)
 {
 #if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 16

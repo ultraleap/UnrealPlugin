@@ -55,6 +55,8 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = "Body State Input")
 	static FTransform TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance);
 
+	// Global interface for device management, set to nullptr to clear
+	void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface);
 	// Define mixing and update interfaces - this isn't ready yet, should it be called per skeleton or per bone?
 
 	// BodyState Merging algorithm
