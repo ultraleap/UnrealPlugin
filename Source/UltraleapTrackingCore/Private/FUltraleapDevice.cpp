@@ -238,7 +238,8 @@ void FUltraleapDevice::OnLog(const eLeapLogSeverity Severity, const int64_t Time
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
 
-FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITrackingDeviceWrapper* TrackingDeviceWrapperIn)
+FUltraleapDevice::FUltraleapDevice(
+	IHandTrackingWrapper* LeapDeviceWrapper, ITrackingDeviceWrapper* TrackingDeviceWrapperIn, const bool StartInOpenXRMode)
 	: 
 	Leap(LeapDeviceWrapper), TrackingDeviceWrapper(TrackingDeviceWrapperIn)
 {
@@ -255,9 +256,6 @@ FUltraleapDevice::FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapper, ITra
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
 
-	// TODO: multi open XR for multileap?
-	// probably delete this and create the openXR wrapper at same level as this
-	static const bool StartInOpenXRMode = false;
 	SwitchTrackingSource(StartInOpenXRMode);
 	Options.bUseOpenXRAsSource = StartInOpenXRMode;
 
@@ -1130,22 +1128,6 @@ void FUltraleapDevice::SetBSHandFromLeapHand(UBodyStateHand* Hand, const FLeapHa
 #pragma endregion BodyState
 void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 {
-	/* if (Leap != nullptr)
-	{
-		Leap->CloseConnection();
-	}
-
-	if (UseOpenXRAsSource)
-	{
-		Leap = TSharedPtr<IHandTrackingWrapper>(new FOpenXRToLeapWrapper);
-	}
-	else
-	{
-		FLeapWrapper* Wrapper = new FLeapWrapper;
-		Connector = dynamic_cast<ILeapConnector*>(Wrapper);
-		Leap = TSharedPtr<IHandTrackingWrapper>(Wrapper);
-	}*/
-	
 	Leap->OpenConnection(this);
 }
 void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)

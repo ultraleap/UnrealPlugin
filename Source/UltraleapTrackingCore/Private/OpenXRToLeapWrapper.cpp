@@ -7,7 +7,6 @@
  ******************************************************************************/
 
 #include "OpenXRToLeapWrapper.h"
-
 #include "HeadMountedDisplayTypes.h"
 #include "IHandTracker.h"
 #include "IXRTrackingSystem.h"
@@ -15,9 +14,16 @@
 #include "LeapBlueprintFunctionLibrary.h"
 #include "LeapUtility.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
+#include "FUltraleapDevice.h"
+
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
+	static int OpenXRDeviceID = 0;
+
+	OpenXRDeviceID++;
+	DeviceID = OpenXRDeviceID;
+
 	CurrentDeviceInfo = &DummyDeviceInfo;
 	DummyDeviceInfo = {0};
 	DummyDeviceInfo.size = sizeof(LEAP_DEVICE_INFO);
@@ -37,6 +43,8 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 
 	DummyLeapFrame.framerate = 90;
 	DummyLeapFrame.pHands = DummyLeapHands;
+
+	Device = MakeShared<FUltraleapDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, true);
 }
 
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
@@ -59,13 +67,19 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 
 		return;
 	}
-	if (GEngine->XRSystem.IsValid() && (GEngine->XRSystem->GetSystemName() == SystemName))
+	if (!GEngine->XRSystem.IsValid())
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
+	
+		return;
+	}
+	if (GEngine->XRSystem->GetSystemName() == SystemName)
 	{
 		XRTrackingSystem = GEngine->XRSystem.Get();
 	}
 	if (XRTrackingSystem == nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found"));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
 		return;
 	}
 
@@ -410,4 +424,8 @@ void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 	{
 		CallbackDelegate->OnTrackingMode(TrackingMode);
 	}
+}
+IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
+{
+	return Device.Get();
 }

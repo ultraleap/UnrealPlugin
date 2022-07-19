@@ -11,6 +11,7 @@
 #include "CoreMinimal.h"
 #include "LeapWrapper.h"
 #include "SceneManagement.h"
+
 /**
  *
  */
@@ -43,6 +44,18 @@ public:
 		SwizzleW = ToW;
 	}
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
+	virtual uint32_t GetDeviceID() override
+	{
+		return DeviceID;
+	}
+	virtual FString GetDeviceSerial() override
+	{
+		// NOTE: When we support device serials in OpenXR we can return them here
+		return FString::Printf(TEXT("OpenXR Device %d"), DeviceID);
+	}
+
+	virtual IHandTrackingDevice* GetDevice() override;
+	
 
 private:
 	class IXRTrackingSystem* XRTrackingSystem = nullptr;
@@ -60,4 +73,7 @@ private:
 	ELeapQuatSwizzleAxisB SwizzleY = ELeapQuatSwizzleAxisB::MinusZ;
 	ELeapQuatSwizzleAxisB SwizzleZ = ELeapQuatSwizzleAxisB::X;
 	ELeapQuatSwizzleAxisB SwizzleW = ELeapQuatSwizzleAxisB::W;
+
+	int32 DeviceID = 0;
+	TSharedPtr<class FUltraleapDevice> Device;
 };

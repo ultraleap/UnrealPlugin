@@ -14,6 +14,7 @@
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
+#define USE_OPENXR 1
 
 FLeapWrapper::FLeapWrapper()
 	: bIsRunning(false)
@@ -21,6 +22,9 @@ FLeapWrapper::FLeapWrapper()
 	, InterpolatedFrame(nullptr)
 	, InterpolatedFrameSize(0)
 {
+#if USE_OPENXR
+	UseOpenXR = true;
+#endif
 }
 
 FLeapWrapper::~FLeapWrapper()
@@ -90,6 +94,10 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 				CloseConnectionHandle(Handle);
 			});
 		}
+	}
+	if (UseOpenXR)
+	{
+		AddOpenXRDevice();
 	}
 	return &ConnectionHandle;
 }
@@ -922,5 +930,27 @@ void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 {
 	DevicesToCleanup.AddUnique(DeviceWrapper);	
 }
+void FLeapWrapper::AddOpenXRDevice()
+{
+	// this has to run once the system starts ticking
+	// as it needs GEngine
+	AsyncTask(ENamedThreads::GameThread,
+		[this]()
+		{
+			IHandTrackingWrapper* Device = new FOpenXRToLeapWrapper();
 
+			// no OpenXR Hand Tracking Plugin or no XR hardware?
+			if (!Device->IsConnected())
+			{
+				delete Device;
+				return;
+			}
+			// TArray manages object lifetime/destructors without needing TSharedPtr
+			Devices.Add(Device);
+
+			NotifyDeviceAdded(Device);
+			UE_LOG(
+				UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
+		});
+}
 #pragma endregion LeapC Wrapper

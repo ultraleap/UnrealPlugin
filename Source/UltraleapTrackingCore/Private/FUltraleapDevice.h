@@ -28,7 +28,8 @@
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
 {
 public:
-	FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn);
+	FUltraleapDevice(IHandTrackingWrapper* LeapDeviceWrapperIn, ITrackingDeviceWrapper* TrackingDeviceWrapperIn,
+		const bool StartInOpenXRMode = false);
 	virtual ~FUltraleapDevice();
 
 	

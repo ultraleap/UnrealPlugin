@@ -173,11 +173,11 @@ void FUltraleapTrackingInputDevice::OnDeviceFailure(const eLeapDeviceStatus Fail
 #pragma region Leap Input Device
 
 #define LOCTEXT_NAMESPACE "UltraleapTracking"
-#define START_IN_OPEN_XR_MODE 0
+
 FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 	: MessageHandler(InMessageHandler), Leap(nullptr), Connector(nullptr)
 {
-	InitTrackingSource(START_IN_OPEN_XR_MODE);
+	InitTrackingSource();
 	
 
 	// Multi-device note: attach multiple devices and get another ID?
@@ -195,6 +195,7 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 #undef LOCTEXT_NAMESPACE
 void FUltraleapTrackingInputDevice::PostEarlyInit()
 {
+
 }
 FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 {
@@ -481,7 +482,7 @@ void FUltraleapTrackingInputDevice::OnDeviceDetach()
 }
 
 #pragma endregion BodyState
-void FUltraleapTrackingInputDevice::InitTrackingSource(const bool UseOpenXRAsSource)
+void FUltraleapTrackingInputDevice::InitTrackingSource()
 {
 	if (IsWaitingForConnect)
 	{
@@ -493,20 +494,13 @@ void FUltraleapTrackingInputDevice::InitTrackingSource(const bool UseOpenXRAsSou
 		Leap->CloseConnection();
 	}
 
-	if (UseOpenXRAsSource)
-	{
-		Leap = TSharedPtr<IHandTrackingWrapper>(new FOpenXRToLeapWrapper);
-	}
-	else
-	{
-		FLeapWrapper* Wrapper = new FLeapWrapper;
-		Connector = dynamic_cast<ILeapConnector*>(Wrapper);
-		Leap = TSharedPtr<IHandTrackingWrapper>(Wrapper);
-	}
-	if (!UseOpenXRAsSource)
-	{
-		IsWaitingForConnect = true;
-	}
+	
+	FLeapWrapper* Wrapper = new FLeapWrapper;
+	Connector = dynamic_cast<ILeapConnector*>(Wrapper);
+	Leap = TSharedPtr<IHandTrackingWrapper>(Wrapper);
+	
+	IsWaitingForConnect = true;
+	
 	static const bool UseMultiDevice = true;
 	Leap->OpenConnection(this, UseMultiDevice);
 }

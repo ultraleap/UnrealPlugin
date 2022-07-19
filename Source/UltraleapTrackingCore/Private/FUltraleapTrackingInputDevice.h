@@ -105,7 +105,7 @@ private:
 	bool EmitKeyDownEventForKey(FKey Key, int32 User, bool Repeat);
 	bool EmitAnalogInputEventForKey(FKey Key, float Value, int32 User, bool Repeat);
 	
-	void InitTrackingSource(const bool UseOpenXRAsSource);
+	void InitTrackingSource();
 
 	TArray<FString> AttachedDevices;
 	

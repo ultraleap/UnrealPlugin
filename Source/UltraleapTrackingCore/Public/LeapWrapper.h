@@ -314,9 +314,12 @@ private:
 	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent, const uint32_t DeviceID);
 
 	bool bIsConnected = false;
+	bool UseOpenXR = false;
 
 	void AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle);
 	void RemoveDevice(const uint32_t DeviceID);
+
+	void AddOpenXRDevice();
 
 	IHandTrackingWrapper* GetSingularDeviceBySerial(const FString& DeviceSerial);
 	LEAP_DEVICE GetDeviceHandleFromDeviceID(const uint32_t DeviceID);
@@ -329,4 +332,5 @@ private:
 	void NotifyDeviceRemoved(IHandTrackingWrapper* Device);
 	void CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper* Device);
 	void RemoveDeviceDirect(const uint32_t DeviceID);
+
 };
