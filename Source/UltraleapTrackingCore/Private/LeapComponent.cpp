@@ -244,7 +244,7 @@ void ULeapComponent::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	Super::PostEditChangeProperty(e);
 }
 #endif
-void ULeapComponent::RefreshDeviceList() 
+void ULeapComponent::RefreshDeviceList(const bool NotifyChangeToUI) 
 {
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
 	if (Connector)
@@ -252,7 +252,7 @@ void ULeapComponent::RefreshDeviceList()
 		AvailableDeviceSerials.Empty();
 		Connector->GetDeviceSerials(AvailableDeviceSerials);
 #if WITH_EDITOR
-		if (DetailBuilder)
+		if (DetailBuilder && NotifyChangeToUI)
 		{
 			auto DeviceSerialProperty = DetailBuilder->GetProperty(GET_MEMBER_NAME_CHECKED(ULeapComponent, ActiveDeviceSerial));
 			if (DeviceSerialProperty->IsValidHandle())
@@ -343,7 +343,7 @@ void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 	}
 	else
 	{
-		RefreshDeviceList();
+		RefreshDeviceList(true);
 	}
 }
 void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
@@ -353,5 +353,5 @@ void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 		UnsubscribeFromCurrentDevice();
 		CurrentHandTrackingDevice = nullptr;
 	}
-	RefreshDeviceList();
+	RefreshDeviceList(true);
 }

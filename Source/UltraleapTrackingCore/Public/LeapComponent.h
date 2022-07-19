@@ -203,7 +203,7 @@ protected:
 	bool UpdateActiveDevice(const FString& DeviceSerial);
 
 private:
-	void RefreshDeviceList();
+	void RefreshDeviceList(const bool NotifyChangeToUI = false);
 	bool SubscribeToDevice();
 	bool UnsubscribeFromCurrentDevice();
 
