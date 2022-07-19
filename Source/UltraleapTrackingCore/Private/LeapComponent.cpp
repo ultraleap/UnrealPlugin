@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 #include "LeapComponent.h"
-#include "JointOcclusionActor.h"
+#include "Multileap/JointOcclusionActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "IUltraleapTrackingPlugin.h"
 

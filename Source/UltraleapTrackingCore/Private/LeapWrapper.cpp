@@ -10,6 +10,7 @@
 #include "LeapDeviceWrapper.h"
 #include "LeapAsync.h"
 #include "LeapUtility.h"
+#include "Multileap/DeviceCombiner.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
