@@ -99,6 +99,37 @@ UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContext
 		return nullptr;
 	}
 }
+UBodyStateSkeleton* UBodyStateBPLibrary::RequestCombinedDevice(
+	UObject* WorldContextObject, const TArray<FString>& DeviceSerials,const EBSDeviceCombinerClass CombinerClass)
+{
+#if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 16
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject);
+#else
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+#endif
+	if (World == nullptr)
+	{
+		UE_LOG(BodyStateLog, Warning, TEXT("RequestCombinedDevice:: Wrong world context"))
+		return nullptr;
+	}
+
+	if (IBodyState::IsAvailable() && (World->IsGameWorld() || World->IsPreviewWorld()))
+	{
+		const int BodyStateDeviceID = IBodyState::Get().RequestCombinedDevice(DeviceSerials,CombinerClass);
+		if (BodyStateDeviceID >= 0)
+		{
+			return SkeletonForDevice(WorldContextObject, BodyStateDeviceID);
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
+}
 
 FTransform UBodyStateBPLibrary::TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance)
 {

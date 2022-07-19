@@ -446,6 +446,8 @@ public:
 	 */
 	virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent);
 #endif	  // WITH_EDITOR
+
 	int32 GetDeviceIDFromDeviceSerial(const FString& DeviceSerial);
 	int32 GetActiveDeviceID();
+	UBodyStateSkeleton* GetCurrentSkeleton();
 };

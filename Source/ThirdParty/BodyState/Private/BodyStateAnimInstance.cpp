@@ -1009,12 +1009,27 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 		Component->SetBoundsScale(1);
 	}
 }
+UBodyStateSkeleton* UBodyStateAnimInstance::GetCurrentSkeleton()
+{
+	UBodyStateSkeleton* Skeleton = nullptr;
+
+	if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR)
+	{
+		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
+	}
+	else if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_COMBINED)
+	{
+		Skeleton = UBodyStateBPLibrary::RequestCombinedDevice(this, CombinedDeviceSerials, DeviceCombinerClass);
+	}
+	return Skeleton;
+}
+
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 	UpdateDeviceList();
 	// Get our default bodystate skeleton
-	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
+	UBodyStateSkeleton* Skeleton = GetCurrentSkeleton();
 	SetAnimSkeleton(Skeleton);
 
 	// One hand mapping
@@ -1061,7 +1076,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
+		BodyStateSkeleton = GetCurrentSkeleton();
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
@@ -1080,7 +1095,7 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// SN: may want to optimize this at some pt
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
+		BodyStateSkeleton = GetCurrentSkeleton();
 		SetAnimSkeleton(BodyStateSkeleton);
 	}
 
@@ -1208,7 +1223,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
+		BodyStateSkeleton = GetCurrentSkeleton();
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
