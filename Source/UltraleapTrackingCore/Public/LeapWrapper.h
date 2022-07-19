@@ -145,6 +145,10 @@ public:
 	{
 		return false;
 	}
+	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) override
+	{
+	
+	}
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -234,6 +238,7 @@ public:
 	{
 		return false;
 	}
+	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) override;
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(
@@ -258,7 +263,7 @@ private:
 	// Frame and handle data
 	// Actual connected devices
 	TArray <IHandTrackingWrapper*> Devices;
-
+	TArray<IHandTrackingWrapper*> DevicesToCleanup;
 	// Aggregated/combined devices
 	TArray<IHandTrackingWrapper*> CombinedDevices;
 
@@ -323,4 +328,5 @@ private:
 	void NotifyDeviceAdded(IHandTrackingWrapper* Device);
 	void NotifyDeviceRemoved(IHandTrackingWrapper* Device);
 	void CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper* Device);
+	void RemoveDeviceDirect(const uint32_t DeviceID);
 };

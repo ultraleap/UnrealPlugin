@@ -146,6 +146,14 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeSt
 	if (Result != eLeapRS_Success)
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in  FLeapDeviceWrapper::GetInterpolatedFrameAtTime"));
+		// if the device goes bad (currently due to system sleep wake and replug)
+		// clean it up
+		if (Connector)
+		{
+			Connector->CleanupBadDevice(this);
+			Connector = nullptr;
+			return nullptr;
+		}
 	}
 	// Check validity of frame size
 	if (FrameSize > 0)

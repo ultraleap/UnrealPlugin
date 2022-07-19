@@ -495,32 +495,36 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
+	if (IsInGameThread())
+	{
+		return RemoveDeviceDirect(DeviceID);
+	}
 	AsyncTask(ENamedThreads::GameThread,
-		[this, DeviceID]()
-		{
-			MapDeviceToCallback.Remove(DeviceID);
-			MapDeviceIDToDevice.Remove(DeviceID);
-	
-			for (auto LeapDeviceWrapper : Devices)
-			{
-				if (LeapDeviceWrapper->GetDeviceID() == DeviceID)
-				{
-					UE_LOG(UltraleapTrackingLog, Log, TEXT("Remove Device %s %d."), *(LeapDeviceWrapper->GetDeviceSerial().Right(4)),
-						LeapDeviceWrapper->GetDeviceID());
-					
-					
-					
-					Devices.Remove(LeapDeviceWrapper);
-					CleanupCombinedDevicesReferencingDevice(LeapDeviceWrapper);
-					NotifyDeviceRemoved(LeapDeviceWrapper);
-					delete LeapDeviceWrapper;
-					break;
-				}
-			}
+		[this, DeviceID]() { 
+			RemoveDeviceDirect(DeviceID);
 		});
 }
+void FLeapWrapper::RemoveDeviceDirect(const uint32_t DeviceID)
+{
+	MapDeviceToCallback.Remove(DeviceID);
+	MapDeviceIDToDevice.Remove(DeviceID);
 
-/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
+	for (auto LeapDeviceWrapper : Devices)
+	{
+		if (LeapDeviceWrapper->GetDeviceID() == DeviceID)
+		{
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("Remove Device %s %d."), *(LeapDeviceWrapper->GetDeviceSerial().Right(4)),
+				LeapDeviceWrapper->GetDeviceID());
+
+			Devices.Remove(LeapDeviceWrapper);
+			CleanupCombinedDevicesReferencingDevice(LeapDeviceWrapper);
+			NotifyDeviceRemoved(LeapDeviceWrapper);
+			delete LeapDeviceWrapper;
+			break;
+		}
+	}
+}
+	/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent, const uint32_t DeviceID)
 {
 	LeapWrapperCallbackInterface* CallbackDelegate = GetCallbackDelegateFromDeviceID(DeviceID);
@@ -820,10 +824,19 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 }
 void FLeapWrapper::TickDevices(const float DeltaTime) 
 {
+	// safe point to cleanup force deleted devices
+	for (auto DeviceToRemove : DevicesToCleanup)
+	{
+		RemoveDevice(DeviceToRemove->GetDeviceID());
+	}
+	DevicesToCleanup.Empty();
 	TArray<IHandTrackingWrapper*> AllDevices;
 
 	// tick real devices first
 	AllDevices.Append(Devices);
+	
+	//UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d"), Devices.Num());
+	
 	AllDevices.Append(CombinedDevices);
 	for (auto Device : AllDevices)
 	{
@@ -903,5 +916,9 @@ void FLeapWrapper::CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper*
 		delete CombinedDevice;
 	}
 
+}
+void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
+{
+	DevicesToCleanup.AddUnique(DeviceWrapper);	
 }
 #pragma endregion LeapC Wrapper

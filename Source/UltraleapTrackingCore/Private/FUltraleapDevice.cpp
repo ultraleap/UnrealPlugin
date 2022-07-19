@@ -412,11 +412,20 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 
 			// Get the future interpolated finger frame
 			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
+
+			if (!Frame)
+			{
+				return;
+			}
 			CurrentFrame.SetFromLeapFrame(Frame);
 
 			// Get the future interpolated hand frame, farther than fingers to provide
 			// lower latency
 			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+			if (!Frame)
+			{
+				return;
+			}
 			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
 
 			// Track our extrapolation time in stats

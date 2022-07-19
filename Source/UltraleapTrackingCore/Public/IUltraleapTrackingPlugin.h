@@ -118,6 +118,7 @@ public:
 	// device combination, does this device aggregate the given Devices
 	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
 	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
+	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 };
 class ILeapConnectorCallbacks
 {
