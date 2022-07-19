@@ -922,4 +922,5 @@ void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 {
 	DevicesToCleanup.AddUnique(DeviceWrapper);	
 }
+
 #pragma endregion LeapC Wrapper

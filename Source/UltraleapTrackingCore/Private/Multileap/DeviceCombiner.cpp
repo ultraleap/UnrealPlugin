@@ -35,7 +35,7 @@ FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHand
 		CombinedDeviceSerial += DeviceToCombine->GetDeviceSerial().Right(4);
 		CombinedDeviceSerial += " ";
 	}
-	// create a new combiner otherwise
+	// create a new combiner
 	switch (DeviceCombinerClass)
 	{
 		case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE:
