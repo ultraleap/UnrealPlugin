@@ -226,7 +226,7 @@ public:
       float JointRotToPalmFactor = 0.2;
       //How much should joint occlusion influence the overall hand confidence?
       //   [Range(0f, 1f)]
-      float JointOcclusionFactor = 1;
+      float JointOcclusionFactor = 0;
 
 
       bool DebugJointOrigins = false;

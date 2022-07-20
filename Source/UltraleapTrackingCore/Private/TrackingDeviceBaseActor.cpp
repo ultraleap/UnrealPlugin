@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 /******************************************************************************
  * Copyright (C) Ultraleap, Inc. 2011-2021.                                   *
  *                                                                            *
