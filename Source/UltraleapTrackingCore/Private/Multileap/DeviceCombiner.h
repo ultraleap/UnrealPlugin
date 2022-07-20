@@ -81,17 +81,11 @@ private:
 	uint32_t DeviceID;
 
 	
-	//LEAP_TRACKING_EVENT* LatestFrame = nullptr;
 	LEAP_CONNECTION ConnectionHandle = nullptr;
 	// Threading variables
 	FCriticalSection* DataLock;
 	TFuture<void> ProducerLambdaFuture;
 
-	//LEAP_TRACKING_EVENT* InterpolatedFrame;
-	//uint64 InterpolatedFrameSize;
-
-	//void SetFrame(const LEAP_TRACKING_EVENT* Frame);
-	//void SetDevice(const LEAP_DEVICE_INFO* DeviceProps);
 	void CleanupLastDevice();
 
 	// Received LeapC callbacks (filtered by device) converted into game thread events

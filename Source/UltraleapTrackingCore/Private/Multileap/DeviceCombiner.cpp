@@ -156,48 +156,11 @@ void FDeviceCombiner::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool Should
 
 LEAP_TRACKING_EVENT* FDeviceCombiner::GetFrame()
 {
-	/* LEAP_TRACKING_EVENT* currentFrame;
-	DataLock->Lock();
-	currentFrame = LatestFrame;
-	DataLock->Unlock();
-	return currentFrame;*/
 	return nullptr;
 }
 
 LEAP_TRACKING_EVENT* FDeviceCombiner::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
-	/* uint64_t FrameSize = 0;
-	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
-	
-	if (Result != eLeapRS_Success)
-	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in  FDeviceCombiner::GetInterpolatedFrameAtTime"));
-	}
-	// Check validity of frame size
-	if (FrameSize > 0)
-	{
-		// Different frame?
-		if (FrameSize != InterpolatedFrameSize)
-		{
-			// If we already have an allocated frame, free it
-			if (InterpolatedFrame)
-			{
-				free(InterpolatedFrame);
-			}
-			InterpolatedFrame = (LEAP_TRACKING_EVENT*) malloc(FrameSize);
-		}
-		InterpolatedFrameSize = FrameSize;
-
-		// Grab the new frame
-		Result = LeapInterpolateFrameEx(ConnectionHandle, DeviceHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
-
-		if (Result != eLeapRS_Success)
-		{
-			UE_LOG(UltraleapTrackingLog, Log,
-				TEXT("LeapInterpolateFrameEx failed in  FDeviceCombiner::GetInterpolatedFrameAtTime"));
-		}
-	}
-	return InterpolatedFrame;*/
 	return nullptr;
 }
 
@@ -230,7 +193,6 @@ void FDeviceCombiner::CleanupLastDevice()
 /** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
 void FDeviceCombiner::HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent)
 {
-	//SetFrame(TrackingEvent);	// support polling tracking data from different thread
 }
 
 void FDeviceCombiner::HandleImageEvent(const LEAP_IMAGE_EVENT* ImageEvent)
