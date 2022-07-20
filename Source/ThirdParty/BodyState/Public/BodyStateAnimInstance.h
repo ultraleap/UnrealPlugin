@@ -353,7 +353,17 @@ public:
 	UFUNCTION(CallInEditor)
 	TArray<FString> GetSerialOptions() const
 	{
-		TArray<FString> Ret(AvailableDeviceSerials);
+		TArray<FString> Ret;
+		for (auto& Serial : AvailableDeviceSerials)
+		{
+			// we don't want to select combined devices
+			if (Serial.Contains("Combined"))
+			{
+				continue;
+			}
+			Ret.Add(Serial);
+		}
+	
 		Ret.Insert(TEXT("None"), 0);
 		return Ret;
 	}
