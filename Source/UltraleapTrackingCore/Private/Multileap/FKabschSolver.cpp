@@ -11,7 +11,6 @@
 
 FKabschSolver::FKabschSolver()
 {
-	QuatBasis.AddZeroed(3);
 	DataCovariance.AddZeroed(3);
 	Translation = FVector::ZeroVector;
 }
@@ -65,7 +64,8 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 	if (InPoints.Num() != 1)
 	{
 		// Calculate the covariance matrix, is a 3x3 Matrix and Calculate the optimal rotation
-		ExtractRotation(TransposeMult(InPts, RefPts, DataCovariance),OptimalRotation, OptimalRotationIterations);
+		TransposeMult(InPts, RefPts, DataCovariance);
+		ExtractRotation(DataCovariance, OptimalRotation, OptimalRotationIterations);
 	}
 	else
 	{
@@ -78,17 +78,50 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 }
 void FKabschSolver::ExtractRotation(const TArray<FVector>& A, FQuat& Q, const int OptimalRotationIterations)
 {
-}
-TArray<FVector> FKabschSolver::TransposeMult(
-	const TArray<FVector>& Vec1, const TArray<FVector>& Vec2, const TArray<FVector>& Covariance)
-{
-	TArray<FVector> Ret;
+	TArray<FVector> QuatBasis;
+	QuatBasis.AddZeroed(3);
 
-	return Ret;
-}
-TArray<FVector> FKabschSolver::MatrixFromQuaternion(const FQuat& Q, const TArray<FVector>& Covariance)
-{
-	TArray<FVector> Ret;
+	for (int Iter = 0; Iter < OptimalRotationIterations; Iter++)
+	{
+		FQuatRotationMatrix Matrix(Q);
+		Matrix.GetUnitAxes(QuatBasis[0], QuatBasis[1], QuatBasis[2]);
+		FVector Omega = (FVector::CrossProduct(QuatBasis[0], A[0]) + FVector::CrossProduct(QuatBasis[1], A[1]) +
+							FVector::CrossProduct(QuatBasis[2], A[2])) *
+						(1.0f / FMath::Abs(FVector::DotProduct(QuatBasis[0], A[0]) + FVector::DotProduct(QuatBasis[1], A[1]) +
+										   FVector::DotProduct(QuatBasis[2], A[2]) +
+							0.000000001f));
 
-	return Ret;
+		float W = Omega.Size();
+		if (W < 0.000000001f)
+		{
+			break;
+		}
+		FQuat AngleAxis(Omega / W, FMath::RadiansToDegrees(W));
+		Q = AngleAxis * Q;
+		Q = FMath::Lerp(Q, Q, 0);	  // Normalizes the Quaternion; critical for error suppression
+	}
+}
+
+void FKabschSolver::TransposeMult(
+	const TArray<FVector>& Vec1, const TArray<FVector>& Vec2, TArray<FVector>& Covariance)
+{
+	for (int i = 0; i < 3; i++)
+	{	
+		// i is the row in this matrix
+		Covariance[i] = FVector::ZeroVector;
+		for (int j = 0; j < 3; j++)
+		{	 // j is the column in the other matrix
+			for (int k = 0; k < Vec1.Num(); k++)
+			{	 // k is the column in this matrix
+				Covariance[i][j] += Vec1[k][i] * Vec2[k][j];
+			}
+		}
+	}
+}
+void FKabschSolver::MatrixFromQuaternion(const FQuat& Q,  TArray<FVector>& Covariance)
+{
+	// check right up forward vs leap space using Unreal space helpers
+	Covariance[0] = Q * FVector::RightVector;
+	Covariance[1] = Q * FVector::UpVector;
+	Covariance[2] = Q * FVector::ForwardVector;
 }

@@ -44,10 +44,10 @@ protected:
 
 private:
 	// Calculate Covariance Matrices --------------------------------------------------
-	TArray<FVector> TransposeMult(const TArray<FVector>& Vec1, const TArray<FVector>& Vec2, const TArray<FVector>& Covariance);
-	static TArray<FVector> MatrixFromQuaternion(const FQuat& Q,const TArray<FVector>& Covariance);
+	void TransposeMult(const TArray<FVector>& Vec1, const TArray<FVector>& Vec2, TArray<FVector>& Covariance);
+	static void MatrixFromQuaternion(const FQuat& Q, TArray<FVector>& Covariance);
 
-	TArray<FVector> QuatBasis;
+	
 	TArray<FVector> DataCovariance;
 	FVector Translation;
 	FQuat OptimalRotation = FQuat::Identity;
