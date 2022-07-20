@@ -494,7 +494,7 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 		[this,DeviceInfo, DeviceID, DeviceHandle]()
 		{
 			IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
-			// TArray manages object lifetime/destructors without needing TSharedPtr
+		
 			Devices.Add(Device);
 			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
 			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
@@ -536,7 +536,7 @@ void FLeapWrapper::RemoveDeviceDirect(const uint32_t DeviceID)
 		}
 	}
 }
-	/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
+/** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent, const uint32_t DeviceID)
 {
 	LeapWrapperCallbackInterface* CallbackDelegate = GetCallbackDelegateFromDeviceID(DeviceID);
@@ -948,13 +948,12 @@ void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDeleg
 				delete Device;
 				return;
 			}
-			// if we're replacint the leap connect
+			// if we're replacing the leap connect,
 			// callback here so the caller gets a connected notification
 			if (InCallbackDelegate)
 			{
 				InCallbackDelegate->OnConnect();
 			}
-			// TArray manages object lifetime/destructors without needing TSharedPtr
 			Devices.Add(Device);
 
 			NotifyDeviceAdded(Device);
