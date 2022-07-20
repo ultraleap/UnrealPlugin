@@ -14,7 +14,7 @@
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
-#define USE_OPENXR 1
+#define USE_OPENXR 0
 
 FLeapWrapper::FLeapWrapper()
 	: bIsRunning(false)
@@ -64,12 +64,6 @@ void FLeapWrapper::SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallb
 }
 LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
-
-	if (UseOpenXR)
-	{
-		AddOpenXRDevice(InCallbackDelegate);
-		return nullptr;
-	}
 	ConnectorCallbackDelegate = InCallbackDelegate;
 	// Don't use config for now
 	LEAP_CONNECTION_CONFIG Config = {0};
@@ -101,7 +95,10 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 			});
 		}
 	}
-	
+	if (UseOpenXR)
+	{
+		AddOpenXRDevice(nullptr);
+	}
 	return &ConnectionHandle;
 }
 LeapWrapperCallbackInterface* FLeapWrapper::GetCallbackDelegateFromDeviceID(const uint32_t DeviceID)
