@@ -667,8 +667,6 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	FVector MergedPalmPos = Hands[0]->Palm.Position * HandConfidences[0];
 	FQuat MergedPalmRot = Hands[0]->Palm.Orientation.Quaternion();
 
-//	HandRet = *Hands[0];
-//	return;
 	for (int HandsIdx = 1; HandsIdx < Hands.Num(); HandsIdx++)
 	{
 		// position
@@ -710,7 +708,6 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 		MergedJointPositions[JointIdx] /= Hands.Num();
 	}
 #else
-
 	for (int HandsIdx = 0; HandsIdx < Hands.Num(); HandsIdx++)
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
@@ -719,6 +716,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 		}
 	}
 #endif //DEBUG_PASSTHROUGH_CONFIDENCE
+
 	// combine everything to a hand
 	ConvertToWorldSpaceHand(HandRet, IsLeft, MergedPalmPos, MergedPalmRot, MergedJointPositions);
 	
