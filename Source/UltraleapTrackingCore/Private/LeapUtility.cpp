@@ -20,11 +20,11 @@ DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 #define UE_TO_LEAP_SCALE 10.f
 
 // in mm
-FVector FLeapUtility::LeapMountTranslationOffset = FVector(80.f, 0, 0);
-FQuat FLeapUtility::LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
+//FVector FLeapUtility::LeapMountTranslationOffset = FVector(80.f, 0, 0);
+//FQuat FLeapUtility::LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
 
-FQuat FLeapUtility::FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
-FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
+//FQuat FLeapUtility::FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
+//FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
@@ -50,7 +50,7 @@ FRotator FLeapUtility::CombineRotators(FRotator A, FRotator B)
 
 	return FRotator(BQuat * AQuat);
 }
-
+/*
 void FLeapUtility::SetLeapGlobalOffsets(const FVector& TranslationOffset, const FRotator& RotationOffset)
 {
 	LeapMountTranslationOffset = TranslationOffset;
@@ -60,7 +60,7 @@ void FLeapUtility::SetLeapGlobalOffsets(const FVector& TranslationOffset, const 
 	FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
 	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 }
-
+*/
 // Single point to handle leap conversion
 FVector FLeapUtility::ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector)
 {
@@ -68,7 +68,7 @@ FVector FLeapUtility::ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector)
 	return FVector(LeapVector.y, -LeapVector.x, -LeapVector.z);
 }
 
-FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
+FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion, const FQuat& LeapMountRotationOffset)
 {
 	FQuat Quat;
 
@@ -84,15 +84,15 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 		UE_LOG(
 			UltraleapTrackingLog, Log, TEXT("FLeapUtility::ConvertLeapQuatToFQuat() Warning - NAN received from tracking device"));
 	}
-	return Quat * FLeapUtility::LeapRotationOffset;
+	return Quat * LeapMountRotationOffset;
 }
 
-FVector AdjustForLeapFacing(FVector In)
+FVector AdjustForLeapFacing(FVector In,const FQuat& FacingAdjustQuat)
 {
-	return FLeapUtility::FacingAdjustQuat.RotateVector(In);
+	return FacingAdjustQuat.RotateVector(In);
 }
 
-FVector AdjustForHMD(FVector In)
+FVector AdjustForHMD(FVector In, const FVector& LeapMountTranslationOffset)
 {
 	if (GEngine->XRSystem.IsValid())
 	{
@@ -100,7 +100,7 @@ FVector AdjustForHMD(FVector In)
 		FVector Position;
 		GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, OrientationQuat, Position);
 		FVector Out = OrientationQuat.RotateVector(In);
-		Position += OrientationQuat.RotateVector(FLeapUtility::LeapMountTranslationOffset);
+		Position += OrientationQuat.RotateVector(LeapMountTranslationOffset);
 		Out += Position;
 		return Out;
 	}
@@ -124,7 +124,8 @@ FVector AdjustForHMDOrientation(FVector In)
 		return In;
 }
 
-FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector)
+FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+	const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
 	// Scale from mm to cm (ue default)
 	FVector ConvertedVector =
@@ -139,9 +140,9 @@ FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEA
 	return LeapMountRotationOffset.RotateVector(ConvertedVector);
 }
 
-FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion)
+FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset)
 {
-	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion);
+	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion, LeapMountRotationOffset);
 	return LeapMountRotationOffset * UEQuat;
 }
 

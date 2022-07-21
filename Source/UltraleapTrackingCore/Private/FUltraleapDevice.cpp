@@ -415,7 +415,7 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			{
 				return;
 			}
-			CurrentFrame.SetFromLeapFrame(Frame);
+			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 
 			// Get the future interpolated hand frame, farther than fingers to provide
 			// lower latency
@@ -424,20 +424,20 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			{
 				return;
 			}
-			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame);
+			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame,Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 
 			// Track our extrapolation time in stats
 			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
 		}
 		else
 		{
-			CurrentFrame.SetFromLeapFrame(Frame);
+			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 			Stats.FrameExtrapolationInMS = 0;
 		}
 	}
 	else
 	{
-		CurrentFrame.SetFromLeapFrame(Frame);
+		CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 		Stats.FrameExtrapolationInMS = 0;
 	}
 
@@ -1400,7 +1400,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	}
 
 	// Always sync global offsets
-	FLeapUtility::SetLeapGlobalOffsets(Options.HMDPositionOffset, Options.HMDRotationOffset);
+	//FLeapUtility::SetLeapGlobalOffsets(Options.HMDPositionOffset, Options.HMDRotationOffset);
 
 	/*UseTimeBasedVisibilityCheck =*/UseTimeBasedGestureCheck = !Options.bUseFrameBasedGestureDetection;
 

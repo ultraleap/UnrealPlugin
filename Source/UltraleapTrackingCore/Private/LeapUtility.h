@@ -20,15 +20,16 @@ public:
 	static void LogRotation(const FString& Text, const FRotator& Rotation);
 	static FRotator CombineRotators(FRotator A, FRotator B);
 
-	static void SetLeapGlobalOffsets(const FVector& TranslationOffset, const FRotator& RotationOffset);
+	//static void SetLeapGlobalOffsets(const FVector& TranslationOffset, const FRotator& RotationOffset);
 
 	// Conversion
 	// To ue
 	static FVector ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector);
-	static FQuat ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion);
+	static FQuat ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion, const FQuat& LeapMountRotationOffset);
 
-	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector);
-	static FQuat ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion);
+	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset,const FQuat& LeapMountRotationOffset);
+	static FQuat ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset);
 
 	static FMatrix ConvertLeapBasisMatrix(LEAP_DISTORTION_MATRIX LeapMatrix);
 	static FMatrix SwapLeftHandRuleForRight(
@@ -41,10 +42,10 @@ public:
 	static float ScaleLeapFloatToUE(float LeapFloat);
 	static float ScaleUEToLeap(float UEFloat);
 
-	static FVector LeapMountTranslationOffset;
-	static FQuat LeapMountRotationOffset;
-	static FQuat FacingAdjustQuat;
-	static FQuat LeapRotationOffset;
+	//static FVector LeapMountTranslationOffset;
+	//static FQuat LeapMountRotationOffset;
+	//static FQuat FacingAdjustQuat;
+	//static FQuat LeapRotationOffset;
 };
 
 class LeapUtilityTimer
