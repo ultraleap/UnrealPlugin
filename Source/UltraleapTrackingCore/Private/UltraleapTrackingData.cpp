@@ -430,8 +430,8 @@ FLeapOptions::FLeapOptions()
 	HandInterpFactor = 0.f;
 	FingerInterpFactor = 0.f;
 	// in mm
-	HMDPositionOffset = FVector(90.0, 0, 0);	// Vive default, for oculus use 80,0,0
-	HMDRotationOffset = FRotator(0, 0, 0);		// If imperfectly mounted it might need to sag
+//	HMDPositionOffset = FVector(90.0, 0, 0);	// Vive default, for oculus use 80,0,0
+//	HMDRotationOffset = FRotator(0, 0, 0);		// If imperfectly mounted it might need to sag
 	bUseFrameBasedGestureDetection = false;
 	StartGrabThreshold = .8f;
 	EndGrabThreshold = .5f;
@@ -440,6 +440,9 @@ FLeapOptions::FLeapOptions()
 	GrabTimeout = 100000;
 	PinchTimeout = 100000;
 	bUseOpenXRAsSource = false;
+
+	HMDPositionOffset = FVector(80.f, 0, 0);
+	HMDRotationOffset = FRotator(0, 0, 0);
 	// bEnableImageStreaming = false;		//default image streaming to off
 }
 

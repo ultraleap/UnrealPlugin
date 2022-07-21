@@ -1397,12 +1397,11 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	if (Options.Mode == ELeapMode::LEAP_MODE_DESKTOP)
 	{
 		Options.bUseTimeWarp = false;
+		Options.HMDPositionOffset = FVector(0, 0, 0);
+		Options.HMDRotationOffset = FRotator::ZeroRotator;
 	}
 
-	// Always sync global offsets
-	//FLeapUtility::SetLeapGlobalOffsets(Options.HMDPositionOffset, Options.HMDRotationOffset);
-
-	/*UseTimeBasedVisibilityCheck =*/UseTimeBasedGestureCheck = !Options.bUseFrameBasedGestureDetection;
+	UseTimeBasedGestureCheck = !Options.bUseFrameBasedGestureDetection;
 
 	StartGrabThreshold = Options.StartGrabThreshold;
 	EndGrabThreshold = Options.EndGrabThreshold;

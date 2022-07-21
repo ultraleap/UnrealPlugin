@@ -19,12 +19,7 @@ DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 #define LEAP_TO_UE_SCALE 0.1f
 #define UE_TO_LEAP_SCALE 10.f
 
-// in mm
-//FVector FLeapUtility::LeapMountTranslationOffset = FVector(80.f, 0, 0);
-//FQuat FLeapUtility::LeapMountRotationOffset = FQuat(FRotator(0, 0, 0));
-
-//FQuat FLeapUtility::FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
-//FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
+FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
@@ -50,17 +45,7 @@ FRotator FLeapUtility::CombineRotators(FRotator A, FRotator B)
 
 	return FRotator(BQuat * AQuat);
 }
-/*
-void FLeapUtility::SetLeapGlobalOffsets(const FVector& TranslationOffset, const FRotator& RotationOffset)
-{
-	LeapMountTranslationOffset = TranslationOffset;
-	LeapMountRotationOffset = RotationOffset.Quaternion();
 
-	// These need to be set from a call due to static constants not being set since 4.20
-	FacingAdjustQuat = FQuat(FRotator(90.f, 0.f, 0.f));
-	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
-}
-*/
 // Single point to handle leap conversion
 FVector FLeapUtility::ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector)
 {
@@ -87,42 +72,6 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion, co
 	return Quat * LeapMountRotationOffset;
 }
 
-FVector AdjustForLeapFacing(FVector In,const FQuat& FacingAdjustQuat)
-{
-	return FacingAdjustQuat.RotateVector(In);
-}
-
-FVector AdjustForHMD(FVector In, const FVector& LeapMountTranslationOffset)
-{
-	if (GEngine->XRSystem.IsValid())
-	{
-		FQuat OrientationQuat;
-		FVector Position;
-		GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, OrientationQuat, Position);
-		FVector Out = OrientationQuat.RotateVector(In);
-		Position += OrientationQuat.RotateVector(LeapMountTranslationOffset);
-		Out += Position;
-		return Out;
-	}
-	else
-	{
-		return In;
-	}
-}
-
-FVector AdjustForHMDOrientation(FVector In)
-{
-	if (GEngine->XRSystem.IsValid())
-	{
-		FQuat OrientationQuat;
-		FVector Position;
-		GEngine->XRSystem->GetCurrentPose(IXRTrackingSystem::HMDDeviceId, OrientationQuat, Position);
-		FVector Out = OrientationQuat.RotateVector(In);
-		return Out;
-	}
-	else
-		return In;
-}
 
 FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 	const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
@@ -142,43 +91,11 @@ FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 
 FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset)
 {
-	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion, LeapMountRotationOffset);
+	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion, LeapRotationOffset);
 	return LeapMountRotationOffset * UEQuat;
 }
 
-FMatrix FLeapUtility::ConvertLeapBasisMatrix(LEAP_DISTORTION_MATRIX LeapMatrix)
-{
-	/*
-	Leap Basis depends on hand type with -z, x, y as general format. This then needs to be inverted to point correctly (x =
-	forward), which yields the matrix below.
-	*/
-	FVector InX, InY, InZ, InW;
-	/*InX.Set(LeapMatrix.zBasis.z, -LeapMatrix.zBasis.x, -LeapMatrix.zBasis.y);
-	InY.Set(-LeapMatrix.xBasis.z, LeapMatrix.xBasis.x, LeapMatrix.xBasis.y);
-	InZ.Set(-LeapMatrix.yBasis.z, LeapMatrix.yBasis.x, LeapMatrix.yBasis.y);
-	InW.Set(-LeapMatrix.origin.z, LeapMatrix.origin.x, LeapMatrix.origin.y);
 
-	if (LeapShouldAdjustForFacing)
-	{
-		InX = AdjustForLeapFacing(InX);
-		InY = AdjustForLeapFacing(InY);
-		InZ = AdjustForLeapFacing(InZ);
-		InW = AdjustForLeapFacing(InW);
-
-		if (LeapShouldAdjustRotationForHMD)
-		{
-			InX = adjustForHMDOrientation(InX);
-			InY = adjustForHMDOrientation(InY);
-			InZ = adjustForHMDOrientation(InZ);
-			InW = adjustForHMDOrientation(InW);
-		}
-	}
-
-	Disabled for now, not sure what the equivalent is now
-	*/
-
-	return (FMatrix(InX, InY, InZ, InW));
-}
 FMatrix FLeapUtility::SwapLeftHandRuleForRight(const FMatrix& UEMatrix)
 {
 	FMatrix Matrix = UEMatrix;
