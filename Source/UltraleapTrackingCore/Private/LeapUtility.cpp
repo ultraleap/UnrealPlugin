@@ -53,7 +53,7 @@ FVector FLeapUtility::ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector)
 	return FVector(LeapVector.y, -LeapVector.x, -LeapVector.z);
 }
 
-FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion, const FQuat& LeapMountRotationOffset)
+FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 {
 	FQuat Quat;
 
@@ -69,7 +69,7 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion, co
 		UE_LOG(
 			UltraleapTrackingLog, Log, TEXT("FLeapUtility::ConvertLeapQuatToFQuat() Warning - NAN received from tracking device"));
 	}
-	return Quat * LeapMountRotationOffset;
+	return Quat * LeapRotationOffset;
 }
 
 
@@ -91,7 +91,7 @@ FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 
 FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset)
 {
-	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion, LeapRotationOffset);
+	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion);
 	return LeapMountRotationOffset * UEQuat;
 }
 

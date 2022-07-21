@@ -24,7 +24,7 @@ public:
 	// Conversion
 	// To ue
 	static FVector ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector);
-	static FQuat ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion, const FQuat& LeapMountRotationOffset);
+	static FQuat ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion);
 
 	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 		const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset,const FQuat& LeapMountRotationOffset);

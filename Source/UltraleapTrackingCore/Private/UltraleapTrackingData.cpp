@@ -378,7 +378,7 @@ void FLeapPalmData::SetFromLeapPalm(
 
 	Normal = FLeapUtility::ConvertLeapVectorToFVector(palm->normal);
 
-	Orientation = FLeapUtility::ConvertLeapQuatToFQuat(palm->orientation, LeapMountRotationOffset).Rotator();
+	Orientation = FLeapUtility::ConvertLeapQuatToFQuat(palm->orientation).Rotator();
 
 	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 		palm->position, LeapMountTranslationOffset, LeapMountRotationOffset);
