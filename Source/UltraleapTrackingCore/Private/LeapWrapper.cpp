@@ -528,6 +528,7 @@ void FLeapWrapper::RemoveDeviceDirect(const uint32_t DeviceID)
 			Devices.Remove(LeapDeviceWrapper);
 			CleanupCombinedDevicesReferencingDevice(LeapDeviceWrapper);
 			NotifyDeviceRemoved(LeapDeviceWrapper);
+			DevicesToCleanup.Remove(LeapDeviceWrapper);
 			delete LeapDeviceWrapper;
 			break;
 		}

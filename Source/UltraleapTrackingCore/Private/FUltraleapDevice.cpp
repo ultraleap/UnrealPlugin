@@ -485,6 +485,10 @@ void FUltraleapDevice::ParseEvents()
 		// Rotate our frame by time warp difference
 		CurrentFrame.RotateFrame(FinalHMDRotation);
 		CurrentFrame.TranslateFrame(FinalHMDTranslation);
+
+		// store device origin for combiner
+		// Ideally this should include the HMD offset
+		//SetDeviceOrigin(FTransform(FinalHMDRotation, FinalHMDTranslation));
 	}
 
 	if (LastLeapTime == 0)
