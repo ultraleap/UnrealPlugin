@@ -89,6 +89,7 @@ void FillBone(FLeapBoneData& Bone, const FVector& PrevJoint, const FVector& Next
 	Bone.Rotation = Rotation.Rotator();
 	Bone.Width = Width;
 }
+
 // Construct a hand from local space bones (relative to palm to relative to world)
 void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 	FLeapHandData& Hand, const bool IsLeft, const FVector& PalmPos, const FQuat& PalmRot, const TArray<FVector>& JointPositions)
@@ -129,7 +130,13 @@ void FUltraleapCombinedDevice::ConvertToWorldSpaceHand(
 			}
 			else
 			{
-				BoneRot = Normalized.Rotation().Quaternion();
+				FVector Cross = FVector::CrossProduct(Normalized,
+					(FingerIdx == 0 ? (IsLeft ? -FVector::ForwardVector : FVector::ForwardVector) : FVector::RightVector));
+
+				Cross.Normalize();
+
+				// Equivalent of LookRotation in Unity
+				BoneRot = FRotationMatrix::MakeFromXZ(Normalized, Cross).ToQuat();
 			}
 
 			// Convert to world space from palm space.
