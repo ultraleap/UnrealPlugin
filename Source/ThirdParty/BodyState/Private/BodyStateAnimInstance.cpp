@@ -1290,6 +1290,17 @@ int32 UBodyStateAnimInstance::GetDeviceIDFromDeviceSerial(const FString& DeviceS
 {
 	// Bodystate Device ID 0 is always the merged skeleton
 	int32 Ret = 0;
+	if (DeviceSerial.IsEmpty())
+	{
+		// backwards compatibility
+		// fallback to first device
+		if (DeviceSerialToDeviceID.Num())
+		{
+			TArray<int32> DeviceIDs; 
+			DeviceSerialToDeviceID.GenerateValueArray(DeviceIDs);
+			return DeviceIDs[0];
+		}
+	}
 	if (DeviceSerialToDeviceID.Contains(DeviceSerial))
 	{
 		return DeviceSerialToDeviceID[DeviceSerial];
