@@ -59,7 +59,7 @@ public:
 	virtual void SetDeviceOrigin(const FTransform& UESpaceDeviceOriginIn) override
 	{
 		// at device level, we're in LeapSpace
-		DeviceOrigin = ConvertUEToLeapTransform(UESpaceDeviceOriginIn);
+		DeviceOrigin = ConvertUEToBSTransform(UESpaceDeviceOriginIn);
 	}
 	virtual void UpdateJointOcclusions(class AJointOcclusionActor* Actor) override
 	{
@@ -87,7 +87,7 @@ public:
 
 	FCriticalSection LeapSection;
 
-	static FTransform ConvertUEToLeapTransform(const FTransform& TransformUE);
+	static FTransform ConvertUEToBSTransform(const FTransform& TransformUE);
 	
 protected:
 	FLeapFrameData CurrentFrame;

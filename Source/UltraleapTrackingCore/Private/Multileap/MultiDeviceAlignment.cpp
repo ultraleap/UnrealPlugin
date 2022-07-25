@@ -86,13 +86,22 @@ FVector CalcCentre(const FVector& PrevJoint, const FVector& NextJoint)
 {
 	return FMath::Lerp(PrevJoint, NextJoint, 0.5);
 }
-// Leap data is X Up, Y Right, Z Forward
+// Bodystate data is X Up, Y Right, Z Forward
 // UE is X Forward, Y Right, Z Up
-FTransform ConvertLeapToUETransform(const FTransform& TransformLeap)
+FTransform ConvertBSToUETransform(const FTransform& TransformLeap)
 {
 	FTransform Ret = TransformLeap;
-	Ret.SetLocation(FVector(TransformLeap.GetLocation().Z, TransformLeap.GetLocation().Y, TransformLeap.GetLocation().X));
-	// TODO: convert rotations
+	Ret.SetLocation(
+		FVector(TransformLeap.GetLocation().Z, 
+			TransformLeap.GetLocation().Y, 
+			TransformLeap.GetLocation().X));
+
+	const float Y = TransformLeap.GetRotation().Rotator().Yaw;
+	const float R = TransformLeap.GetRotation().Rotator().Roll;
+	const float P = TransformLeap.GetRotation().Rotator().Pitch;
+
+	Ret.SetRotation(FRotator(Y ,R ,P ).Quaternion());
+
 	return Ret;
 }
 void UMultiDeviceAlignment::Update()
@@ -163,7 +172,7 @@ void UMultiDeviceAlignment::Update()
 					}
 				}
 
-				// This is temporary while we check if any of the hands points are not close enough to eachother
+				// This is temporary while we check if any of the hands points are not close enough to each other
 				PositioningComplete = true;
 
 				for (int i = 0; i < SourceHandPointsRaw.Num(); i++)
@@ -198,7 +207,7 @@ void UMultiDeviceAlignment::Update()
 				FTransform ActorTransform = FTransform(DeviceToOriginDeviceMatrix);
 				
 				// to move the target device, we need to be in UE space. This layer is in LeapSpace so convert
-				ActorTransform = ConvertLeapToUETransform(ActorTransform);
+				ActorTransform = ConvertBSToUETransform(ActorTransform);
 				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
 
 				return;

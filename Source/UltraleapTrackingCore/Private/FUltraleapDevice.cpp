@@ -27,14 +27,19 @@ DECLARE_CYCLE_STAT(TEXT("Multi Leap BodyState Tick"), STAT_MultiLeapBodyStateTic
 #pragma region Utility
 bool FUltraleapDevice::bUseNewTrackingModeAPI = true;
 
-// Leap data is X Up, Y Right, Z Forward
+// Bodystate data is X Up, Y Right, Z Forward
 // UE is X Forward, Y Right, Z Up
 
-FTransform FUltraleapDevice::ConvertUEToLeapTransform(const FTransform& TransformUE)
+FTransform FUltraleapDevice::ConvertUEToBSTransform(const FTransform& TransformUE)
 {
 	FTransform Ret = TransformUE;
 	Ret.SetLocation(FVector(TransformUE.GetLocation().Z, TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
-	// TODO: convert rotations
+	const float Y = TransformUE.GetRotation().Rotator().Yaw;
+	const float R = TransformUE.GetRotation().Rotator().Roll;
+	const float P = TransformUE.GetRotation().Rotator().Pitch;
+
+	// constructor is pitch yaw roll
+	Ret.SetRotation(FRotator(Y, R, P).Quaternion());
 	return Ret;
 }
 // Function call Utility

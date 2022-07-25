@@ -122,6 +122,6 @@ void FKabschSolver::MatrixFromQuaternion(const FQuat& Q,  TArray<FVector>& Covar
 {
 	// check right up forward vs leap space using Unreal space helpers
 	Covariance[0] = Q * FVector::RightVector;
-	Covariance[1] = Q * FVector::UpVector;
-	Covariance[2] = Q * FVector::ForwardVector;
+	Covariance[1] = Q * FVector::ForwardVector;
+	Covariance[2] = Q * FVector::UpVector;
 }
