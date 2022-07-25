@@ -19,7 +19,7 @@ DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 #define LEAP_TO_UE_SCALE 0.1f
 #define UE_TO_LEAP_SCALE 10.f
 
-FQuat FLeapUtility::LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
+FQuat FLeapUtility::LeapRotationOffset;
 
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
@@ -131,4 +131,10 @@ float FLeapUtility::ScaleLeapFloatToUE(float LeapFloat)
 float FLeapUtility::ScaleUEToLeap(float UEFloat)
 {
 	return UEFloat * UE_TO_LEAP_SCALE;	  // mm->cm
+}
+// static, this has to be done during runtime as the static initialiser
+// does not work in shipping builds.
+void FLeapUtility::InitLeapStatics()
+{
+	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 }

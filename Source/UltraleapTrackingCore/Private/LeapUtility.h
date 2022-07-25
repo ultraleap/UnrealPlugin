@@ -40,6 +40,8 @@ public:
 
 	static float ScaleLeapFloatToUE(float LeapFloat);
 	static float ScaleUEToLeap(float UEFloat);
+
+	static void InitLeapStatics();
 	static FQuat LeapRotationOffset;
 };
 

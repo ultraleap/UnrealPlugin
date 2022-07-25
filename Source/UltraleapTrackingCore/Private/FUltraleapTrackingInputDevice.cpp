@@ -190,6 +190,7 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
 
 	IBodyState::Get().SetupGlobalDeviceManager(this);
+	FLeapUtility::InitLeapStatics();
 }
 
 #undef LOCTEXT_NAMESPACE
