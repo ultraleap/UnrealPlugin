@@ -36,7 +36,10 @@ public:
 		const int OptimalRotationIterations = 9,
 		const bool SolveScale = false);
 
-	
+	FVector& GetTranslation()
+	{
+		return Translation;
+	}
 
 protected:
 		// https://animation.rwth-aachen.de/media/papers/2016-MIG-StableRotation.pdf

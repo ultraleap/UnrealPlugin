@@ -101,10 +101,15 @@ FTransform ConvertBSToUETransform(const FTransform& TransformLeap)
 	const float P = TransformLeap.GetRotation().Rotator().Pitch;
 
 	Ret.SetRotation(FRotator(Y ,R ,P ).Quaternion());*/
-	// TODO: now we're inversing tos set the device origin, this needs a different function in the other direction
+	// TODO: now we're inversing to set the device origin, this needs a different function in the other direction
 	FTransform Ret = FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(TransformLeap, false);
 	return Ret;
 }
+/* Matrix4x4 newTransform = transform * thisTransform.localToWorldMatrix;
+thisTransform.position = newTransform.GetVector3();
+thisTransform.rotation = newTransform.GetQuaternion();
+thisTransform.localScale = Vector3.Scale(thisTransform.localScale, transform.lossyScale);
+*/
 void UMultiDeviceAlignment::Update()
 {
 	if (!TargetDevice || !SourceDevice)
@@ -202,18 +207,22 @@ void UMultiDeviceAlignment::Update()
 					return;
 				}
 
-				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPointsRaw, SourceHandPointsRaw, 200);
-
+				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPoints, SourceHandPoints, 200);
+				const FVector& TranslationOnly = Solver.GetTranslation();
 				//FTransform ActorTransform =  ConvertLeapToUETransform(TargetDevice->GetActorTransform());
 				FTransform ActorTransformFromSolver = FTransform(DeviceToOriginDeviceMatrix);
+
+				FTransform TransformPositionOnly(FRotator::ZeroRotator, TranslationOnly);
+				TransformPositionOnly = ConvertBSToUETransform(TransformPositionOnly);
 				ActorTransformFromSolver = ConvertBSToUETransform(ActorTransformFromSolver);
 				// to move the target device, we need to be in UE space. This layer is in LeapSpace so convert
 				FTransform ActorTransform = TargetDevice->GetActorTransform();
 
-			//	FVector OriginalScale = ActorTransform.GetScale3D();
-				ActorTransform *= ActorTransformFromSolver;
-			//	ActorTransform.SetScale3D(OriginalScale);
-				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
+				FRotator OriginalRotation = ActorTransform.GetRotation().Rotator();
+				ActorTransform *= TransformPositionOnly;
+				
+		//		TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
+				TargetDevice->TeleportTo(ActorTransform.GetLocation(),OriginalRotation, false, true);
 
 				return;
 			}
