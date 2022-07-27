@@ -190,6 +190,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool IsActiveDevicePluggedIn();
 
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetMultiDeviceDebugInfo(int32& NumLeftTracked, int32& NumRightTracked);
+
+
 	class IHandTrackingDevice* GetCombinedDeviceBySerials(const TArray<FString>& DeviceSerials);
 
 protected:

@@ -157,6 +157,11 @@ bool FUltraleapCombinedDeviceConfidence::GetJointOcclusionConfidences(
 
 	return false;
 }
+void FUltraleapCombinedDeviceConfidence::GetDebugInfo(int32& NumCombinedLeft, int32& NumCombinedRight)
+{
+	NumCombinedLeft = NumLeftHands;
+	NumCombinedRight = NumRightHands;
+}
 FColourMap* GetColourMapForDevice(AJointOcclusionActor* Actor, IHandTrackingWrapper* Device)
 {
 	const auto& ColourCountMaps = Actor->GetColourCountMaps();
@@ -333,6 +338,10 @@ void FUltraleapCombinedDeviceConfidence::MergeFrames(const TArray<FLeapFrameData
 	CombinedFrame.NumberOfHandsVisible = MergedHands.Num();
 	CombinedFrame.LeftHandVisible = LeftHandVisible;
 	CombinedFrame.RightHandVisible = RightHandVisible;
+	
+	// for debug
+	NumLeftHands = LeftHands.Num();
+	NumRightHands = RightHands.Num();
 }
 
 

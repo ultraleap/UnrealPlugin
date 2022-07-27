@@ -8,7 +8,7 @@
 
 #include "MultiDeviceAlignment.h"
 #include "LeapComponent.h"
-
+#include "FUltraleapDevice.h"
 // Sets default values for this component's properties
 UMultiDeviceAlignment::UMultiDeviceAlignment()
 {
@@ -90,7 +90,7 @@ FVector CalcCentre(const FVector& PrevJoint, const FVector& NextJoint)
 // UE is X Forward, Y Right, Z Up
 FTransform ConvertBSToUETransform(const FTransform& TransformLeap)
 {
-	FTransform Ret = TransformLeap;
+	/* FTransform Ret = TransformLeap;
 	Ret.SetLocation(
 		FVector(TransformLeap.GetLocation().Z, 
 			TransformLeap.GetLocation().Y, 
@@ -100,8 +100,8 @@ FTransform ConvertBSToUETransform(const FTransform& TransformLeap)
 	const float R = TransformLeap.GetRotation().Rotator().Roll;
 	const float P = TransformLeap.GetRotation().Rotator().Pitch;
 
-	Ret.SetRotation(FRotator(Y ,R ,P ).Quaternion());
-
+	Ret.SetRotation(FRotator(Y ,R ,P ).Quaternion());*/
+	FTransform Ret = FUltraleapDevice::ConvertUEToBSTransform(TransformLeap, false);
 	return Ret;
 }
 void UMultiDeviceAlignment::Update()
@@ -204,10 +204,14 @@ void UMultiDeviceAlignment::Update()
 				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPointsRaw, SourceHandPointsRaw, 200);
 
 				//FTransform ActorTransform =  ConvertLeapToUETransform(TargetDevice->GetActorTransform());
-				FTransform ActorTransform = FTransform(DeviceToOriginDeviceMatrix);
-				
+				FTransform ActorTransformFromSolver = FTransform(DeviceToOriginDeviceMatrix);
+				ActorTransformFromSolver = ConvertBSToUETransform(ActorTransformFromSolver);
 				// to move the target device, we need to be in UE space. This layer is in LeapSpace so convert
-				ActorTransform = ConvertBSToUETransform(ActorTransform);
+				FTransform ActorTransform = TargetDevice->GetActorTransform();
+
+			//	FVector OriginalScale = ActorTransform.GetScale3D();
+				ActorTransform *= ActorTransformFromSolver;
+			//	ActorTransform.SetScale3D(OriginalScale);
 				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
 
 				return;

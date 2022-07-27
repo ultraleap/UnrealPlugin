@@ -170,6 +170,17 @@ bool ULeapComponent::IsActiveDevicePluggedIn()
 {
 	return CurrentHandTrackingDevice != nullptr;
 }
+void ULeapComponent::GetMultiDeviceDebugInfo(int32& NumLeftTracked, int32& NumRightTracked)
+{
+	if (MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_COMBINED && CurrentHandTrackingDevice != nullptr)
+	{
+		auto Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			Device->GetDebugInfo(NumLeftTracked, NumRightTracked);
+		}
+	}
+}
 void ULeapComponent::UninitializeComponent()
 {
 	// remove ourselves from the delegates

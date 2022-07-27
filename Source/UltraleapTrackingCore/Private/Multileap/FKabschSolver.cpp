@@ -42,7 +42,9 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 		InPts[i] -= InCentroid;
 		RefPts[i] -= RefCentroid;
 	}
-	Translation = RefCentroid - InCentroid;
+
+	// why is this (translation) never used - same in Unity, for debug?
+	//Translation = RefCentroid - InCentroid;
 
 	// Calculate the scale ratio
 	if (SolveScale && InPoints.Num() > 1)

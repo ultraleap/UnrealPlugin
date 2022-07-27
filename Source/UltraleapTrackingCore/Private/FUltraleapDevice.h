@@ -59,7 +59,7 @@ public:
 	virtual void SetDeviceOrigin(const FTransform& UESpaceDeviceOriginIn) override
 	{
 		// at device level, we're in LeapSpace
-		DeviceOrigin = ConvertUEToBSTransform(UESpaceDeviceOriginIn);
+		DeviceOrigin = ConvertUEToBSTransform(UESpaceDeviceOriginIn, true);
 	}
 	virtual void UpdateJointOcclusions(class AJointOcclusionActor* Actor) override
 	{
@@ -67,6 +67,10 @@ public:
 	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) override
 	{
 		return false;
+	}
+	virtual void GetDebugInfo(int32& NumCombinedLeft, int32& NumCombinedRight) override
+	{
+		NumCombinedLeft = NumCombinedRight = 0;
 	}
 	virtual int32 GetBodyStateDeviceID() override
 	{
@@ -87,7 +91,7 @@ public:
 
 	FCriticalSection LeapSection;
 
-	static FTransform ConvertUEToBSTransform(const FTransform& TransformUE);
+	static FTransform ConvertUEToBSTransform(const FTransform& TransformUE, const bool Direction);
 	
 protected:
 	FLeapFrameData CurrentFrame;

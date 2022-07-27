@@ -196,6 +196,7 @@ public:
 	
 	virtual void UpdateJointOcclusions(AJointOcclusionActor* Actor) override;
 	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) override;
+	virtual void GetDebugInfo(int32& NumCombinedLeft, int32& NumCombinedRight) override;
 
 protected:
 	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) override;
@@ -213,23 +214,23 @@ public:
      // [Range(0f, 1f)]
      float PalmRotFactor = 0.2;
        
-      //How much should the Palm velocity relative to the tracking camera influence the overall hand confidence?")]
-      //  [Range(0f, 1f)]
-      float PalmVelocityFactor = 0;
+    //How much should the Palm velocity relative to the tracking camera influence the overall hand confidence?")]
+    //  [Range(0f, 1f)]
+    float PalmVelocityFactor = 0;
 
-      //How much should the joint rotation relative to the tracking camera influence the overall hand confidence? A confidence value is determined for a joint by looking at the angle between the joint normal and the direction from hand to camera.
-      //  [Range(0f, 1f)]
-      float JointRotFactor = 1;
+    //How much should the joint rotation relative to the tracking camera influence the overall hand confidence? A confidence value is determined for a joint by looking at the angle between the joint normal and the direction from hand to camera.
+    //  [Range(0f, 1f)]
+    float JointRotFactor = 1;
       
-      //How much should the joint rotation relative to the palm normal influence the overall hand confidence?
-      //  [Range(0f, 1f)]
-      float JointRotToPalmFactor = 0.2;
-      //How much should joint occlusion influence the overall hand confidence?
-      //   [Range(0f, 1f)]
-      float JointOcclusionFactor = 0;
+    //How much should the joint rotation relative to the palm normal influence the overall hand confidence?
+    //  [Range(0f, 1f)]
+    float JointRotToPalmFactor = 0.2;
+    //How much should joint occlusion influence the overall hand confidence?
+    //   [Range(0f, 1f)]
+    float JointOcclusionFactor = 0;
 
 
-      bool DebugJointOrigins = false;
+    bool DebugJointOrigins = false;
      
     TMap<IHandTrackingDevice*, FHandPositionHistory> LastLeftHandPositions;
 	TMap<IHandTrackingDevice*, FHandPositionHistory> LastRightHandPositions;
@@ -249,6 +250,9 @@ private:
 
     TMap<IHandTrackingDevice*, FHandConfidenceHistory> HandConfidenceHistoriesLeft;
 	TMap<IHandTrackingDevice*, FHandConfidenceHistory> HandConfidenceHistoriesRight;
+
+	int32 NumLeftHands = 0;
+	int32 NumRightHands = 0;
 
 	void MergeFrames(const TArray<FLeapFrameData>& SourceFrames, FLeapFrameData& CombinedFrame);
 	void AddFrameToTimeVisibleDicts(const TArray<FLeapFrameData>& Frames, const int FrameIdx);
