@@ -101,7 +101,8 @@ FTransform ConvertBSToUETransform(const FTransform& TransformLeap)
 	const float P = TransformLeap.GetRotation().Rotator().Pitch;
 
 	Ret.SetRotation(FRotator(Y ,R ,P ).Quaternion());*/
-	FTransform Ret = FUltraleapDevice::ConvertUEToBSTransform(TransformLeap, false);
+	// TODO: now we're inversing tos set the device origin, this needs a different function in the other direction
+	FTransform Ret = FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(TransformLeap, false);
 	return Ret;
 }
 void UMultiDeviceAlignment::Update()

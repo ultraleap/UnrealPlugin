@@ -29,18 +29,18 @@ bool FUltraleapDevice::bUseNewTrackingModeAPI = true;
 // Bodystate data is X Up, Y Right, Z Forward
 // UE is X Forward, Y Right, Z Up
 
-FTransform FUltraleapDevice::ConvertUEToBSTransform(const FTransform& TransformUE,const bool Direction)
+FTransform FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(const FTransform& TransformUE,const bool Direction)
 {
 	FTransform Ret = TransformUE;
-	Ret.SetLocation(FVector(TransformUE.GetLocation().Z, TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
+	// inverse out so we transform the hand against the device origin on the way in
+	
+	Ret.SetLocation(FVector(-TransformUE.GetLocation().Z, -TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
 	const float Y = TransformUE.GetRotation().Rotator().Yaw;
 	const float R = TransformUE.GetRotation().Rotator().Roll;
 	const float P = TransformUE.GetRotation().Rotator().Pitch;
-
-//	Ret.SetRotation(FLeapUtility::CombineRotators(TransformUE.GetRotation().Rotator(), FRotator(90, 180, 0)).Quaternion());
-		// constructor is pitch yaw roll
 	
-	Ret.SetRotation(FRotator(P, Y, R).Quaternion());
+	// constructor is pitch yaw roll
+	Ret.SetRotation(FRotator(-P, -R , -Y).Quaternion());
 	return Ret;
 }
 // Function call Utility
