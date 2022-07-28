@@ -90,26 +90,9 @@ FVector CalcCentre(const FVector& PrevJoint, const FVector& NextJoint)
 // UE is X Forward, Y Right, Z Up
 FTransform ConvertBSToUETransform(const FTransform& TransformLeap)
 {
-	/* FTransform Ret = TransformLeap;
-	Ret.SetLocation(
-		FVector(TransformLeap.GetLocation().Z, 
-			TransformLeap.GetLocation().Y, 
-			TransformLeap.GetLocation().X));
-
-	const float Y = TransformLeap.GetRotation().Rotator().Yaw;
-	const float R = TransformLeap.GetRotation().Rotator().Roll;
-	const float P = TransformLeap.GetRotation().Rotator().Pitch;
-
-	Ret.SetRotation(FRotator(Y ,R ,P ).Quaternion());*/
-	// TODO: now we're inversing to set the device origin, this needs a different function in the other direction
 	FTransform Ret = FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(TransformLeap, false);
 	return Ret;
 }
-/* Matrix4x4 newTransform = transform * thisTransform.localToWorldMatrix;
-thisTransform.position = newTransform.GetVector3();
-thisTransform.rotation = newTransform.GetQuaternion();
-thisTransform.localScale = Vector3.Scale(thisTransform.localScale, transform.lossyScale);
-*/
 void UMultiDeviceAlignment::Update()
 {
 	if (!TargetDevice || !SourceDevice)
@@ -120,7 +103,7 @@ void UMultiDeviceAlignment::Update()
 	{
 		return;
 	}
-//	if (!PositioningComplete)
+	if (!PositioningComplete)
 	{
 		FLeapFrameData SourceFrame;
 		FLeapFrameData TargetFrame;
@@ -204,27 +187,20 @@ void UMultiDeviceAlignment::Update()
 
 				if (PositioningComplete)
 				{
-				//	return;
+					return;
 				}
 
 				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPoints, SourceHandPoints, 200);
-				FVector TranslationOnly = Solver.GetTranslation();
-				//FTransform ActorTransform =  ConvertLeapToUETransform(TargetDevice->GetActorTransform());
 				FTransform ActorTransformFromSolver = FTransform(DeviceToOriginDeviceMatrix);
-				TranslationOnly = ActorTransformFromSolver.GetLocation();
-
-				FTransform TransformPositionOnly(FRotator::ZeroRotator, TranslationOnly);
-				TransformPositionOnly = ConvertBSToUETransform(TransformPositionOnly);
+				
 				ActorTransformFromSolver = ConvertBSToUETransform(ActorTransformFromSolver);
 				// to move the target device, we need to be in UE space. This layer is in LeapSpace so convert
 				FTransform ActorTransform = TargetDevice->GetActorTransform();
 
-				FRotator OriginalRotation = ActorTransform.GetRotation().Rotator();
-				ActorTransform *= TransformPositionOnly;
+				ActorTransform *= ActorTransformFromSolver;
 				
-		//		TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
-				TargetDevice->TeleportTo(ActorTransform.GetLocation(),OriginalRotation, false, true);
-
+				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
+		
 				return;
 			}
 		}

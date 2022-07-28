@@ -29,7 +29,7 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 	// Calculate the centroid offset and construct the centroid-shifted point matrices
 	FVector InCentroid = FVector::ZeroVector;
 	FVector RefCentroid = FVector::ZeroVector;
-	
+
 	for (int i = 0; i < InPts.Num(); i++)
 	{
 		InCentroid += InPts[i];
@@ -71,11 +71,10 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 		ExtractRotation(DataCovariance, OptimalRotation, OptimalRotationIterations);
 		
 		
-		UE_LOG(UltraleapTrackingLog, Log,
+		/* UE_LOG(UltraleapTrackingLog, Log,
 			TEXT("Kabsch Rotation P %f Y %f R %f"), OptimalRotation.Rotator().Pitch, OptimalRotation.Rotator().Yaw,
 				OptimalRotation.Rotator().Roll);
-
-		// For debug , reset OptimalRotation = FQuat::Identity;
+				*/
 	}
 	else
 	{
@@ -88,7 +87,7 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 }
 void FillMatrixFromQuaternion(const FQuat& Q, TArray<FVector>& Matrix)
 {
-	Matrix[0] = Q * FVector::RightVector;
+	Matrix[0] = Q * -FVector::RightVector;
 	Matrix[1] = Q * FVector::ForwardVector;		// In Unity Up
 	Matrix[2] = Q * FVector::UpVector;			// In Unity Forward
 }
@@ -122,6 +121,8 @@ void FKabschSolver::ExtractRotation(const TArray<FVector>& A, FQuat& Q, const in
 		Q = AngleAxis * Q;
 		Q.Normalize();
 	}
+	// this makes it work but why is Yaw off by 90?
+	Q = FRotator(0, -90, 0).Quaternion() * Q;
 }
 
 void FKabschSolver::TransposeMult(

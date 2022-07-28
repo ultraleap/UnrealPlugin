@@ -42,16 +42,11 @@ FTransform FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(const FTransform
 		Ret.SetLocation(FVector(-TransformUE.GetLocation().Z, -TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
 		// constructor is pitch yaw roll
 		Ret.SetRotation(FRotator(-P, -R , -Y).Quaternion());
-
-		// For debug
-		Ret.SetRotation(FQuat::Identity);
 	}
 	else
 	{
 		Ret.SetLocation(FVector(TransformUE.GetLocation().Z, -TransformUE.GetLocation().Y, -TransformUE.GetLocation().X));
-		// For debug
-		Ret.SetRotation(FQuat::Identity);
-	//	Ret.SetRotation(FRotator(-P, -R, -Y).Quaternion());
+		Ret.SetRotation(FRotator(-R,  P , -Y ).Quaternion());
 	}
 	
 	return Ret;
