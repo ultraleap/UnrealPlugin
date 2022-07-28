@@ -120,7 +120,7 @@ void UMultiDeviceAlignment::Update()
 	{
 		return;
 	}
-	if (!PositioningComplete)
+//	if (!PositioningComplete)
 	{
 		FLeapFrameData SourceFrame;
 		FLeapFrameData TargetFrame;
@@ -204,13 +204,14 @@ void UMultiDeviceAlignment::Update()
 
 				if (PositioningComplete)
 				{
-					return;
+				//	return;
 				}
 
 				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPoints, SourceHandPoints, 200);
-				const FVector& TranslationOnly = Solver.GetTranslation();
+				FVector TranslationOnly = Solver.GetTranslation();
 				//FTransform ActorTransform =  ConvertLeapToUETransform(TargetDevice->GetActorTransform());
 				FTransform ActorTransformFromSolver = FTransform(DeviceToOriginDeviceMatrix);
+				TranslationOnly = ActorTransformFromSolver.GetLocation();
 
 				FTransform TransformPositionOnly(FRotator::ZeroRotator, TranslationOnly);
 				TransformPositionOnly = ConvertBSToUETransform(TransformPositionOnly);

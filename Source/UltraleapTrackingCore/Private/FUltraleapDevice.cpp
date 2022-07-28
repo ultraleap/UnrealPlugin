@@ -32,22 +32,26 @@ bool FUltraleapDevice::bUseNewTrackingModeAPI = true;
 FTransform FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(const FTransform& TransformUE,const bool Direction)
 {
 	FTransform Ret = TransformUE;
+	const float Y = TransformUE.GetRotation().Rotator().Yaw;
+	const float R = TransformUE.GetRotation().Rotator().Roll;
+	const float P = TransformUE.GetRotation().Rotator().Pitch;
 
 	if (Direction)
 	{
 		// inverse out so we transform the hand against the device origin on the way in
 		Ret.SetLocation(FVector(-TransformUE.GetLocation().Z, -TransformUE.GetLocation().Y, TransformUE.GetLocation().X));
-		const float Y = TransformUE.GetRotation().Rotator().Yaw;
-		const float R = TransformUE.GetRotation().Rotator().Roll;
-		const float P = TransformUE.GetRotation().Rotator().Pitch;
-	
 		// constructor is pitch yaw roll
 		Ret.SetRotation(FRotator(-P, -R , -Y).Quaternion());
+
+		// For debug
+		Ret.SetRotation(FQuat::Identity);
 	}
 	else
 	{
 		Ret.SetLocation(FVector(TransformUE.GetLocation().Z, -TransformUE.GetLocation().Y, -TransformUE.GetLocation().X));
-		
+		// For debug
+		Ret.SetRotation(FQuat::Identity);
+	//	Ret.SetRotation(FRotator(-P, -R, -Y).Quaternion());
 	}
 	
 	return Ret;

@@ -13,6 +13,7 @@ FKabschSolver::FKabschSolver()
 {
 	DataCovariance.AddZeroed(3);
 	Translation = FVector::ZeroVector;
+	OptimalRotation = FQuat::Identity;
 }
 FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray<FVector>& RefPoints,
 	const int OptimalRotationIterations , const bool SolveScale)
@@ -68,6 +69,13 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 		// Calculate the covariance matrix, is a 3x3 Matrix and Calculate the optimal rotation
 		TransposeMult(InPts, RefPts, DataCovariance);
 		ExtractRotation(DataCovariance, OptimalRotation, OptimalRotationIterations);
+		
+		
+		UE_LOG(UltraleapTrackingLog, Log,
+			TEXT("Kabsch Rotation P %f Y %f R %f"), OptimalRotation.Rotator().Pitch, OptimalRotation.Rotator().Yaw,
+				OptimalRotation.Rotator().Roll);
+
+		// For debug , reset OptimalRotation = FQuat::Identity;
 	}
 	else
 	{
@@ -78,6 +86,12 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 	FScaleRotationTranslationMatrix TSR3(FVector::OneVector, FRotator::ZeroRotator, -InCentroid);
 	return TSR1 * TSR2 * TSR3;
 }
+void FillMatrixFromQuaternion(const FQuat& Q, TArray<FVector>& Matrix)
+{
+	Matrix[0] = Q * FVector::RightVector;
+	Matrix[1] = Q * FVector::ForwardVector;		// In Unity Up
+	Matrix[2] = Q * FVector::UpVector;			// In Unity Forward
+}
 void FKabschSolver::ExtractRotation(const TArray<FVector>& A, FQuat& Q, const int OptimalRotationIterations)
 {
 	TArray<FVector> QuatBasis;
@@ -85,22 +99,28 @@ void FKabschSolver::ExtractRotation(const TArray<FVector>& A, FQuat& Q, const in
 
 	for (int Iter = 0; Iter < OptimalRotationIterations; Iter++)
 	{
-		FQuatRotationMatrix Matrix(Q);
-		Matrix.GetUnitAxes(QuatBasis[0], QuatBasis[1], QuatBasis[2]);
-		FVector Omega = (FVector::CrossProduct(QuatBasis[0], A[0]) + FVector::CrossProduct(QuatBasis[1], A[1]) +
+		FillMatrixFromQuaternion(Q, QuatBasis);
+
+		
+		FVector Omega = (	FVector::CrossProduct(QuatBasis[0], A[0]) + 
+							FVector::CrossProduct(QuatBasis[1], A[1]) +
 							FVector::CrossProduct(QuatBasis[2], A[2])) *
-						(1.0f / FMath::Abs(FVector::DotProduct(QuatBasis[0], A[0]) + FVector::DotProduct(QuatBasis[1], A[1]) +
-										   FVector::DotProduct(QuatBasis[2], A[2]) +
-							0.000000001f));
+		(1.0f / FMath::Abs(	FVector::DotProduct(QuatBasis[0], A[0]) + 
+							FVector::DotProduct(QuatBasis[1], A[1]) +
+							FVector::DotProduct(QuatBasis[2], A[2]) + 0.000000001f));
 
 		float W = Omega.Size();
 		if (W < 0.000000001f)
 		{
 			break;
 		}
-		FQuat AngleAxis(Omega / W, FMath::RadiansToDegrees(W));
+		FVector NormalizedAngleAxisInput = Omega / W;
+
+		NormalizedAngleAxisInput.Normalize();
+		
+		FQuat AngleAxis(NormalizedAngleAxisInput, W);
 		Q = AngleAxis * Q;
-		Q = FMath::Lerp(Q, Q, 0);	  // Normalizes the Quaternion; critical for error suppression
+		Q.Normalize();
 	}
 }
 
@@ -119,11 +139,4 @@ void FKabschSolver::TransposeMult(
 			}
 		}
 	}
-}
-void FKabschSolver::MatrixFromQuaternion(const FQuat& Q,  TArray<FVector>& Covariance)
-{
-	// check right up forward vs leap space using Unreal space helpers
-	Covariance[0] = Q * FVector::RightVector;
-	Covariance[1] = Q * FVector::ForwardVector;
-	Covariance[2] = Q * FVector::UpVector;
 }
