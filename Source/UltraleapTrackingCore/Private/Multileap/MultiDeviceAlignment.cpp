@@ -137,12 +137,11 @@ void UMultiDeviceAlignment::Update()
 			auto& SourceHandRaw = SourceFrameRaw.Hands[SourceIndex];
 
 			auto TargetHand = GetHandFromFrame(TargetFrame, SourceHand.HandType);
-			auto TargetHandRaw = GetHandFromFrame(TargetFrameRaw, SourceHand.HandType);
 			
 			static const int NumFingers = 5;
 			static const int NumJoints = 4;
 
-			if (TargetHand != nullptr && TargetHandRaw  != nullptr)
+			if (TargetHand != nullptr)
 			{
 				for (int j = 0; j < NumFingers; j++)
 				{
@@ -153,21 +152,15 @@ void UMultiDeviceAlignment::Update()
 						TargetHandPoints.Add(
 							CalcCentre(TargetHand->Digits[j].Bones[k].PrevJoint, TargetHand->Digits[j].Bones[k].NextJoint));
 
-						SourceHandPointsRaw.Add(
-							CalcCentre(SourceHandRaw.Digits[j].Bones[k].PrevJoint, SourceHandRaw.Digits[j].Bones[k].NextJoint));
-						
-						TargetHandPointsRaw.Add(
-							CalcCentre(TargetHandRaw->Digits[j].Bones[k].PrevJoint, TargetHandRaw->Digits[j].Bones[k].NextJoint));
 					}
 				}
 
 				// This is temporary while we check if any of the hands points are not close enough to each other
 				PositioningComplete = true;
 
-				for (int i = 0; i < SourceHandPointsRaw.Num(); i++)
+				for (int i = 0; i < SourceHandPoints.Num(); i++)
 				{
 					const auto Distance = FVector::Distance(SourceHandPoints[i], TargetHandPoints[i]);
-					const auto DistanceRaw = FVector::Distance(SourceHandPointsRaw[i], TargetHandPointsRaw[i]);
 					
 					if (Distance > AlignmentVariance)
 					{

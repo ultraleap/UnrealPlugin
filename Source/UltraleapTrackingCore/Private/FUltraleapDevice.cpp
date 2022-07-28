@@ -46,7 +46,7 @@ FTransform FUltraleapDevice::ConvertUEDeviceOriginToBSTransform(const FTransform
 	else
 	{
 		Ret.SetLocation(FVector(TransformUE.GetLocation().Z, -TransformUE.GetLocation().Y, -TransformUE.GetLocation().X));
-		Ret.SetRotation(FRotator(-R,  P , -Y ).Quaternion());
+		Ret.SetRotation(FRotator(-P ,-R, -Y).Quaternion());
 	}
 	
 	return Ret;

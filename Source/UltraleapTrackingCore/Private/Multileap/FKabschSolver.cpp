@@ -74,7 +74,8 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 		/* UE_LOG(UltraleapTrackingLog, Log,
 			TEXT("Kabsch Rotation P %f Y %f R %f"), OptimalRotation.Rotator().Pitch, OptimalRotation.Rotator().Yaw,
 				OptimalRotation.Rotator().Roll);
-				*/
+		*/
+		 //OptimalRotation = FQuat::Identity;
 	}
 	else
 	{
@@ -87,8 +88,8 @@ FMatrix FKabschSolver::SolveKabsch(const TArray<FVector>& InPoints, const TArray
 }
 void FillMatrixFromQuaternion(const FQuat& Q, TArray<FVector>& Matrix)
 {
-	Matrix[0] = Q * -FVector::RightVector;
-	Matrix[1] = Q * FVector::ForwardVector;		// In Unity Up
+	Matrix[0] = Q * FVector::ForwardVector;
+	Matrix[1] = Q * FVector::RightVector;	   // In Unity Up
 	Matrix[2] = Q * FVector::UpVector;			// In Unity Forward
 }
 void FKabschSolver::ExtractRotation(const TArray<FVector>& A, FQuat& Q, const int OptimalRotationIterations)
@@ -121,8 +122,6 @@ void FKabschSolver::ExtractRotation(const TArray<FVector>& A, FQuat& Q, const in
 		Q = AngleAxis * Q;
 		Q.Normalize();
 	}
-	// this makes it work but why is Yaw off by 90?
-	Q = FRotator(0, -90, 0).Quaternion() * Q;
 }
 
 void FKabschSolver::TransposeMult(
