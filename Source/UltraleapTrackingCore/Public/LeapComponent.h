@@ -132,7 +132,9 @@ public:
 	/** Multidevice configuration, Singular subscribes to a single device. 
 	Combined subscribes to multiple devices combined into one device
 	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Leap Devices", meta = (
+			EditCondition = "DisableEditMultiDeviceMode == false"))
 	TEnumAsByte<ELeapMultiDeviceMode> MultiDeviceMode;
 
 	/** Available device list
@@ -174,6 +176,11 @@ public:
 	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
 	void SetupMultidevice(
 		const TArray<FString>& DeviceSerials, const ELeapMultiDeviceMode MultiDeviceModeIn, const ELeapDeviceCombinerClass CombinerClass);
+
+	/** Allow the user to this set the multidevice mode.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
+	bool DisableEditMultiDeviceMode;
+
 
 #if WITH_EDITOR
 	// property change handlers
