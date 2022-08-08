@@ -177,7 +177,7 @@ public:
 	void SetupMultidevice(
 		const TArray<FString>& DeviceSerials, const ELeapMultiDeviceMode MultiDeviceModeIn, const ELeapDeviceCombinerClass CombinerClass);
 
-	/** Allow the user to this set the multidevice mode.*/
+	/** Disable/Grey out setting the multidevice mode.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
 	bool DisableEditMultiDeviceMode;
 
