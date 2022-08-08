@@ -929,7 +929,7 @@ void FLeapWrapper::CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper*
 }
 void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 {
-	AsyncTask(ENamedThreads::GameThread, [this, DeviceWrapper]() { DevicesToCleanup.AddUnique(DeviceWrapper); });
+	 DevicesToCleanup.AddUnique(DeviceWrapper);
 }
 void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
