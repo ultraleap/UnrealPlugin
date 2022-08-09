@@ -25,12 +25,39 @@ FUltraleapCombinedDevice::FUltraleapCombinedDevice(IHandTrackingWrapper* LeapDev
 FUltraleapCombinedDevice::~FUltraleapCombinedDevice()
 {
 }
+void TransformFrame(FLeapFrameData& OutData,const FVector& TranslationOffset,const FRotator& RotationOffset)
+{	
+	OutData.RotateFrame(RotationOffset);
+	OutData.TranslateFrame(TranslationOffset);
+}
 // Main loop event emitter and handler
 void FUltraleapCombinedDevice::SendControllerEvents()
 {
 	// Create combined frame here and call parse
 	// the parent class will then behave as if it had one device
 	TArray<FLeapFrameData> SourceFrames;
+	FTransform VRDeviceOrigin;
+
+	bool AreAnyVR = false;
+	for (auto SourceDevice : DevicesToCombine)
+	{
+		auto InternalSourceDevice = SourceDevice->GetDevice();
+		if (InternalSourceDevice)
+		{
+			FLeapFrameData SourceFrame;
+
+			// For VR/XR mounted devices, the frame here is already transformed by the HMD position
+			// so we don't want to re-apply the device origin as this will transform it twice
+			// BUT the device origin is still required for confidence calcs
+			const bool IsVR = InternalSourceDevice->GetOptions().Mode == LEAP_MODE_VR;
+			if (IsVR)
+			{
+				AreAnyVR = true;
+				VRDeviceOrigin = InternalSourceDevice->GetDeviceOrigin();
+				break;
+			}
+		}
+	}
 	// add combiner logic based on DevicesToCombine List. All devices will have ticked before this is called
 	for (auto SourceDevice : DevicesToCombine)
 	{
@@ -43,8 +70,20 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 			// so we don't want to re-apply the device origin as this will transform it twice
 			// BUT the device origin is still required for confidence calcs
 			const bool IsVR = InternalSourceDevice->GetOptions().Mode == LEAP_MODE_VR;
+
 			InternalSourceDevice->GetLatestFrameData(SourceFrame, !IsVR);
-			SourceFrames.Add(SourceFrame);
+			
+			// rotate desktop hands into VR space
+			if (AreAnyVR && !IsVR)
+			{
+				//into HMD space
+				FRotator Rotation(90,0,180);
+				TransformFrame(SourceFrame, VRDeviceOrigin.GetLocation() * -1.0f, Rotation);
+			}
+			// comment in for debugging desktop devices only in the combined hand -> if (!IsVR)
+			{
+				SourceFrames.Add(SourceFrame);
+			}
 		}
 	}
 	
