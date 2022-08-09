@@ -152,6 +152,7 @@ bool ULeapComponent::SubscribeToDevice()
 			if (Device)
 			{
 				Device->AddEventDelegate(this);
+				TrackingMode = Device->GetOptions().Mode;
 			}
 		}
 	}
@@ -207,6 +208,7 @@ void ULeapComponent::SetTrackingMode(ELeapMode Mode)
 
 		}
 		CurrentHandTrackingDevice->SetTrackingMode(LeapMode);
+		TrackingMode = Mode;
 	}
 }
 void ULeapComponent::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
