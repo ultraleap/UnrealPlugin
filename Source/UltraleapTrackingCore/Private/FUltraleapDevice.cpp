@@ -383,7 +383,7 @@ void FUltraleapDevice::GetLatestFrameData(FLeapFrameData& OutData,const bool App
 }
 void FUltraleapDevice::ApplyDeviceOrigin(FLeapFrameData& OutData)
 {
-	// in Leap Space
+	// in BS Space
 	const FTransform& Origin = GetDeviceOrigin();
 
 	OutData.RotateFrame(Origin.GetRotation().Rotator());
