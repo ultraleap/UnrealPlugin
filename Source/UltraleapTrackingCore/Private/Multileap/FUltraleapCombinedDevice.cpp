@@ -46,9 +46,6 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 		{
 			FLeapFrameData SourceFrame;
 
-			// For VR/XR mounted devices, the frame here is already transformed by the HMD position
-			// so we don't want to re-apply the device origin as this will transform it twice
-			// BUT the device origin is still required for confidence calcs
 			const bool IsVR = InternalSourceDevice->GetOptions().Mode == LEAP_MODE_VR;
 			if (IsVR)
 			{
