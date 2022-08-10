@@ -76,9 +76,16 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 			{
 				//into HMD space
 				FRotator Rotation(90,0,180);
-				TransformFrame(SourceFrame, VRDeviceOrigin.GetLocation() * -1.0f, Rotation);
+				FVector Translation = FVector::ZeroVector;
+				Translation.Z = -VRDeviceOrigin.GetLocation().X;
+				Translation.X = -VRDeviceOrigin.GetLocation().Z;
+				Translation.Y = VRDeviceOrigin.GetLocation().Y;
+		
+				//Translation = Rotation.RotateVector(VRDeviceOrigin.GetLocation() * -1.0f);
+				TransformFrame(SourceFrame, Translation , Rotation);
 			}
-			// comment in for debugging desktop devices only in the combined hand -> if (!IsVR)
+			// comment in for debugging desktop devices only in the combined hand -> 
+			//if (IsVR)
 			{
 				SourceFrames.Add(SourceFrame);
 			}
