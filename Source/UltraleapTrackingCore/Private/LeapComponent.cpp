@@ -221,7 +221,14 @@ void ULeapComponent::SetTrackingMode(ELeapMode Mode)
 				break;
 
 		}
+		
 		CurrentHandTrackingDevice->SetTrackingMode(LeapMode);
+		// Update the options as different settings are needed for VR vs Desktop
+		auto Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			Device->SetOptions(Device->GetOptions());
+		}
 		TrackingMode = Mode;
 	}
 }
@@ -381,4 +388,17 @@ void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 		CurrentHandTrackingDevice = nullptr;
 	}
 	RefreshDeviceList(true);
+}
+bool ULeapComponent::GetLeapOptions(FLeapOptions& Options)
+{
+	if (CurrentHandTrackingDevice)
+	{
+		auto Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			Options = Device->GetOptions();
+			return true;
+		}
+	}
+	return false;
 }

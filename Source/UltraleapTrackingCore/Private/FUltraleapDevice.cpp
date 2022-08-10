@@ -1245,6 +1245,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
+			Options.HMDPositionOffset = FVector(90,0,0);
 		} 
 
 		// Rift, note requires negative timewarp!

@@ -194,8 +194,8 @@ void UMultiDeviceAlignment::Update()
 				FMatrix DeviceToOriginDeviceMatrix = Solver.SolveKabsch(TargetHandPoints, SourceHandPoints, 200);
 				FTransform ActorTransformFromSolver = FTransform(DeviceToOriginDeviceMatrix);
 				
-				ActorTransformFromSolver = ConvertBSToUETransform(ActorTransformFromSolver);
 				// to move the target device, we need to be in UE space. This layer is in BSSpace so convert
+				ActorTransformFromSolver = ConvertBSToUETransform(ActorTransformFromSolver);
 				FTransform ActorTransform = TargetDevice->GetActorTransform();
 
 				ActorTransform *= ActorTransformFromSolver;
