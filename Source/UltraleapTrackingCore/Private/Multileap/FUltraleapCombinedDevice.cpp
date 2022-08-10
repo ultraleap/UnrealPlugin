@@ -71,18 +71,12 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 
 			InternalSourceDevice->GetLatestFrameData(SourceFrame, !IsVR);
 			
-			// rotate desktop hands into VR space
-			if (AreAnyVR && !IsVR)
+			if (IsVR)
 			{
-				//into HMD space
-				FRotator Rotation(90,0,180);
-				FVector Translation = FVector::ZeroVector;
-				Translation.Z = -VRDeviceOrigin.GetLocation().X;
-				Translation.X = -VRDeviceOrigin.GetLocation().Z;
-				Translation.Y = VRDeviceOrigin.GetLocation().Y;
-		
-				//Translation = Rotation.RotateVector(VRDeviceOrigin.GetLocation() * -1.0f);
-				TransformFrame(SourceFrame, Translation , Rotation);
+				// Transform HMD into Desktop rotation
+				FRotator Rotation(90, 0, 180);
+				FUltraleapCombinedDevice::TransformFrame(
+					SourceFrame,  VRDeviceOrigin.GetLocation(), Rotation.GetInverse());
 			}
 			// comment in for debugging desktop devices only in the combined hand -> 
 			//if (IsVR)
@@ -93,6 +87,15 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 	}
 	
 	CombineFrame(SourceFrames);
+
+	if (AreAnyVR)
+	{
+		// from desktop rotation to HMD rotation
+		FRotator Rotation(90, 0, 180);
+		FUltraleapCombinedDevice::TransformFrame(CurrentFrame,  -Rotation.RotateVector(VRDeviceOrigin.GetLocation()), Rotation);
+	}
+	
+
 	ParseEvents();
 }
 FVector ToLocal(const FVector& WorldPoint,const FVector& LocalOrigin,const FQuat& LocalRot)
