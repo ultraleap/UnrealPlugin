@@ -182,6 +182,20 @@ void ULeapComponent::GetMultiDeviceDebugInfo(int32& NumLeftTracked, int32& NumRi
 		}
 	}
 }
+bool ULeapComponent::GetDeviceOrigin(FTransform& DeviceOrigin)
+{
+	auto Device = CurrentHandTrackingDevice->GetDevice();
+	if (Device)
+	{
+		DeviceOrigin = Device->GetDeviceOrigin();
+		return true;
+	}
+	else
+	{
+		DeviceOrigin = FTransform::Identity;
+	}
+	return false;
+}
 void ULeapComponent::UninitializeComponent()
 {
 	// remove ourselves from the delegates

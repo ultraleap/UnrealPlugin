@@ -9,6 +9,8 @@
 #include "MultiDeviceAlignment.h"
 #include "LeapComponent.h"
 #include "FUltraleapDevice.h"
+#include "FUltraleapCombinedDevice.h"
+
 // Sets default values for this component's properties
 UMultiDeviceAlignment::UMultiDeviceAlignment()
 {
@@ -111,17 +113,25 @@ void UMultiDeviceAlignment::Update()
 		FLeapFrameData SourceFrameRaw;
 		FLeapFrameData TargetFrameRaw;
 
+		const bool SourceIsVR = SourceDevice->LeapComponent->TrackingMode == LEAP_MODE_VR;
 
-		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrame, true);
+		// avoid applying DeviceOrigin twice if VR
+		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrame, !SourceIsVR);
+		
+
 		TargetDevice->LeapComponent->GetLatestFrameData(TargetFrame, true);
-
-		SourceDevice->LeapComponent->GetLatestFrameData(SourceFrameRaw, false);
-		TargetDevice->LeapComponent->GetLatestFrameData(TargetFrameRaw, false);
-
+		if (SourceIsVR)
+		{
+			FTransform VRDeviceOrigin;
+			const bool Success = SourceDevice->LeapComponent->GetDeviceOrigin(VRDeviceOrigin);
+			// Transform HMD into Desktop rotation
+			FRotator Rotation(90, 0, 180);
+			FUltraleapCombinedDevice::TransformFrame(
+				SourceFrame, VRDeviceOrigin.GetLocation(), Rotation.GetInverse());
+		}
+		
 		TArray<FVector> SourceHandPoints;
 		TArray<FVector> TargetHandPoints;
-		TArray<FVector> SourceHandPointsRaw;
-		TArray<FVector> TargetHandPointsRaw;
 		
 #ifdef DEBUG_ALIGNMENT
 		if (GEngine)
@@ -134,8 +144,6 @@ void UMultiDeviceAlignment::Update()
 		int SourceIndex = 0;
 		for (auto& SourceHand : SourceFrame.Hands )
 		{
-			auto& SourceHandRaw = SourceFrameRaw.Hands[SourceIndex];
-
 			auto TargetHand = GetHandFromFrame(TargetFrame, SourceHand.HandType);
 			
 			static const int NumFingers = 5;
@@ -187,12 +195,13 @@ void UMultiDeviceAlignment::Update()
 				FTransform ActorTransformFromSolver = FTransform(DeviceToOriginDeviceMatrix);
 				
 				ActorTransformFromSolver = ConvertBSToUETransform(ActorTransformFromSolver);
-				// to move the target device, we need to be in UE space. This layer is in LeapSpace so convert
+				// to move the target device, we need to be in UE space. This layer is in BSSpace so convert
 				FTransform ActorTransform = TargetDevice->GetActorTransform();
 
 				ActorTransform *= ActorTransformFromSolver;
 				
-				TargetDevice->TeleportTo(ActorTransform.GetLocation(), ActorTransform.GetRotation().Rotator(), false, true);
+				TargetDevice->TeleportTo(ActorTransform.GetLocation(),
+					 ActorTransform.GetRotation().Rotator(), false, true);
 		
 				return;
 			}

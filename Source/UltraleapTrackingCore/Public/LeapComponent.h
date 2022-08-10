@@ -203,7 +203,10 @@ public:
 
 	class IHandTrackingDevice* GetCombinedDeviceBySerials(const TArray<FString>& DeviceSerials);
 
-protected:
+	UFUNCTION()
+	bool GetDeviceOrigin(FTransform& DeviceOrigin);
+
+ protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
 

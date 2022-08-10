@@ -23,6 +23,9 @@ public:
 	// Based on VectorHand.NUM_JOINT_POSITIONS
 	static const int NumJointPositions = 25;
 
+	static void TransformFrame(
+		FLeapFrameData& OutData, const FVector& TranslationOffset, const FRotator& RotationOffset);
+
 protected:
 	// override this in any custom combiners
 	virtual void CombineFrame(const TArray<FLeapFrameData>& SourceFrames) = 0;

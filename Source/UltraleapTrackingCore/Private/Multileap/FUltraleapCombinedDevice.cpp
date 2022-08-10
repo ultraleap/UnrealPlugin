@@ -25,7 +25,8 @@ FUltraleapCombinedDevice::FUltraleapCombinedDevice(IHandTrackingWrapper* LeapDev
 FUltraleapCombinedDevice::~FUltraleapCombinedDevice()
 {
 }
-void TransformFrame(FLeapFrameData& OutData,const FVector& TranslationOffset,const FRotator& RotationOffset)
+void FUltraleapCombinedDevice::TransformFrame(
+	FLeapFrameData& OutData, const FVector& TranslationOffset, const FRotator& RotationOffset)
 {	
 	OutData.RotateFrame(RotationOffset);
 	OutData.TranslateFrame(TranslationOffset);
