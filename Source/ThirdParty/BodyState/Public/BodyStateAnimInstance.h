@@ -155,6 +155,7 @@ struct FMappedBoneAnimData
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Map", meta = (MakeEditWidget = true))
 	FQuat AutoCorrectRotation;
 
+	
 	// Data structure containing a parent -> child ordered bone list
 	UPROPERTY(BlueprintReadWrite, Category = "Bone Anim Struct")
 	TArray<FCachedBoneLink> CachedBoneList;
@@ -415,10 +416,6 @@ protected:
 	// using node items, beware node items are NOT in component space
 	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
 		const TArray<FName>& Names, const TArray<FNodeItem>& NodeItems, bool& BoneFound) const;
-
-	// using component space transforms array
-	FTransform GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap, const EBodyStateBasicBoneType BoneType,
-		const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms, bool& BoneFound) const;
 
 	void AutoMapBoneDataForRigType(
 		FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones);

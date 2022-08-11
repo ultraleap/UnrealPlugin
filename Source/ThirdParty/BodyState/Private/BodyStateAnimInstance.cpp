@@ -37,7 +37,7 @@ FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLe
 	OffsetTransform.SetScale3D(FVector(1.f));
 	PreBaseRotation = FRotator(ForceInitToZero);
 	TrackingTagLimit.Empty();
-	AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+	AutoCorrectRotation = FQuat::Identity;
 	OriginalScale = FVector::OneVector;
 	HandModelLength = 0;
 }
@@ -519,6 +519,7 @@ FQuat LookRotation(const FVector& LookAt, const FVector& UpDirection)
 
 	return quaternion;
 }
+
 /* Find an orthonormal basis for the set of vectors q
  * using the Gram-Schmidt Orthogonalization process */
 void OrthoNormalize2(TArray<FVector>& Vectors)
@@ -567,27 +568,6 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	}
 	return FTransform();
 }
-FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
-	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
-	bool& BoneFound) const
-{
-	if (!ForMap.BoneMap.Contains(BoneType))
-	{
-		BoneFound = false;
-		return FTransform();
-	}
-	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
-	int Index = Names.Find(Bone.BoneName);
-
-	BoneFound = false;
-	if (Index > InvalidBone && Index < ComponentSpaceTransforms.Num())
-	{
-		BoneFound = true;
-		return ComponentSpaceTransforms[Index];
-	}
-	return FTransform();
-}
-
 FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
 {
@@ -629,6 +609,18 @@ void Normalize360(FRotator& InPlaceRot)
 		InPlaceRot.Roll += 360;
 	}
 }
+void ConvertToUnity(FTransform& UETransform)
+{
+	// flip coord space
+	FVector UnityVector(-UETransform.GetLocation().X, UETransform.GetLocation().Z, UETransform.GetLocation().Y);
+	
+	FRotator UERotator = UETransform.GetRotation().Rotator();
+	
+	// cm to meters
+	UnityVector /= 100;
+
+	UETransform.SetLocation(UnityVector);
+}
 #endif	  // DEBUG_ROTATIONS_AS_UNITY
 
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
@@ -659,7 +651,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	if (!RefIndex)
 	{
-		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		ForMap.AutoCorrectRotation = FQuat::Identity;
 
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find the index bone"));
 
@@ -671,14 +663,21 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	bool PinkyBoneFound = false;
 	bool WristBoneFound = false;
 
-	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, ComponentSpaceTransforms, IndexBoneFound);
-	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, ComponentSpaceTransforms, MiddleBoneFound);
-	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, ComponentSpaceTransforms, PinkyBoneFound);
-	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, ComponentSpaceTransforms, WristBoneFound);
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems, MiddleBoneFound);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
+
+#if DEBUG_ROTATIONS_AS_UNITY
+	ConvertToUnity(IndexPose);
+	ConvertToUnity(MiddlePose);
+	ConvertToUnity(PinkyPose);
+	ConvertToUnity(WristPose);
+#endif
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
-		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		ForMap.AutoCorrectRotation = FQuat::Identity;
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find all finger bones"));
 
 		return;
@@ -693,49 +692,47 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
 		Right = -Right;
-	}
+	}	
 	FVector Up = FVector::CrossProduct(Forward, Right);
-	// we need a three param version of this.
-	OrthNormalize2(Forward, Up, Right);
-
+	OrthNormalize2(Up, Forward, Right);
+	
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
+
 	ModelRotation = LookRotation(Forward, Up);
+	
+	// Round to closest 90 degrees
+	auto RoundedRotationOffset = (ModelRotation.Inverse() * WristPose.GetRotation()).Rotator();
+	RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
+	RoundedRotationOffset.Yaw = FMath::RoundToFloat(RoundedRotationOffset.Yaw / 90) * 90;
+	RoundedRotationOffset.Roll = FMath::RoundToFloat(RoundedRotationOffset.Roll / 90) * 90;
+	
+	FRotator WristRotation = RoundedRotationOffset;
 
-	// In unity, this came from the wrist in the world/scene coords
-	FQuat WristPoseQuat(WristPose.GetRotation());
-
-#if DEBUG_ROTATIONS_AS_UNITY
-	// debug
-	FRotator WristSourceRotation = WristPose.GetRotation().Rotator();
-	Normalize360(WristSourceRotation);
-
-	FRotator ModelDebugRotation = ModelRotation.Rotator();
-	Normalize360(ModelDebugRotation);
-	// end debug
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-
-	FRotator WristRotation = (ModelRotation.Inverse() * WristPoseQuat).Rotator();
-
-#if DEBUG_ROTATIONS_AS_UNITY
-	FRotator WristDebugRotation = WristRotation;
-	Normalize360(WristDebugRotation);
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-
-	// correct to UE space as defined by control hands
-	if (ForMap.FlipModelLeftRight)
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		WristRotation += FRotator(-90, 0, -180);
+		if (ForMap.FlipModelLeftRight)
+		{
+			WristRotation = (WristRotation.Quaternion() *  FRotator(-90, 0, 0).Quaternion()).Rotator();
+		}
+		else
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 0, 180).Quaternion()).Rotator();
+		}
 	}
 	else
 	{
-		WristRotation += FRotator(90, 0, 0);
+		if (ForMap.FlipModelLeftRight)
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 90, 90).Quaternion()).Rotator();
+		}
+		else
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 0, 0).Quaternion()).Rotator();
+		}
+
 	}
-#if DEBUG_ROTATIONS_AS_UNITY
-	WristDebugRotation = WristRotation;
-	Normalize360(WristDebugRotation);
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-	ForMap.AutoCorrectRotation = FQuat(WristRotation);
+	ForMap.AutoCorrectRotation = WristRotation.Quaternion();
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
@@ -836,8 +833,8 @@ void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, cons
 		{
 			continue;
 		}
-		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType)i, Names, ComponentSpaceTransforms, BoneFound);
-		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i+1), Names, ComponentSpaceTransforms, BoneFound);
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) i, Names, NodeItems, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i + 1), Names, NodeItems, BoneFound);
 	
 		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation()); 
 		Length += Magnitude;
@@ -889,9 +886,8 @@ void UBodyStateAnimInstance::CalculateFingertipSizes(FMappedBoneAnimData& ForMap
 			ForMap.FingerTipLengths.Add(0);
 			continue;
 		}
-		FTransform Pose = GetTransformFromBoneEnum(ForMap, BeforeEnd, Names, ComponentSpaceTransforms, BoneFound);
-		FTransform PoseNext =
-			GetTransformFromBoneEnum(ForMap, End, Names, ComponentSpaceTransforms, BoneFound);
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, BeforeEnd, Names, NodeItems, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, End, Names, NodeItems, BoneFound);
 
 		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation());
 		ForMap.FingerTipLengths.Add(Magnitude);
@@ -1047,7 +1043,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				OneHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 		}
 	}
@@ -1070,7 +1066,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 		}
 	}
@@ -1191,7 +1187,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				OneHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 			CalculateHandSize(OneHandMap, AutoMapTarget);
 		}
@@ -1215,7 +1211,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 			CalculateHandSize(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
 			CalculateHandSize(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);

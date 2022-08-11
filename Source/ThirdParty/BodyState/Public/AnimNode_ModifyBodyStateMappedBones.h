@@ -65,6 +65,9 @@ private:
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM, FTransform& PrevBoneTM);
 	
 	
+	void ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping, const FTransform& LeapWrist, FTransform& NewBoneTM);
+
+
 	bool CheckInitEvaulate();
 	void CacheArmOrWrist(
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink** ArmCachedBone, const FCachedBoneLink** WristCachedBone);
@@ -73,5 +76,6 @@ private:
 	
 
 	float CalculateLeapHandLength();
+	FTransform GetComponentTransformScaleOnly();
 	
 };
