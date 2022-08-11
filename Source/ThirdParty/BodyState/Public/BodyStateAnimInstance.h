@@ -68,7 +68,8 @@ struct FBodyStateIndexedBoneList
 
 	// run after filling our index
 	TArray<int32> FindBoneWithChildCount(int32 Count);
-	void SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones);
+	void SetFromRefSkeleton(
+		const FReferenceSkeleton& RefSkeleton, bool SortBones, EBodyStateAutoRigType HandType, const bool FilterByHand);
 	int32 LongestChildTraverseForBone(int32 Bone);
 
 	FBodyStateIndexedBoneList()
@@ -230,6 +231,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
 	bool ScaleModelToTrackingData;
 	
+	/** Ignore the wrist translation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
+	bool IgnoreWristTranslation;
+
+	/** Derive the elbow position from the wrist (useful for Orion tracking)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling")
+	bool GuessElbowPosition;
 
 	/** User entered scale offset to fit to entire model for hand auto scaling */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "BS Anim Instance - Auto Scaling",

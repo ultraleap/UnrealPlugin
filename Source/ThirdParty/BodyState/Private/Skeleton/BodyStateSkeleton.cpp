@@ -496,29 +496,24 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 		return;
 	}
 
-	if (!Other->IsTrackingAnyBone())
-	{
-		return;
-	}
-
-	for (int i = 0; i < Bones.Num(); i++)
-	{
-		UBodyStateBone* OtherBone = Other->Bones[i];
-		UBodyStateBone* Bone = Bones[i];
-
-		// todo: discriminate based on accuracy
-
-		// If the bone confidence is same or higher, copy the bone
-		if (OtherBone->Meta.Confidence >= Bone->Meta.Confidence)
-		{
-			Bone->BoneData = OtherBone->BoneData;
-			Bone->Meta = OtherBone->Meta;
-		}
-	}
-	// we only want to copy the states if it's the tracking device
-	// otherwise the skeleton merge of the HMD parsed skeleton will overwrite them
+	
 	if (Other->Name != "HMD")
 	{
+		for (int i = 0; i < Bones.Num(); i++)
+		{
+			UBodyStateBone* OtherBone = Other->Bones[i];
+			UBodyStateBone* Bone = Bones[i];
+
+			// todo: discriminate based on accuracy
+
+			// If the bone confidence is same or higher, copy the bone
+			if (OtherBone->Meta.Confidence >= Bone->Meta.Confidence)
+			{
+				Bone->BoneData = OtherBone->BoneData;
+				Bone->Meta = OtherBone->Meta;
+			}
+		}
+	
 		int Count = 0;
 		for (auto OtherFinger : Other->LeftArm()->Hand->Fingers)
 		{

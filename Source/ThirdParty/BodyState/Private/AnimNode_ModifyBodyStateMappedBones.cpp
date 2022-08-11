@@ -53,13 +53,23 @@ FTransform FAnimNode_ModifyBodyStateMappedBones::GetComponentTransformScaleOnly(
 	return Ret;
 }
 void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM,
-	const FCachedBoneLink* WristCachedBone, const FCachedBoneLink* ArmCachedBone)
+	const FCachedBoneLink* WristCachedBone, const FCachedBoneLink* ArmCachedBone, const FMappedBoneAnimData& MappedBoneAnimData)
 {
 	FVector BoneTranslation = CachedBone.BSBone->BoneData.Transform.GetTranslation();
 	FTransform ComponentTransform = GetComponentTransformScaleOnly();
-	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone)
+	int32 WristBoneIndex = -1;
+
+	if (WristCachedBone)
 	{
-		if (&CachedBone == ArmCachedBone && WristCachedBone)
+		WristBoneIndex = WristCachedBone->MeshBone.BoneIndex;
+	}
+
+	// is it the root?
+	if (&MappedBoneAnimData.CachedBoneList[0] == &CachedBone && WristBoneIndex > -1 && WristCachedBone &&
+		!BSAnimInstance->IgnoreWristTranslation)
+	{
+		// arm/elbow
+		if (&CachedBone == ArmCachedBone && BSAnimInstance->GuessElbowPosition)
 		{
 			auto ElbowPosition = BoneTranslation;
 			const FVector CorrectTranslation =
@@ -67,6 +77,7 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 
 			NewBoneTM.SetTranslation(CorrectTranslation);
 		}
+		// wrist
 		else
 		{
 			FQuat AdditionalRotation = MappedBoneAnimData.OffsetTransform.GetRotation();
@@ -91,8 +102,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 		NewBoneTM.SetTranslation(CorrectTranslation);
 	}
 }
-void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
-	const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* CachedWristBone)
+void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM,
+	const FCachedBoneLink* CachedWristBone, const FMappedBoneAnimData& MappedBoneAnimData)
 {
 	FQuat BoneQuat = CachedBone.BSBone->BoneData.Transform.GetRotation();
 	
@@ -103,7 +114,8 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyRotation(
 	NewBoneTM.SetRotation(BoneQuat);
 }
 // apply auto rotate to wrist post mapping the hand, this then rotates/translates child bones correctly
-void FAnimNode_ModifyBodyStateMappedBones::ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping,const FTransform& LeapWrist, FTransform& NewBoneTM)
+void FAnimNode_ModifyBodyStateMappedBones::ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping,
+	const FTransform& LeapWrist, FTransform& NewBoneTM, const FMappedBoneAnimData& MappedBoneAnimData)
 {
 	FQuat BoneQuat = NewBoneTM.GetRotation();
 	BoneQuat = MappedBoneAnimData.AutoCorrectRotation * BoneQuat;
@@ -118,8 +130,8 @@ FVector CalculateAxis(const FTransform& Transform, const FVector& Direction)
 	BoneForward.Normalize();
 	return BoneForward;
 }
-void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(
-	const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM, FTransform& PrevBoneTM)
+void FAnimNode_ModifyBodyStateMappedBones::ApplyScale(const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone,
+	FTransform& NewBoneTM, FTransform& PrevBoneTM, const FMappedBoneAnimData& MappedBoneAnimData)
 {
 	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimData.FingerTipLengths.Num())
 	{
@@ -243,16 +255,6 @@ bool FAnimNode_ModifyBodyStateMappedBones::CheckInitEvaulate()
 	{
 		return false;
 	}
-	if (MappedBoneAnimData.BoneMap.Num() == 0 || MappedBoneAnimData.BodyStateSkeleton == nullptr)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Updating cached MappedBoneAnimData"));
-		MappedBoneAnimData = BSAnimInstance->MappedBoneList[0];
-	}
-
-	if (!MappedBoneAnimData.BodyStateSkeleton)
-	{
-		return false;
-	}
 	return true;
 }
 void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
@@ -274,13 +276,13 @@ void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 		}
 	}
 }
-void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale(FTransform& NewBoneTM)
+void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale(FTransform& NewBoneTM, const FMappedBoneAnimData& MappedBoneAnimData)
 {
 	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimData.HandModelLength)
 	{
 		return;
 	}
-	float LeapLength = CalculateLeapHandLength();
+	float LeapLength = CalculateLeapHandLength(MappedBoneAnimData);
 	// never tracked
 	if (LeapLength == 0)
 	{
@@ -295,7 +297,7 @@ void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale(FTransform& NewBon
 }
 
 // middle finger length as tracked
-float FAnimNode_ModifyBodyStateMappedBones::CalculateLeapHandLength()
+float FAnimNode_ModifyBodyStateMappedBones::CalculateLeapHandLength(const FMappedBoneAnimData& MappedBoneAnimData)
 {
 	float Length = 0;
 	TArray<FCachedBoneLink> FingerBones;
@@ -332,83 +334,90 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	{
 		return;
 	}
-	const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
-	float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
-	FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
-	
-	// cached for elbow position
-	const FCachedBoneLink* ArmCachedBone = nullptr;
-	const FCachedBoneLink* WristCachedBone = nullptr;
-
-	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
+	for (auto MappedBoneAnimData : BSAnimInstance->MappedBoneList)
 	{
-		CacheArmOrWrist(CachedBone, &ArmCachedBone, &WristCachedBone);
-	}
-	int LoopCount = 0;
-	FTransform PrevBoneTM;
-	FTransform WristBeforeMapping;
-	FCachedBoneLink* CachedPrevBone = &MappedBoneAnimData.CachedBoneList[0];
-
-	for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
-	{
-		if (CachedBone.MeshBone.BoneIndex == -1)
+		if (!MappedBoneAnimData.BodyStateSkeleton)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(),
-				CachedBone.MeshBone.BoneIndex);
 			continue;
 		}
-		
-		FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
-		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+		const FBoneContainer& BoneContainer = Output.Pose.GetPose().GetBoneContainer();
+		float BlendWeight = FMath::Clamp<float>(ActualAlpha, 0.f, 1.f);
 
-		if (&CachedBone == WristCachedBone)
+		FScopeLock ScopeLock(&MappedBoneAnimData.BodyStateSkeleton->BoneDataLock);
+
+		// cached for elbow position
+		const FCachedBoneLink* ArmCachedBone = nullptr;
+		const FCachedBoneLink* WristCachedBone = nullptr;
+
+		for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 		{
-			WristBeforeMapping = NewBoneTM;
+			CacheArmOrWrist(CachedBone, &ArmCachedBone, &WristCachedBone);
 		}
-		// setup global scale on the root bone
-		if (!LoopCount)
+		int LoopCount = 0;
+		FTransform PrevBoneTM;
+		FTransform WristBeforeMapping;
+		FCachedBoneLink* CachedPrevBone = &MappedBoneAnimData.CachedBoneList[0];
+
+		for (auto& CachedBone : MappedBoneAnimData.CachedBoneList)
 		{
-			SetHandGlobalScale(NewBoneTM);
+			if (CachedBone.MeshBone.BoneIndex == -1)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s has an invalid bone index: %d"), *CachedBone.MeshBone.BoneName.ToString(),
+					CachedBone.MeshBone.BoneIndex);
+				continue;
+			}
+
+			FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
+			FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+
+			if (&CachedBone == WristCachedBone)
+			{
+				WristBeforeMapping = NewBoneTM;
+			}
+			// setup global scale on the root bone
+			if (!LoopCount)
+			{
+				SetHandGlobalScale(NewBoneTM, MappedBoneAnimData);
+			}
+			// Apply scale even when not tracking, so we can see it in editor
+			ApplyScale(CachedBone, CachedPrevBone, NewBoneTM, PrevBoneTM, MappedBoneAnimData);
+			if (BSAnimInstance->IsTracking)
+			{
+				ApplyRotation(CachedBone, NewBoneTM, WristCachedBone, MappedBoneAnimData);
+				ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone, MappedBoneAnimData);
+			}
+			// Set the transform back into the anim system
+			TArray<FBoneTransform> TempTransform;
+			TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
+			Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+
+			CachedPrevBone = &CachedBone;
+			PrevBoneTM = NewBoneTM;
+			LoopCount++;
 		}
-		// Apply scale even when not tracking, so we can see it in editor
-		ApplyScale(CachedBone, CachedPrevBone, NewBoneTM, PrevBoneTM);
-		if (BSAnimInstance->IsTracking)
+
+		const FCachedBoneLink* ArmOrWrist = WristCachedBone;
+
+		if (ArmCachedBone)
 		{
-			ApplyRotation(CachedBone, NewBoneTM, WristCachedBone);
-			ApplyTranslation(CachedBone, NewBoneTM, WristCachedBone, ArmCachedBone);
+			ArmOrWrist = ArmCachedBone;
 		}
-		// Set the transform back into the anim system
-		TArray<FBoneTransform> TempTransform;
-		TempTransform.Add(FBoneTransform(CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
-		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
 
-		CachedPrevBone = &CachedBone;
-		PrevBoneTM = NewBoneTM;
-		LoopCount++;
-	}
+		if (ArmOrWrist)
+		{
+			// after mapping the leap data, apply auto correct rotation to the wrist
+			FCompactPoseBoneIndex CompactPoseBoneToModify = ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer);
+			FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
-	const FCachedBoneLink* ArmOrWrist = WristCachedBone;
-
-	if (ArmCachedBone)
-	{
-		ArmOrWrist = ArmCachedBone;
-	}
-	
-	if (ArmOrWrist)
-	{
-		// after mapping the leap data, apply auto correct rotation to the wrist
-		FCompactPoseBoneIndex CompactPoseBoneToModify = ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer);
-		FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
-		
-		ApplyAutoCorrectRotation(WristBeforeMapping, ArmOrWrist->BSBone->BoneData.Transform, NewBoneTM);
-		// Set the transform back into the anim system
-		TArray<FBoneTransform> TempTransform;
-		TempTransform.Add(FBoneTransform(ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
-		Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+			ApplyAutoCorrectRotation(WristBeforeMapping, ArmOrWrist->BSBone->BoneData.Transform, NewBoneTM, MappedBoneAnimData);
+			// Set the transform back into the anim system
+			TArray<FBoneTransform> TempTransform;
+			TempTransform.Add(FBoneTransform(ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
+			Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+		}
 	}
 }
-
 bool FAnimNode_ModifyBodyStateMappedBones::IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& RequiredBones)
 {
 	if (!BSAnimInstance)
@@ -422,5 +431,5 @@ bool FAnimNode_ModifyBodyStateMappedBones::IsValidToEvaluate(const USkeleton* Sk
 		return false;
 	}
 
-	return (MappedBoneAnimData.BodyStateSkeleton != nullptr);
+	return true;
 }
