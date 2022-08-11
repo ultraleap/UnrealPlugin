@@ -142,7 +142,7 @@ bool ULeapComponent::SubscribeToDevice()
 		{
 			return false;
 		}
-		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials, DeviceCombinerClass);
+		CurrentHandTrackingDevice = Connector->GetDevice(DeviceSerials, DeviceCombinerClass, false);
 		
 		Success = (CurrentHandTrackingDevice != nullptr);
 
@@ -311,7 +311,7 @@ IHandTrackingDevice* ULeapComponent::GetCombinedDeviceBySerials(const TArray<FSt
 	ILeapConnector* Connector = IUltraleapTrackingPlugin::Get().GetConnector();
 	if (Connector)
 	{
-		auto Wrapper = Connector->GetDevice(DeviceSerials, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE);
+		auto Wrapper = Connector->GetDevice(DeviceSerials, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE, false);
 		if (Wrapper) 
 		{
 			return Wrapper->GetDevice();

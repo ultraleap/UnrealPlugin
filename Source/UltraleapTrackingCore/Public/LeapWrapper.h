@@ -242,7 +242,7 @@ public:
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(
-		const TArray<FString>& DeviceSerial, const ELeapDeviceCombinerClass DeviceCombinerClass) override;
+		const TArray<FString>& DeviceSerial, const ELeapDeviceCombinerClass DeviceCombinerClass, const bool AllowOpenXRAsFallback) override;
 	virtual void TickDevices(const float DeltaTime);
 	virtual void TickSendControllerEventsOnDevices();
 	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) override;

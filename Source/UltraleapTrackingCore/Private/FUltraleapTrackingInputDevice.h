@@ -129,4 +129,5 @@ private:
 	IHandTrackingWrapper* GetFallbackDeviceWrapper();
 
 	bool IsWaitingForConnect = false;
+	bool IsInOpenXRMode = false;
 };

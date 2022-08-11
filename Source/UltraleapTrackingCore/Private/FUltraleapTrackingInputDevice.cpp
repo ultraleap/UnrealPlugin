@@ -289,7 +289,7 @@ IHandTrackingDevice* FUltraleapTrackingInputDevice::GetDeviceBySerial(const FStr
 	{
 		DeviceList.Add(DeviceSerial);
 	}
-	auto DeviceWrapper = Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
+	auto DeviceWrapper = Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN, IsInOpenXRMode);
 	if (DeviceWrapper)
 	{
 		auto InternalDevice = DeviceWrapper->GetDevice();
@@ -313,7 +313,7 @@ IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetDeviceWrapperBySerial(co
 		DeviceList.Add(DeviceSerial);
 	}
 
-	return Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
+	return Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN, IsInOpenXRMode);
 }
 // get default device for backwards compatibility
 IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetFallbackDeviceWrapper()
@@ -324,7 +324,7 @@ IHandTrackingWrapper* FUltraleapTrackingInputDevice::GetFallbackDeviceWrapper()
 	}
 	// empty device list means 'give me the default'
 	TArray<FString> DeviceList;
-	return Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
+	return Connector->GetDevice(DeviceList, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN, IsInOpenXRMode);
 }
 void FUltraleapTrackingInputDevice::AreHandsVisible(
 		bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial)
@@ -347,7 +347,8 @@ void FUltraleapTrackingInputDevice::LatestFrame(FLeapFrameData& OutFrame, const 
 void FUltraleapTrackingInputDevice::SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ,
 	ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials)
 {
-	auto DeviceWrapper = Connector->GetDevice(DeviceSerials, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN);
+	auto DeviceWrapper =
+		Connector->GetDevice(DeviceSerials, ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_UNKNOWN, IsInOpenXRMode);
 	if (DeviceWrapper)
 	{
 		DeviceWrapper->SetSwizzles(ToX, ToY, ToZ, ToW);
@@ -465,7 +466,7 @@ int32 FUltraleapTrackingInputDevice::RequestCombinedDevice(
 			LeapCombinerClass = ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_ANGULAR;
 			break;
 	}
-	auto DeviceWrapper = Connector->GetDevice(DeviceSerials, LeapCombinerClass);
+	auto DeviceWrapper = Connector->GetDevice(DeviceSerials, LeapCombinerClass, IsInOpenXRMode);
 	if (DeviceWrapper)
 	{
 		auto InternalDevice = DeviceWrapper->GetDevice();
@@ -510,6 +511,9 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions, co
 	// backwards compatibility
 	if (DeviceSerials.Num() == 0)
 	{
+		// if setting global options, check for switch to OpenXR
+		// as in this case the fallback device will change
+		IsInOpenXRMode = InOptions.bUseOpenXRAsSource;
 		auto DeviceWrapper = GetFallbackDeviceWrapper();
 		if (DeviceWrapper)
 		{

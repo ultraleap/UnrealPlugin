@@ -805,12 +805,22 @@ IHandTrackingWrapper* FLeapWrapper::GetSingularDeviceBySerial(const FString& Dev
 }
 // gets a device, finds or creates combined device
 IHandTrackingWrapper* FLeapWrapper::GetDevice(
-	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass)
+	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass, const bool AllowOpenXR)
 {
 	IHandTrackingWrapper* Ret = nullptr;
 	if (DeviceSerials.Num() == 0 && Devices.Num())
 	{
-		return Devices[0];
+		// fallback device is the first non OpenXR device
+		// as OpenXR devices are created at startup these are the first ones in the list
+		for (auto Device : Devices)
+		{
+			const auto& DeviceSerial = Device->GetDeviceSerial();
+			if (DeviceSerial.Contains("OpenXR") && !AllowOpenXR)
+			{
+				continue;
+			}
+			return Device;
+		}
 	}
 
 	// singular mode, find the device
