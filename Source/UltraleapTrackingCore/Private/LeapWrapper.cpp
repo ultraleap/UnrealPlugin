@@ -14,7 +14,7 @@
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
-#define USE_OPENXR 0
+#define USE_OPENXR 1
 
 FLeapWrapper::FLeapWrapper()
 	: bIsRunning(false)
