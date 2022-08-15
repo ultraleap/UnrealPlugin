@@ -662,7 +662,7 @@ runtime.
 6. Drag a **TrackingDeviceActor** from
    **UltraleapTracking/Multileap/Tracking** into the scene and set its
    Active Device Serial to the tracking device on the desktop. Make sure
-   it's transform is zeroed. |image2|
+   its transform is zeroed. |image2|
 7. Drag another **TrackingDeviceActor** from
    **UltraleapTracking/Multileap/Tracking** into the scene and set its
    Active Device Serial to the HMD attached device similar to above.

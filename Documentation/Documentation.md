@@ -418,7 +418,7 @@ The dropdown contains the device serial numbers of every device plugged in.
 5. Set the LeapHandsPawn's LeapHands child actor to the **BSMultiCombinedLowPolyHand** edited above
 ![](https://i.imgur.com/44otuCn.png)
 6. Drag a **TrackingDeviceActor** from **UltraleapTracking/Multileap/Tracking** into the scene and set its Active Device Serial
-to the tracking device on the desktop. Make sure it's transform is zeroed.
+to the tracking device on the desktop. Make sure its transform is zeroed.
 ![](https://i.imgur.com/SLnoK1W.png)
 7. Drag another **TrackingDeviceActor** from **UltraleapTracking/Multileap/Tracking** into the scene and set its Active Device Serial
 to the HMD attached device similar to above.
