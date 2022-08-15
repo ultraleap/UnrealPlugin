@@ -70,7 +70,7 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 
 	static void AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
 	static void RemoveDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
-
+	static void OnDefaultDeviceChanged();
 	static TArray<IBodyStateDeviceChangeListener*> DeviceChangeListeners;
 
 };

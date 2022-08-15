@@ -56,6 +56,7 @@ class BODYSTATE_API IBodyStateDeviceChangeListener
 public:
 	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID) = 0;
 	virtual void OnDeviceRemoved(const uint32 DeviceID) = 0;
+	virtual void OnDefaultDeviceChanged() = 0;
 };
 // for uobject and bps
 UINTERFACE(Blueprintable, MinimalAPI)

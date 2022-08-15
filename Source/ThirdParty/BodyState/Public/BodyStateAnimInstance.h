@@ -391,8 +391,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BS Anim Instance - Multi device")
 	void SetActiveDeviceSerial(const FString& DeviceID);
 	// IBodyStateDeviceChangeListener
-	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID);
-	virtual void OnDeviceRemoved(const uint32 DeviceID);
+	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID) override;
+	virtual void OnDeviceRemoved(const uint32 DeviceID) override;
+	virtual void OnDefaultDeviceChanged() override;
 
 protected:
 	// traverse a bone index node until you hit -1, count the hops

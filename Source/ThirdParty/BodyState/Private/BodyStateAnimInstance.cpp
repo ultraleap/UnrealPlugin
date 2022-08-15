@@ -1309,6 +1309,16 @@ void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
 {
 	UpdateDeviceList();
 }
+void UBodyStateAnimInstance::OnDefaultDeviceChanged()
+{
+	// if using the default device
+	// refresh ref skeleton
+	if (ActiveDeviceSerial.IsEmpty() && MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR)
+	{
+		// forces a refresh in the animation tick/update
+		BodyStateSkeleton = nullptr;
+	}
+}
 void UBodyStateAnimInstance::SetActiveDeviceSerial(const FString& DeviceID)
 {
 	if (ActiveDeviceSerial != DeviceID)

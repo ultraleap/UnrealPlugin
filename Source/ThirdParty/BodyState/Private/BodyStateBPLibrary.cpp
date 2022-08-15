@@ -77,6 +77,13 @@ void UBodyStateBPLibrary::SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInt
 		IBodyState::Get().SetupGlobalDeviceManager(CallbackInterface);
 	}
 }
+void UBodyStateBPLibrary::OnDefaultDeviceChanged()
+{
+	for (auto DeviceListener : DeviceChangeListeners)
+	{
+		DeviceListener->OnDefaultDeviceChanged();
+	}
+}
 UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContextObject, int32 DeviceID /*= 0*/)
 {
 #if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 16
