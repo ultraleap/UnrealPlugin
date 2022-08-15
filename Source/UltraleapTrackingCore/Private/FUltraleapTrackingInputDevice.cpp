@@ -23,6 +23,9 @@ DECLARE_STATS_GROUP(TEXT("UltraleapTracking"), STATGROUP_UltraleapTracking, STAT
 DECLARE_CYCLE_STAT(TEXT("Leap Game Input and Events"), STAT_LeapInputTick, STATGROUP_UltraleapTracking);
 DECLARE_CYCLE_STAT(TEXT("Leap BodyState Tick"), STAT_LeapBodyStateTick, STATGROUP_UltraleapTracking);
 
+
+#define START_IN_OPENXR 0
+
 #pragma region Utility
 // Function call Utility
 void FUltraleapTrackingInputDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)> InFunction)
@@ -191,6 +194,11 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 
 	IBodyState::Get().SetupGlobalDeviceManager(this);
 	FLeapUtility::InitLeapStatics();
+
+	// fallback device for non multileap defaults to 
+	// open XR based on this device
+	// this can also be switched at runtime
+	IsInOpenXRMode = START_IN_OPENXR;
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -476,6 +484,21 @@ int32 FUltraleapTrackingInputDevice::RequestCombinedDevice(
 		}
 	}
 	return -1;
+}
+int32 FUltraleapTrackingInputDevice::GetDefaultDeviceID()
+{
+	// this could be either the first device found
+	// or the OpenXR device depending on global options
+	auto DeviceWrapper = GetFallbackDeviceWrapper();
+	if (DeviceWrapper)
+	{
+		auto Device = DeviceWrapper->GetDevice();
+		if (Device)
+		{
+			return Device->GetBodyStateDeviceID();
+		}
+	}
+	return 0;
 }
 void FUltraleapTrackingInputDevice::OnDeviceDetach()
 {

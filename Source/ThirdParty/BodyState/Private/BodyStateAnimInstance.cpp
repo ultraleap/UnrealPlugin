@@ -1289,12 +1289,7 @@ int32 UBodyStateAnimInstance::GetDeviceIDFromDeviceSerial(const FString& DeviceS
 	{
 		// backwards compatibility
 		// fallback to first device
-		if (DeviceSerialToDeviceID.Num())
-		{
-			TArray<int32> DeviceIDs; 
-			DeviceSerialToDeviceID.GenerateValueArray(DeviceIDs);
-			return DeviceIDs[0];
-		}
+		return UBodyStateBPLibrary::GetDefaultDeviceID();
 	}
 	if (DeviceSerialToDeviceID.Contains(DeviceSerial))
 	{

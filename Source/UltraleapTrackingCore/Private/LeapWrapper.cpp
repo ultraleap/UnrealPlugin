@@ -14,7 +14,6 @@
 #include "Runtime/Core/Public/Misc/Timespan.h"
 
 #pragma region LeapC Wrapper
-#define USE_OPENXR 1
 
 FLeapWrapper::FLeapWrapper()
 	: bIsRunning(false)
@@ -22,9 +21,7 @@ FLeapWrapper::FLeapWrapper()
 	, InterpolatedFrame(nullptr)
 	, InterpolatedFrameSize(0)
 {
-#if USE_OPENXR
 	UseOpenXR = true;
-#endif
 }
 
 FLeapWrapper::~FLeapWrapper()

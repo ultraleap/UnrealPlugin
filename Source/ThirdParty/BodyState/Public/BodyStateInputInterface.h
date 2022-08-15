@@ -46,6 +46,9 @@ public:
 	// return bodystate device ID for combined device
 	// device may already exist if requested elsewhere, created if not
 	virtual int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials,const EBSDeviceCombinerClass CombinerClass) = 0;
+	// get the default bodystate device ID
+	// this can be different depending on whether OpenXR global mode is set or not
+	virtual int32 GetDefaultDeviceID() = 0;
 };
 
 class BODYSTATE_API IBodyStateDeviceChangeListener

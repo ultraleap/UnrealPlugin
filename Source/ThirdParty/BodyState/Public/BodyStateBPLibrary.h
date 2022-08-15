@@ -58,6 +58,7 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 	static UBodyStateSkeleton* RequestCombinedDevice(
 		UObject* WorldContextObject, const TArray<FString>&, const EBSDeviceCombinerClass CombinerClass);
 
+	static int32 GetDefaultDeviceID();
 	// Global interface for device management, set to nullptr to clear
 	static void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface);
 	// Define mixing and update interfaces - this isn't ready yet, should it be called per skeleton or per bone?

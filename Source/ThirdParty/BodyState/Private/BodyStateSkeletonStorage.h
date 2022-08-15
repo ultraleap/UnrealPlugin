@@ -85,6 +85,14 @@ public:
 		}
 		return -1;
 	}
+	int32 GetDefaultDeviceID()
+	{
+		if (GlobalDeviceManager)
+		{
+			return GlobalDeviceManager->GetDefaultDeviceID();
+		}
+		return 0;
+	}
 private:
 	UBodyStateSkeleton* PrivateMergedSkeleton;
 

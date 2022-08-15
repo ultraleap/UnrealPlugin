@@ -130,7 +130,10 @@ UBodyStateSkeleton* UBodyStateBPLibrary::RequestCombinedDevice(
 		return nullptr;
 	}
 }
-
+int32 UBodyStateBPLibrary::GetDefaultDeviceID()
+{
+	return IBodyState::Get().GetDefaultDeviceID();
+}
 FTransform UBodyStateBPLibrary::TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance)
 {
 	USkeletalMeshComponent* SkeletalMesh = Instance->GetSkelMeshComponent();

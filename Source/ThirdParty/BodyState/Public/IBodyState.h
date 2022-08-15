@@ -107,4 +107,9 @@ public:
 	{
 		return -1;
 	}
+
+	virtual int32 GetDefaultDeviceID()
+	{
+		return 0;
+	}
 };
