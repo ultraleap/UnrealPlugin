@@ -814,8 +814,7 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 		// as OpenXR devices are created at startup these are the first ones in the list
 		for (auto Device : Devices)
 		{
-			const auto& DeviceSerial = Device->GetDeviceSerial();
-			if (DeviceSerial.Contains("OpenXR") && !AllowOpenXR)
+			if (Device->GetDeviceType() == IHandTrackingWrapper::DEVICE_TYPE_OPENXR && !AllowOpenXR)
 			{
 				continue;
 			}

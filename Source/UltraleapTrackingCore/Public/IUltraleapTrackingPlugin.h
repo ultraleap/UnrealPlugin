@@ -69,6 +69,12 @@ public:
 class IHandTrackingWrapper
 {
 public:
+	enum EDeviceType
+	{
+		DEVICE_TYPE_LEAP,
+		DEVICE_TYPE_OPENXR
+	};
+
 	virtual ~IHandTrackingWrapper()
 	{
 	}
@@ -113,7 +119,7 @@ public:
 	virtual void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 
 	virtual FString GetDeviceSerial() = 0;
-
+	virtual EDeviceType GetDeviceType() = 0;
 	virtual IHandTrackingDevice* GetDevice() = 0;
 
 	// device combination, does this device aggregate the given Devices

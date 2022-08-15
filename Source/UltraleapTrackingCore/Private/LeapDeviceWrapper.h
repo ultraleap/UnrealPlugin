@@ -71,7 +71,10 @@ public:
 		}
 		return Ret;
 	}
-
+	virtual EDeviceType GetDeviceType() override
+	{
+		return DEVICE_TYPE_LEAP;
+	}
 	virtual IHandTrackingDevice* GetDevice() override
 	{
 		return Device.Get();

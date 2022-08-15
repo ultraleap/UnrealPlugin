@@ -110,6 +110,10 @@ public:
 	{
 		return TEXT("Unknown");
 	}
+	virtual EDeviceType GetDeviceType() override
+	{
+		return DEVICE_TYPE_LEAP;
+	}
 	virtual IHandTrackingDevice* GetDevice() override
 	{
 		return nullptr;
@@ -225,6 +229,10 @@ public:
 	virtual FString GetDeviceSerial() override
 	{
 		return TEXT("LeapWrapper/Connector");
+	}
+	virtual EDeviceType GetDeviceType() override
+	{
+		return DEVICE_TYPE_LEAP;
 	}
 	virtual IHandTrackingDevice* GetDevice() override
 	{

@@ -53,7 +53,10 @@ public:
 		// NOTE: When we support device serials in OpenXR we can return them here
 		return FString::Printf(TEXT("OpenXR Device %d"), DeviceID - OpenXRBaseDeviceID);
 	}
-
+	virtual EDeviceType GetDeviceType()
+	{
+		return DEVICE_TYPE_OPENXR;
+	}
 	virtual IHandTrackingDevice* GetDevice() override;
 	
 
