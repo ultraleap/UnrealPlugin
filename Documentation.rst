@@ -607,6 +607,74 @@ to an Actor as Child Actor Components. See the example hands in the
 This actor can then be dragged into the scene to use the mapped hands at
 runtime.
 
+Using Multiple Devices
+======================
+
+Multiple leap devices can be used together in a scene, either to bring
+multiple independent sets of tracked hands into the scene per tracking
+device, or to combine input from multiple tracking devices into one set
+of hands.
+
+**Independent devices**
+
+Assign the tracked device serial number to your BodyStateAnimInstance
+derived anim blueprint's properties to track a specific device.
+Active/plugged in devices are displayed in the dropdown. Set the Multi
+Device Mode to **BS_MULTIDEVICE_SINGULAR**.
+
+.. image:: https://i.imgur.com/K4godtX.png
+
+The anim blueprint can then be used in the scene as normal. If multiple
+devices are plugged in and no device is assigned, then the first device
+found will be used.
+
+**Combined Devices**
+
+Multiple tracking devices can be combined into a single set of hands.
+There's several steps to configuring this, as the scene needs setting up
+so that each tracking device's relative transform can be detected at
+runtime.
+
+::
+
+   Note: Example scenes are provided in UltraleapTracking/Multileap/ExampleScenes. Device serial numbers for your tracking hardware will need
+   to be setup in the anim blueprints used (CombinedLeft and CombinedRight), to assign correctly to your hardware.
+
+**Setting up combined devices by hand**
+
+1. Set up the BodystateAnimInstance derived classes (left and right)
+   with the desired combined tracking devices:
+
+.. image:: https://i.imgur.com/74dKId9.png
+
+2. Set the Multi Device Mode to **BS_MULTI_COMBINED** and add one entry
+   to the Combined Device Serials array for each device. The dropdown
+   contains the device serial numbers of every device plugged in.
+
+3. Set the anim blueprint class for both hand's skeletal meshes in
+   **UltraleapTracking/Multileap/BodyState/BSMultiCombinedLowPolyHand**
+
+.. image:: https://i.imgur.com/WEsOkpf.png
+
+4. Add a **LeapHandsPawn** to the scene and set it to auto possess.
+5. Set the LeapHandsPawn's LeapHands child actor to the
+   **BSMultiCombinedLowPolyHand** edited above |image1|
+6. Drag a **TrackingDeviceActor** from
+   **UltraleapTracking/Multileap/Tracking** into the scene and set its
+   Active Device Serial to the tracking device on the desktop. Make sure
+   it's transform is zeroed. |image2|
+7. Drag another **TrackingDeviceActor** from
+   **UltraleapTracking/Multileap/Tracking** into the scene and set its
+   Active Device Serial to the HMD attached device similar to above.
+8. Drag a **MultiDeviceAlignmentActor** from
+   **UltraleapTracking/Multileap/Tracking** into the scene and set its
+   Source Device to the VR/HMD TrackingDeviceActor and set its Target
+   Device to the desktop TrackingDeviceActor. |image3|
+
+Once the above is setup, the desktop device's orientation and position
+will be automatically set when the scene runs. Your hands will then be
+tracked by both the HMD attached tracking device and the desktop device.
+
 UIInput Modules
 ===============
 
@@ -672,10 +740,10 @@ The basic components of interaction
 -----------------------------------
 
 -  "Interaction objects" are StaticMesh/Primitive Components with an
-   attached **IEGrabComponent**. |image1|
+   attached **IEGrabComponent**. |image4|
 -  An **IEGrabberComponent** attaches to anything that is used to
    interact with items in the scene (for example a Hand
-   SkeletelMeshComponent or a MotionControllerComponent). |image2|
+   SkeletelMeshComponent or a MotionControllerComponent). |image5|
 
 Interaction objects can live anywhere in your scene, all that's needed
 is to attach the IEGrabComponent. In addition, for re-use,
@@ -1138,32 +1206,32 @@ Importing and mapping a metahuman from scratch
    **UltraleapTracking/Metahumans/IEPawnHands_Metahuman**
 -  Move the newly created pawn class into your project's content folder
 -  Set the **MetahumanBPClass** member of your newly created class to
-   your imported Metahuman blueprint (for example HadleyBP) |image3|
+   your imported Metahuman blueprint (for example HadleyBP) |image6|
 -  Locate and create a new animation blueprint from your metahuman’s
-   skeleton. |image4| |image5|
+   skeleton. |image7| |image8|
 -  Move the newly created animation blueprint outside of the metahumans
    common folder
--  Reparent the blueprint to **BodyStateAnimInstance**. |image6|
+-  Reparent the blueprint to **BodyStateAnimInstance**. |image9|
 -  Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist
-   Translation** and click **Auto map**. |image7|
+   Translation** and click **Auto map**. |image10|
 -  Copy the nodes from the template
    **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim
-   graph and eventgraph) into your anim blueprint. |image8| |image9|
+   graph and eventgraph) into your anim blueprint. |image11| |image12|
 -  You can use select all to copy paste events
 -  Compile your new animation blueprint. At this point there will be
    missing variable errors
 -  Right click on the missing Metahuman Extensions variable and choose
-   **Create variable for Metahuman Extensions** |image10|
+   **Create variable for Metahuman Extensions** |image13|
 -  Connect up the last pin in the animation graph to the **Output Pose**
-   node. |image11|
+   node. |image14|
 -  The animation blueprint should now compile and be ready for use.
 
 Setting up the metahuman pawn
 -----------------------------
 
 -  Set the BodyAnimBPClass in your new pawn to your newly created anim
-   class |image12|
--  Set you new pawn as the default pawn in your game mode |image13|
+   class |image15|
+-  Set you new pawn as the default pawn in your game mode |image16|
 -  The metahuman will now run rigged in VR in your scene
 -  Note the pawn starts with the metahuman hidden, you have to select
    one of the **calibrate height** options from the hand menu to show
@@ -1173,9 +1241,7 @@ Walking animations
 ------------------
 
 A place holder is left in the template anim graph to add idle to walking
-animation blendspace 2D. See the example project for more information.
-The example project uses retargeted animations from the default UE4
-mannequin.
+animation blendspace 2D.
 
 FAQs
 ----
@@ -1248,7 +1314,7 @@ modified.
 
 -  Open the **IELowPloy_Rigged_Hand_Left_Physics** asset from
    **InteractionEngine/Pawn/IELowPoly_Rigged_Hand_Left_Physics.uasset**
-   |image14|
+   |image17|
 
 -  Ctrl/Multi-Select all the joints for the Ring and Pinky fingers
 
@@ -1352,19 +1418,22 @@ issues section <https://github.com/ultraleap/UnrealPlugin/issues>`__
 .. |Install and Go| image:: https://img.youtube.com/vi/AvnfoqIZq6k/0.jpg
    :target: https://youtu.be/AvnfoqIZq6k
 .. |ensure input is received| image:: http://i.imgur.com/zWMrHxn.png
-.. |image1| image:: https://i.imgur.com/Qfrtilt.png
-.. |image2| image:: https://i.imgur.com/Op7lClc.png
-.. |image3| image:: https://imgur.com/NzHLdCp.png
-.. |image4| image:: https://imgur.com/7X9bewG.png
-.. |image5| image:: https://imgur.com/ET3Z7YF.png
-.. |image6| image:: https://imgur.com/JR4UV03.png
-.. |image7| image:: https://imgur.com/P51oMTa.png
-.. |image8| image:: https://imgur.com/Q1n3GM7.png
-.. |image9| image:: https://imgur.com/lraQXBv.png
-.. |image10| image:: https://imgur.com/yqfYWFq.png
-.. |image11| image:: https://imgur.com/sLqFeb4.png
-.. |image12| image:: https://imgur.com/acqWA8f.png
-.. |image13| image:: https://imgur.com/YP0obW0.png
-.. |image14| image:: https://i.imgur.com/VHTrYet.png
+.. |image1| image:: https://i.imgur.com/44otuCn.png
+.. |image2| image:: https://i.imgur.com/SLnoK1W.png
+.. |image3| image:: https://i.imgur.com/bZf7OQ7.png
+.. |image4| image:: https://i.imgur.com/Qfrtilt.png
+.. |image5| image:: https://i.imgur.com/Op7lClc.png
+.. |image6| image:: https://imgur.com/NzHLdCp.png
+.. |image7| image:: https://imgur.com/7X9bewG.png
+.. |image8| image:: https://imgur.com/ET3Z7YF.png
+.. |image9| image:: https://imgur.com/JR4UV03.png
+.. |image10| image:: https://imgur.com/P51oMTa.png
+.. |image11| image:: https://imgur.com/Q1n3GM7.png
+.. |image12| image:: https://imgur.com/lraQXBv.png
+.. |image13| image:: https://imgur.com/yqfYWFq.png
+.. |image14| image:: https://imgur.com/sLqFeb4.png
+.. |image15| image:: https://imgur.com/acqWA8f.png
+.. |image16| image:: https://imgur.com/YP0obW0.png
+.. |image17| image:: https://i.imgur.com/VHTrYet.png
 .. |Windows Packaging| image:: https://img.youtube.com/vi/pRzm0M_a8uY/0.jpg
    :target: https://youtu.be/pRzm0M_a8uY

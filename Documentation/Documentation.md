@@ -380,6 +380,55 @@ Once the anim blueprint is set up for each hand, the hands can be added to an Ac
 
 This actor can then be dragged into the scene to use the mapped hands at runtime.
 
+# Using Multiple Devices
+
+Multiple leap devices can be used together in a scene, either to bring multiple independent sets of tracked hands into the scene per tracking device, or
+to combine input from multiple tracking devices into one set of hands.
+
+**Independent devices**
+
+Assign the tracked device serial number to your BodyStateAnimInstance derived anim blueprint's properties to track a specific device.
+Active/plugged in devices are displayed in the dropdown. Set the Multi Device Mode to **BS_MULTIDEVICE_SINGULAR**.
+
+![](https://i.imgur.com/K4godtX.png)
+
+The anim blueprint can then be used in the scene as normal. If multiple devices are plugged in and no device is assigned, then the first device found will be used.
+
+**Combined Devices**
+
+Multiple tracking devices can be combined into a single set of hands. There's several steps to configuring this, as
+the scene needs setting up so that each tracking device's relative transform can be detected at runtime.
+
+    Note: Example scenes are provided in UltraleapTracking/Multileap/ExampleScenes. Device serial numbers for your tracking hardware will need
+    to be setup in the anim blueprints used (CombinedLeft and CombinedRight), to assign correctly to your hardware.
+
+**Setting up combined devices by hand**
+1. Set up the BodystateAnimInstance derived classes (left and right) with the desired combined tracking devices:
+
+![](https://i.imgur.com/74dKId9.png)
+
+2. Set the Multi Device Mode to **BS_MULTI_COMBINED** and add one entry to the Combined Device Serials array for each device.
+The dropdown contains the device serial numbers of every device plugged in.
+
+3. Set the anim blueprint class for both hand's skeletal meshes in **UltraleapTracking/Multileap/BodyState/BSMultiCombinedLowPolyHand** 
+
+![](https://i.imgur.com/WEsOkpf.png)
+
+4. Add a **LeapHandsPawn** to the scene and set it to auto possess.
+5. Set the LeapHandsPawn's LeapHands child actor to the **BSMultiCombinedLowPolyHand** edited above
+![](https://i.imgur.com/44otuCn.png)
+6. Drag a **TrackingDeviceActor** from **UltraleapTracking/Multileap/Tracking** into the scene and set its Active Device Serial
+to the tracking device on the desktop. Make sure it's transform is zeroed.
+![](https://i.imgur.com/SLnoK1W.png)
+7. Drag another **TrackingDeviceActor** from **UltraleapTracking/Multileap/Tracking** into the scene and set its Active Device Serial
+to the HMD attached device similar to above.
+8. Drag a **MultiDeviceAlignmentActor** from **UltraleapTracking/Multileap/Tracking** into the scene and set its Source Device to the VR/HMD TrackingDeviceActor
+and set its Target Device to the desktop TrackingDeviceActor.
+![](https://i.imgur.com/bZf7OQ7.png)
+
+Once the above is setup, the desktop device's orientation and position will be automatically set when the scene runs.
+Your hands will then be tracked by both the HMD attached tracking device and the desktop device.
+
 # UIInput Modules
 
 The UIInput Modules enable hand interaction with Unreal's UMG 2D UI system. Both direct and distance based interaction is supported in VR and Desktop modes.
@@ -674,7 +723,7 @@ This can be run in VR as an embodied avatar or in desktop mode.
 * Note the pawn starts with the metahuman hidden, you have to select one of the **calibrate height** options from the hand menu to show it.
 
 ## Walking animations
-A place holder is left in the template anim graph to add idle to walking animation blendspace 2D. See the example project for more information. The example project uses retargeted animations from the default UE4 mannequin.
+A place holder is left in the template anim graph to add idle to walking animation blendspace 2D.
 
 ## FAQs
 
