@@ -12,6 +12,42 @@
 #include "LeapWrapper.h"
 #include "SceneManagement.h"
 
+
+/**
+ * Transforms that are tracked on the hand with the ultraleap extension (has elbow/forearm).
+ *
+ */
+UENUM(BlueprintType)
+enum class EHandKeypointUL : uint8
+{
+	Palm,
+	Wrist,
+	Elbow,
+	ThumbMetacarpal,
+	ThumbProximal,
+	ThumbDistal,
+	ThumbTip,
+	IndexMetacarpal,
+	IndexProximal,
+	IndexIntermediate,
+	IndexDistal,
+	IndexTip,
+	MiddleMetacarpal,
+	MiddleProximal,
+	MiddleIntermediate,
+	MiddleDistal,
+	MiddleTip,
+	RingMetacarpal,
+	RingProximal,
+	RingIntermediate,
+	RingDistal,
+	RingTip,
+	LittleMetacarpal,
+	LittleProximal,
+	LittleIntermediate,
+	LittleDistal,
+	LittleTip
+};
 /**
  *
  */
