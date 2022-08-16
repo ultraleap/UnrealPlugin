@@ -45,6 +45,29 @@
 				"Android",
 				"Linux"
 			]
+		},
+		{
+			"Name": "OpenXRULHandTrackingExt",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit",
+			"WhitelistPlatforms": [
+				"Win32",
+				"Win64",
+				"HoloLens",
+				"Android"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "OpenXR",
+			"Enabled": true,
+			"WhitelistPlatforms": [
+				"Win32",
+				"Win64",
+				"HoloLens",
+				"Android"
+			]
 		}
 	]
 }
