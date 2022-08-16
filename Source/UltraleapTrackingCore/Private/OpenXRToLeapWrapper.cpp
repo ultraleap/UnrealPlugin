@@ -83,12 +83,32 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 		return;
 	}
 
-	IModuleInterface* ModuleInterface = FModuleManager::Get().LoadModule("OpenXRHandTracking");
+	IModuleInterface* ModuleInterface = FModuleManager::Get().LoadModule("OpenXRULHandTrackingExt");
+
+	if (!ModuleInterface)
+	{
+		ModuleInterface = FModuleManager::Get().LoadModule("OpenXRHandTracking");
+	}
+
 	IModularFeatures& ModularFeatures = IModularFeatures::Get();
 	if (ModularFeatures.IsModularFeatureAvailable(IHandTracker::GetModularFeatureName()))
 	{
-		HandTracker = &IModularFeatures::Get().GetModularFeature<IHandTracker>(IHandTracker::GetModularFeatureName());
-		bIsConnected = true;
+		auto Implementations = IModularFeatures::Get().GetModularFeatureImplementations<IHandTracker>(IHandTracker::GetModularFeatureName());
+		
+		for (auto Implementation : Implementations)
+		{
+			if (Implementation->GetHandTrackerDeviceTypeName() == "UltraleapOpenXRHandTracking")
+			{
+				HandTracker = Implementation;
+			}
+		}
+		// fallback to default hand tracking
+		if (!HandTracker)
+		{
+			HandTracker = &IModularFeatures::Get().GetModularFeature<IHandTracker>(IHandTracker::GetModularFeatureName());
+		}
+		
+		bIsConnected = true;	
 
 		if (CallbackDelegate)
 		{
