@@ -22,7 +22,6 @@ enum class EHandKeypointUL : uint8
 {
 	Palm,
 	Wrist,
-	Elbow,
 	ThumbMetacarpal,
 	ThumbProximal,
 	ThumbDistal,
@@ -46,7 +45,8 @@ enum class EHandKeypointUL : uint8
 	LittleProximal,
 	LittleIntermediate,
 	LittleDistal,
-	LittleTip
+	LittleTip,
+	Elbow
 };
 /**
  *
