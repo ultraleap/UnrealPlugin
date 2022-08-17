@@ -174,6 +174,7 @@ UBodyStateSkeleton::UBodyStateSkeleton(const FObjectInitializer& ObjectInitializ
 		Bones[(int32) EBodyStateBasicBoneType::BONE_PINKY_2_INTERMEDIATE_R]);
 	Bones[(int32) EBodyStateBasicBoneType::BONE_PINKY_2_INTERMEDIATE_R]->AddChild(
 		Bones[(int32) EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R]);
+
 }
 
 UBodyStateBone* UBodyStateSkeleton::RootBone()
@@ -187,7 +188,7 @@ UBodyStateArm* UBodyStateSkeleton::LeftArm()
 	{
 		// Allocate
 		PrivateLeftArm = NewObject<UBodyStateArm>(this, "LeftArm");
-
+		PrivateLeftArm->AddToRoot();
 		// Linkup
 		PrivateLeftArm->LowerArm = Bones[(int32) EBodyStateBasicBoneType::BONE_LOWERARM_L];
 		PrivateLeftArm->UpperArm = Bones[(int32) EBodyStateBasicBoneType::BONE_UPPERARM_L];
@@ -244,7 +245,7 @@ UBodyStateArm* UBodyStateSkeleton::RightArm()
 	{
 		// Allocate
 		PrivateRightArm = NewObject<UBodyStateArm>(this, "RightArm");
-
+		PrivateRightArm->AddToRoot();
 		// Linkup
 		PrivateRightArm->LowerArm = Bones[(int32) EBodyStateBasicBoneType::BONE_LOWERARM_R];
 		PrivateRightArm->UpperArm = Bones[(int32) EBodyStateBasicBoneType::BONE_UPPERARM_R];
@@ -581,4 +582,17 @@ void UBodyStateSkeleton::Multi_UpdateBodyState_Implementation(const FNamedSkelet
 {
 	SetFromNamedSkeletonData(InBodyStateSkeleton);
 	Name = TEXT("Network");
+}
+void UBodyStateSkeleton::ReleaseRefs()
+{
+	if (PrivateLeftArm && PrivateLeftArm->IsValidLowLevel())
+	{
+		PrivateLeftArm->RemoveFromRoot();
+		PrivateLeftArm = nullptr;
+	}
+	if (PrivateRightArm && PrivateRightArm->IsValidLowLevel())
+	{
+		PrivateRightArm->RemoveFromRoot();
+		PrivateRightArm = nullptr;
+	}
 }

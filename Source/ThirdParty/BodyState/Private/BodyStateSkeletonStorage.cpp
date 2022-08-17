@@ -37,6 +37,7 @@ FBodyStateSkeletonStorage::~FBodyStateSkeletonStorage()
 	// Allow merge skeleton to be removed
 	if (PrivateMergedSkeleton && PrivateMergedSkeleton->IsValidLowLevel())
 	{
+		PrivateMergedSkeleton->ReleaseRefs();
 		PrivateMergedSkeleton->RemoveFromRoot();
 		PrivateMergedSkeleton = nullptr;
 	}

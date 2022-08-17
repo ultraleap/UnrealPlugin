@@ -192,6 +192,8 @@ class BODYSTATE_API UBodyStateSkeleton : public UObject
 
 	FCriticalSection BoneDataLock;
 
+	void ReleaseRefs();
+
 protected:
 	TArray<FNamedBoneData> TrackedBoneData();
 	TArray<FKeyedTransform> TrackedBasicBones();
