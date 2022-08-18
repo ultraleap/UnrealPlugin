@@ -151,6 +151,8 @@ public:
 
 	virtual void AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
 	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) = 0;
+	// called when the engine is ready for input
+	virtual void PostEarlyInit() = 0;
 };
 /**
  * The public interface to this module.  In most cases, this interface is only public to sibling modules

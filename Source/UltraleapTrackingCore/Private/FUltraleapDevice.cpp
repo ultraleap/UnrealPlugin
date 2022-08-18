@@ -273,6 +273,11 @@ FUltraleapDevice::FUltraleapDevice(
 	SwitchTrackingSource(StartInOpenXRMode);
 	Options.bUseOpenXRAsSource = StartInOpenXRMode;
 
+	if (StartInOpenXRMode)
+	{
+		Options.Mode = ELeapMode::LEAP_MODE_VR;
+	}
+
 	Init();
 }
 
