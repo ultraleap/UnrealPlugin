@@ -92,10 +92,7 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 			});
 		}
 	}
-	if (UseOpenXR)
-	{
-		AddOpenXRDevice(nullptr);
-	}
+	
 	return &ConnectionHandle;
 }
 LeapWrapperCallbackInterface* FLeapWrapper::GetCallbackDelegateFromDeviceID(const uint32_t DeviceID)
@@ -815,9 +812,16 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 			{
 				continue;
 			}
+			else if (AllowOpenXR && Device->GetDeviceType() != IHandTrackingWrapper::DEVICE_TYPE_OPENXR)
+			{
+				continue;
+			}
 			return Device;
 		}
+		// if none found specific to the OpenXR flag, just return the zeroth device
+		return Devices[0];
 	}
+
 
 	// singular mode, find the device
 	if (DeviceSerials.Num() == 1)
@@ -899,7 +903,14 @@ void FLeapWrapper::RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callbac
 {
 	LeapConnectorCallbacks.Remove(Callback);
 }
-// Must be called from the game thread
+void FLeapWrapper::PostEarlyInit()
+{
+	if (UseOpenXR)
+	{
+		AddOpenXRDevice(nullptr);
+	}
+}
+	// Must be called from the game thread
 void FLeapWrapper::NotifyDeviceAdded(IHandTrackingWrapper* Device)
 {
 	for (auto Callback : LeapConnectorCallbacks)
@@ -939,32 +950,24 @@ void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 }
 void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
-	// this has to run once the system starts ticking
-	// as it needs GEngine
-	AsyncTask(ENamedThreads::GameThread,
-		[this, InCallbackDelegate]()
-		{
-			IHandTrackingWrapper* Device = new FOpenXRToLeapWrapper();
+	IHandTrackingWrapper* Device = new FOpenXRToLeapWrapper();
 
-			// no OpenXR Hand Tracking Plugin or no XR hardware?
-			if (!Device->IsConnected())
-			{
-				delete Device;
-				return;
-			}
-			// if we're replacing the leap connect,
-			// callback here so the caller gets a connected notification
-			if (InCallbackDelegate)
-			{
-				InCallbackDelegate->OnConnect();
-			}
-			Devices.Add(Device);
+	// no OpenXR Hand Tracking Plugin or no XR hardware?
+	if (!Device->IsConnected())
+	{
+		delete Device;
+		return;
+	}
+	// if we're replacing the leap connect,
+	// callback here so the caller gets a connected notification
+	if (InCallbackDelegate)
+	{
+		InCallbackDelegate->OnConnect();
+	}
+	Devices.Add(Device);
 
-			NotifyDeviceAdded(Device);
-			UE_LOG(
-				UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
-		
-		
-		});
+	NotifyDeviceAdded(Device);
+	UE_LOG(
+		UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
 }
 #pragma endregion LeapC Wrapper

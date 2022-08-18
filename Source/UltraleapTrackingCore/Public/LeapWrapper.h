@@ -256,6 +256,7 @@ public:
 	virtual ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial) override;
 	virtual void AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback) override;
 	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) override;
+	virtual void PostEarlyInit() override;
 	// End of ILeapConnector
 
 private:

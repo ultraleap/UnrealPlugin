@@ -23,7 +23,6 @@ DECLARE_STATS_GROUP(TEXT("UltraleapTracking"), STATGROUP_UltraleapTracking, STAT
 DECLARE_CYCLE_STAT(TEXT("Leap Game Input and Events"), STAT_LeapInputTick, STATGROUP_UltraleapTracking);
 DECLARE_CYCLE_STAT(TEXT("Leap BodyState Tick"), STAT_LeapBodyStateTick, STATGROUP_UltraleapTracking);
 
-
 #define START_IN_OPENXR 0
 
 #pragma region Utility
@@ -204,7 +203,10 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 #undef LOCTEXT_NAMESPACE
 void FUltraleapTrackingInputDevice::PostEarlyInit()
 {
-
+	if (Connector)
+	{
+		Connector->PostEarlyInit();
+	}
 }
 FUltraleapTrackingInputDevice::~FUltraleapTrackingInputDevice()
 {
