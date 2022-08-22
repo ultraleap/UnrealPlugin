@@ -111,6 +111,12 @@ private:
 	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const TArray<FVector>& Positions, const TArray<FQuat>& Rotations);
 	int64_t GetDummyLeapTime();
 
+
+	// port of unity leap grab and pinch implementations (in turn ported from LeapC)
+	static float CalculatePinchStrength(const FLeapHandData& Hand, float PalmWidth);
+	static float CalculateBoneDistanceSquared(const FLeapBoneData& BoneA, const FLeapBoneData& BoneB);
+	static float CalculatePinchDistance(const FLeapHandData& Hand);
+
 	ELeapQuatSwizzleAxisB SwizzleX = ELeapQuatSwizzleAxisB::MinusY;
 	ELeapQuatSwizzleAxisB SwizzleY = ELeapQuatSwizzleAxisB::MinusZ;
 	ELeapQuatSwizzleAxisB SwizzleZ = ELeapQuatSwizzleAxisB::X;

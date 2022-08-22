@@ -623,3 +623,99 @@ IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 {
 	return Device.Get();
 }
+
+float FOpenXRToLeapWrapper::CalculatePinchStrength(const FLeapHandData& Hand, float PalmWidth)
+{
+	// Magic values taken from existing LeapC implementation (scaled to metres)
+	// TODO: change to cm for UE?
+	float HandScale = PalmWidth / 0.08425f;
+	float DistanceZero = 0.0600f * HandScale;
+	float DistanceOne = 0.0220f * HandScale;
+
+	// Get the thumb position.
+	// TipPosition in Unity, is Distal->Next the same?
+	auto ThumbTipPosition = Hand.Thumb.Distal.NextJoint;
+
+	// Compute the distance midpoints between the thumb and the each finger and find the smallest.
+	float MinDistanceSquared = TNumericLimits<float>::Max();
+	
+	int32 FingerIndex = 0;
+	for(const auto& Finger : Hand.Digits)
+	{
+		// skip 1
+		if (!FingerIndex)
+		{
+			FingerIndex++;
+			continue;
+		}
+		FVector Diff = Finger.Distal.NextJoint - ThumbTipPosition;
+		float DistanceSquared = Diff.SizeSquared();
+		MinDistanceSquared = FMath::Min(DistanceSquared, MinDistanceSquared);
+	
+		FingerIndex++;
+	}
+
+	// Compute the pinch strength.
+	return FMath::Clamp<float>((FMath::Sqrt(MinDistanceSquared) - DistanceZero) / (DistanceOne - DistanceZero), 0.0, 1.0);
+}
+
+float FOpenXRToLeapWrapper::CalculateBoneDistanceSquared(const FLeapBoneData& BoneA, const FLeapBoneData& BoneB)
+{
+	// Denormalize directions to bone length.
+	const auto BoneAJoint = BoneA.PrevJoint;
+	const auto BoneBJoint = BoneB.PrevJoint;
+
+	const auto BoneADirection = BoneA.Rotation.Vector() * ((BoneA.NextJoint - BoneA.PrevJoint).Size());
+	const auto BoneBDirection = BoneB.Rotation.Vector() * ((BoneB.NextJoint - BoneB.PrevJoint).Size());
+
+	// Compute the minimum (squared) distance between two bones.
+	const auto Diff = BoneBJoint - BoneAJoint;
+	const auto D1 = FVector::DotProduct(BoneADirection, Diff);
+	const auto D2 = FVector::DotProduct(BoneBDirection, Diff);
+	const auto A = BoneADirection.SizeSquared();
+	const auto B = FVector::DotProduct(BoneADirection, BoneBDirection);
+	const auto C = BoneBDirection.SizeSquared();
+	const auto Det = B * B - A * C;
+	const auto T1 = FMath::Clamp<float>((B * D2 - C * D1) / Det, 0.0, 1.0);
+	const auto T2 = FMath::Clamp<float>((A * D2 - B * D1) / Det, 0.0, 1.0);
+	const auto Pa = BoneAJoint + T1 * BoneADirection;
+	const auto Pb = BoneBJoint + T2 * BoneBDirection;
+	return (Pa - Pb).SizeSquared();
+}
+
+float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
+{
+	// Get the farthest 2 segments of thumb and index finger, respectively, and compute distances.
+	auto MinDistanceSquared = TNumericLimits<float>::Max();
+	
+	int32 ThumbBoneIndex = 0;
+	for(const auto ThumbBone : Hand.Thumb.Bones)
+	{
+		// skip 2
+		if (ThumbBoneIndex < 2)
+		{
+			ThumbBoneIndex++;
+			continue;
+		}
+
+		int IndexBoneIndex = 0;
+		for(const auto IndexBone : Hand.Index.Bones)
+		{
+			// skip 2
+			if (IndexBoneIndex < 2)
+			{
+				IndexBoneIndex++;
+				continue;
+			}
+			const auto DistanceSquared = CalculateBoneDistanceSquared(ThumbBone, IndexBone);
+			MinDistanceSquared = FMath::Min(DistanceSquared, MinDistanceSquared);
+
+			IndexBoneIndex++;
+		}
+		ThumbBoneIndex++;
+	}
+
+	// Return the pinch distance, converted to millimeters to match other providers.
+	// TODO: check scale with UE
+	return FMath::Sqrt(MinDistanceSquared) * 1000.0f;
+}
