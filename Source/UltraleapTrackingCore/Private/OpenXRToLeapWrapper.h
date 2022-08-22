@@ -116,6 +116,8 @@ private:
 	static float CalculatePinchStrength(const FLeapHandData& Hand, float PalmWidth);
 	static float CalculateBoneDistanceSquared(const FLeapBoneData& BoneA, const FLeapBoneData& BoneB);
 	static float CalculatePinchDistance(const FLeapHandData& Hand);
+	static float CalculateGrabStrength(const FLeapHandData& Hand);
+	static float CalculateGrabAngle(const FLeapHandData& Hand);
 
 	ELeapQuatSwizzleAxisB SwizzleX = ELeapQuatSwizzleAxisB::MinusY;
 	ELeapQuatSwizzleAxisB SwizzleY = ELeapQuatSwizzleAxisB::MinusZ;

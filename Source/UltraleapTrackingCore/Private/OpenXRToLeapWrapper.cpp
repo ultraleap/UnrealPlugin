@@ -16,7 +16,6 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "FUltraleapDevice.h"
 
-
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
 	static int32 OpenXRDeviceID = OpenXRBaseDeviceID;
@@ -718,4 +717,45 @@ float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 	// Return the pinch distance, converted to millimeters to match other providers.
 	// TODO: check scale with UE
 	return FMath::Sqrt(MinDistanceSquared) * 1000.0f;
+}
+float GetFingerStrength(const FLeapHandData& Hand, int Finger)
+{
+	if (Finger == 0)
+	{
+		// TODO: what is finger rotation and radial axis
+		return 0;//
+		//FVector::Dot(Hand.Digits[Finger]., -hand.RadialAxis()).Map(-1, 1, 0, 1);
+	}
+
+	return 0;	 // FVector::Dot(Hand.Digits[Finger].Direction, -hand.DistalAxis()).Map(-1, 1, 0, 1);
+}
+float FOpenXRToLeapWrapper::CalculateGrabStrength(const FLeapHandData& Hand)
+{
+	// magic numbers so it approximately lines up with the leap results
+	const float BendZero = 0.25f;
+	const float BendOne = 0.85f;
+
+	// Find the minimum bend angle for the non-thumb fingers.
+	float MinBend = TNumericLimits<float>::Max();
+
+	for (int FingerIdx = 1; FingerIdx < 5; FingerIdx++)
+	{
+		MinBend = FMath::Min( GetFingerStrength(Hand, FingerIdx), MinBend);
+	}
+
+	// Return the grab strength.
+	return FMath::Clamp<float>((MinBend - BendZero) / (BendOne - BendZero), 0.0, 1.0);
+}
+
+float FOpenXRToLeapWrapper::CalculateGrabAngle(const FLeapHandData& Hand)
+{
+	// Compute the sum of the angles between the fingertips and hands.
+	// For every finger, the angle is the sumb of bend + pitch + bow.
+	float AngleSum = 0.0f;
+	for (int FingerIdx = 1; FingerIdx < 5; FingerIdx++)
+	{
+		AngleSum += FMath::Lerp< float > (0, PI, GetFingerStrength(Hand, FingerIdx));
+	}
+	// Average between all fingers
+	return AngleSum / 4.0f;
 }
