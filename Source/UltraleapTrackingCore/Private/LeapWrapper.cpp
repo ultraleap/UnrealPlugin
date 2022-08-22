@@ -494,6 +494,8 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
 		
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d."), Devices.Num());
+		
 		});
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
@@ -527,6 +529,7 @@ void FLeapWrapper::RemoveDeviceDirect(const uint32_t DeviceID)
 			break;
 		}
 	}
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d."), Devices.Num());
 }
 /** Called by ServiceMessageLoop() when a device failure event is returned by LeapPollConnection(). */
 void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent, const uint32_t DeviceID)
