@@ -69,7 +69,7 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	}
 	if (!GEngine->XRSystem.IsValid())
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
 	
 		return;
 	}
@@ -79,7 +79,7 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	}
 	if (XRTrackingSystem == nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
 		return;
 	}
 
