@@ -43,10 +43,6 @@ float SumFloatArray(const TArray<float>& ToSum, const int NumElements)
 float Sum2DFloatArray(const TArray<TArray<float>>& ToSum, const int Index)
 {
 	float Ret = 0;
-	if (ToSum.Num() < (Index + 1))
-	{
-		return 0;
-	}
 	for (auto jValue : ToSum)
 	{
 		Ret += jValue[Index];
@@ -721,12 +717,12 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-			/* if (GEngine && JointIdx < 3)
+			if (GEngine && JointIdx < 10)
 			{
 				FString Message;
 				Message = FString::Printf(TEXT("Joint Confidences H %d J %d %f"),HandsIdx, JointIdx, JointConfidencesIn[HandsIdx][JointIdx]);
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
-			}*/
+			}
 			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * (JointConfidencesIn[HandsIdx][JointIdx]);
 		}
 	}
