@@ -717,12 +717,6 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
-			if (GEngine && JointIdx < 10)
-			{
-				FString Message;
-				Message = FString::Printf(TEXT("Joint Confidences H %d J %d %f"),HandsIdx, JointIdx, JointConfidencesIn[HandsIdx][JointIdx]);
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
-			}
 			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * (JointConfidencesIn[HandsIdx][JointIdx]);
 		}
 	}
