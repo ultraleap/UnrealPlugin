@@ -15,6 +15,7 @@
 #include "LeapUtility.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "FUltraleapDevice.h"
+#include "Kismet/KismetMathLibrary.h"
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
@@ -718,16 +719,57 @@ float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 	// TODO: check scale with UE
 	return FMath::Sqrt(MinDistanceSquared) * 1000.0f;
 }
+/// Returns the the direction towards the thumb that is perpendicular to the palmar
+/// and distal axes. Left and right hands will return opposing directions.
+///
+/// The direction away from the thumb would be called the ulnar axis.
+FVector HandRadialAxis(const FLeapHandData& Hand)
+{
+	FTransform Basis(Hand.Palm.Orientation, Hand.Palm.Position);
+
+	const FVector RightVector = UKismetMathLibrary::GetRightVector(Hand.Palm.Orientation);
+	
+	if (Hand.HandType == LEAP_HAND_RIGHT)
+	{
+		return -RightVector;
+	}
+	else
+	{
+		return RightVector;
+	}
+	return FVector::ZeroVector;
+}
+/// Returns the direction towards the fingers that is perpendicular to the palmar
+/// and radial axes.
+///
+/// The direction towards the wrist would be called the proximal axis.
+FVector HandDistalAxis(const FLeapHandData& Hand)
+{
+	// in BS Space forward is Z = UpVector in UE
+	return UKismetMathLibrary::GetUpVector(Hand.Palm.Orientation);
+}
+FVector FingerDirection(const FLeapDigitData& Finger)
+{
+	// The direction in which this finger or tool is pointing.The direction is expressed
+	// as a unit vector pointing in the same direction as the tip.
+	return UKismetMathLibrary::GetUpVector(Finger.Distal.Rotation);
+}
+/// Maps the value between valueMin and valueMax to its linearly proportional equivalent between resultMin and resultMax.
+/// The input value is clamped between valueMin and valueMax; if this is not desired, see MapUnclamped.
+float MapRange(const float Value,const float ValueMin,const float ValueMax,const float ResultMin,const float ResultMax)
+{
+	if (ValueMin == ValueMax)
+		return ResultMin;
+	return FMath::Lerp(ResultMin, ResultMax, ((Value - ValueMin) / (ValueMax - ValueMin)));
+}
 float GetFingerStrength(const FLeapHandData& Hand, int Finger)
 {
 	if (Finger == 0)
 	{
-		// TODO: what is finger rotation and radial axis
-		return 0;//
-		//FVector::Dot(Hand.Digits[Finger]., -hand.RadialAxis()).Map(-1, 1, 0, 1);
+		return MapRange(FVector::DotProduct(FingerDirection(Hand.Digits[Finger]), -HandRadialAxis(Hand)), -1, 1, 0, 1);
 	}
 
-	return 0;	 // FVector::Dot(Hand.Digits[Finger].Direction, -hand.DistalAxis()).Map(-1, 1, 0, 1);
+	return MapRange(FVector::DotProduct(FingerDirection(Hand.Digits[Finger]), -HandDistalAxis(Hand)), -1, 1, 0, 1);
 }
 float FOpenXRToLeapWrapper::CalculateGrabStrength(const FLeapHandData& Hand)
 {
