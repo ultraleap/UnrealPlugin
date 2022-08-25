@@ -619,6 +619,14 @@ void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 		CallbackDelegate->OnTrackingMode(TrackingMode);
 	}
 }
+void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
+{
+	// simulate pinch and grab state (in LeapC this comes from the tracking service)
+	for (auto& Hand : Frame.Hands)
+	{
+		UpdatePinchAndGrab(Hand);
+	}
+}
 IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 {
 	return Device.Get();
@@ -800,4 +808,11 @@ float FOpenXRToLeapWrapper::CalculateGrabAngle(const FLeapHandData& Hand)
 	}
 	// Average between all fingers
 	return AngleSum / 4.0f;
+}
+void FOpenXRToLeapWrapper::UpdatePinchAndGrab(FLeapHandData& Hand)
+{
+	Hand.PinchDistance = CalculatePinchDistance(Hand);
+	Hand.PinchStrength = CalculatePinchStrength(Hand, Hand.Palm.Width);
+	Hand.GrabAngle = CalculateGrabAngle(Hand);
+	Hand.GrabStrength = CalculateGrabStrength(Hand);
 }

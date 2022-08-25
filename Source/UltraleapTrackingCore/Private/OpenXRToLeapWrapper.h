@@ -95,6 +95,9 @@ public:
 	}
 	virtual IHandTrackingDevice* GetDevice() override;
 	
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override;
+
+	
 
 private:
 	class IXRTrackingSystem* XRTrackingSystem = nullptr;
@@ -118,6 +121,7 @@ private:
 	static float CalculatePinchDistance(const FLeapHandData& Hand);
 	static float CalculateGrabStrength(const FLeapHandData& Hand);
 	static float CalculateGrabAngle(const FLeapHandData& Hand);
+	static void UpdatePinchAndGrab(FLeapHandData& Hand);
 
 	ELeapQuatSwizzleAxisB SwizzleX = ELeapQuatSwizzleAxisB::MinusY;
 	ELeapQuatSwizzleAxisB SwizzleY = ELeapQuatSwizzleAxisB::MinusZ;
