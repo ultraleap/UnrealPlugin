@@ -800,11 +800,6 @@ float MapRange(const float Value,const float ValueMin,const float ValueMax,const
 }
 float GetFingerStrength(const FLeapHandData& Hand, int Finger)
 {
-	if (Finger == 0)
-	{
-		return MapRange(FVector::DotProduct(FingerDirection(Hand.Digits[Finger]), -HandRadialAxis(Hand)), -1, 1, 0, 1);
-	}
-
 	return MapRange(FVector::DotProduct(FingerDirection(Hand.Digits[Finger]), -HandDistalAxis(Hand)), -1, 1, 0, 1);
 }
 float FOpenXRToLeapWrapper::CalculateGrabStrength(const FLeapHandData& Hand)
@@ -865,6 +860,13 @@ void FOpenXRToLeapWrapper::UpdatePinchAndGrab(FLeapHandData& Hand)
 			}
 			break;
 		}
+	}
+
+	int FingerIndex = 0;
+	for (auto& Finger : Hand.Digits)
+	{
+		Finger.IsExtended = GetFingerStrength(Hand, FingerIndex) < 0.4;
+		FingerIndex++;
 	}
 }
 float FOpenXRToLeapWrapper::GetGameTimeInSeconds()
