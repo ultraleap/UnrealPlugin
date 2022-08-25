@@ -452,6 +452,8 @@ float FUltraleapCombinedDeviceConfidence::ConfidenceRelativeHandPos(
 	// TODO could be inversetransform vector, was inversetransform point?
 	FVector RelativeHandPos = SourceDeviceOrigin.InverseTransformPosition(HandPos);
 	
+	// cm to m
+	RelativeHandPos /= 100.0f;
 	// 2d gauss
 
 	// amplitude
@@ -698,7 +700,7 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 		// should be 25 vectors in here
 		JointPositionsList.Add(JointPositions);
 	}
-
+//#define DEBUG_PASSTHROUGH_CONFIDENCE
 #ifdef DEBUG_PASSTHROUGH_CONFIDENCE
 	// pass through test
 	for (int HandsIdx = 0; HandsIdx < Hands.Num(); HandsIdx++)
@@ -717,6 +719,13 @@ void FUltraleapCombinedDeviceConfidence::MergeHands(const TArray<const FLeapHand
 	{
 		for (int JointIdx = 0; JointIdx < NumJointPositions; JointIdx++)
 		{
+			/*if (GEngine && JointIdx < 5)
+			{
+				FString Message;
+				Message = FString::Printf(
+					TEXT("Joint Confidences H %d J %d %f"), HandsIdx, JointIdx, JointConfidencesIn[HandsIdx][JointIdx]);
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, Message);
+			}*/ 
 			MergedJointPositions[JointIdx] += JointPositionsList[HandsIdx][JointIdx] * (JointConfidencesIn[HandsIdx][JointIdx]);
 		}
 	}
