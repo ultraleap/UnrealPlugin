@@ -635,7 +635,7 @@ IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 float FOpenXRToLeapWrapper::CalculatePinchStrength(const FLeapHandData& Hand, float PalmWidth)
 {
 	// Magic values taken from existing LeapC implementation (scaled to metres)
-	// TODO: change to cm for UE?
+
 	float HandScale = PalmWidth / 0.08425f;
 	float DistanceZero = 0.0600f * HandScale;
 	float DistanceOne = 0.0220f * HandScale;
@@ -723,9 +723,8 @@ float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 		ThumbBoneIndex++;
 	}
 
-	// Return the pinch distance, converted to millimeters to match other providers.
-	// TODO: check scale with UE
-	return FMath::Sqrt(MinDistanceSquared) * 1000.0f;
+	// Return the pinch distance
+	return FMath::Sqrt(MinDistanceSquared);
 }
 /// Returns the the direction towards the thumb that is perpendicular to the palmar
 /// and distal axes. Left and right hands will return opposing directions.
@@ -812,7 +811,8 @@ float FOpenXRToLeapWrapper::CalculateGrabAngle(const FLeapHandData& Hand)
 void FOpenXRToLeapWrapper::UpdatePinchAndGrab(FLeapHandData& Hand)
 {
 	Hand.PinchDistance = CalculatePinchDistance(Hand);
-	Hand.PinchStrength = CalculatePinchStrength(Hand, Hand.Palm.Width);
+	Hand.PinchStrength = CalculatePinchStrength(
+		Hand, FVector::Distance(Hand.Thumb.Metacarpal.NextJoint, Hand.Pinky.Metacarpal.NextJoint));
 	Hand.GrabAngle = CalculateGrabAngle(Hand);
 	Hand.GrabStrength = CalculateGrabStrength(Hand);
 }
