@@ -27,7 +27,7 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	CurrentDeviceInfo = &DummyDeviceInfo;
 	DummyDeviceInfo = {0};
 	DummyDeviceInfo.size = sizeof(LEAP_DEVICE_INFO);
-	DummyDeviceInfo.serial = (char*)("OpenXRDummyDevice");
+	DummyDeviceInfo.serial = (char*) ("OpenXRDummyDevice");
 	DummyDeviceInfo.serial_length = strlen(DummyDeviceInfo.serial) + 1;
 
 	DummyLeapHands[0] = {0};
@@ -45,8 +45,13 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	DummyLeapFrame.pHands = DummyLeapHands;
 
 	Device = MakeShared<FUltraleapDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, true);
-}
 
+	// finger IDs are the index into the digits
+	for (int i = 0; i < 5; ++i)
+	{
+		DummyLeapHands[0].digits[i].finger_id = DummyLeapHands[1].digits[i].finger_id = i;
+	}
+}
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
 {
 }
