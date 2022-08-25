@@ -36,8 +36,8 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	DummyLeapHands[0].type = eLeapHandType::eLeapHandType_Left;
 	DummyLeapHands[1].type = eLeapHandType::eLeapHandType_Right;
 
-	DummyLeapHands[0].id = 1000;
-	DummyLeapHands[1].id = 2000;
+	DummyLeapHands[0].id = -1;
+	DummyLeapHands[1].id = -1;
 
 	DummyLeapFrame = {{0}};
 
@@ -564,11 +564,35 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 
 	if (StatusLeft)
 	{
+		
 		ConvertToLeapSpace(DummyLeapHands[0], OutPositions[0], OutRotations[0]);
+		// not tracking -> tracking = update hand IDs
+		if (!LeftHandVisible)
+		{
+			LeftHandVisible = true;
+			DummyLeapHands[0].id = HandID++;
+			FirstSeenLeft = GetGameTimeInSeconds();
+		}
+	}
+	else
+	{
+		LeftHandVisible = false;
 	}
 	if (StatusRight)
 	{
 		ConvertToLeapSpace(DummyLeapHands[1], OutPositions[1], OutRotations[1]);
+		// not tracking -> tracking = update hand IDs
+		if (!RightHandVisible)
+		{
+			RightHandVisible = true;
+			DummyLeapHands[1].id = HandID++;
+			FirstSeenRight = GetGameTimeInSeconds();
+		}
+		
+	}
+	else
+	{
+		RightHandVisible = false;
 	}
 
 	return &DummyLeapFrame;
@@ -811,8 +835,34 @@ float FOpenXRToLeapWrapper::CalculateGrabAngle(const FLeapHandData& Hand)
 void FOpenXRToLeapWrapper::UpdatePinchAndGrab(FLeapHandData& Hand)
 {
 	Hand.PinchDistance = CalculatePinchDistance(Hand);
-	Hand.PinchStrength = CalculatePinchStrength(
-		Hand, FVector::Distance(Hand.Thumb.Metacarpal.NextJoint, Hand.Pinky.Metacarpal.NextJoint));
+	Hand.PinchStrength =
+		CalculatePinchStrength(Hand, FVector::Distance(Hand.Thumb.Metacarpal.NextJoint, Hand.Pinky.Metacarpal.NextJoint));
 	Hand.GrabAngle = CalculateGrabAngle(Hand);
 	Hand.GrabStrength = CalculateGrabStrength(Hand);
+
+	float TimeNow = GetGameTimeInSeconds();
+
+	switch (Hand.HandType)
+	{
+		case LEAP_HAND_LEFT:
+		{
+			if (LeftHandVisible)
+			{
+				Hand.VisibleTime = TimeNow - FirstSeenLeft;
+			}
+			break;
+		}
+		case LEAP_HAND_RIGHT:
+		{
+			if (RightHandVisible)
+			{
+				Hand.VisibleTime = TimeNow - FirstSeenRight;
+			}
+			break;
+		}
+	}
+}
+float FOpenXRToLeapWrapper::GetGameTimeInSeconds()
+{
+	return CurrentWorld ? CurrentWorld->GetTimeSeconds() : 0.f;
 }
