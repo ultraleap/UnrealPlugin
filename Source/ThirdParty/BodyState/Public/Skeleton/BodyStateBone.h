@@ -100,6 +100,10 @@ struct BODYSTATE_API FBodyStateBoneData
 	void SetFromTransform(FTransform InTransform)
 	{
 		Reset();
+		if (InTransform.ContainsNaN())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SetFromTransform() Invalid Transform"));
+		}
 		Transform = InTransform;
 	}
 };

@@ -32,7 +32,32 @@ public:
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) = 0;
 	virtual void OnDeviceDetach() = 0;
 };
+UENUM(BlueprintType)
+enum EBSDeviceCombinerClass
+{
+	BS_DEVICE_COMBINER_UNKNOWN,
+	BS_DEVICE_COMBINER_CONFIDENCE,
+	BS_DEVICE_COMBINER_ANGULAR
+	// add your custom classes here and add them to the class factory
+};
+class BODYSTATE_API IBodyStateDeviceManagerRawInterface
+{
+public:
+	// return bodystate device ID for combined device
+	// device may already exist if requested elsewhere, created if not
+	virtual int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials,const EBSDeviceCombinerClass CombinerClass) = 0;
+	// get the default bodystate device ID
+	// this can be different depending on whether OpenXR global mode is set or not
+	virtual int32 GetDefaultDeviceID() = 0;
+};
 
+class BODYSTATE_API IBodyStateDeviceChangeListener
+{
+public:
+	virtual void OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID) = 0;
+	virtual void OnDeviceRemoved(const uint32 DeviceID) = 0;
+	virtual void OnDefaultDeviceChanged() = 0;
+};
 // for uobject and bps
 UINTERFACE(Blueprintable, MinimalAPI)
 class UBodyStateInputInterface : public UInterface

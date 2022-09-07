@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 5,
-	"VersionName": "4.1.1",
+	"Version": 12,
+	"VersionName": "4.6.0",
 	"FriendlyName": "Ultraleap Tracking Plugin",
 	"Description": "Support for  Ultraleap hand tracking devices.",
 	"Category": "Input Devices",
@@ -20,7 +20,10 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Android",
+				"Linux"
+
 			]
 		},
 		{
@@ -28,7 +31,9 @@
 			"Type": "UncookedOnly",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Android",
+				"Linux"
 			]
 		},
 		{
@@ -36,7 +41,9 @@
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
-				"Win64"
+				"Win64",
+				"Android",
+				"Linux"
 			]
 		}
 	]

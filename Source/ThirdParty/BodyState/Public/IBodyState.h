@@ -92,4 +92,24 @@ public:
 	// Copying movement
 	virtual void AddBoneSceneListener(UBodyStateBoneComponent* Listener){};
 	virtual void RemoveBoneSceneListener(UBodyStateBoneComponent* Listener){};
+
+	virtual bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs)
+	{
+		return false;
+	}
+
+	// Global interface for device management, set to nullptr to clear
+	virtual void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
+	{
+	}
+
+	virtual int32 RequestCombinedDevice(const TArray<FString>& DeviceSerials, const EBSDeviceCombinerClass CombinerClass)
+	{
+		return -1;
+	}
+
+	virtual int32 GetDefaultDeviceID()
+	{
+		return 0;
+	}
 };

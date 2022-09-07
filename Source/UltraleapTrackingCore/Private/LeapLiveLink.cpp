@@ -20,14 +20,14 @@ FLeapLiveLinkProducer::FLeapLiveLinkProducer()
 {
 }
 
-void FLeapLiveLinkProducer::Startup()
+void FLeapLiveLinkProducer::Startup(const FString& DeviceSerial)
 {
-	LiveLinkProvider = ILiveLinkProvider::CreateLiveLinkProvider(TEXT("Ultraleap Tracking Live Link"));
+	LiveLinkProvider = ILiveLinkProvider::CreateLiveLinkProvider(TEXT("Ultraleap Tracking Live Link: ") + DeviceSerial);
 
 	TFunction<void()> StatusChangeLambda = [this] {
 		if (LiveLinkProvider->HasConnection())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Connected."));
+			UE_LOG(LogTemp, Log, TEXT("Leap Live Link Source Connected. "));
 		}
 		else
 		{

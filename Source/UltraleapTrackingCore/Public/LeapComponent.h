@@ -11,7 +11,11 @@
 #include "Components/ActorComponent.h"
 #include "LeapWrapper.h"
 #include "UltraleapTrackingData.h"
+#include "IUltraleapTrackingPlugin.h"
 
+#if WITH_EDITOR
+#include "DetailLayoutBuilder.h"
+#endif
 #include "LeapComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FLeapEventSignature);
@@ -25,17 +29,19 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapTrackingModeSignature, ELeapMod
 
 UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
-class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent
+class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent, public ILeapConnectorCallbacks
 {
 	GENERATED_UCLASS_BODY()
 public:
+	~ULeapComponent();
+
 	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
 	FLeapDeviceSignature OnLeapDeviceAttached;
 
 	/** Called when a device disconnects from the leap service*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
-	FLeapDeviceSignature OnLeapDeviceDetatched;
+	FLeapDeviceSignature OnLeapDeviceDetached;
 
 	/** Event called when new tracking data is available, typically every game tick. */
 	UPROPERTY(BlueprintAssignable, Category = "Leap Events")
@@ -102,9 +108,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Properties")
 	bool bAddHmdOrigin;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Properties")
-	int32 DeviceId;
-
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetShouldAddHmdOrigin(bool& bShouldAdd);
 
@@ -114,12 +117,120 @@ public:
 
 	/** Polling function to get latest data */
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	void GetLatestFrameData(FLeapFrameData& OutData);
+	void GetLatestFrameData(FLeapFrameData& OutData, const bool ApplyDeviceOrigin = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
+	
 
-protected:
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void SetTrackingMode(ELeapMode Mode);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
+	
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool GetLeapOptions(FLeapOptions& Options);
+	/** Multidevice configuration, Singular subscribes to a single device. 
+	Combined subscribes to multiple devices combined into one device
+	*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere,
+		Category = "Leap Devices", meta = (
+			EditCondition = "DisableEditMultiDeviceMode == false"))
+	TEnumAsByte<ELeapMultiDeviceMode> MultiDeviceMode;
+
+	/** Available device list
+	*/
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Devices")
+	TArray<FString> AvailableDeviceSerials;
+
+	/** Active Device (Singular mode only)
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions", EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_SINGULAR"))
+	FString ActiveDeviceSerial;
+
+	UFUNCTION(CallInEditor)
+	TArray<FString> GetSerialOptions() const
+	{
+		TArray<FString> Ret(AvailableDeviceSerials);
+		Ret.Insert(NameConstantNone, 0);
+		return Ret;
+	}
+
+	/** Combined device list
+	 */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices", meta = (GetOptions = "GetSerialOptions", EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_COMBINED"))
+	TArray<FString> CombinedDeviceSerials;
+
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Devices",
+		meta = (GetOptions = "GetSerialOptions" , EditCondition = "MultiDeviceMode == ELeapMultiDeviceMode::LEAP_MULTI_DEVICE_COMBINED"))
+	TEnumAsByte<ELeapDeviceCombinerClass> DeviceCombinerClass;
+
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
+	ELeapDeviceType GetDeviceTypeFromSerial(const FString& DeviceSerial);
+
+
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
+	void UpdateDeviceOrigin(const FTransform& DeviceOriginIn);
+
+	// Setup multidevice programmatically in one call
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Leap Devices")
+	void SetupMultidevice(
+		const TArray<FString>& DeviceSerials, const ELeapMultiDeviceMode MultiDeviceModeIn, const ELeapDeviceCombinerClass CombinerClass);
+
+	/** Disable/Grey out setting the multidevice mode.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
+	bool DisableEditMultiDeviceMode;
+
+
+#if WITH_EDITOR
+	// property change handlers
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
+	void SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilder);
+#endif
+
+	// ILeapConnectorCallbacks implementation
+	virtual void OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper) override;
+	virtual void OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper) override;
+
+	
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool IsActiveDevicePluggedIn();
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetMultiDeviceDebugInfo(int32& NumLeftTracked, int32& NumRightTracked);
+
+
+	class IHandTrackingDevice* GetCombinedDeviceBySerials(const TArray<FString>& DeviceSerials);
+
+	UFUNCTION()
+	bool GetDeviceOrigin(FTransform& DeviceOrigin);
+
+ protected:
 	virtual void InitializeComponent() override;
 	virtual void UninitializeComponent() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool UpdateMultiDeviceMode(const ELeapMultiDeviceMode DeviceMode);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool UpdateActiveDevice(const FString& DeviceSerial);
+
+private:
+	void RefreshDeviceList(const bool NotifyChangeToUI = false);
+	bool SubscribeToDevice();
+	bool UnsubscribeFromCurrentDevice();
+
+#if WITH_EDITOR
+	// custom detail panel interface
+	IDetailLayoutBuilder* DetailBuilder;
+#endif
+	void ConnectToInputEvents();
+	bool IsConnectedToInputEvents;
+
+	IHandTrackingWrapper* CurrentHandTrackingDevice = nullptr;
+
+	static const FString NameConstantNone;
 };

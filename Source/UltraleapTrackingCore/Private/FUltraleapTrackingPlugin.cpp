@@ -92,68 +92,68 @@ void FUltraleapTrackingPlugin::RemoveEventDelegate(const ULeapComponent* EventDe
 	}
 }
 
-FLeapStats FUltraleapTrackingPlugin::GetLeapStats()
+FLeapStats FUltraleapTrackingPlugin::GetLeapStats(const FString& DeviceSerial)
 {
 	if (bActive)
 	{
-		return LeapInputDevice->GetStats();
+		return LeapInputDevice->GetStats(DeviceSerial);
 	}
 	else
 	{
-		return IUltraleapTrackingPlugin::GetLeapStats();
+		return IUltraleapTrackingPlugin::GetLeapStats(DeviceSerial);
 	}
 }
 
-void FUltraleapTrackingPlugin::SetOptions(const FLeapOptions& Options)
+void FUltraleapTrackingPlugin::SetOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials)
 {
 	if (bActive)
 	{
-		LeapInputDevice->SetOptions(Options);
+		LeapInputDevice->SetOptions(Options, DeviceSerials);
 	}
 }
 
-FLeapOptions FUltraleapTrackingPlugin::GetOptions()
+FLeapOptions FUltraleapTrackingPlugin::GetOptions(const FString& DeviceSerial)
 {
 	if (bActive)
 	{
-		return LeapInputDevice->GetOptions();
+		return LeapInputDevice->GetOptions(DeviceSerial);
 	}
 	else
 	{
-		return IUltraleapTrackingPlugin::GetOptions();
+		return IUltraleapTrackingPlugin::GetOptions(DeviceSerial);
 	}
 }
 
-void FUltraleapTrackingPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible)
+void FUltraleapTrackingPlugin::AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible,const FString& DeviceSerial)
 {
 	if (bActive)
 	{
-		LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible);
+		LeapInputDevice->AreHandsVisible(LeftHandIsVisible, RightHandIsVisible, DeviceSerial);
 	}
 }
 
-void FUltraleapTrackingPlugin::GetLatestFrameData(FLeapFrameData& OutData)
+void FUltraleapTrackingPlugin::GetLatestFrameData(FLeapFrameData& OutData, const FString& DeviceSerial)
 {
 	// Copies data
 	if (bActive)
 	{
-		LeapInputDevice->LatestFrame(OutData);
+		LeapInputDevice->LatestFrame(OutData, DeviceSerial);
 	}
 }
 
-void FUltraleapTrackingPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable)
+void FUltraleapTrackingPlugin::SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials)
 {
 	if (bActive)
 	{
-		LeapInputDevice->SetLeapPolicy(Flag, Enable);
+		LeapInputDevice->SetLeapPolicy(Flag, Enable, DeviceSerials);
 	}
 }
-void FUltraleapTrackingPlugin::SetSwizzles(
-	ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW)
+void FUltraleapTrackingPlugin::SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ,
+	ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials)
 {
 	if (bActive)
 	{
-		LeapInputDevice->SetSwizzles(ToX, ToY, ToZ, ToW);
+		LeapInputDevice->SetSwizzles(ToX, ToY, ToZ, ToW, DeviceSerials);
 	}
 }
 void FUltraleapTrackingPlugin::GetAttachedDevices(TArray<FString>& Devices)
@@ -171,7 +171,10 @@ void FUltraleapTrackingPlugin::ShutdownLeap()
 		LeapInputDevice->ShutdownLeap();
 	}
 }
-
+ILeapConnector* FUltraleapTrackingPlugin::GetConnector()
+{
+	return LeapInputDevice->GetConnector();
+}
 void* FUltraleapTrackingPlugin::GetLeapHandle()
 {
 	void* NewLeapDLLHandle = nullptr;

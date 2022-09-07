@@ -29,7 +29,8 @@ FLeapHandData FLeapFrameData::HandForId(int32 HandId)
 	return EmptyHand;
 }
 
-void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
+void FLeapFrameData::SetFromLeapFrame(
+	struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
 	if (frame == nullptr)
 	{
@@ -61,7 +62,7 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 		}
 
 		const LEAP_HAND& LeapHand = frame->pHands[i];
-		Hands[i].SetFromLeapHand((_LEAP_HAND*) &LeapHand);
+		Hands[i].SetFromLeapHand((_LEAP_HAND*) &LeapHand, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 		if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT)
 		{
@@ -76,7 +77,8 @@ void FLeapFrameData::SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
 	FrameId = frame->tracking_frame_id;
 }
 
-void FLeapFrameData::SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame)
+void FLeapFrameData::SetInterpolationPartialFromLeapFrame(
+	struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
 	if (frame == nullptr)
 	{
@@ -91,7 +93,8 @@ void FLeapFrameData::SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_
 	for (int i = 0; i < NumberOfHandsVisible; i++)
 	{
 		const LEAP_HAND& LeapHand = frame->pHands[i];
-		Hands[i].SetArmPartialsFromLeapHand((_LEAP_HAND*) &LeapHand);
+		Hands[i].SetArmPartialsFromLeapHand(
+			(_LEAP_HAND*) &LeapHand, LeapMountTranslationOffset, LeapMountRotationOffset);
 	}
 
 	TimeStamp = frame->info.timestamp;
@@ -120,10 +123,63 @@ void FLeapFrameData::TranslateFrame(const FVector& InTranslation)
 		Hand.TranslateHand(InTranslation);
 	}
 }
-
-void FLeapHandData::SetFromLeapHand(struct _LEAP_HAND* hand)
+void FLeapHandData::InitFromEmpty(const EHandType HandTypeIn, const int HandID)
 {
-	Arm.SetFromLeapBone((_LEAP_BONE*) &hand->arm);
+	static int FingerID = 0;
+
+	Confidence = 1.0;
+	GrabAngle = 100;
+	GrabStrength = 0.5;
+	PinchStrength = 0.5;
+
+	Id = HandID;
+
+	for (int i = 0; i < MAX_DIGITS; i++)
+	{
+		if (Digits.Num() <= i)	  // will only pay the cost of filling once
+		{
+			FLeapDigitData DigitData;
+			DigitData.Bones.AddZeroed(4);
+			DigitData.FingerId = ++FingerID;
+			Digits.Add(DigitData);
+		}
+	}
+
+	PinchDistance = 50;
+	
+
+	HandType = HandTypeIn;
+
+	VisibleTime = 1;
+
+	Flags = 0;
+}
+void FLeapHandData::UpdateFromDigits()
+{
+	// The hand merger only sets the bone arrays
+	// Set the high level digits and digit members here
+	for (auto& Digit : Digits)
+	{
+		Digit.Metacarpal = Digit.Bones[0];
+		Digit.Proximal = Digit.Bones[1];
+		Digit.Intermediate = Digit.Bones[2];
+		Digit.Distal = Digit.Bones[3];
+	
+		// this could be a merged state
+		Digit.IsExtended = false;
+	}
+
+	Thumb = Digits[0];
+	Index = Digits[1];
+	Middle = Digits[2];
+	Ring = Digits[3];
+	Pinky = Digits[4];
+	
+}
+void FLeapHandData::SetFromLeapHand(
+	struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
+{
+	Arm.SetFromLeapBone((_LEAP_BONE*) &hand->arm, LeapMountTranslationOffset, LeapMountRotationOffset);
 	Confidence = hand->confidence;
 	GrabAngle = hand->grab_angle;
 	GrabStrength = hand->grab_strength;
@@ -136,35 +192,37 @@ void FLeapHandData::SetFromLeapHand(struct _LEAP_HAND* hand)
 			FLeapDigitData DigitData;
 			Digits.Add(DigitData);
 		}
-		Digits[i].SetFromLeapDigit((_LEAP_DIGIT*) &hand->digits[i]);
+		Digits[i].SetFromLeapDigit((_LEAP_DIGIT*) &hand->digits[i], LeapMountTranslationOffset, LeapMountRotationOffset);
 	}
 
 	Flags = hand->flags;
 
-	Index.SetFromLeapDigit((_LEAP_DIGIT*) &hand->index);
-	Middle.SetFromLeapDigit((_LEAP_DIGIT*) &hand->middle);
-	Pinky.SetFromLeapDigit((_LEAP_DIGIT*) &hand->pinky);
-	Ring.SetFromLeapDigit((_LEAP_DIGIT*) &hand->ring);
-	Thumb.SetFromLeapDigit((_LEAP_DIGIT*) &hand->thumb);
+	Index.SetFromLeapDigit((_LEAP_DIGIT*) &hand->index, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Middle.SetFromLeapDigit((_LEAP_DIGIT*) &hand->middle, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Pinky.SetFromLeapDigit((_LEAP_DIGIT*) &hand->pinky, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Ring.SetFromLeapDigit((_LEAP_DIGIT*) &hand->ring, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Thumb.SetFromLeapDigit((_LEAP_DIGIT*) &hand->thumb, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 	PinchDistance = FLeapUtility::ScaleLeapFloatToUE(hand->pinch_distance);
 	PinchStrength = hand->pinch_strength;
 
 	HandType = (EHandType) hand->type;
 
-	Palm.SetFromLeapPalm((_LEAP_PALM*) &hand->palm);
+	Palm.SetFromLeapPalm((_LEAP_PALM*) &hand->palm, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 	VisibleTime = ((double) hand->visible_time / 1000000.0);	// convert to seconds
 }
 
-void FLeapHandData::SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand)
+void FLeapHandData::SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
 	// Arm Partial
-	Arm.NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->arm.next_joint);
-	Arm.PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->arm.prev_joint);
+	Arm.NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->arm.next_joint,LeapMountTranslationOffset, LeapMountRotationOffset);
+	Arm.PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		hand->arm.prev_joint, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 	// Palm Partial
-	Palm.Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->palm.position);
+	Palm.Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		hand->palm.position, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 	// Debug - Set Orientation
 	// Palm.Direction = ConvertLeapVectorToFVector(hand->palm.direction);
@@ -196,6 +254,11 @@ void FLeapHandData::RotateHand(const FRotator& InRotation)
 	Thumb.RotateDigit(InRotation);
 
 	Palm.RotatePalm(InRotation);
+
+	for (auto& Digit : Digits)
+	{
+		Digit.RotateDigit(InRotation);
+	}
 }
 
 void FLeapHandData::TranslateHand(const FVector& InTranslation)
@@ -209,13 +272,21 @@ void FLeapHandData::TranslateHand(const FVector& InTranslation)
 	Thumb.TranslateDigit(InTranslation);
 
 	Palm.TranslatePalm(InTranslation);
+
+	for(auto& Digit : Digits)
+	{
+		Digit.TranslateDigit(InTranslation);
+	}
 }
 
-void FLeapBoneData::SetFromLeapBone(struct _LEAP_BONE* bone)
+void FLeapBoneData::SetFromLeapBone(
+	struct _LEAP_BONE* bone, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
-	NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(bone->next_joint);
-	PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(bone->prev_joint);
-	Rotation = FLeapUtility::ConvertToFQuatWithHMDOffsets(bone->rotation).Rotator();
+	NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		bone->next_joint, LeapMountTranslationOffset, LeapMountRotationOffset);
+	PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		bone->prev_joint, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Rotation = FLeapUtility::ConvertToFQuatWithHMDOffsets(bone->rotation,LeapMountRotationOffset).Rotator();
 	Width = FLeapUtility::ScaleLeapFloatToUE(bone->width);
 }
 
@@ -238,7 +309,8 @@ void FLeapBoneData::TranslateBone(const FVector& InTranslation)
 	PrevJoint += InTranslation;
 }
 
-void FLeapDigitData::SetFromLeapDigit(struct _LEAP_DIGIT* digit)
+void FLeapDigitData::SetFromLeapDigit(
+	struct _LEAP_DIGIT* digit, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
 	// set bone data
 	for (int i = 0; i < MAX_DIGIT_BONES; i++)
@@ -248,13 +320,13 @@ void FLeapDigitData::SetFromLeapDigit(struct _LEAP_DIGIT* digit)
 			FLeapBoneData BoneData;
 			Bones.Add(BoneData);
 		}
-		Bones[i].SetFromLeapBone((_LEAP_BONE*) &digit->bones[i]);
+		Bones[i].SetFromLeapBone((_LEAP_BONE*) &digit->bones[i], LeapMountTranslationOffset, LeapMountRotationOffset);
 	}
 
-	Distal.SetFromLeapBone((_LEAP_BONE*) &digit->distal);
-	Intermediate.SetFromLeapBone((_LEAP_BONE*) &digit->intermediate);
-	Metacarpal.SetFromLeapBone((_LEAP_BONE*) &digit->metacarpal);
-	Proximal.SetFromLeapBone((_LEAP_BONE*) &digit->proximal);
+	Distal.SetFromLeapBone((_LEAP_BONE*) &digit->distal, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Intermediate.SetFromLeapBone((_LEAP_BONE*) &digit->intermediate, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Metacarpal.SetFromLeapBone((_LEAP_BONE*) &digit->metacarpal, LeapMountTranslationOffset, LeapMountRotationOffset);
+	Proximal.SetFromLeapBone((_LEAP_BONE*) &digit->proximal, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 	FingerId = digit->finger_id;
 	IsExtended = digit->is_extended == 1;
@@ -262,28 +334,28 @@ void FLeapDigitData::SetFromLeapDigit(struct _LEAP_DIGIT* digit)
 
 void FLeapDigitData::ScaleDigit(float InScale)
 {
-	/*for (auto& Bone : Bones)	//should the array also be used?
-	{
-		Bone.ScaleByInScale(InScale);
-	}*/
-
 	Distal.ScaleBone(InScale);
 	Intermediate.ScaleBone(InScale);
 	Metacarpal.ScaleBone(InScale);
 	Proximal.ScaleBone(InScale);
+
+	for (auto& Bone : Bones)
+	{
+		Bone.ScaleBone(InScale);
+	}
 }
 
 void FLeapDigitData::RotateDigit(const FRotator& InRotation)
 {
-	/*for (auto& Bone : Bones)
-	{
-		Bone.RotateBone(InRotation);
-	}*/
-
 	Distal.RotateBone(InRotation);
 	Intermediate.RotateBone(InRotation);
 	Metacarpal.RotateBone(InRotation);
 	Proximal.RotateBone(InRotation);
+
+	for (auto& Bone : Bones)
+	{
+		Bone.RotateBone(InRotation);
+	}
 }
 
 void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
@@ -292,9 +364,15 @@ void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
 	Intermediate.TranslateBone(InTranslation);
 	Metacarpal.TranslateBone(InTranslation);
 	Proximal.TranslateBone(InTranslation);
+
+	for (auto& Bone : Bones)
+	{
+		Bone.TranslateBone(InTranslation);
+	}
 }
 
-void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)
+void FLeapPalmData::SetFromLeapPalm(
+	struct _LEAP_PALM* palm, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
 	Direction = FLeapUtility::ConvertLeapVectorToFVector(palm->direction);
 
@@ -302,11 +380,14 @@ void FLeapPalmData::SetFromLeapPalm(struct _LEAP_PALM* palm)
 
 	Orientation = FLeapUtility::ConvertLeapQuatToFQuat(palm->orientation).Rotator();
 
-	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->position);
+	Position = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		palm->position, LeapMountTranslationOffset, LeapMountRotationOffset);
 
-	StabilizedPosition = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->stabilized_position);
+	StabilizedPosition = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		palm->stabilized_position, LeapMountTranslationOffset, LeapMountRotationOffset);
 
-	Velocity = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(palm->velocity);
+	Velocity = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
+		palm->velocity, LeapMountTranslationOffset, LeapMountRotationOffset);
 
 	Width = FLeapUtility::ScaleLeapFloatToUE(palm->width);
 }
@@ -349,8 +430,8 @@ FLeapOptions::FLeapOptions()
 	HandInterpFactor = 0.f;
 	FingerInterpFactor = 0.f;
 	// in mm
-	HMDPositionOffset = FVector(90.0, 0, 0);	// Vive default, for oculus use 80,0,0
-	HMDRotationOffset = FRotator(0, 0, 0);		// If imperfectly mounted it might need to sag
+//	HMDPositionOffset = FVector(90.0, 0, 0);	// Vive default, for oculus use 80,0,0
+//	HMDRotationOffset = FRotator(0, 0, 0);		// If imperfectly mounted it might need to sag
 	bUseFrameBasedGestureDetection = false;
 	StartGrabThreshold = .8f;
 	EndGrabThreshold = .5f;
@@ -359,6 +440,9 @@ FLeapOptions::FLeapOptions()
 	GrabTimeout = 100000;
 	PinchTimeout = 100000;
 	bUseOpenXRAsSource = false;
+
+	HMDPositionOffset = FVector(80.f, 0, 0);
+	HMDRotationOffset = FRotator(0, 0, 0);
 	// bEnableImageStreaming = false;		//default image streaming to off
 }
 

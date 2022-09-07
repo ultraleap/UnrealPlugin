@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 #pragma once
-
+#include "InputCoreTypes.h" // for FKey
 #include "UltraleapTrackingData.generated.h"
 
 UENUM(BlueprintType)
@@ -61,7 +61,58 @@ enum ELeapServiceLogLevel
 	LEAP_LOG_INFO
 };
 
-USTRUCT(BlueprintType)
+UENUM(BlueprintType)
+enum ELeapMultiDeviceMode
+{
+	LEAP_MULTI_DEVICE_SINGULAR = 0,
+	LEAP_MULTI_DEVICE_COMBINED
+};
+
+struct EKeysLeap
+{
+	static const FKey LeapPinchL;
+	static const FKey LeapGrabL;
+
+	static const FKey LeapPinchR;
+	static const FKey LeapGrabR;
+};
+// see eLeapDevicePID (Blueprint equivalent)
+UENUM(BlueprintType)
+enum ELeapDeviceType
+{
+	/** An unknown device that is compatible with the tracking software. @since 3.1.3 */
+	LEAP_DEVICE_TYPE_UNKNOWN,
+
+	/** The Leap Motion Controller (the first consumer peripheral). @since 3.0.0 */
+	LEAP_DEVICE_TYPE_PERIPHERAL,
+
+	/** Internal research product codename "Dragonfly". @since 3.0.0 */
+	LEAP_DEVICE_TYPE_DRAGONFLY,
+
+	/** Internal research product codename "Nightcrawler". @since 3.0.0 */
+	LEAP_DEVICE_TYPE_NIGHTCRAWLER,
+
+	/** Research product codename "Rigel". @since 4.0.0 */
+	LEAP_DEVICE_TYPE_RIGEL,
+
+	/** The Ultraleap Stereo IR 170 (SIR170) hand tracking module. @since 5.3.0 */
+	LEAP_DEVICE_TYPE_SIR170,
+
+	/** The Ultraleap 3Di hand tracking camera. @since 5.3.0 */
+	LEAP_DEVICE_TYPE_3DI,
+
+	/** An invalid device type. Not currently in use. @since 3.1.3 */
+	LEAP_DEVICE_INVALID = 0xFFFFFFFF
+};
+UENUM(BlueprintType)
+enum ELeapDeviceCombinerClass
+{
+	LEAP_DEVICE_COMBINER_UNKNOWN,
+	LEAP_DEVICE_COMBINER_CONFIDENCE,
+	LEAP_DEVICE_COMBINER_ANGULAR
+	// add your custom classes here and add them to the class factory in LeapWrapper
+};
+	USTRUCT(BlueprintType)
 struct ULTRALEAPTRACKING_API FLeapDevice
 {
 	GENERATED_USTRUCT_BODY()
@@ -224,7 +275,7 @@ struct ULTRALEAPTRACKING_API FLeapBoneData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
 	float Width;
 
-	void SetFromLeapBone(struct _LEAP_BONE* bone);
+	void SetFromLeapBone(struct _LEAP_BONE* bone, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 	void ScaleBone(float Scale);
 	void RotateBone(const FRotator& InRotation);
 	void TranslateBone(const FVector& InTranslation);
@@ -256,7 +307,7 @@ struct ULTRALEAPTRACKING_API FLeapPalmData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
 	float Width;
 
-	void SetFromLeapPalm(struct _LEAP_PALM* palm);
+	void SetFromLeapPalm(struct _LEAP_PALM* palm, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 	void ScalePalm(float Scale);
 	void RotatePalm(const FRotator& InRotation);
 	void TranslatePalm(const FVector& InTranslation);
@@ -288,7 +339,8 @@ struct ULTRALEAPTRACKING_API FLeapDigitData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
 	FLeapBoneData Proximal;
 
-	void SetFromLeapDigit(struct _LEAP_DIGIT* digit);
+	void SetFromLeapDigit(
+		struct _LEAP_DIGIT* digit, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 	void ScaleDigit(float Scale);
 	void RotateDigit(const FRotator& InRotation);
 	void TranslateDigit(const FVector& InTranslation);
@@ -351,14 +403,18 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	float VisibleTime;
 
 	/** Copy all data from leap type*/
-	void SetFromLeapHand(struct _LEAP_HAND* hand);
+	void SetFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 
 	/** Used in interpolation*/
-	void SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand);
+	void SetArmPartialsFromLeapHand(
+		struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 
 	void ScaleHand(float Scale);
 	void RotateHand(const FRotator& InRotation);
 	void TranslateHand(const FVector& InTranslation);
+
+	void InitFromEmpty(const EHandType HandTypeIn, const int HandID);
+	void UpdateFromDigits();
 };
 
 USTRUCT(BlueprintType)
@@ -393,8 +449,10 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 
 	FLeapHandData HandForId(int32 HandId);
 
-	void SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame);
-	void SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame);
+	void SetFromLeapFrame(
+		struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetInterpolationPartialFromLeapFrame(
+		struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 	void ScaleFrame(float Scale);
 	void RotateFrame(const FRotator& InRotation);
 	void TranslateFrame(const FVector& InTranslation);

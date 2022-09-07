@@ -22,24 +22,24 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_UCLASS_BODY()
 
 	/** Set basic global leap tracking options */
-	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
-	static void SetLeapMode(ELeapMode Mode, ELeapTrackingFidelity Fidelity = ELeapTrackingFidelity::LEAP_NORMAL);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void SetLeapMode(ELeapMode Mode, const TArray<FString>& DeviceSerials, ELeapTrackingFidelity Fidelity = ELeapTrackingFidelity::LEAP_NORMAL);
 
 	/** Set global leap options */
-	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
-	static void SetLeapOptions(const FLeapOptions& Options);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void SetLeapOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials);
 
 	/** Gets currently set global options */
-	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
-	static void GetLeapOptions(FLeapOptions& OutOptions);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerial"))
+	static void GetLeapOptions(FLeapOptions& OutOptions, const FString& DeviceSerial);
 
 	/** Gets Leap read only stats such as api version, frame lookup and device information */
-	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
-	static void GetLeapStats(FLeapStats& OutStats);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerial"))
+	static void GetLeapStats(FLeapStats& OutStats, const FString& DeviceSerial);
 
 	/** Change leap policy */
-	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
-	static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials);
 
 	/** List the attached (plugged in) devices */
 	UFUNCTION(BlueprintCallable, Category = "Leap Motion Functions")

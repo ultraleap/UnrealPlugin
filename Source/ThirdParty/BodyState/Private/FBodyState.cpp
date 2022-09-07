@@ -77,13 +77,28 @@ UBodyStateSkeleton* FBodyState::SkeletonForDevice(int32 DeviceID)
 {
 	return SkeletonStorage->SkeletonForDevice(DeviceID);
 }
-
-int32 FBodyState::AttachMergingFunctionForSkeleton(TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId /*= 0*/)
+void FBodyState::SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
 {
+	SkeletonStorage->SetupGlobalDeviceManager(CallbackInterface);
+}
+int32 FBodyState::RequestCombinedDevice(const TArray<FString>& DeviceSerials, const EBSDeviceCombinerClass CombinerClass)
+{
+	return SkeletonStorage->RequestCombinedDevice(DeviceSerials, CombinerClass);
+}
+int32 FBodyState::GetDefaultDeviceID()
+{
+	return SkeletonStorage->GetDefaultDeviceID();
+} 
+int32 FBodyState::AttachMergingFunctionForSkeleton(
+		TFunction<void(UBodyStateSkeleton*, float)> InFunction, int32 SkeletonId /*= 0*/)
+	{
 	// NB: skeleton id is ignored for now, skeleton is always the merged one atm
 	return SkeletonStorage->AddMergingFunction(InFunction);
 }
-
+bool FBodyState::GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs)
+{
+	return SkeletonStorage->GetAvailableDevices(DeviceSerials, DeviceIDs);
+}
 bool FBodyState::RemoveMergingFunction(int32 MergingFunctionId)
 {
 	return SkeletonStorage->RemoveMergingFunction(MergingFunctionId);
@@ -100,6 +115,7 @@ void FBodyState::RemoveBoneSceneListener(UBodyStateBoneComponent* Listener)
 	// todo fill set listener transform
 	BodyStateInputDevice->RemoveBoneSceneListener(Listener);
 }
+
 
 TSharedPtr<class IInputDevice> FBodyState::CreateInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 {

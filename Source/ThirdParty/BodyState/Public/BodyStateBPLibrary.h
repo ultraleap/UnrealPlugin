@@ -55,8 +55,22 @@ class BODYSTATE_API UBodyStateBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = "Body State Input")
 	static FTransform TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance);
 
+	static UBodyStateSkeleton* RequestCombinedDevice(
+		UObject* WorldContextObject, const TArray<FString>&, const EBSDeviceCombinerClass CombinerClass);
+
+	static int32 GetDefaultDeviceID();
+	// Global interface for device management, set to nullptr to clear
+	static void SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface);
 	// Define mixing and update interfaces - this isn't ready yet, should it be called per skeleton or per bone?
 
 	// BodyState Merging algorithm
 	static bool AttachMergeAlgorithm(TFunction<void(UBodyStateSkeleton*, float)> InFunction);
+
+	static bool GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs);
+
+	static void AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
+	static void RemoveDeviceChangeListener(IBodyStateDeviceChangeListener* Listener);
+	static void OnDefaultDeviceChanged();
+	static TArray<IBodyStateDeviceChangeListener*> DeviceChangeListeners;
+
 };

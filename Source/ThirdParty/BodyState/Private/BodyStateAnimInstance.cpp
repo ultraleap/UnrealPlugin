@@ -28,6 +28,19 @@
 #include "Misc/MessageDialog.h"
 #include "PersonaUtils.h"
 #endif
+
+
+FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
+{
+	bShouldDeformMesh = false;
+	FlipModelLeftRight = false;
+	OffsetTransform.SetScale3D(FVector(1.f));
+	PreBaseRotation = FRotator(ForceInitToZero);
+	TrackingTagLimit.Empty();
+	AutoCorrectRotation = FQuat::Identity;
+	OriginalScale = FVector::OneVector;
+	HandModelLength = 0;
+}
 // static
 FName UBodyStateAnimInstance::GetBoneNameFromRef(const FBPBoneReference& BoneRef)
 {
@@ -41,8 +54,16 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	bIncludeMetaCarpels = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
-}
 
+	ModelScaleOffset = ThumbTipScaleOffset = IndexTipScaleOffset = MiddleTipScaleOffset = RingTipScaleOffset = PinkyTipScaleOffset =
+		1.0;
+
+	UBodyStateBPLibrary::AddDeviceChangeListener(this);
+}
+UBodyStateAnimInstance::~UBodyStateAnimInstance()
+{
+	UBodyStateBPLibrary::RemoveDeviceChangeListener(this);
+}
 void UBodyStateAnimInstance::AddBSBoneToMeshBoneLink(
 	UPARAM(ref) FMappedBoneAnimData& InMappedBoneData, EBodyStateBasicBoneType BSBone, FName MeshBone)
 {
@@ -209,7 +230,8 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	int32 PinkyBone = InvalidBone;
 
 	// Re-organize our bone information
-	BoneLookupList.SetFromRefSkeleton(RefSkeleton, bUseSortedBoneNames);
+	BoneLookupList.SetFromRefSkeleton(
+		RefSkeleton, bUseSortedBoneNames, HandType, AutoMapTarget == EBodyStateAutoRigType::BOTH_HANDS);
 
 	int32 WristBone = InvalidBone;
 	int32 LowerArmBone = InvalidBone;
@@ -431,10 +453,10 @@ void UBodyStateAnimInstance::CreateEmptyBoneMap(
 		AddEmptyFingerToMap(EBodyStateBasicBoneType::BONE_PINKY_0_METACARPAL_R, AutoBoneMap, BonesPerFinger);
 	}
 }
-FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
+FQuat LookRotation(const FVector& LookAt, const FVector& UpDirection)
 {
-	FVector forward = lookAt;
-	FVector up = upDirection;
+	FVector forward = LookAt;
+	FVector up = UpDirection;
 
 	forward = forward.GetSafeNormal();
 	up = up - (forward * FVector::DotProduct(up, forward));
@@ -496,6 +518,7 @@ FQuat LookRotation(const FVector& lookAt, const FVector& upDirection)
 
 	return quaternion;
 }
+
 /* Find an orthonormal basis for the set of vectors q
  * using the Gram-Schmidt Orthogonalization process */
 void OrthoNormalize2(TArray<FVector>& Vectors)
@@ -544,42 +567,18 @@ FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAni
 	}
 	return FTransform();
 }
-FTransform UBodyStateAnimInstance::GetTransformFromBoneEnum(const FMappedBoneAnimData& ForMap,
-	const EBodyStateBasicBoneType BoneType, const TArray<FName>& Names, const TArray<FTransform>& ComponentSpaceTransforms,
-	bool& BoneFound) const
-{
-	FBoneReference Bone = ForMap.BoneMap.Find(BoneType)->MeshBone;
-	int Index = Names.Find(Bone.BoneName);
-
-	BoneFound = false;
-	if (Index > InvalidBone && Index < ComponentSpaceTransforms.Num())
-	{
-		BoneFound = true;
-		return ComponentSpaceTransforms[Index];
-	}
-	return FTransform();
-}
-
 FTransform UBodyStateAnimInstance::GetCurrentWristPose(
 	const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType) const
 {
 	FTransform Ret;
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
-
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
 
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
-
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetCurrentWristPose INodeMapping is NULL so cannot proceed"));
-		return Ret;
+		return FTransform();
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
@@ -609,26 +608,31 @@ void Normalize360(FRotator& InPlaceRot)
 		InPlaceRot.Roll += 360;
 	}
 }
+void ConvertToUnity(FTransform& UETransform)
+{
+	// flip coord space
+	FVector UnityVector(-UETransform.GetLocation().X, UETransform.GetLocation().Z, UETransform.GetLocation().Y);
+	
+	FRotator UERotator = UETransform.GetRotation().Rotator();
+	
+	// cm to meters
+	UnityVector /= 100;
+
+	UETransform.SetLocation(UnityVector);
+}
 #endif	  // DEBUG_ROTATIONS_AS_UNITY
 
 // based on the logic in HandBinderAutoBinder.cs from the Unity Hand Modules.
 void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	const TArray<FTransform>& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
 		return;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType Index = EBodyStateBasicBoneType::BONE_INDEX_1_PROXIMAL_L;
 	EBodyStateBasicBoneType Middle = EBodyStateBasicBoneType::BONE_MIDDLE_1_PROXIMAL_L;
@@ -646,7 +650,7 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 
 	if (!RefIndex)
 	{
-		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		ForMap.AutoCorrectRotation = FQuat::Identity;
 
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find the index bone"));
 
@@ -658,14 +662,21 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	bool PinkyBoneFound = false;
 	bool WristBoneFound = false;
 
-	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, ComponentSpaceTransforms, IndexBoneFound);
-	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, ComponentSpaceTransforms, MiddleBoneFound);
-	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, ComponentSpaceTransforms, PinkyBoneFound);
-	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, ComponentSpaceTransforms, WristBoneFound);
+	FTransform IndexPose = GetTransformFromBoneEnum(ForMap, Index, Names, NodeItems, IndexBoneFound);
+	FTransform MiddlePose = GetTransformFromBoneEnum(ForMap, Middle, Names, NodeItems, MiddleBoneFound);
+	FTransform PinkyPose = GetTransformFromBoneEnum(ForMap, Pinky, Names, NodeItems, PinkyBoneFound);
+	FTransform WristPose = GetTransformFromBoneEnum(ForMap, Wrist, Names, NodeItems, WristBoneFound);
+
+#if DEBUG_ROTATIONS_AS_UNITY
+	ConvertToUnity(IndexPose);
+	ConvertToUnity(MiddlePose);
+	ConvertToUnity(PinkyPose);
+	ConvertToUnity(WristPose);
+#endif
 
 	if (!(IndexBoneFound && MiddleBoneFound && PinkyBoneFound && WristBoneFound))
 	{
-		ForMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+		ForMap.AutoCorrectRotation = FQuat::Identity;
 		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation Cannot find all finger bones"));
 
 		return;
@@ -680,67 +691,59 @@ void UBodyStateAnimInstance::EstimateAutoMapRotation(FMappedBoneAnimData& ForMap
 	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
 		Right = -Right;
-	}
+	}	
 	FVector Up = FVector::CrossProduct(Forward, Right);
-	// we need a three param version of this.
-	OrthNormalize2(Forward, Up, Right);
-
+	OrthNormalize2(Up, Forward, Right);
+	
 	// in Unity this was Quat.LookRotation(forward,up).
 	FQuat ModelRotation;
+
 	ModelRotation = LookRotation(Forward, Up);
+	
+	// Round to closest 90 degrees
+	auto RoundedRotationOffset = (ModelRotation.Inverse() * WristPose.GetRotation()).Rotator();
+	RoundedRotationOffset.Pitch = FMath::RoundToFloat(RoundedRotationOffset.Pitch / 90) * 90;
+	RoundedRotationOffset.Yaw = FMath::RoundToFloat(RoundedRotationOffset.Yaw / 90) * 90;
+	RoundedRotationOffset.Roll = FMath::RoundToFloat(RoundedRotationOffset.Roll / 90) * 90;
+	
+	FRotator WristRotation = RoundedRotationOffset;
 
-	// In unity, this came from the wrist in the world/scene coords
-	FQuat WristPoseQuat(WristPose.GetRotation());
-
-#if DEBUG_ROTATIONS_AS_UNITY
-	// debug
-	FRotator WristSourceRotation = WristPose.GetRotation().Rotator();
-	Normalize360(WristSourceRotation);
-
-	FRotator ModelDebugRotation = ModelRotation.Rotator();
-	Normalize360(ModelDebugRotation);
-	// end debug
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-
-	FRotator WristRotation = (ModelRotation.Inverse() * WristPoseQuat).Rotator();
-
-#if DEBUG_ROTATIONS_AS_UNITY
-	FRotator WristDebugRotation = WristRotation;
-	Normalize360(WristDebugRotation);
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-
-	// correct to UE space as defined by control hands
-	if (ForMap.FlipModelLeftRight)
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
 	{
-		WristRotation += FRotator(-90, 0, -180);
+		if (ForMap.FlipModelLeftRight)
+		{
+			WristRotation = (WristRotation.Quaternion() *  FRotator(-90, 0, 0).Quaternion()).Rotator();
+		}
+		else
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 0, 180).Quaternion()).Rotator();
+		}
 	}
 	else
 	{
-		WristRotation += FRotator(90, 0, 0);
+		if (ForMap.FlipModelLeftRight)
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 90, 90).Quaternion()).Rotator();
+		}
+		else
+		{
+			WristRotation = (WristRotation.Quaternion() * FRotator(-90, 0, 0).Quaternion()).Rotator();
+		}
+
 	}
-#if DEBUG_ROTATIONS_AS_UNITY
-	WristDebugRotation = WristRotation;
-	Normalize360(WristDebugRotation);
-#endif	  // DEBUG_ROTATIONS_AS_UNITY
-	ForMap.AutoCorrectRotation = FQuat(WristRotation);
+	ForMap.AutoCorrectRotation = WristRotation.Quaternion();
 }
 float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
 {
 	float ElbowLength = 0;
-	USkeletalMeshComponent* Component = GetSkelMeshComponent();
-	// Get bones and parent indices
-	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	TArray<FTransform> ComponentSpaceTransforms;
 	TArray<FName> Names;
 	TArray<FNodeItem> NodeItems;
-	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
-	if (!INodeMapping)
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
 	{
-		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::EstimateAutoMapRotation INodeMapping is NULL so cannot proceed"));
 		return 0;
 	}
-
-	INodeMapping->GetMappableNodeData(Names, NodeItems);
 
 	EBodyStateBasicBoneType LowerArm = EBodyStateBasicBoneType::BONE_LOWERARM_L;
 	EBodyStateBasicBoneType Wrist = EBodyStateBasicBoneType::BONE_HAND_WRIST_L;
@@ -775,6 +778,120 @@ float UBodyStateAnimInstance::CalculateElbowLength(const FMappedBoneAnimData& Fo
 		ElbowLength = FVector::Distance(WristPose.GetLocation(), LowerArmPose.GetLocation());
 	}
 	return ElbowLength;
+}
+bool UBodyStateAnimInstance::GetNamesAndTransforms(
+	TArray<FTransform>& ComponentSpaceTransforms, TArray<FName>& Names, TArray<FNodeItem>& NodeItems) const
+{
+	USkeletalMeshComponent* Component = GetSkelMeshComponent();
+	ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
+	// Get bones and parent indices
+	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+	
+	
+	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
+
+	if (!INodeMapping)
+	{
+		UE_LOG(LogTemp, Log, TEXT("UBodyStateAnimInstance::GetNamesAndTransforms INodeMapping is NULL so cannot proceed"));
+		return false;
+	}
+
+	INodeMapping->GetMappableNodeData(Names, NodeItems);
+
+	return true;
+}
+
+void UBodyStateAnimInstance::CalculateHandSize(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	CalculateFingertipSizes(ForMap, RigTargetType);
+
+	TArray<FTransform> ComponentSpaceTransforms;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
+	{
+		return;
+	}
+	ForMap.OriginalScale = ComponentSpaceTransforms[0].GetScale3D();
+	EBodyStateBasicBoneType MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_L;
+	EBodyStateBasicBoneType MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		MiddleStart = EBodyStateBasicBoneType::BONE_MIDDLE_0_METACARPAL_R;
+		MiddleEnd = EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R;
+	}
+	float Length = 0;
+	// the enum is in bone order
+	for (int i = (int) MiddleStart; i < (int) MiddleEnd; ++i)
+	{
+		bool BoneFound = false;
+
+		// we may not have all bones
+		if (!ForMap.BoneMap.Contains((EBodyStateBasicBoneType)i))
+		{
+			continue;
+		}
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) i, Names, NodeItems, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, (EBodyStateBasicBoneType) (i + 1), Names, NodeItems, BoneFound);
+	
+		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation()); 
+		Length += Magnitude;
+	}
+	ForMap.HandModelLength = Length;
+
+}
+void UBodyStateAnimInstance::CalculateFingertipSizes(FMappedBoneAnimData& ForMap, const EBodyStateAutoRigType RigTargetType)
+{
+	TArray<FTransform> ComponentSpaceTransforms;
+	TArray<FName> Names;
+	TArray<FNodeItem> NodeItems;
+
+	static const int NumFingers = 5;
+	
+	ForMap.FingerTipLengths.Empty();
+
+	if (!GetNamesAndTransforms(ComponentSpaceTransforms, Names, NodeItems))
+	{
+		return;
+	}
+	EBodyStateBasicBoneType FingerTipsLeft[NumFingers] = {EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_L,
+		EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_L, EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_L,
+		EBodyStateBasicBoneType::BONE_RING_3_DISTAL_L, EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_L};
+
+	EBodyStateBasicBoneType FingerTipsRight[NumFingers] = {EBodyStateBasicBoneType::BONE_THUMB_2_DISTAL_R,
+		EBodyStateBasicBoneType::BONE_INDEX_3_DISTAL_R, EBodyStateBasicBoneType::BONE_MIDDLE_3_DISTAL_R,
+		EBodyStateBasicBoneType::BONE_RING_3_DISTAL_R, EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R};
+
+	EBodyStateBasicBoneType* FingerTipEnums = FingerTipsLeft;
+
+	if (RigTargetType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		FingerTipEnums = FingerTipsRight;
+	}
+
+	for (int i = 0; i < NumFingers; ++i)
+	{
+		bool BoneFound = false;
+		
+		EBodyStateBasicBoneType End = FingerTipEnums[i];
+		int BeforeEndInt = ((int) End) - 1;
+		EBodyStateBasicBoneType BeforeEnd = (EBodyStateBasicBoneType) BeforeEndInt;
+
+		
+		// we may not have all bones
+		if (!ForMap.BoneMap.Contains(End) || !ForMap.BoneMap.Contains(BeforeEnd))
+		{
+			ForMap.FingerTipLengths.Add(0);
+			continue;
+		}
+		FTransform Pose = GetTransformFromBoneEnum(ForMap, BeforeEnd, Names, NodeItems, BoneFound);
+		FTransform PoseNext = GetTransformFromBoneEnum(ForMap, End, Names, NodeItems, BoneFound);
+
+		float Magnitude = FVector::Distance(Pose.GetLocation(), PoseNext.GetLocation());
+		ForMap.FingerTipLengths.Add(Magnitude);
+	}
+
 }
 void UBodyStateAnimInstance::AutoMapBoneDataForRigType(
 	FMappedBoneAnimData& ForMap, EBodyStateAutoRigType RigTargetType, bool& Success, TArray<FString>& FailedBones)
@@ -864,7 +981,7 @@ TMap<EBodyStateBasicBoneType, FBPBoneReference> UBodyStateAnimInstance::ToBoneRe
 	}
 	return ReferenceMap;
 }
-void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForMap)
+void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 {
 	// the user can manually specify that the model is flipped (left to right or right to left)
 	// Setting the scale on the component flips the view
@@ -889,12 +1006,27 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(const FMappedBoneAnimData& ForM
 		Component->SetBoundsScale(1);
 	}
 }
+UBodyStateSkeleton* UBodyStateAnimInstance::GetCurrentSkeleton()
+{
+	UBodyStateSkeleton* Skeleton = nullptr;
+
+	if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR)
+	{
+		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
+	}
+	else if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_COMBINED)
+	{
+		Skeleton = UBodyStateBPLibrary::RequestCombinedDevice(this, CombinedDeviceSerials, DeviceCombinerClass);
+	}
+	return Skeleton;
+}
+
 void UBodyStateAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-
+	UpdateDeviceList();
 	// Get our default bodystate skeleton
-	UBodyStateSkeleton* Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+	UBodyStateSkeleton* Skeleton = GetCurrentSkeleton();
 	SetAnimSkeleton(Skeleton);
 
 	// One hand mapping
@@ -910,7 +1042,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				OneHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 		}
 	}
@@ -933,7 +1065,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
 		}
 	}
@@ -941,7 +1073,7 @@ void UBodyStateAnimInstance::NativeInitializeAnimation()
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		BodyStateSkeleton = GetCurrentSkeleton();
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
@@ -960,7 +1092,7 @@ void UBodyStateAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// SN: may want to optimize this at some pt
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		BodyStateSkeleton = GetCurrentSkeleton();
 		SetAnimSkeleton(BodyStateSkeleton);
 	}
 
@@ -1054,8 +1186,9 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				OneHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				OneHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
+			CalculateHandSize(OneHandMap, AutoMapTarget);
 		}
 	}
 	else
@@ -1077,15 +1210,17 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 			}
 			else
 			{
-				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat(FRotator(ForceInitToZero));
+				RightHandMap.AutoCorrectRotation = LeftHandMap.AutoCorrectRotation = FQuat::Identity;
 			}
+			CalculateHandSize(LeftHandMap, EBodyStateAutoRigType::HAND_LEFT);
+			CalculateHandSize(RightHandMap, EBodyStateAutoRigType::HAND_RIGHT);
 		}
 	}
 
 	// Cache all results
 	if (BodyStateSkeleton == nullptr)
 	{
-		BodyStateSkeleton = UBodyStateBPLibrary::SkeletonForDevice(this, 0);
+		BodyStateSkeleton = GetCurrentSkeleton();
 		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
 	}
 	else
@@ -1134,6 +1269,65 @@ void UBodyStateAnimInstance::PostEditChangeChainProperty(struct FPropertyChanged
 	}
 }
 #endif	  // WITH_EDITOR
+void UBodyStateAnimInstance::UpdateDeviceList()
+{
+	TArray<int32> DeviceIDs;
+	UBodyStateBPLibrary::GetAvailableDevices(AvailableDeviceSerials, DeviceIDs);
+	DeviceSerialToDeviceID.Empty();
+
+	int Index = 0;
+	for (auto DeviceSerial : AvailableDeviceSerials)
+	{
+		DeviceSerialToDeviceID.Add(DeviceSerial, DeviceIDs[Index++]);
+	}
+}
+int32 UBodyStateAnimInstance::GetDeviceIDFromDeviceSerial(const FString& DeviceSerial)
+{
+	// Bodystate Device ID 0 is always the merged skeleton
+	int32 Ret = 0;
+	if (DeviceSerial.IsEmpty())
+	{
+		// backwards compatibility
+		// fallback to first device
+		return UBodyStateBPLibrary::GetDefaultDeviceID();
+	}
+	if (DeviceSerialToDeviceID.Contains(DeviceSerial))
+	{
+		return DeviceSerialToDeviceID[DeviceSerial];
+	}
+	return Ret;
+}
+int32 UBodyStateAnimInstance::GetActiveDeviceID()
+{
+	return GetDeviceIDFromDeviceSerial(ActiveDeviceSerial);
+}
+void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
+{
+	UpdateDeviceList();
+}
+void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
+{
+	UpdateDeviceList();
+}
+void UBodyStateAnimInstance::OnDefaultDeviceChanged()
+{
+	// if using the default device
+	// refresh ref skeleton
+	if (ActiveDeviceSerial.IsEmpty() && MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR)
+	{
+		// forces a refresh in the animation tick/update
+		BodyStateSkeleton = nullptr;
+	}
+}
+void UBodyStateAnimInstance::SetActiveDeviceSerial(const FString& DeviceID)
+{
+	if (ActiveDeviceSerial != DeviceID)
+	{
+		ActiveDeviceSerial = DeviceID;
+		//force recache of skeleton
+		BodyStateSkeleton = nullptr;
+	}
+}
 void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 {
 	// Clear our current list
@@ -1213,25 +1407,58 @@ TArray<int32> FBodyStateIndexedBoneList::FindBoneWithChildCount(int32 Count)
 	}
 	return ResultArray;
 }
-
-void FBodyStateIndexedBoneList::SetFromRefSkeleton(const FReferenceSkeleton& RefSkeleton, bool SortBones)
+// filter bones by hands
+bool IsHandType(const FString& BoneName, EBodyStateAutoRigType HandType)
 {
+	FString EndTest("_l");
+	FString Name(BoneName);
+
+	if (HandType == EBodyStateAutoRigType::HAND_RIGHT)
+	{
+		EndTest = "_r";
+	}
+	if (Name.Right(2) == EndTest)
+	{
+		return true;
+	}
+	return false;
+}
+void FBodyStateIndexedBoneList::SetFromRefSkeleton(
+	const FReferenceSkeleton& RefSkeleton, bool SortBones, EBodyStateAutoRigType HandType, const bool FilterByHand)
+{
+	SortedBones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)
 	{
 		FBodyStateIndexedBone Bone;
 		Bone.BoneName = RefSkeleton.GetBoneName(i);
 		Bone.ParentIndex = RefSkeleton.GetParentIndex(i);
 		Bone.Index = i;
-		SortedBones.Add(Bone);
+
+		//Filter by hand
+		if (FilterByHand)
+		{
+			if (IsHandType(Bone.BoneName.ToString(), HandType))
+			{
+				SortedBones.Add(Bone);
+			}
+		}
+		else
+		{
+			SortedBones.Add(Bone);
+		}
 	}
 	if (SortBones)
 	{
-		SortedBones.Sort();
-
-		for (int i = 0; i < SortedBones.Num(); ++i)
-		{
-			SortedBones[i].Index = i;
-		}
+		SortedBones.Sort(
+			[](const FBodyStateIndexedBone& One, const FBodyStateIndexedBone& Two)
+			{
+				
+				return One.BoneName.FastLess(Two.BoneName);
+			});
+	}
+	for (int i = 0; i < SortedBones.Num(); ++i)
+	{
+		SortedBones[i].Index = i;
 	}
 	Bones.Empty(RefSkeleton.GetNum());
 	for (int32 i = 0; i < RefSkeleton.GetNum(); i++)

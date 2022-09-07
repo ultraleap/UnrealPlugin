@@ -28,6 +28,8 @@
 #include "FBodyState.h"
 #include "Runtime/Launch/Resources/Version.h"
 
+TArray<IBodyStateDeviceChangeListener*> UBodyStateBPLibrary::DeviceChangeListeners;
+
 UBodyStateBPLibrary::UBodyStateBPLibrary(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
@@ -42,21 +44,46 @@ int32 UBodyStateBPLibrary::AttachDevice(
 int32 UBodyStateBPLibrary::AttachDeviceNative(
 	const FBodyStateDeviceConfig& Configuration, IBodyStateInputRawInterface* InputCallbackDelegate)
 {
-	return IBodyState::Get().AttachDevice(Configuration, InputCallbackDelegate);
+	
+	int32 DeviceID = IBodyState::Get().AttachDevice(Configuration, InputCallbackDelegate);
+	for (auto DeviceListener : DeviceChangeListeners)
+	{
+		DeviceListener->OnDeviceAdded(Configuration.DeviceSerial, DeviceID);
+	}
+	return DeviceID;
 }
 
 bool UBodyStateBPLibrary::DetachDevice(int32 DeviceID)
 {
 	if (IBodyState::IsAvailable())
 	{
-		return IBodyState::Get().DetachDevice(DeviceID);
+		bool Ret = IBodyState::Get().DetachDevice(DeviceID);
+
+		for (auto DeviceListener : DeviceChangeListeners)
+		{
+			DeviceListener->OnDeviceRemoved(DeviceID);
+		}
+		return Ret;
 	}
 	else
 	{
 		return false;
 	}
 }
-
+void UBodyStateBPLibrary::SetupGlobalDeviceManager(IBodyStateDeviceManagerRawInterface* CallbackInterface)
+{
+	if (IBodyState::IsAvailable())
+	{
+		IBodyState::Get().SetupGlobalDeviceManager(CallbackInterface);
+	}
+}
+void UBodyStateBPLibrary::OnDefaultDeviceChanged()
+{
+	for (auto DeviceListener : DeviceChangeListeners)
+	{
+		DeviceListener->OnDefaultDeviceChanged();
+	}
+}
 UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContextObject, int32 DeviceID /*= 0*/)
 {
 #if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 16
@@ -79,7 +106,41 @@ UBodyStateSkeleton* UBodyStateBPLibrary::SkeletonForDevice(UObject* WorldContext
 		return nullptr;
 	}
 }
+UBodyStateSkeleton* UBodyStateBPLibrary::RequestCombinedDevice(
+	UObject* WorldContextObject, const TArray<FString>& DeviceSerials,const EBSDeviceCombinerClass CombinerClass)
+{
+#if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 16
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject);
+#else
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+#endif
+	if (World == nullptr)
+	{
+		UE_LOG(BodyStateLog, Warning, TEXT("RequestCombinedDevice:: Wrong world context"))
+		return nullptr;
+	}
 
+	if (IBodyState::IsAvailable() && (World->IsGameWorld() || World->IsPreviewWorld()))
+	{
+		const int BodyStateDeviceID = IBodyState::Get().RequestCombinedDevice(DeviceSerials,CombinerClass);
+		if (BodyStateDeviceID >= 0)
+		{
+			return SkeletonForDevice(WorldContextObject, BodyStateDeviceID);
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+int32 UBodyStateBPLibrary::GetDefaultDeviceID()
+{
+	return IBodyState::Get().GetDefaultDeviceID();
+}
 FTransform UBodyStateBPLibrary::TransformForBoneNamedInAnimInstance(const FName& Bone, UAnimInstance* Instance)
 {
 	USkeletalMeshComponent* SkeletalMesh = Instance->GetSkelMeshComponent();
@@ -100,3 +161,16 @@ bool UBodyStateBPLibrary::AttachMergeAlgorithm(TFunction<void(UBodyStateSkeleton
 	IBodyState::Get().AttachMergingFunctionForSkeleton(InFunction);
 	return true;
 }
+bool UBodyStateBPLibrary::GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs)
+{
+	return IBodyState::Get().GetAvailableDevices(DeviceSerials, DeviceIDs);
+}
+void UBodyStateBPLibrary::AddDeviceChangeListener(IBodyStateDeviceChangeListener* Listener)
+{
+	DeviceChangeListeners.AddUnique(Listener);
+}
+void UBodyStateBPLibrary::RemoveDeviceChangeListener(IBodyStateDeviceChangeListener* Listener)
+{
+	DeviceChangeListeners.Remove(Listener);
+}
+

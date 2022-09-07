@@ -17,7 +17,7 @@ class FLeapLiveLinkProducer
 {
 public:
 	FLeapLiveLinkProducer();
-	void Startup();
+	void Startup(const FString& DeviceSerial);
 	void ShutDown();
 
 	// Linkup initial information of the skeleton

@@ -24,17 +24,19 @@ public:
 
 	virtual void AddEventDelegate(const ULeapComponent* EventDelegate) override;
 	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate) override;
-	virtual FLeapStats GetLeapStats() override;
-	virtual void SetOptions(const FLeapOptions& Options) override;
-	virtual FLeapOptions GetOptions() override;
-	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
-	virtual void GetLatestFrameData(FLeapFrameData& OutData) override;
-	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable) override;
+	virtual FLeapStats GetLeapStats(const FString& DeviceSerial) override;
+	virtual void SetOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials) override;
+	virtual FLeapOptions GetOptions(const FString& DeviceSerial) override;
+	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial) override;
+	virtual void GetLatestFrameData(FLeapFrameData& OutData,const FString& DeviceSerial) override;
+	virtual void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable, const TArray<FString>& DeviceSerials) override;
 	virtual void GetAttachedDevices(TArray<FString>& Devices) override;
 
 	virtual void ShutdownLeap() override;
-	virtual void SetSwizzles(
-		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) override;
+	virtual void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ,
+		ELeapQuatSwizzleAxisB ToW, const TArray<FString>& DeviceSerials) override;
+
+	virtual ILeapConnector* GetConnector() override;
 
 	bool IsActive();
 

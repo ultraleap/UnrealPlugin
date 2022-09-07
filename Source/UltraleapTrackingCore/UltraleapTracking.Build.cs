@@ -85,7 +85,7 @@ namespace UnrealBuildTool.Rules
 		public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-			OptimizeCode = CodeOptimization.Never;
+			//OptimizeCode = CodeOptimization.Never;
 			PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
@@ -197,15 +197,19 @@ namespace UnrealBuildTool.Rules
 			{
 				IsLibrarySupported = true;
 
-				System.Console.WriteLine(Target.Architecture);    //doesn't work
-
 				string PlatformString = "Android";
 
-				//For now comment/uncomment platform architectures
-				//PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "armeabi-v7a", "libLeapC.so"));
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "arm64-v8a", "libLeapC.so"));
 
 				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "UltraleapTracking_APL.xml"));
+			}
+			else if (Target.Platform == UnrealTargetPlatform.Linux)
+			{
+				IsLibrarySupported = true;
+
+				string PlatformString = "Linux";
+
+				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "x64", "libLeapC.so"));
 			}
 
 			return IsLibrarySupported;

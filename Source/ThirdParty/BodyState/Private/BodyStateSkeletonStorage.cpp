@@ -37,6 +37,7 @@ FBodyStateSkeletonStorage::~FBodyStateSkeletonStorage()
 	// Allow merge skeleton to be removed
 	if (PrivateMergedSkeleton && PrivateMergedSkeleton->IsValidLowLevel())
 	{
+		PrivateMergedSkeleton->ReleaseRefs();
 		PrivateMergedSkeleton->RemoveFromRoot();
 		PrivateMergedSkeleton = nullptr;
 	}
@@ -209,7 +210,8 @@ void FBodyStateSkeletonStorage::ClearMergingFunctions()
 
 void FBodyStateSkeletonStorage::CallFunctionOnDevices(TFunction<void(const FBodyStateDevice&)> InFunction)
 {
-	for (auto& Elem : Devices)
+	TMap<IBodyStateInputRawInterface*, FBodyStateDevice> DevicesCopy = Devices;
+	for (auto& Elem : DevicesCopy)
 	{
 		auto& Device = Elem.Value;
 		if (Device.InputCallbackDelegate != nullptr)
@@ -217,4 +219,20 @@ void FBodyStateSkeletonStorage::CallFunctionOnDevices(TFunction<void(const FBody
 			InFunction(Device);
 		}
 	}
+}
+bool FBodyStateSkeletonStorage::GetAvailableDevices(TArray<FString>& DeviceSerials, TArray<int32>& DeviceIDs)
+{
+	DeviceSerials.Empty();
+	DeviceIDs.Empty();
+	int Index = 0;
+	for (auto& Elem : Devices)
+	{
+		auto& Device = Elem.Value;
+		if (!Device.Config.DeviceSerial.IsEmpty())
+		{
+			DeviceSerials.Add(Device.Config.DeviceSerial);
+			DeviceIDs.Add(Device.DeviceId);
+		}
+	}
+	return true;
 }

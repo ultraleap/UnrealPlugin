@@ -23,9 +23,15 @@ bool FLeapImage::HasSameTextureFormat(UTexture2D* TexturePointer, const LEAP_IMA
 	{
 		return false;
 	}
+#if ENGINE_MAJOR_VERSION >= 5 
+	return (TexturePointer->IsValidLowLevelFast() && TexturePointer->GetPlatformData() &&
+			TexturePointer->GetPlatformData()->SizeX == Image.properties.width &&
+			TexturePointer->GetPlatformData()->SizeY == Image.properties.height);
+#else
 	return (TexturePointer->IsValidLowLevelFast() && TexturePointer->PlatformData &&
 			TexturePointer->PlatformData->SizeX == Image.properties.width &&
 			TexturePointer->PlatformData->SizeY == Image.properties.height);
+#endif
 }
 
 UTexture2D* FLeapImage::CreateTextureIfNeeded(UTexture2D* TexturePointer, const LEAP_IMAGE& Image)
@@ -55,7 +61,11 @@ UTexture2D* FLeapImage::CreateTextureIfNeeded(UTexture2D* TexturePointer, const 
 void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint32 NumRegions, FUpdateTextureRegion2D* Regions,
 	uint32 SrcPitch, uint32 SrcBpp, uint8* SrcData, bool bFreeData)
 {
+#if ENGINE_MAJOR_VERSION >= 5 
+	if (Texture->GetResource())
+#else
 	if (Texture->Resource)
+#endif
 	{
 		struct FUpdateTextureRegionsData
 		{
@@ -71,8 +81,11 @@ void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, int32 MipIndex, uint3
 		};
 
 		FUpdateTextureRegionsData* RegionData = new FUpdateTextureRegionsData;
-
+#if ENGINE_MAJOR_VERSION >= 5 
+		RegionData->Texture2DResource = (FTexture2DResource*) Texture->GetResource();
+#else
 		RegionData->Texture2DResource = (FTexture2DResource*) Texture->Resource;
+#endif
 		RegionData->MipIndex = MipIndex;
 		RegionData->NumRegions = NumRegions;
 		RegionData->Regions = Regions;
@@ -112,11 +125,18 @@ void FLeapImage::UpdateTextureRegions(UTexture2D* Texture, const LEAP_IMAGE& Ima
 
 void FLeapImage::UpdateTextureOnGameThread(UTexture2D* Texture, uint8* SrcData, const int32 BufferLength)
 {
+#if ENGINE_MAJOR_VERSION >= 5 
+	uint8* MipData = static_cast<uint8*>(Texture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
+#else
 	uint8* MipData = static_cast<uint8*>(Texture->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE));
-
+#endif
 	memcpy(MipData, SrcData, BufferLength);
 
+#if ENGINE_MAJOR_VERSION >= 5 
+	Texture->GetPlatformData()->Mips[0].BulkData.Unlock();
+#else
 	Texture->PlatformData->Mips[0].BulkData.Unlock();
+#endif
 	Texture->UpdateResource();
 }
 

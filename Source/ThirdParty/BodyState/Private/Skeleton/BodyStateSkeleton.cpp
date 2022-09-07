@@ -174,6 +174,7 @@ UBodyStateSkeleton::UBodyStateSkeleton(const FObjectInitializer& ObjectInitializ
 		Bones[(int32) EBodyStateBasicBoneType::BONE_PINKY_2_INTERMEDIATE_R]);
 	Bones[(int32) EBodyStateBasicBoneType::BONE_PINKY_2_INTERMEDIATE_R]->AddChild(
 		Bones[(int32) EBodyStateBasicBoneType::BONE_PINKY_3_DISTAL_R]);
+
 }
 
 UBodyStateBone* UBodyStateSkeleton::RootBone()
@@ -187,7 +188,7 @@ UBodyStateArm* UBodyStateSkeleton::LeftArm()
 	{
 		// Allocate
 		PrivateLeftArm = NewObject<UBodyStateArm>(this, "LeftArm");
-
+		PrivateLeftArm->AddToRoot();
 		// Linkup
 		PrivateLeftArm->LowerArm = Bones[(int32) EBodyStateBasicBoneType::BONE_LOWERARM_L];
 		PrivateLeftArm->UpperArm = Bones[(int32) EBodyStateBasicBoneType::BONE_UPPERARM_L];
@@ -244,7 +245,7 @@ UBodyStateArm* UBodyStateSkeleton::RightArm()
 	{
 		// Allocate
 		PrivateRightArm = NewObject<UBodyStateArm>(this, "RightArm");
-
+		PrivateRightArm->AddToRoot();
 		// Linkup
 		PrivateRightArm->LowerArm = Bones[(int32) EBodyStateBasicBoneType::BONE_LOWERARM_R];
 		PrivateRightArm->UpperArm = Bones[(int32) EBodyStateBasicBoneType::BONE_UPPERARM_R];
@@ -496,29 +497,24 @@ void UBodyStateSkeleton::MergeFromOtherSkeleton(UBodyStateSkeleton* Other)
 		return;
 	}
 
-	if (!Other->IsTrackingAnyBone())
-	{
-		return;
-	}
-
-	for (int i = 0; i < Bones.Num(); i++)
-	{
-		UBodyStateBone* OtherBone = Other->Bones[i];
-		UBodyStateBone* Bone = Bones[i];
-
-		// todo: discriminate based on accuracy
-
-		// If the bone confidence is same or higher, copy the bone
-		if (OtherBone->Meta.Confidence >= Bone->Meta.Confidence)
-		{
-			Bone->BoneData = OtherBone->BoneData;
-			Bone->Meta = OtherBone->Meta;
-		}
-	}
-	// we only want to copy the states if it's the tracking device
-	// otherwise the skeleton merge of the HMD parsed skeleton will overwrite them
+	
 	if (Other->Name != "HMD")
 	{
+		for (int i = 0; i < Bones.Num(); i++)
+		{
+			UBodyStateBone* OtherBone = Other->Bones[i];
+			UBodyStateBone* Bone = Bones[i];
+
+			// todo: discriminate based on accuracy
+
+			// If the bone confidence is same or higher, copy the bone
+			if (OtherBone->Meta.Confidence >= Bone->Meta.Confidence)
+			{
+				Bone->BoneData = OtherBone->BoneData;
+				Bone->Meta = OtherBone->Meta;
+			}
+		}
+	
 		int Count = 0;
 		for (auto OtherFinger : Other->LeftArm()->Hand->Fingers)
 		{
@@ -586,4 +582,17 @@ void UBodyStateSkeleton::Multi_UpdateBodyState_Implementation(const FNamedSkelet
 {
 	SetFromNamedSkeletonData(InBodyStateSkeleton);
 	Name = TEXT("Network");
+}
+void UBodyStateSkeleton::ReleaseRefs()
+{
+	if (PrivateLeftArm && PrivateLeftArm->IsValidLowLevel())
+	{
+		PrivateLeftArm->RemoveFromRoot();
+		PrivateLeftArm = nullptr;
+	}
+	if (PrivateRightArm && PrivateRightArm->IsValidLowLevel())
+	{
+		PrivateRightArm->RemoveFromRoot();
+		PrivateRightArm = nullptr;
+	}
 }

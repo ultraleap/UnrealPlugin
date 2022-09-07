@@ -33,10 +33,6 @@ struct BODYSTATE_API FAnimNode_ModifyBodyStateMappedBones : public FAnimNode_Ske
 	GENERATED_USTRUCT_BODY()
 
 public:
-	/** All combined settings required for this node to process mapped bones */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BodyState, meta = (PinHiddenByDefault))
-	FMappedBoneAnimData MappedBoneAnimData;
-
 	// FAnimNode_SkeletalControlBase interface
 	virtual void EvaluateSkeletalControl_AnyThread(
 		FComponentSpacePoseContext& Output, TArray<FBoneTransform>& OutBoneTransforms) override;
@@ -59,9 +55,25 @@ protected:
 
 private:
 	void ApplyTranslation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* WristCachedBone,
-		const FCachedBoneLink* ArmCachedBone);
-	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* CachedWristBone);
+		const FCachedBoneLink* ArmCachedBone,const FMappedBoneAnimData& MappedBoneAnimData);
+	void ApplyRotation(const FCachedBoneLink& CachedBone, FTransform& NewBoneTM, const FCachedBoneLink* CachedWristBone,
+		const FMappedBoneAnimData& MappedBoneAnimData);
+	void ApplyScale(const FCachedBoneLink& CachedBone, const FCachedBoneLink* CachedPrevBone, FTransform& NewBoneTM,
+		FTransform& PrevBoneTM, const FMappedBoneAnimData& MappedBoneAnimData);
+	
+	
+	void ApplyAutoCorrectRotation(const FTransform& WristBeforeMapping, const FTransform& LeapWrist, FTransform& NewBoneTM,
+		const FMappedBoneAnimData& MappedBoneAnimData);
+
+
 	bool CheckInitEvaulate();
 	void CacheArmOrWrist(
 		const FCachedBoneLink& CachedBone, const FCachedBoneLink** ArmCachedBone, const FCachedBoneLink** WristCachedBone);
+
+	void SetHandGlobalScale(FTransform& NewBoneTM, const FMappedBoneAnimData& MappedBoneAnimData);
+	
+
+	FTransform GetComponentTransformScaleOnly();
+	float CalculateLeapHandLength(const FMappedBoneAnimData& MappedBoneAnimData);
+	
 };
