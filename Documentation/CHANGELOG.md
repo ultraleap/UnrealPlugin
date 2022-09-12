@@ -19,7 +19,7 @@ Known issues:
 * HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
 * As with most Unreal 4 VR projects, when run in VR preview in the editor, full framerate is often not achievable. This is fine when packaged.
 * Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
-* With multiple leap devices setups where one is Screentop, the screentop device position can be offset vertically
+* With multiple leap device setups where one is Screentop, the screentop device position can be offset vertically
 * With multiple devices, when rapidly plugging between devices, a ghost duplicate/inactive device can be detected 
 
 
