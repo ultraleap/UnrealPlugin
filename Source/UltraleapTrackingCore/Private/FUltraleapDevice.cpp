@@ -509,7 +509,11 @@ void FUltraleapDevice::ParseEvents()
 		// Ideally this should include the HMD offset
 		//SetDeviceOrigin(FTransform(FinalHMDRotation, FinalHMDTranslation));
 	}
-
+	else if (Options.Mode == LEAP_MODE_SCREENTOP)
+	{
+		FRotator ScreentopToDesktop(-90, 0, 180);
+		CurrentFrame.RotateFrame(ScreentopToDesktop.GetInverse());
+	}
 	if (LastLeapTime == 0)
 		LastLeapTime = Leap->GetNow();
 	

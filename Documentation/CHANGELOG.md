@@ -4,7 +4,7 @@ Ultraleap Tracking - Change Log
 Versions
 
 ### Version 4.6.0
-15th August 2022
+12th September 2022
 
 * Fixed SteamVR motion controller not visible when using automatic controller vs hands switching
 * Fixed auto rotation combined with hand scaling and distort mesh enabled creating corrupted/distorted hands
@@ -19,7 +19,8 @@ Known issues:
 * HMD offset is not set automatically for SteamVR devices and should be set manually for your headset in the IEPawnHands blueprint.
 * As with most Unreal 4 VR projects, when run in VR preview in the editor, full framerate is often not achievable. This is fine when packaged.
 * Auto calculating orientations with imported meshes that have negative scales require manual correction to the PreBaseRotation.
-
+* With multiple leap device setups where one is Screentop, the screentop device position can be offset vertically
+* With multiple devices, when rapidly plugging between devices, a ghost duplicate/inactive device can be detected 
 
 
 ### Version 4.5.1
