@@ -8,7 +8,6 @@
 
 #include "FUltraleapCombinedDevice.h"
 
-
 int FUltraleapCombinedDevice::HandID = 0;
 
 
@@ -68,6 +67,7 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 			// so we don't want to re-apply the device origin as this will transform it twice
 			// BUT the device origin is still required for confidence calcs
 			const bool IsVR = InternalSourceDevice->GetOptions().Mode == LEAP_MODE_VR;
+			const bool IsScreenTop = InternalSourceDevice->GetOptions().Mode == LEAP_MODE_SCREENTOP;
 
 			InternalSourceDevice->GetLatestFrameData(SourceFrame, !IsVR);
 			
@@ -79,7 +79,7 @@ void FUltraleapCombinedDevice::SendControllerEvents()
 					SourceFrame,  VRDeviceOrigin.GetLocation(), Rotation.GetInverse());
 			}
 			// comment in for debugging desktop devices only in the combined hand -> 
-			//if (IsVR)
+			//if (IsScreenTop)
 			{
 				SourceFrames.Add(SourceFrame);
 			}
