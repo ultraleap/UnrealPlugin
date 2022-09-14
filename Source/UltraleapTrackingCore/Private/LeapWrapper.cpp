@@ -88,7 +88,7 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 			
 			
 			eLeapRS GetVersionResult = LeapGetVersion(ConnectionHandle, eLeapVersionPart::eLeapVersionPart_ClientLibrary, &LeapVersion);
-			if (result != eLeapRS_Success)
+			if (GetVersionResult != eLeapRS_Success)
 			{
 				UE_LOG(UltraleapTrackingLog, Log, TEXT("Failed to get LeapC Client API version"));
 			}
