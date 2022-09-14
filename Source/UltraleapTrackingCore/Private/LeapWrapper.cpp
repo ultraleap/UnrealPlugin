@@ -81,8 +81,18 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 		if (result == eLeapRS_Success)
 		{
 			bIsRunning = true;
+			
+		
 
 			LEAP_CONNECTION* Handle = &ConnectionHandle;
+			
+			
+			eLeapRS GetVersionResult = LeapGetVersion(ConnectionHandle, eLeapVersionPart::eLeapVersionPart_ClientLibrary, &LeapVersion);
+			if (result != eLeapRS_Success)
+			{
+				UE_LOG(UltraleapTrackingLog, Log, TEXT("Failed to get LeapC Client API version"));
+			}
+
 			ProducerLambdaFuture = FLeapAsync::RunLambdaOnBackGroundThread([&, Handle] {
 				UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop started."));
 				ServiceMessageLoop();

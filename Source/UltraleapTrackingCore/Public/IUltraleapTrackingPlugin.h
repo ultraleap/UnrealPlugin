@@ -126,6 +126,7 @@ public:
 	virtual bool MatchDevices(const TArray<FString> DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass) = 0;
 	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
+	virtual LEAP_VERSION* GetLeapVersion() = 0;
 };
 class ILeapConnectorCallbacks
 {

@@ -153,6 +153,10 @@ public:
 	{
 	
 	}
+	virtual LEAP_VERSION* GetLeapVersion() override
+	{
+		return nullptr;
+	}
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -247,6 +251,10 @@ public:
 		return false;
 	}
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) override;
+	virtual LEAP_VERSION* GetLeapVersion() override
+	{
+		return &LeapVersion;
+	}
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(
@@ -286,6 +294,7 @@ private:
 
 	LEAP_TRACKING_EVENT* InterpolatedFrame;
 	uint64 InterpolatedFrameSize;
+	LEAP_VERSION LeapVersion = {0};
 
 	// TaskGraph event references are only stored to help with threading debug for now.
 	FGraphEventRef TaskRefConnection;

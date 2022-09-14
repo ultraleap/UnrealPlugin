@@ -79,6 +79,14 @@ public:
 	{
 		return Device.Get();
 	}
+	virtual LEAP_VERSION* GetLeapVersion() override
+	{
+		if (Connector)
+		{
+			return Connector->GetLeapVersion();
+		}
+		return nullptr;
+	}
 
 private:
 	void Millisleep(int Milliseconds);

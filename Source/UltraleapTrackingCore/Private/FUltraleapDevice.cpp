@@ -270,6 +270,15 @@ FUltraleapDevice::FUltraleapDevice(
 	// Set static stats
 	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
 
+	if (Leap)
+	{
+		LEAP_VERSION* LeapVersion = Leap->GetLeapVersion();
+		if (LeapVersion)
+		{
+			Stats.LeapAPIVersion = FString::Printf(TEXT("%d.%d.%d"), LeapVersion->major, LeapVersion->minor, LeapVersion->patch);
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("Found Leap API Version (%s)."), *Stats.LeapAPIVersion);
+		}
+	}
 	SwitchTrackingSource(StartInOpenXRMode);
 	Options.bUseOpenXRAsSource = StartInOpenXRMode;
 

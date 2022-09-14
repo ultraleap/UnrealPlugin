@@ -182,7 +182,6 @@ private:
 	static bool bUseNewTrackingModeAPI;
 	// Wrapper link
 	IHandTrackingWrapper* Leap;
-	ILeapConnector* Connector;
 	ITrackingDeviceWrapper* TrackingDeviceWrapper;
 
 	// LeapWrapper Callbacks
