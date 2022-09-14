@@ -267,9 +267,6 @@ FUltraleapDevice::FUltraleapDevice(
 	HMDType = TEXT("SteamVR");
 	FrameTimeInMicros = 0;	  // default
 
-	// Set static stats
-	Stats.LeapAPIVersion = FString(TEXT("4.0.1"));
-
 	if (Leap)
 	{
 		LEAP_VERSION* LeapVersion = Leap->GetLeapVersion();
