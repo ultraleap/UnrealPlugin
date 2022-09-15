@@ -541,12 +541,18 @@ skeletal meshes to make hiding un-tracked hands easy, the auto-mapping
 system supports two handed meshes for e.g. characters and other atypical
 setups.
 
-Change the auto-mapping target to ``Both Hands`` which will make two
-arrays, one for each hand. The reason for multiple arrays is because it
-is typical for animators to rig hands with different rotation basis to
-ensure positive rotation values close your hand. The auto-mapping
-compensates for this by using a different pre-base rotation for each
-cluster of bones related to each hand.
+Start by changing the auto-mapping target to ``Both Hands`` which will
+make two arrays, one for each hand. The reason for multiple arrays is
+because it is typical for animators to rig hands with different rotation
+basis to ensure positive rotation values close your hand. The
+auto-mapping compensates for this by using a different pre-base rotation
+for each cluster of bones related to each hand.
+
+.. image:: https://i.imgur.com/JGnmDSI.png
+
+Since you have two entries of ``Mapped Bone Anim Data`` you should add
+another ``Modify Mapped Bones`` node in your anim graph so both
+positions and rotations are set.
 
 Modifying Search Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
