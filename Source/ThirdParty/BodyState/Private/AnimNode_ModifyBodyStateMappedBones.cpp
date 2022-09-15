@@ -333,6 +333,8 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 	TArray<FMappedBoneAnimData>* MappedBoneList = const_cast<TArray<FMappedBoneAnimData>*>(&BSAnimInstance->MappedBoneList);
 	TArray<FMappedBoneAnimData> AnimDataFromPin;
 	// Allow override of mapped anim data by connected pin
+	// This is a backwards compatibility fix for anim blueprints that used the input pin to wire up
+	// the anim structures
 	if (MappedBoneAnimData.BoneMap.Num() > 0 || MappedBoneAnimData.BodyStateSkeleton != nullptr)
 	{
 		AnimDataFromPin.Add(MappedBoneAnimData);
