@@ -150,6 +150,10 @@ build:build-project:
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
     - mv "$BUILD_LOCATION_UE5/*" "$BUILD_PATH_UE5"
 
+     # pdbs
+    - Remove-Item "$BUILD_PATH/Binaries/Win64/*.pdb" 
+    - Remove-Item "$BUILD_PATH_UE5/Binaries/Win64/*.pdb"
+   
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace/$PROJECT_NAME"
