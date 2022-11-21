@@ -179,6 +179,13 @@ public:
 	void SetupMultidevice(
 		const TArray<FString>& DeviceSerials, const ELeapMultiDeviceMode MultiDeviceModeIn, const ELeapDeviceCombinerClass CombinerClass);
 
+	/** 
+	* Get the hand size, by default it will get the left hand size 
+	* @param OutHandSize - returns the hand size
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetHandSize(float& OutHandSize);
+
 	/** Disable/Grey out setting the multidevice mode.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap Devices")
 	bool DisableEditMultiDeviceMode;
