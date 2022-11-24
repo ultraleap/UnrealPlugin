@@ -9,7 +9,7 @@ variables:
   ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
   ENGINE_UAT_PATH: "$ENGINE_PATH/Engine/Build/BatchFiles/RunUAT.bat"
   
-  ENGINE_PATH_UE5: "C:/Program Files/Epic Games/UE_5.0"
+  ENGINE_PATH_UE5: "C:/Program Files/Epic Games/UE_5.1"
   ENGINE_UAT_PATH_UE5: "$ENGINE_PATH_UE5/Engine/Build/BatchFiles/RunUAT.bat"
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
