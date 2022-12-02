@@ -84,8 +84,8 @@ build:build-project:
     - $UNREAL_VERSION_CONTENT_UE5 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
     - $UNREAL_VERSION_UE5 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
     
-    - $UNREAL_VERSION_CONTENT_UE5_0 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_0 | ConvertFrom-Json
-    - $UNREAL_VERSION_UE5_0 = $UNREAL_VERSION_CONTENT_UE5_0.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_0.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_0.PatchVersion.ToString()
+    - $UNREAL_VERSION_CONTENT_UE5_0 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
+    - $UNREAL_VERSION_UE5_0 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
     
     - echo "$UNREAL_VERSION"
     - echo "$UNREAL_VERSION_UE5"
@@ -260,6 +260,8 @@ build:build-project:
 
     # zip it
     - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5_0" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5_0.zip"
+
+
 
 
   artifacts:
