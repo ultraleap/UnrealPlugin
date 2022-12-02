@@ -266,16 +266,10 @@ build:build-project:
 
   artifacts:
   
-    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "UE4.27"
+    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" 
     paths:
     - "$BUILD_PATH"
-    
-    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "UE5.0"
-    paths:
     - "$BUILD_PATH_UE5"
-    
-    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "UE5.1"
-    paths:
     - "$BUILD_PATH_UE5_0"
     
     when: always
