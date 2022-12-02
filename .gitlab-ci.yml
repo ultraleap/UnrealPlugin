@@ -84,8 +84,8 @@ build:build-project:
     - $UNREAL_VERSION_CONTENT_UE5 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
     - $UNREAL_VERSION_UE5 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
     
-    - $UNREAL_VERSION_CONTENT_UE5_0 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
-    - $UNREAL_VERSION_UE5_0 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
+    - $UNREAL_VERSION_CONTENT_UE5_0 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_0 | ConvertFrom-Json
+    - $UNREAL_VERSION_UE5_0 = $UNREAL_VERSION_CONTENT_UE5_0.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_0.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_0.PatchVersion.ToString()
     
     - echo "$UNREAL_VERSION"
     - echo "$UNREAL_VERSION_UE5"
@@ -262,12 +262,22 @@ build:build-project:
     - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5_0" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5_0.zip"
 
 
-
-
   artifacts:
-    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
-    paths:
-    - "./$PROJECT_NAME.log"
-    - "./build/"
+    
+    - name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "_ue4.27" +
+      paths:
+      - "./$PROJECT_NAME.log"
+      - "$BUILD_MARKET_PLACE_PATH"
+    
+    - name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "_ue5.1" +
+      paths:
+      - "./$PROJECT_NAME.log"
+      - "$BUILD_MARKET_PLACE_PATH_UE5"
+      
+    - name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "_ue5.0" +
+      paths:
+      - "./$PROJECT_NAME.log"
+      - "$BUILD_MARKET_PLACE_PATH_UE5_0"
+
     when: always
     expire_in: 2 weeks
