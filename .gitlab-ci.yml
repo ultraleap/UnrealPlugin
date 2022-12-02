@@ -265,22 +265,12 @@ build:build-project:
 
 
   artifacts:
-    - name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "UE4.27"
-      paths:
-      - "./$PROJECT_NAME.log"
-      - "./build/MarketPlace/"
+    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
+    paths:
+    - "./$PROJECT_NAME.log"
+    - "./build/MarketPlace/"
+    - "./build/MarketPlace_UE5/"
+    - "./build/MarketPlace_UE5_0/"
     
-    - name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "UE5.1"
-      paths:
-      - "./$PROJECT_NAME.log"
-      - "./build/MarketPlace_UE5/"
-
-    - name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA" + "UE5.0"
-      paths:
-      - "./$PROJECT_NAME.log"
-      - "./build/MarketPlace_UE5_0/"
-        
     when: always
     expire_in: 2 weeks
-    
-   
