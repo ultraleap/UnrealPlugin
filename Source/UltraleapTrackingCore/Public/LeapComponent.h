@@ -131,6 +131,15 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool GetLeapOptions(FLeapOptions& Options);
+
+	/**
+	* Get the hand size, by default it will get the left hand size
+	* @param OutHandSize - returns the hand size
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetHandSize(float& OutHandSize);
+
+
 	/** Multidevice configuration, Singular subscribes to a single device. 
 	Combined subscribes to multiple devices combined into one device
 	*/

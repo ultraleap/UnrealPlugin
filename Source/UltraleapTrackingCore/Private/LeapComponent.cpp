@@ -402,3 +402,35 @@ bool ULeapComponent::GetLeapOptions(FLeapOptions& Options)
 	}
 	return false;
 }
+
+void ULeapComponent::GetHandSize(float& OutHandSize)
+{
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	FLeapHandData HandToScale;
+	if (!Hands.Num())
+	{
+		return;
+	}
+	if (LeapFrameData.LeftHandVisible)
+	{
+		HandToScale = Hands[0];
+	}
+	float Length = 0.0;
+	FLeapDigitData MiddleFinger = HandToScale.Middle;
+	TArray<FLeapBoneData> Bones = MiddleFinger.Bones;
+
+	// starting from the palm cause there's no wrist position in the frame
+	bool AddedPalmToFirstBone = false;
+	for (const FLeapBoneData& Bone : Bones)
+	{
+		if (!AddedPalmToFirstBone)
+		{
+			Length += FVector::Dist(HandToScale.Palm.Position, Bone.PrevJoint);
+			AddedPalmToFirstBone = true;
+		}
+		Length += FVector::Dist(Bone.PrevJoint, Bone.NextJoint);
+	}
+	OutHandSize = Length;
+}
