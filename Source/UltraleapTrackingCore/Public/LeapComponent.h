@@ -134,6 +134,8 @@ public:
 
 	/**
 	* Get the hand size, by default it will get the left hand size
+	* In this method that we measure the middle finger length + palm position 
+	* to start of finger as an indication of the hand size
 	* @param OutHandSize - returns the hand size
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
