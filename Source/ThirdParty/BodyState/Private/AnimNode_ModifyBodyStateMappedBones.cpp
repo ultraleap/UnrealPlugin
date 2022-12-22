@@ -64,6 +64,10 @@ void FAnimNode_ModifyBodyStateMappedBones::ApplyTranslation(const FCachedBoneLin
 		WristBoneIndex = WristCachedBone->MeshBone.BoneIndex;
 	}
 
+	if (!MappedBoneAnimDataIn.CachedBoneList.Num())
+	{
+		return;
+	}
 	// is it the root?
 	if (&MappedBoneAnimDataIn.CachedBoneList[0] == &CachedBone && WristBoneIndex > -1 && WristCachedBone &&
 		!BSAnimInstance->IgnoreWristTranslation)
@@ -274,6 +278,10 @@ void FAnimNode_ModifyBodyStateMappedBones::CacheArmOrWrist(
 }
 void FAnimNode_ModifyBodyStateMappedBones::SetHandGlobalScale(FTransform& NewBoneTM, const FMappedBoneAnimData& MappedBoneAnimDataIn)
 {
+	if (BSAnimInstance == nullptr)
+	{
+		return;
+	}
 	if (!BSAnimInstance->ScaleModelToTrackingData || !MappedBoneAnimDataIn.HandModelLength)
 	{
 		return;
