@@ -15,7 +15,7 @@
 #include "LeapUtility.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "FUltraleapDevice.h"
-
+#include "Kismet/KismetMathLibrary.h"
 
 FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 {
@@ -27,7 +27,7 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	CurrentDeviceInfo = &DummyDeviceInfo;
 	DummyDeviceInfo = {0};
 	DummyDeviceInfo.size = sizeof(LEAP_DEVICE_INFO);
-	DummyDeviceInfo.serial = (char*)("OpenXRDummyDevice");
+	DummyDeviceInfo.serial = (char*) ("OpenXRDummyDevice");
 	DummyDeviceInfo.serial_length = strlen(DummyDeviceInfo.serial) + 1;
 
 	DummyLeapHands[0] = {0};
@@ -36,8 +36,8 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	DummyLeapHands[0].type = eLeapHandType::eLeapHandType_Left;
 	DummyLeapHands[1].type = eLeapHandType::eLeapHandType_Right;
 
-	DummyLeapHands[0].id = 1000;
-	DummyLeapHands[1].id = 2000;
+	DummyLeapHands[0].id = -1;
+	DummyLeapHands[1].id = -1;
 
 	DummyLeapFrame = {{0}};
 
@@ -45,8 +45,13 @@ FOpenXRToLeapWrapper::FOpenXRToLeapWrapper()
 	DummyLeapFrame.pHands = DummyLeapHands;
 
 	Device = MakeShared<FUltraleapDevice>((IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, true);
-}
 
+	// finger IDs are the index into the digits
+	for (int i = 0; i < 5; ++i)
+	{
+		DummyLeapHands[0].digits[i].finger_id = DummyLeapHands[1].digits[i].finger_id = i;
+	}
+}
 FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
 {
 }
@@ -564,11 +569,35 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 
 	if (StatusLeft)
 	{
+		
 		ConvertToLeapSpace(DummyLeapHands[0], OutPositions[0], OutRotations[0]);
+		// not tracking -> tracking = update hand IDs
+		if (!LeftHandVisible)
+		{
+			LeftHandVisible = true;
+			DummyLeapHands[0].id = HandID++;
+			FirstSeenLeft = GetGameTimeInSeconds();
+		}
+	}
+	else
+	{
+		LeftHandVisible = false;
 	}
 	if (StatusRight)
 	{
 		ConvertToLeapSpace(DummyLeapHands[1], OutPositions[1], OutRotations[1]);
+		// not tracking -> tracking = update hand IDs
+		if (!RightHandVisible)
+		{
+			RightHandVisible = true;
+			DummyLeapHands[1].id = HandID++;
+			FirstSeenRight = GetGameTimeInSeconds();
+		}
+		
+	}
+	else
+	{
+		RightHandVisible = false;
 	}
 
 	return &DummyLeapFrame;
@@ -619,7 +648,228 @@ void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 		CallbackDelegate->OnTrackingMode(TrackingMode);
 	}
 }
+void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
+{
+	// simulate pinch and grab state (in LeapC this comes from the tracking service)
+	for (auto& Hand : Frame.Hands)
+	{
+		UpdatePinchAndGrab(Hand);
+	}
+}
 IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 {
 	return Device.Get();
+}
+
+float FOpenXRToLeapWrapper::CalculatePinchStrength(const FLeapHandData& Hand, float PalmWidth)
+{
+	// Magic values taken from existing LeapC implementation (scaled to metres)
+
+	float HandScale = PalmWidth / 0.08425f;
+	float DistanceZero = 0.0600f * HandScale;
+	float DistanceOne = 0.0220f * HandScale;
+
+	// Get the thumb position.
+	// TipPosition in Unity, is Distal->Next the same?
+	auto ThumbTipPosition = Hand.Thumb.Distal.NextJoint;
+
+	// Compute the distance midpoints between the thumb and the each finger and find the smallest.
+	float MinDistanceSquared = TNumericLimits<float>::Max();
+	
+	int32 FingerIndex = 0;
+	for(const auto& Finger : Hand.Digits)
+	{
+		// skip 1
+		if (!FingerIndex)
+		{
+			FingerIndex++;
+			continue;
+		}
+		FVector Diff = Finger.Distal.NextJoint - ThumbTipPosition;
+		float DistanceSquared = Diff.SizeSquared();
+		MinDistanceSquared = FMath::Min(DistanceSquared, MinDistanceSquared);
+	
+		FingerIndex++;
+	}
+
+	// Compute the pinch strength.
+	return FMath::Clamp<float>((FMath::Sqrt(MinDistanceSquared) - DistanceZero) / (DistanceOne - DistanceZero), 0.0, 1.0);
+}
+
+float FOpenXRToLeapWrapper::CalculateBoneDistanceSquared(const FLeapBoneData& BoneA, const FLeapBoneData& BoneB)
+{
+	// Denormalize directions to bone length.
+	const auto BoneAJoint = BoneA.PrevJoint;
+	const auto BoneBJoint = BoneB.PrevJoint;
+
+	const auto BoneADirection = BoneA.Rotation.Vector() * ((BoneA.NextJoint - BoneA.PrevJoint).Size());
+	const auto BoneBDirection = BoneB.Rotation.Vector() * ((BoneB.NextJoint - BoneB.PrevJoint).Size());
+
+	// Compute the minimum (squared) distance between two bones.
+	const auto Diff = BoneBJoint - BoneAJoint;
+	const auto D1 = FVector::DotProduct(BoneADirection, Diff);
+	const auto D2 = FVector::DotProduct(BoneBDirection, Diff);
+	const auto A = BoneADirection.SizeSquared();
+	const auto B = FVector::DotProduct(BoneADirection, BoneBDirection);
+	const auto C = BoneBDirection.SizeSquared();
+	const auto Det = B * B - A * C;
+	const auto T1 = FMath::Clamp<float>((B * D2 - C * D1) / Det, 0.0, 1.0);
+	const auto T2 = FMath::Clamp<float>((A * D2 - B * D1) / Det, 0.0, 1.0);
+	const auto Pa = BoneAJoint + T1 * BoneADirection;
+	const auto Pb = BoneBJoint + T2 * BoneBDirection;
+	return (Pa - Pb).SizeSquared();
+}
+
+float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
+{
+	// Get the farthest 2 segments of thumb and index finger, respectively, and compute distances.
+	auto MinDistanceSquared = TNumericLimits<float>::Max();
+	
+	int32 ThumbBoneIndex = 0;
+	for(const auto ThumbBone : Hand.Thumb.Bones)
+	{
+		// skip 2
+		if (ThumbBoneIndex < 2)
+		{
+			ThumbBoneIndex++;
+			continue;
+		}
+
+		int IndexBoneIndex = 0;
+		for(const auto IndexBone : Hand.Index.Bones)
+		{
+			// skip 2
+			if (IndexBoneIndex < 2)
+			{
+				IndexBoneIndex++;
+				continue;
+			}
+			const auto DistanceSquared = CalculateBoneDistanceSquared(ThumbBone, IndexBone);
+			MinDistanceSquared = FMath::Min(DistanceSquared, MinDistanceSquared);
+
+			IndexBoneIndex++;
+		}
+		ThumbBoneIndex++;
+	}
+
+	// Return the pinch distance
+	return FMath::Sqrt(MinDistanceSquared);
+}
+/// Returns the the direction towards the thumb that is perpendicular to the palmar
+/// and distal axes. Left and right hands will return opposing directions.
+///
+/// The direction away from the thumb would be called the ulnar axis.
+FVector HandRadialAxis(const FLeapHandData& Hand)
+{
+	FTransform Basis(Hand.Palm.Orientation, Hand.Palm.Position);
+
+	const FVector RightVector = UKismetMathLibrary::GetRightVector(Hand.Palm.Orientation);
+	
+	if (Hand.HandType == LEAP_HAND_RIGHT)
+	{
+		return -RightVector;
+	}
+	else
+	{
+		return RightVector;
+	}
+	return FVector::ZeroVector;
+}
+/// Returns the direction towards the fingers that is perpendicular to the palmar
+/// and radial axes.
+///
+/// The direction towards the wrist would be called the proximal axis.
+FVector HandDistalAxis(const FLeapHandData& Hand)
+{
+	// in BS Space forward is Z = UpVector in UE
+	return UKismetMathLibrary::GetUpVector(Hand.Palm.Orientation);
+}
+FVector FingerDirection(const FLeapDigitData& Finger)
+{
+	// The direction in which this finger or tool is pointing.The direction is expressed
+	// as a unit vector pointing in the same direction as the tip.
+	return UKismetMathLibrary::GetUpVector(Finger.Distal.Rotation);
+}
+/// Maps the value between valueMin and valueMax to its linearly proportional equivalent between resultMin and resultMax.
+/// The input value is clamped between valueMin and valueMax; if this is not desired, see MapUnclamped.
+float MapRange(const float Value,const float ValueMin,const float ValueMax,const float ResultMin,const float ResultMax)
+{
+	if (ValueMin == ValueMax)
+		return ResultMin;
+	return FMath::Lerp(ResultMin, ResultMax, ((Value - ValueMin) / (ValueMax - ValueMin)));
+}
+float GetFingerStrength(const FLeapHandData& Hand, int Finger)
+{
+	return MapRange(FVector::DotProduct(FingerDirection(Hand.Digits[Finger]), -HandDistalAxis(Hand)), -1, 1, 0, 1);
+}
+float FOpenXRToLeapWrapper::CalculateGrabStrength(const FLeapHandData& Hand)
+{
+	// magic numbers so it approximately lines up with the leap results
+	const float BendZero = 0.25f;
+	const float BendOne = 0.85f;
+
+	// Find the minimum bend angle for the non-thumb fingers.
+	float MinBend = TNumericLimits<float>::Max();
+
+	for (int FingerIdx = 1; FingerIdx < 5; FingerIdx++)
+	{
+		MinBend = FMath::Min( GetFingerStrength(Hand, FingerIdx), MinBend);
+	}
+
+	// Return the grab strength.
+	return FMath::Clamp<float>((MinBend - BendZero) / (BendOne - BendZero), 0.0, 1.0);
+}
+
+float FOpenXRToLeapWrapper::CalculateGrabAngle(const FLeapHandData& Hand)
+{
+	// Compute the sum of the angles between the fingertips and hands.
+	// For every finger, the angle is the sumb of bend + pitch + bow.
+	float AngleSum = 0.0f;
+	for (int FingerIdx = 1; FingerIdx < 5; FingerIdx++)
+	{
+		AngleSum += FMath::Lerp< float > (0, PI, GetFingerStrength(Hand, FingerIdx));
+	}
+	// Average between all fingers
+	return AngleSum / 4.0f;
+}
+void FOpenXRToLeapWrapper::UpdatePinchAndGrab(FLeapHandData& Hand)
+{
+	Hand.PinchDistance = CalculatePinchDistance(Hand);
+	Hand.PinchStrength =
+		CalculatePinchStrength(Hand, FVector::Distance(Hand.Thumb.Metacarpal.NextJoint, Hand.Pinky.Metacarpal.NextJoint));
+	Hand.GrabAngle = CalculateGrabAngle(Hand);
+	Hand.GrabStrength = CalculateGrabStrength(Hand);
+
+	float TimeNow = GetGameTimeInSeconds();
+
+	switch (Hand.HandType)
+	{
+		case LEAP_HAND_LEFT:
+		{
+			if (LeftHandVisible)
+			{
+				Hand.VisibleTime = TimeNow - FirstSeenLeft;
+			}
+			break;
+		}
+		case LEAP_HAND_RIGHT:
+		{
+			if (RightHandVisible)
+			{
+				Hand.VisibleTime = TimeNow - FirstSeenRight;
+			}
+			break;
+		}
+	}
+
+	int FingerIndex = 0;
+	for (auto& Finger : Hand.Digits)
+	{
+		Finger.IsExtended = GetFingerStrength(Hand, FingerIndex) < 0.4;
+		FingerIndex++;
+	}
+}
+float FOpenXRToLeapWrapper::GetGameTimeInSeconds()
+{
+	return CurrentWorld ? CurrentWorld->GetTimeSeconds() : 0.f;
 }

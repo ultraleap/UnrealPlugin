@@ -153,6 +153,10 @@ public:
 	{
 	
 	}
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override
+	{
+	}
+
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -247,6 +251,9 @@ public:
 		return false;
 	}
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) override;
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override
+	{
+	}
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(

@@ -95,6 +95,9 @@ public:
 	}
 	virtual IHandTrackingDevice* GetDevice() override;
 	
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override;
+
+	
 
 private:
 	class IXRTrackingSystem* XRTrackingSystem = nullptr;
@@ -111,6 +114,16 @@ private:
 	void ConvertToLeapSpace(LEAP_HAND& LeapHand, const TArray<FVector>& Positions, const TArray<FQuat>& Rotations);
 	int64_t GetDummyLeapTime();
 
+
+	// port of unity leap grab and pinch implementations (in turn ported from LeapC)
+	static float CalculatePinchStrength(const FLeapHandData& Hand, float PalmWidth);
+	static float CalculateBoneDistanceSquared(const FLeapBoneData& BoneA, const FLeapBoneData& BoneB);
+	static float CalculatePinchDistance(const FLeapHandData& Hand);
+	static float CalculateGrabStrength(const FLeapHandData& Hand);
+	static float CalculateGrabAngle(const FLeapHandData& Hand);
+	void UpdatePinchAndGrab(FLeapHandData& Hand);
+	float GetGameTimeInSeconds();
+
 	ELeapQuatSwizzleAxisB SwizzleX = ELeapQuatSwizzleAxisB::MinusY;
 	ELeapQuatSwizzleAxisB SwizzleY = ELeapQuatSwizzleAxisB::MinusZ;
 	ELeapQuatSwizzleAxisB SwizzleZ = ELeapQuatSwizzleAxisB::X;
@@ -122,5 +135,9 @@ private:
 	// prevent overlap with Leap Device IDs just in case we want to mix the two
 	static const int32 OpenXRBaseDeviceID = 10000;
 	bool UsingUltraleapExtension = false;
-
+	bool LeftHandVisible = false;
+	bool RightHandVisible = false;
+	int32 HandID = 0;
+	float FirstSeenLeft = 0.0f;
+	float FirstSeenRight = 0.0f;
 };

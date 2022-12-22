@@ -516,6 +516,10 @@ void FUltraleapDevice::ParseEvents()
 	}
 	if (LastLeapTime == 0)
 		LastLeapTime = Leap->GetNow();
+	
+	// apply any tracking system specific changes to the hand
+	// e.g. Pinch and Grasp simulation for OpenXR
+	Leap->PostLeapHandUpdate(CurrentFrame);
 
 	CheckHandVisibility();
 	CheckGrabGesture();
