@@ -413,10 +413,11 @@ void ULeapComponent::GetHandSize(float& OutHandSize)
 	{
 		return;
 	}
-	if (LeapFrameData.LeftHandVisible)
+	if (LeapFrameData.LeftHandVisible || LeapFrameData.RightHandVisible)
 	{
 		HandToScale = Hands[0];
 	}
+
 	float Length = 0.0;
 	FLeapDigitData MiddleFinger = HandToScale.Middle;
 	TArray<FLeapBoneData> Bones = MiddleFinger.Bones;
