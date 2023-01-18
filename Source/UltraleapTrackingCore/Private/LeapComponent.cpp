@@ -371,6 +371,10 @@ void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn
 #endif
 void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 {
+	if (!IsActiveDevicePluggedIn())
+	{
+		SubscribeToDevice();
+	}
 	if (DeviceWrapper->GetDeviceSerial() == ActiveDeviceSerial)
 	{
 		ConnectToInputEvents();
