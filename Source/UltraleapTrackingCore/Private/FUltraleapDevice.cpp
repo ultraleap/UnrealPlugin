@@ -693,7 +693,7 @@ void FUltraleapDevice::CheckPinchGesture()
 			const FLeapHandData& FinalHandData = Hand;
 			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
 			{
-				if (!(IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
+				if ((!IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
 					(IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold)))
 				{
 					TimeSinceLastLeftPinch = 0;
