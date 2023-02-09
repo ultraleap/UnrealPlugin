@@ -1301,9 +1301,16 @@ int32 UBodyStateAnimInstance::GetActiveDeviceID()
 {
 	return GetDeviceIDFromDeviceSerial(ActiveDeviceSerial);
 }
+
 void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
 {
 	UpdateDeviceList();
+	
+	BodyStateSkeleton = GetCurrentSkeleton();
+	if (BodyStateSkeleton != nullptr)
+	{
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
+	}
 }
 void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
 {

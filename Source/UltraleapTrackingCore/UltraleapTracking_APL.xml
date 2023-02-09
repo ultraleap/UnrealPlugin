@@ -104,11 +104,22 @@
 	</gameActivityClassAdditions>
   
   <gameActivityOnPauseAdditions>
+	  <insert>
+		  Log.debug("UltraleapTracking calling unbind() on the service binder gameActivityOnPauseAdditions");
+		  serviceBinder.unbind();
+	  </insert>
   </gameActivityOnPauseAdditions>
   
   <gameActivityOnResumeAdditions>
-  </gameActivityOnResumeAdditions>
+	  <insert>
+		  if (ServiceBinder.isServiceInstalled(getApplicationContext()))
+		  {
+		  Log.debug("UltraleapTracking calling bind() on the service binder on gameActivityOnResumeAdditions");
+		  serviceBinder.bind();
+		  }
+	  </insert>
 
+  </gameActivityOnResumeAdditions>
   <gameActivityOnCreateAdditions>
 	  <insert>
 		  // The service binder handles automatically binding to the hand tracking service, it provides a callback interface for checking the bind status.

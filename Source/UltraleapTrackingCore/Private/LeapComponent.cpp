@@ -184,6 +184,10 @@ void ULeapComponent::GetMultiDeviceDebugInfo(int32& NumLeftTracked, int32& NumRi
 }
 bool ULeapComponent::GetDeviceOrigin(FTransform& DeviceOrigin)
 {
+	if (CurrentHandTrackingDevice == nullptr)
+	{
+		return false;
+	}
 	auto Device = CurrentHandTrackingDevice->GetDevice();
 	if (Device)
 	{
