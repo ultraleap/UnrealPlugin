@@ -12,6 +12,7 @@
 #include "LeapUtility.h"
 #include "Multileap/DeviceCombiner.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
+#include "LeapBlueprintFunctionLibrary.h"
 
 #pragma region LeapC Wrapper
 
@@ -22,6 +23,22 @@ FLeapWrapper::FLeapWrapper()
 	, InterpolatedFrameSize(0)
 {
 	UseOpenXR = true;
+
+	if (!HaseDeactivateHandle.IsValid())
+	{
+		HaseDeactivateHandle = FCoreDelegates::ApplicationWillDeactivateDelegate.AddRaw(this, &FLeapWrapper::HandleApplicationDeactivate);
+	}
+}
+
+void FLeapWrapper::HandleApplicationDeactivate()
+{
+	// This will reset the tracking service for Android app, when the device goes to sleep 
+	AsyncTask(ENamedThreads::GameThread,
+		[this]()
+		{
+			ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid();
+			ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid();
+		});
 }
 
 FLeapWrapper::~FLeapWrapper()
@@ -45,6 +62,13 @@ FLeapWrapper::~FLeapWrapper()
 	if (bIsConnected)
 	{
 		CloseConnection();
+	}
+
+	// Always remove delegate events and reset 
+	if (HaseDeactivateHandle.IsValid())
+	{
+		FCoreDelegates::ApplicationWillDeactivateDelegate.Remove(HaseDeactivateHandle);
+		HaseDeactivateHandle.Reset();
 	}
 }
 // to be deprecated
@@ -500,6 +524,12 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
+	// This will reset the tracking service for Android app
+	AsyncTask(ENamedThreads::GameThread, [this]() { 
+		ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid();
+		ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid();
+	});
+	
 	if (IsInGameThread())
 	{
 		return RemoveDeviceDirect(DeviceID);

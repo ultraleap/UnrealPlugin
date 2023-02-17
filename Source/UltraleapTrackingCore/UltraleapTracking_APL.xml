@@ -95,28 +95,40 @@
 
 			public void onUnbound()
 			{
-				Log.debug("UltraleapTracking OnUnBound() called");
+			Log.debug("UltraleapTracking OnUnBound() called");
 			}
 			};
 			private ServiceBinder serviceBinder;
+
+
+			public void AndroidThunkJava_Bind()
+			{
+			if (ServiceBinder.isServiceInstalled(getApplicationContext()))
+			{
+			Log.debug("UltraleapTracking calling bind() on the service binder from LeapComponent.cpp");
+			serviceBinder.bind();
+			}
+			}
+
+			public void AndroidThunkJava_Unbind()
+			{
+			Log.debug("UltraleapTracking calling unbind() on the service binder from LeapComponent.cpp");
+			serviceBinder.unbind();
+			}
+
 		</insert>
 
 	</gameActivityClassAdditions>
   
   <gameActivityOnPauseAdditions>
 	  <insert>
-		  Log.debug("UltraleapTracking calling unbind() on the service binder gameActivityOnPauseAdditions");
-		  serviceBinder.unbind();
+		  Log.debug("UltraleapTracking gameActivityOnPauseAdditions");
 	  </insert>
   </gameActivityOnPauseAdditions>
   
   <gameActivityOnResumeAdditions>
 	  <insert>
-		  if (ServiceBinder.isServiceInstalled(getApplicationContext()))
-		  {
-		  Log.debug("UltraleapTracking calling bind() on the service binder on gameActivityOnResumeAdditions");
-		  serviceBinder.bind();
-		  }
+		  Log.debug("UltraleapTracking: gameActivityOnResumeAdditions");
 	  </insert>
 
   </gameActivityOnResumeAdditions>

@@ -266,6 +266,10 @@ public:
 	virtual void PostEarlyInit() override;
 	// End of ILeapConnector
 
+	// This will handle when an app is deactivated, when system goes to sleep
+	void HandleApplicationDeactivate();
+
+
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
 	void Millisleep(int Milliseconds);
@@ -307,6 +311,9 @@ private:
 	FGraphEventRef TaskRefPolicy;
 	FGraphEventRef TaskRefConfigChange;
 	FGraphEventRef TaskRefConfigResponse;
+
+	// Delegate to access the deactivation event
+	FDelegateHandle HaseDeactivateHandle;
 
 	// void setImage();
 	void SetFrame(const LEAP_TRACKING_EVENT* Frame);
