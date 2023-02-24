@@ -105,15 +105,18 @@
 			{
 			if (ServiceBinder.isServiceInstalled(getApplicationContext()))
 			{
-			Log.debug("UltraleapTracking calling bind() on the service binder from LeapComponent.cpp");
+			Log.debug("UltraleapTracking calling bind() on the service binder");
 			serviceBinder.bind();
 			}
 			}
 
 			public void AndroidThunkJava_Unbind()
 			{
-			Log.debug("UltraleapTracking calling unbind() on the service binder from LeapComponent.cpp");
+			if (ServiceBinder.isServiceInstalled(getApplicationContext()))
+			{
+			Log.debug("UltraleapTracking calling unbind() on the service binder");
 			serviceBinder.unbind();
+			}
 			}
 
 		</insert>
@@ -121,17 +124,11 @@
 	</gameActivityClassAdditions>
   
   <gameActivityOnPauseAdditions>
-	  <insert>
-		  Log.debug("UltraleapTracking gameActivityOnPauseAdditions");
-	  </insert>
   </gameActivityOnPauseAdditions>
   
   <gameActivityOnResumeAdditions>
-	  <insert>
-		  Log.debug("UltraleapTracking: gameActivityOnResumeAdditions");
-	  </insert>
-
   </gameActivityOnResumeAdditions>
+	
   <gameActivityOnCreateAdditions>
 	  <insert>
 		  // The service binder handles automatically binding to the hand tracking service, it provides a callback interface for checking the bind status.

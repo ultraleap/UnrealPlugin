@@ -313,7 +313,7 @@ private:
 	FGraphEventRef TaskRefConfigResponse;
 
 	// Delegate to access the deactivation event
-	FDelegateHandle HaseDeactivateHandle;
+	FDelegateHandle HasDeactivateHandle;
 
 	// void setImage();
 	void SetFrame(const LEAP_TRACKING_EVENT* Frame);

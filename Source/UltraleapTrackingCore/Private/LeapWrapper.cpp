@@ -24,9 +24,9 @@ FLeapWrapper::FLeapWrapper()
 {
 	UseOpenXR = true;
 
-	if (!HaseDeactivateHandle.IsValid())
+	if (!HasDeactivateHandle.IsValid())
 	{
-		HaseDeactivateHandle = FCoreDelegates::ApplicationWillDeactivateDelegate.AddRaw(this, &FLeapWrapper::HandleApplicationDeactivate);
+		HasDeactivateHandle = FCoreDelegates::ApplicationWillDeactivateDelegate.AddRaw(this, &FLeapWrapper::HandleApplicationDeactivate);
 	}
 }
 
@@ -65,10 +65,10 @@ FLeapWrapper::~FLeapWrapper()
 	}
 
 	// Always remove delegate events and reset 
-	if (HaseDeactivateHandle.IsValid())
+	if (HasDeactivateHandle.IsValid())
 	{
-		FCoreDelegates::ApplicationWillDeactivateDelegate.Remove(HaseDeactivateHandle);
-		HaseDeactivateHandle.Reset();
+		FCoreDelegates::ApplicationWillDeactivateDelegate.Remove(HasDeactivateHandle);
+		HasDeactivateHandle.Reset();
 	}
 }
 // to be deprecated
