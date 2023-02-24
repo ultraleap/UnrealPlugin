@@ -95,10 +95,30 @@
 
 			public void onUnbound()
 			{
-				Log.debug("UltraleapTracking OnUnBound() called");
+			Log.debug("UltraleapTracking OnUnBound() called");
 			}
 			};
 			private ServiceBinder serviceBinder;
+
+
+			public void AndroidThunkJava_Bind()
+			{
+			if (ServiceBinder.isServiceInstalled(getApplicationContext()))
+			{
+			Log.debug("UltraleapTracking calling bind() on the service binder");
+			serviceBinder.bind();
+			}
+			}
+
+			public void AndroidThunkJava_Unbind()
+			{
+			if (ServiceBinder.isServiceInstalled(getApplicationContext()))
+			{
+			Log.debug("UltraleapTracking calling unbind() on the service binder");
+			serviceBinder.unbind();
+			}
+			}
+
 		</insert>
 
 	</gameActivityClassAdditions>
@@ -108,7 +128,7 @@
   
   <gameActivityOnResumeAdditions>
   </gameActivityOnResumeAdditions>
-
+	
   <gameActivityOnCreateAdditions>
 	  <insert>
 		  // The service binder handles automatically binding to the hand tracking service, it provides a callback interface for checking the bind status.
