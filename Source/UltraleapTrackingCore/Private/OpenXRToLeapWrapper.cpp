@@ -726,7 +726,7 @@ float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 	auto MinDistanceSquared = TNumericLimits<float>::Max();
 	
 	int32 ThumbBoneIndex = 0;
-	for(const auto ThumbBone : Hand.Thumb.Bones)
+	for (const FLeapBoneData& ThumbBone : Hand.Thumb.Bones)
 	{
 		// skip 2
 		if (ThumbBoneIndex < 2)
@@ -736,7 +736,7 @@ float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 		}
 
 		int IndexBoneIndex = 0;
-		for(const auto IndexBone : Hand.Index.Bones)
+		for (const FLeapBoneData& IndexBone : Hand.Index.Bones)
 		{
 			// skip 2
 			if (IndexBoneIndex < 2)

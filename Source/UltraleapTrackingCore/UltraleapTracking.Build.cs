@@ -88,6 +88,7 @@ namespace UnrealBuildTool.Rules
 			//OptimizeCode = CodeOptimization.Never;
 			PublicIncludePaths.AddRange(
 				new string[] {
+                   
 					// ... add public include paths required here ...
 				}
 				);
@@ -102,7 +103,8 @@ namespace UnrealBuildTool.Rules
 			PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
-					"Engine",
+                    "ApplicationCore",
+                    "Engine",
 					"Core",
 					"CoreUObject",
 					"InputCore",
@@ -116,16 +118,16 @@ namespace UnrealBuildTool.Rules
 					"LiveLinkInterface",
 					"LiveLinkMessageBusFramework",
 					"BodyState",
-					"PhysicsCore"
+					"PhysicsCore",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
 
-			PrivateDependencyModuleNames.AddRange(
+            PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
 					// ... add private dependencies that you statically link with here ...
-				}
+                }
 				);
 
 			DynamicallyLoadedModuleNames.AddRange(
@@ -135,7 +137,9 @@ namespace UnrealBuildTool.Rules
 				}
 				);
 
-			LoadLeapLib(Target);
+            PublicIncludePathModuleNames.Add("Launch");
+
+            LoadLeapLib(Target);
 		}
 
 		public string GetUProjectPath()
@@ -202,7 +206,9 @@ namespace UnrealBuildTool.Rules
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "arm64-v8a", "libLeapC.so"));
 
 				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "UltraleapTracking_APL.xml"));
-			}
+
+                PrivateDependencyModuleNames.AddRange(new string[] { "Launch" });
+            }
 			else if (Target.Platform == UnrealTargetPlatform.Linux)
 			{
 				IsLibrarySupported = true;
