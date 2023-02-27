@@ -57,7 +57,10 @@ FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
 }
 LEAP_CONNECTION* FOpenXRToLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
-	CallbackDelegate = InCallbackDelegate;
+	if (InCallbackDelegate!=nullptr)
+	{
+		CallbackDelegate = InCallbackDelegate;
+	}
 	InitOpenXRHandTrackingModule();
 	return nullptr;
 }
@@ -68,13 +71,13 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 
 	if (!GEngine)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
 
 		return;
 	}
 	if (!GEngine->XRSystem.IsValid())
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
 	
 		return;
 	}
@@ -84,7 +87,7 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	}
 	if (XRTrackingSystem == nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
 		return;
 	}
 
@@ -98,9 +101,9 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	IModularFeatures& ModularFeatures = IModularFeatures::Get();
 	if (ModularFeatures.IsModularFeatureAvailable(IHandTracker::GetModularFeatureName()))
 	{
-		auto Implementations = IModularFeatures::Get().GetModularFeatureImplementations<IHandTracker>(IHandTracker::GetModularFeatureName());
+		TArray<IHandTracker*, FDefaultAllocator> Implementations = IModularFeatures::Get().GetModularFeatureImplementations<IHandTracker>(IHandTracker::GetModularFeatureName());
 		
-		for (auto Implementation : Implementations)
+		for (IHandTracker* Implementation : Implementations)
 		{
 			if (Implementation->GetHandTrackerDeviceTypeName() == "UltraleapOpenXRHandTracking")
 			{
