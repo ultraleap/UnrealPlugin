@@ -57,7 +57,10 @@ FOpenXRToLeapWrapper::~FOpenXRToLeapWrapper()
 }
 LEAP_CONNECTION* FOpenXRToLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
-	CallbackDelegate = InCallbackDelegate;
+	if (InCallbackDelegate!=nullptr)
+	{
+		CallbackDelegate = InCallbackDelegate;
+	}
 	InitOpenXRHandTrackingModule();
 	return nullptr;
 }
@@ -68,13 +71,13 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 
 	if (!GEngine)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("Error: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() - GEngine is NULL"));
 
 		return;
 	}
 	if (!GEngine->XRSystem.IsValid())
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No XR System found, is an HMD connected?"));
 	
 		return;
 	}
@@ -84,7 +87,7 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	}
 	if (XRTrackingSystem == nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Warning: FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule() No OpenXR System found, are OpenXR plugins enabled"));
 		return;
 	}
 
@@ -98,9 +101,9 @@ void FOpenXRToLeapWrapper::InitOpenXRHandTrackingModule()
 	IModularFeatures& ModularFeatures = IModularFeatures::Get();
 	if (ModularFeatures.IsModularFeatureAvailable(IHandTracker::GetModularFeatureName()))
 	{
-		auto Implementations = IModularFeatures::Get().GetModularFeatureImplementations<IHandTracker>(IHandTracker::GetModularFeatureName());
+		TArray<IHandTracker*, FDefaultAllocator> Implementations = IModularFeatures::Get().GetModularFeatureImplementations<IHandTracker>(IHandTracker::GetModularFeatureName());
 		
-		for (auto Implementation : Implementations)
+		for (IHandTracker* Implementation : Implementations)
 		{
 			if (Implementation->GetHandTrackerDeviceTypeName() == "UltraleapOpenXRHandTracking")
 			{
@@ -490,9 +493,9 @@ void FOpenXRToLeapWrapper::ConvertToLeapSpace(LEAP_HAND& LeapHand, const TArray<
 	}
 	// Enums for each bone are in EHandKeypoint/UL
 	uint8 KeyPoint = 0;
-	for (auto Position : Positions)
+	for (FVector Position : Positions)
 	{
-		auto Rotation = Rotations[KeyPoint];
+		FQuat Rotation = Rotations[KeyPoint];
 
 		// Take out the player transform, this isn't valid as we want Leap Space which knows nothing about
 		// the player world position
@@ -615,7 +618,10 @@ int64_t FOpenXRToLeapWrapper::GetDummyLeapTime()
 }
 void FOpenXRToLeapWrapper::SetWorld(UWorld* World)
 {
-	FLeapWrapperBase::SetWorld(World);
+	if (World!=nullptr)
+	{
+		FLeapWrapperBase::SetWorld(World);
+	}
 	/* no delta TODO: get world framerate from somewhere if (World)
 	{
 		float WorldDelta = World->GetDeltaSeconds();
@@ -631,7 +637,7 @@ void FOpenXRToLeapWrapper::CloseConnection()
 	if (!bIsConnected)
 	{
 		// Not connected, already done
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("FOpenXRToLeapWrapper Attempt at closing an already closed connection."));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("FOpenXRToLeapWrapper Attempt at closing an already closed connection."));
 		return;
 	}
 	bIsConnected = false;
@@ -651,7 +657,7 @@ void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
 {
 	// simulate pinch and grab state (in LeapC this comes from the tracking service)
-	for (auto& Hand : Frame.Hands)
+	for (FLeapHandData& Hand : Frame.Hands)
 	{
 		UpdatePinchAndGrab(Hand);
 	}
@@ -671,13 +677,13 @@ float FOpenXRToLeapWrapper::CalculatePinchStrength(const FLeapHandData& Hand, fl
 
 	// Get the thumb position.
 	// TipPosition in Unity, is Distal->Next the same?
-	auto ThumbTipPosition = Hand.Thumb.Distal.NextJoint;
+	FVector ThumbTipPosition = Hand.Thumb.Distal.NextJoint;
 
 	// Compute the distance midpoints between the thumb and the each finger and find the smallest.
 	float MinDistanceSquared = TNumericLimits<float>::Max();
 	
 	int32 FingerIndex = 0;
-	for(const auto& Finger : Hand.Digits)
+	for(const FLeapDigitData& Finger : Hand.Digits)
 	{
 		// skip 1
 		if (!FingerIndex)
@@ -699,31 +705,31 @@ float FOpenXRToLeapWrapper::CalculatePinchStrength(const FLeapHandData& Hand, fl
 float FOpenXRToLeapWrapper::CalculateBoneDistanceSquared(const FLeapBoneData& BoneA, const FLeapBoneData& BoneB)
 {
 	// Denormalize directions to bone length.
-	const auto BoneAJoint = BoneA.PrevJoint;
-	const auto BoneBJoint = BoneB.PrevJoint;
+	const FVector BoneAJoint = BoneA.PrevJoint;
+	const FVector BoneBJoint = BoneB.PrevJoint;
 
-	const auto BoneADirection = BoneA.Rotation.Vector() * ((BoneA.NextJoint - BoneA.PrevJoint).Size());
-	const auto BoneBDirection = BoneB.Rotation.Vector() * ((BoneB.NextJoint - BoneB.PrevJoint).Size());
+	const FVector BoneADirection = BoneA.Rotation.Vector() * ((BoneA.NextJoint - BoneA.PrevJoint).Size());
+	const FVector BoneBDirection = BoneB.Rotation.Vector() * ((BoneB.NextJoint - BoneB.PrevJoint).Size());
 
 	// Compute the minimum (squared) distance between two bones.
-	const auto Diff = BoneBJoint - BoneAJoint;
-	const auto D1 = FVector::DotProduct(BoneADirection, Diff);
-	const auto D2 = FVector::DotProduct(BoneBDirection, Diff);
-	const auto A = BoneADirection.SizeSquared();
-	const auto B = FVector::DotProduct(BoneADirection, BoneBDirection);
-	const auto C = BoneBDirection.SizeSquared();
-	const auto Det = B * B - A * C;
-	const auto T1 = FMath::Clamp<float>((B * D2 - C * D1) / Det, 0.0, 1.0);
-	const auto T2 = FMath::Clamp<float>((A * D2 - B * D1) / Det, 0.0, 1.0);
-	const auto Pa = BoneAJoint + T1 * BoneADirection;
-	const auto Pb = BoneBJoint + T2 * BoneBDirection;
+	const FVector Diff = BoneBJoint - BoneAJoint;
+	const float D1 = FVector::DotProduct(BoneADirection, Diff);
+	const float D2 = FVector::DotProduct(BoneBDirection, Diff);
+	const float A = BoneADirection.SizeSquared();
+	const float B = FVector::DotProduct(BoneADirection, BoneBDirection);
+	const float C = BoneBDirection.SizeSquared();
+	const float Det = B * B - A * C;
+	const float T1 = FMath::Clamp<float>((B * D2 - C * D1) / Det, 0.0, 1.0);
+	const float T2 = FMath::Clamp<float>((A * D2 - B * D1) / Det, 0.0, 1.0);
+	const FVector Pa = BoneAJoint + T1 * BoneADirection;
+	const FVector Pb = BoneBJoint + T2 * BoneBDirection;
 	return (Pa - Pb).SizeSquared();
 }
 
 float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 {
 	// Get the farthest 2 segments of thumb and index finger, respectively, and compute distances.
-	auto MinDistanceSquared = TNumericLimits<float>::Max();
+	float MinDistanceSquared = TNumericLimits<float>::Max();
 	
 	int32 ThumbBoneIndex = 0;
 	for (const FLeapBoneData& ThumbBone : Hand.Thumb.Bones)
@@ -744,7 +750,7 @@ float FOpenXRToLeapWrapper::CalculatePinchDistance(const FLeapHandData& Hand)
 				IndexBoneIndex++;
 				continue;
 			}
-			const auto DistanceSquared = CalculateBoneDistanceSquared(ThumbBone, IndexBone);
+			const float DistanceSquared = CalculateBoneDistanceSquared(ThumbBone, IndexBone);
 			MinDistanceSquared = FMath::Min(DistanceSquared, MinDistanceSquared);
 
 			IndexBoneIndex++;
@@ -863,7 +869,7 @@ void FOpenXRToLeapWrapper::UpdatePinchAndGrab(FLeapHandData& Hand)
 	}
 
 	int FingerIndex = 0;
-	for (auto& Finger : Hand.Digits)
+	for (FLeapDigitData& Finger : Hand.Digits)
 	{
 		Finger.IsExtended = GetFingerStrength(Hand, FingerIndex) < 0.4;
 		FingerIndex++;
