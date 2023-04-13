@@ -379,14 +379,10 @@ void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 	{
 		SubscribeToDevice();
 	}
-	if (DeviceWrapper->GetDeviceSerial() == ActiveDeviceSerial)
-	{
-		ConnectToInputEvents();
-	}
-	else
-	{
-		RefreshDeviceList(true);
-	}
+	ActiveDeviceSerial = DeviceWrapper->GetDeviceSerial();
+
+	RefreshDeviceList(true);
+	
 }
 void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 {
