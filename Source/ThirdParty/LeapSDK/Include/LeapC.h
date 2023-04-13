@@ -43,6 +43,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #pragma pack(1)
 
@@ -275,6 +276,10 @@ typedef struct _LEAP_DEVICE_REF {
   uint32_t id;
 } LEAP_DEVICE_REF;
 
+/** \ingroup Enum
+ * Defines the type of connection that the client wants to open.
+ * @since 3.0.0
+ */
 typedef enum _eLeapConnectionConfig {
   /**
    * The client is aware of how to handle multiple devices through the API.
@@ -301,11 +306,9 @@ typedef struct _LEAP_CONNECTION_CONFIG {
   /**
    * Specifies the server namespace to be used. Leave NULL to use the default namespace.
    *
-   * It is possible to launch the service with a different IPC connection namespace
-   * (using internal service functions). Clients wishing to connect to a different
-   * server namespace may specify that namespace here.
-   *
-   * The default connection namespace is "Leap Service".
+   * Passing valid json with a `tracking_server_ip` and `tracking_server_port` fields 
+   * will change the server ip and port the connection will attempt to connect to.
+   * 
    */
   /** For internal use. @since 3.0.0 */
   const char* server_namespace;
@@ -396,6 +399,25 @@ LEAP_EXPORT int64_t LEAP_CALL LeapGetNow(void);
  * @since 3.0.0
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapCreateConnection(const LEAP_CONNECTION_CONFIG* pConfig, LEAP_CONNECTION* phConnection);
+
+/** \ingroup Functions
+ * Optionally sets connection metadata prior to opening the connection to the service.
+ *
+ * This optional function has no functional effect.
+ * 
+ * If used, this must be called before a call to LeapOpenConnection.
+ * 
+ * Caller can safely free the memory after the function returns.
+ * 
+ * Note: Any null characters will be copied into the string if they are within the length defined.
+ *
+ * @param hConnection A handle to the connection object, created by LeapCreateConnection().
+ * @param metadata A char array representing the metadata string.
+ * @param len The length of the metadata string, not including the null terminator.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.10.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapSetConnectionMetadata(LEAP_CONNECTION hConnection, const char* metadata, size_t len);
 
 /** \ingroup Functions
  * Opens a connection to the service.
@@ -959,6 +981,9 @@ typedef enum _eLeapDevicePID {
   /** The Ultraleap 3Di hand tracking camera. @since 5.3.0 */
   eLeapDevicePID_3Di             = 0x1204,
 
+  /** The Ultraleap Leap Motion Controller 2 hand tracking camera. @since 5.11.0 */
+  eLeapDevicePID_LMC2             = 0x1206,
+  
   /** An invalid device type. Not currently in use. @since 3.1.3 */
   eLeapDevicePID_Invalid = 0xFFFFFFFF
 } eLeapDevicePID;
@@ -1007,6 +1032,76 @@ typedef struct _LEAP_DEVICE_INFO {
   /** The maximum range for this device, in micrometers. @since 3.0.0 */
   uint32_t range;
 } LEAP_DEVICE_INFO;
+
+/** \ingroup Structs
+ * Properties of a device from the LeapGetServerStatus function call.
+ * @since 5.8.0
+ **/
+typedef struct _LEAP_SERVER_STATUS_DEVICE {
+  /** Device's serial number, pointer to a null-terminated string. @since 5.8.0 */
+  const char* serial;
+  /** Device's model type, pointer to a null-terminated string. @since 5.8.0 */
+  const char* type;
+} LEAP_SERVER_STATUS_DEVICE;
+
+/** \ingroup Structs
+ * Properties of the server from the LeapGetServerStatus function call.
+ * @since 5.8.0
+ **/
+typedef struct _LEAP_SERVER_STATUS {
+
+  /** Server's full version string, pointer to a null-terminated string.
+   * For example: "v5.8.0-ec113355".
+   * @since 5.8.0
+   **/
+  const char* version;
+
+  /** Count of devices connected to the server. This is the array size
+   * pointed to by the "devices" field in this structure.
+   * @since 5.8.0
+   **/
+
+  uint32_t device_count;
+
+  /** Pointer to an array of LEAP_SERVER_STATUS_DEVICEs, the array size
+   * will match the device_count field.
+   * @since 5.8.0
+   **/
+  const LEAP_SERVER_STATUS_DEVICE* devices;
+
+} LEAP_SERVER_STATUS;
+
+/** \ingroup Functions
+ * Retrieves server status information without requiring a LeapConnection object
+ * and a LeapPollConnection tracking loop. This function is for clients that
+*  want server information but do not want to use the heavier-weight
+ * LeapPollConnection functions. Typically these would be applications that want
+ * to check if hand tracking is available before choosing to start hand tracking.
+ *
+ * Calling LeapGetServerStatus will synchronously retrieve server status information
+ * and may block for up to the timeout value.
+ *
+ * The status output parameter will remain valid until the client calls
+ * LeapReleaseServerStatus.
+ *
+ * @param timeout The maximum amount of time to wait, in milliseconds.
+ * @param[out] status Address of a pointer that will be updated to reference a
+ *                    LEAP_SERVER_STATUS structure (on eLeapRS_Success)
+
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.8.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetServerStatus(uint32_t timeout, const LEAP_SERVER_STATUS** status);
+
+/** \ingroup Functions
+ * Release memory allocations for a LEAP_SERVER_STATUS from an earlier call to
+ * LeapGetServerStatus.
+ *
+ * @param status Pointer to a LEAP_SERVER_STATUS to release.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.8.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapReleaseServerStatus(const LEAP_SERVER_STATUS* status);
 
 /** \ingroup Functions
  * Gets device properties.
@@ -1059,12 +1154,30 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceInfo(LEAP_DEVICE hDevice, LEAP_DEVICE
  */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceTransform(LEAP_DEVICE hDevice, float* transform);
 
+/** \ingroup Functions
+ * Get the camera count of the specified device from the hand tracking service.
+ *
+ * @param hDevice A handle to the device to be queried.
+ * @param[out] cameraCount The device's camera count.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.11.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceCameraCount(LEAP_DEVICE hDevice, uint8_t* cameraCount);
+
 /** \ingroup Structs
  * Device event information.
  *
  * LeapPollConnection() produces a message containing this event when a new
  * device is detected. You can use the handle provided by the device filed to
  * open a device so that you can access its properties.
+ * 
+ * This can be used when the connection is set to multi device mode to
+ * interact with or enable multiple leap devices.
+ * 
+ * Note that while this struct will contain a device ID via the field
+ * `device.id`, it is not itself a multi-connection event (so the 
+ * value of device_id in LEAP_CONNECTION_MESSAGE will be 0).
+ * 
  * @since 3.0.0
  */
 typedef struct _LEAP_DEVICE_EVENT {
@@ -1911,12 +2024,14 @@ typedef enum _eLeapEventType {
 
   /**
    * A connection to the Ultraleap Tracking Service has been established.
+   * This event is stored in union member connection_event (LEAP_CONNECTION_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_Connection,
 
   /**
    * The connection to the Ultraleap Tracking Service has been lost.
+   * This event is stored in union member connection_lost_event (LEAP_CONNECTION_LOST_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_ConnectionLost,
@@ -1926,6 +2041,7 @@ typedef enum _eLeapEventType {
    * A device event is dispatched after a connection is established for any
    * devices already plugged in. (The system currently only supports one
    * streaming device at a time.)
+   * This event is stored in union member device_event (LEAP_DEVICE_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_Device,
@@ -1935,6 +2051,7 @@ typedef enum _eLeapEventType {
    * Device failure could be caused by hardware failure, USB controller issues, or
    * other system instability. Note that unplugging a device generates an
    * eLeapEventType_DeviceLost event message, not a failure message.
+   * This event is no longer generated, enum present for historic API compatibility.
    * @since 3.0.0
    */
   eLeapEventType_DeviceFailure,
@@ -1944,12 +2061,14 @@ typedef enum _eLeapEventType {
    * This can be due to setting a policy with LeapSetPolicyFlags() or due to changing
    * or policy-related config settings, including images_mode.
    * (A user can also change these policies using the Ultraleap Tracking Control Panel.)
+   * This event is stored in union member policy_event (LEAP_POLICY_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_Policy,
 
   /**
    * A tracking frame. The message contains the tracking data for the frame.
+   * This event is stored in union member tracking_mode_event (LEAP_TRACKING_MODE_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_Tracking = 0x100,
@@ -1958,20 +2077,23 @@ typedef enum _eLeapEventType {
    * The request for an image has failed.
    * The message contains information about the failure. The client application
    * will not receive the requested image set.
+   * This event is no longer generated, enum present for historic API compatibility.
    * @since 3.0.0
    */
   eLeapEventType_ImageRequestError,
 
   /**
-  * The request for an image is complete.
-  * The image data has been completely written to the application-provided
-  * buffer.
-  * @since 3.0.0
-  */
+   * The request for an image is complete.
+   * The image data has been completely written to the application-provided
+   * buffer.
+   * This event is no longer generated, enum present for historic API compatibility.
+   * @since 3.0.0
+   */
   eLeapEventType_ImageComplete,
 
   /**
    * A system message. @since 3.0.0
+   * This event is stored in union member log_event (LEAP_LOG_EVENT).
    */
   eLeapEventType_LogEvent,
 
@@ -1982,6 +2104,7 @@ typedef enum _eLeapEventType {
    * connection to the service has been lost, or if the device is closed while streaming. Generally,
    * any event where the system can conclude no further frames will be received will result in this
    * message. The DeviceEvent field will be filled with the id of the formerly attached device.
+   * This event is stored in union member device_event (LEAP_DEVICE_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_DeviceLost,
@@ -1989,6 +2112,7 @@ typedef enum _eLeapEventType {
   /**
    * The asynchronous response to a call to LeapRequestConfigValue().
    * Contains the value of requested configuration item.
+   * This event is stored in union member config_response_event (LEAP_CONFIG_RESPONSE_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_ConfigResponse,
@@ -1996,13 +2120,14 @@ typedef enum _eLeapEventType {
   /**
    * The asynchronous response to a call to LeapSaveConfigValue().
    * Reports whether the change succeeded or failed.
+   * This event is stored in union member config_change_event (LEAP_CONFIG_CHANGE_EVENT).
    * @since 3.0.0
    */
   eLeapEventType_ConfigChange,
 
   /**
    * Notification that a status change has been detected on an attached device
-   *
+   * This event is stored in union member device_status_change_event (LEAP_DEVICE_STATUS_CHANGE_EVENT).
    * @since 3.1.3
    */
   eLeapEventType_DeviceStatusChange,
@@ -2010,45 +2135,51 @@ typedef enum _eLeapEventType {
 
   /**
    * Notification that an unrequested stereo image pair is available
-   *
+   * This event is stored in union member image_event (LEAP_IMAGE_EVENT).
    * @since 4.0.0
    */
   eLeapEventType_Image,
 
   /**
    * Notification that point mapping has changed
+   * This event is no longer generated, enum present for historic API compatibility.
    *
    * @since 4.0.0
    */
   eLeapEventType_PointMappingChange,
 
-   /**
-    * A tracking mode change has occurred.
-    * This can be due to changing the hmd or screentop policy with LeapSetPolicyFlags().
-    * or setting the tracking mode using LeapSetTrackingMode().
-    * @since 5.0.0
-    */
+  /**
+   * A tracking mode change has occurred.
+   * This can be due to changing the hmd or screentop policy with LeapSetPolicyFlags().
+   * or setting the tracking mode using LeapSetTrackingMode().
+   * This event is stored in union member tracking_mode_event (LEAP_TRACKING_MODE_EVENT).
+   * @since 5.0.0
+   */
   eLeapEventType_TrackingMode,
 
   /**
    * An array of system messages. @since 4.0.0
+   * This event is stored in union member log_events (LEAP_LOG_EVENTS).
    */
   eLeapEventType_LogEvents,
 
   /**
-  * A head pose. The message contains the timestamped head position and orientation.
-  * @since 4.1.0
-  */
+   * A head pose. The message contains the timestamped head position and orientation.
+   * This event is no longer generated, enum present for historic API compatibility.
+   * @since 4.1.0
+   */
   eLeapEventType_HeadPose,
 
   /**
-  * Tracked eye positions. @since 4.1.0
-  */
+   * Tracked eye positions. @since 4.1.0
+   * This event is no longer generated, enum present for historic API compatibility.
+   */
   eLeapEventType_Eyes,
 
   /**
-  * An IMU reading. @since 4.1.0
-  */
+   * An IMU reading. @since 4.1.0
+   * This event is stored in union member imu_event (LEAP_IMU_EVENT).
+   */
   eLeapEventType_IMU
 } eLeapEventType;
 LEAP_STATIC_ASSERT(sizeof(eLeapEventType) == 4, "Incorrect enum size");
@@ -2259,8 +2390,30 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameFromTime(LEAP_CONNECTION hConn
 */
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateFrameFromTimeEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, int64_t timestamp, int64_t sourceTimestamp, LEAP_TRACKING_EVENT* pEvent, uint64_t ncbEvent);
 
+/** \ingroup Functions
+ * Get the frequency the default device is providing the hand tracking service with images.
+ * @sa LeapGetDeviceFrameRateEx for additional information
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param[out] framesPerSecond The device frame rate.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.8.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceFrameRate(LEAP_CONNECTION hConnection, float* framesPerSecond);
 
-
+/** \ingroup Functions
+ * Get the frequency the device is providing the hand tracking service with images.
+ *
+ * This is only implemented for some devices. In case of missing implementation, the function will
+ * return a frequency of 0.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A handle to the device to be queried.
+ * @param[out] framesPerSecond The given device frame rate.
+ * @returns The operation result code, a member of the eLeapRS enumeration.
+ * @since 5.8.0
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceFrameRateEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, float* framesPerSecond);
 
 /** \ingroup Functions
  * Closes a device handle previously opened with LeapOpenDevice.
@@ -2361,31 +2514,61 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapRebaseClock(LEAP_CLOCK_REBASER hClockRebaser, 
 LEAP_EXPORT void LEAP_CALL LeapDestroyClockRebaser(LEAP_CLOCK_REBASER hClockRebaser);
 
 /** \ingroup Functions
- * Provides the corrected camera ray intercepting the specified point on the image.
- *
- * Given a point on the image, ``LeapPixelToRectilinear()`` corrects for camera distortion
- * and returns the true direction from the camera to the source of that image point
- * within the Ultraleap Tracking camera field of view.
- *
- * This direction vector has an x and y component [x, y, 1], with the third element
- * always 1. Note that this vector uses the 2D camera coordinate system
- * where the x-axis parallels the longer (typically horizontal) dimension and
- * the y-axis parallels the shorter (vertical) dimension. The camera coordinate
- * system does not correlate to the 3D Ultraleap Tracking coordinate system.
+ * This finds the default device and returns the result of LeapPixelToRectilinearEx()
+ * @sa LeapPixelToRectilinearEx for additional information
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
  * @param pixel A Vector containing the position of a pixel in the image.
  * @returns A Vector containing the ray direction (the z-component of the vector is always 1).
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera enum.
+ * *) You have never received any images from LeapC as detailed above.
  * @since 3.1.3
  */
 LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinear(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, LEAP_VECTOR pixel);
 
 /** \ingroup Functions
+ * This converts the camera perspective to an index and returns the result of LeapPixelToRectilinearByIndexEx()
+ * @sa LeapPixelToRectilinearByIndexEx for additional information
+ * 
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param pixel A Vector containing the position of a pixel in the image.
+ * @returns A Vector containing the ray direction (the z-component of the vector is always 1).
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera enum.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
+ * @since 5.4.0
+ */
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinearEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, LEAP_VECTOR pixel);
+
+/** \ingroup Functions
+ * This finds the default device and returns the result of LeapPixelToRectilinearByIndexEx()
+ * @sa LeapPixelToRectilinearByIndexEx for additional information
+ * 
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param cameraIndex The index of the camera to use
+ * @param pixel A Vector containing the position of a pixel in the image.
+ * @returns A Vector containing the ray direction (the z-component of the vector is always 1).
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera index.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
+ * @since 5.8.0
+ */
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinearByIndex(LEAP_CONNECTION hConnection, uint8_t cameraIndex, LEAP_VECTOR pixel);
+
+/** \ingroup Functions
  * Provides the corrected camera ray intercepting the specified point
  * on the image for a particular device.
  *
- * Given a point on the image, ``LeapPixelToRectilinearEx()`` corrects for camera distortion
+ * Given a point on the image, ``LeapPixelToRectilinearByIndex()`` corrects for camera distortion
  * and returns the true direction from the camera to the source of that image point
  * within the Devices field of view.
  *
@@ -2394,49 +2577,84 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinear(LEAP_CONNECTION hConnec
  * where the x-axis parallels the longer (typically horizontal) dimension and
  * the y-axis parallels the shorter (vertical) dimension. The camera coordinate
  * system does not correlate to the 3D Ultraleap coordinate system.
- *
+ * 
+ * For this function to work, you must have fetched at least 1 image from the LeapC polling event loop,
+ * i.e. call LeapSetPolicyFlags(eLeapPolicyFlag_Images, 0), and received one LEAP_IMAGE_EVENT type
+ * for your given device handle.
+ * 
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param hDevice A device handle returned by LeapOpenDevice().
- * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param cameraIndex The index of the camera to use
  * @param pixel A Vector containing the position of a pixel in the image.
  * @returns A Vector containing the ray direction (the z-component of the vector is always 1).
- * @since 5.4.0
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera index.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
+ * @since 5.8.0
  */
-LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinearEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, LEAP_VECTOR pixel);
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapPixelToRectilinearByIndexEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, uint8_t cameraIndex, LEAP_VECTOR pixel);
 
 
 
 /** \ingroup Functions
- * Provides the point in the image corresponding to a ray projecting
- * from the camera.
- *
- * Given a ray projected from the camera in the specified direction, ``LeapRectilinearToPixel()``
- * corrects for camera distortion and returns the corresponding pixel
- * coordinates in the image.
- *
- * The ray direction is specified in relationship to the camera. The first
- * vector element is the tangent of the "horizontal" view angle; the second
- * element is the tangent of the "vertical" view angle.
- *
- * The ``LeapRectilinearToPixel()`` function returns pixel coordinates outside of the image bounds
- * if you project a ray toward a point for which there is no recorded data.
- *
- * ``LeapRectilinearToPixel()`` is typically not fast enough for realtime distortion correction.
- * For better performance, use a shader program executed on a GPU.
+ * This finds the default device and returns the result of LeapRectilinearToPixelEx()
+ * @sa LeapRectilinearToPixelEx for additional information
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
  * @param rectilinear A Vector containing the ray direction.
  * @returns A Vector containing the pixel coordinates [x, y, 1] (with z always 1).
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera enum.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
  * @since 3.1.3
  */
 LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, LEAP_VECTOR rectilinear);
 
 /** \ingroup Functions
+ * This converts the camera perspective to an index and returns the result of LeapRectilinearToPixelByIndexEx()
+ * @sa LeapRectilinearToPixelByIndexEx for additional information
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param rectilinear A Vector containing the ray direction.
+ * @returns A Vector containing the pixel coordinates [x, y, 1] (with z always 1).
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera enum.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
+ * @since 5.4.0
+ */
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixelEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, LEAP_VECTOR rectilinear);
+
+/** \ingroup Functions
+ * This finds the default device and returns the result of LeapRectilinearToPixelByIndexEx()
+ * @sa LeapRectilinearToPixelByIndexEx for additional information
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param cameraIndex The index of the camera to use
+ * @param rectilinear A Vector containing the ray direction.
+ * @returns A Vector containing the pixel coordinates [x, y, 1] (with z always 1).
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera index.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
+ * @since 5.8.0
+ */
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixelByIndex(LEAP_CONNECTION hConnection, uint8_t cameraIndex, LEAP_VECTOR rectilinear);
+
+/** \ingroup Functions
  * Provides the point in the image corresponding to a ray projecting
  * from the camera for a particular device.
  *
- * Given a ray projected from the camera in the specified direction, ``LeapRectilinearToPixelEx()``
+ * Given a ray projected from the camera in the specified direction, ``LeapRectilinearToPixelByIndex()``
  * corrects for camera distortion and returns the corresponding pixel
  * coordinates in the image.
  *
@@ -2444,20 +2662,29 @@ LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixel(LEAP_CONNECTION hConnec
  * vector element is the tangent of the "horizontal" view angle; the second
  * element is the tangent of the "vertical" view angle.
  *
- * The ``LeapRectilinearToPixelEx()`` function returns pixel coordinates outside of the image bounds
+ * The ``LeapRectilinearToPixelByIndex()`` function returns pixel coordinates outside of the image bounds
  * if you project a ray toward a point for which there is no recorded data.
  *
- * ``LeapRectilinearToPixelEx()`` is typically not fast enough for realtime distortion correction.
+ * ``LeapRectilinearToPixelByIndex()`` is typically not fast enough for realtime distortion correction.
  * For better performance, use a shader program executed on a GPU.
+ * 
+ * For this function to work, you must have fetched at least 1 image from the LeapC polling event loop,
+ * i.e. call LeapSetPolicyFlags(eLeapPolicyFlag_Images, 0), and received one LEAP_IMAGE_EVENT type
+ * for your given device handle.
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param hDevice A device handle returned by LeapOpenDevice().
- * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param cameraIndex The index of the camera to use
  * @param rectilinear A Vector containing the ray direction.
  * @returns A Vector containing the pixel coordinates [x, y, 1] (with z always 1).
- * @since 5.4.0
+ * May return [NaN, NaN, 1] (quiet NaN type) under the following conditions:
+ * *) You do not have a valid connection or device handle.
+ * *) You passed an invalid camera index.
+ * *) You have never received any images from LeapC as detailed above.
+ * 
+ * @since 5.8.0
  */
-LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixelEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, LEAP_VECTOR rectilinear);
+LEAP_EXPORT LEAP_VECTOR LEAP_CALL LeapRectilinearToPixelByIndexEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, uint8_t cameraIndex, LEAP_VECTOR rectilinear);
 
 /** \ingroup Functions
  * Returns an OpenCV-compatible camera matrix.
@@ -2479,7 +2706,27 @@ LEAP_EXPORT void LEAP_CALL LeapCameraMatrix(LEAP_CONNECTION hConnection, eLeapPe
 LEAP_EXPORT void LEAP_CALL LeapCameraMatrixEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
 
 /** \ingroup Functions
+ * Returns an OpenCV-compatible camera matrix for a particular device.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 9
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapCameraMatrixByIndex(LEAP_CONNECTION hConnection, uint8_t cameraIndex, float* dest);
+
+/** \ingroup Functions
+ * Returns an OpenCV-compatible camera matrix for a particular device.
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 9
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapCameraMatrixByIndexEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, uint8_t cameraIndex, float* dest);
+
+/** \ingroup Functions
  * This finds the default device and returns the result LeapExtrinsicCameraMatrixEx()
+ * @sa LeapExtrinsicCameraMatrixEx for additional information
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
@@ -2490,15 +2737,8 @@ LEAP_EXPORT void LEAP_CALL LeapCameraMatrixEx(LEAP_CONNECTION hConnection, LEAP_
 LEAP_EXPORT void LEAP_CALL LeapExtrinsicCameraMatrix(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
 
 /** \ingroup Functions
- *
- * Returns a transformation matrix from 3D Leap coordinate space to the coordinate system of the requested camera
- * This is composed of a 4 x 4 matrix of the form:
- *
- * R, t <br>
- * 0, 1
- *
- *  R is a 3 x 3 rotation matrix <br>
- *  t is a 3 x 1 translation vector
+ * This converts the camera perspective to an index and returns the result of LeapExtrinsicCameraMatrixByIndexEx()
+ * @sa LeapExtrinsicCameraMatrixByIndexEx for additional information
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param hDevice A device handle returned by LeapOpenDevice().
@@ -2510,10 +2750,40 @@ LEAP_EXPORT void LEAP_CALL LeapExtrinsicCameraMatrix(LEAP_CONNECTION hConnection
 LEAP_EXPORT void LEAP_CALL LeapExtrinsicCameraMatrixEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
 
 /** \ingroup Functions
- * Returns an OpenCV-compatible lens distortion using the 8-parameter rational
- * model.
+ * This finds the default device and returns the result of LeapPixelToRectilinearByIndexEx()
+ * @sa LeapPixelToRectilinearByIndexEx for additional information
  *
- * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 16, containing
+ *  the coefficients of the 4x4 matrix in Column Major order
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapExtrinsicCameraMatrixByIndex(LEAP_CONNECTION hConnection, uint8_t cameraIndex, float* dest);
+
+/** \ingroup Functions
+ *
+ * Returns a transformation matrix from the coordinate system of the requested camera to 3D Leap coordinate space
+ * This is composed of a 4 x 4 matrix of the form:
+ *
+ * R, t <br>
+ * 0, 1
+ *
+ *  R is a 3 x 3 rotation matrix <br>
+ *  t is a 3 x 1 translation vector
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 16, containing
+ *  the coefficients of the 4x4 matrix in Column Major order
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapExtrinsicCameraMatrixByIndexEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, uint8_t cameraIndex, float* dest);
+
+/** \ingroup Functions
+ * This finds the default device and returns the result of LeapDistortionCoeffsEx()
+ * @sa LeapDistortionCoeffsEx for additional information
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
@@ -2523,10 +2793,8 @@ LEAP_EXPORT void LEAP_CALL LeapExtrinsicCameraMatrixEx(LEAP_CONNECTION hConnecti
 LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffs(LEAP_CONNECTION hConnection, eLeapPerspectiveType camera, float* dest);
 
 /** \ingroup Functions
- * Returns an OpenCV-compatible lens distortion for a particular device, using
- * the 8-parameter rational model.
- *
- * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
+ * This converts the camera perspective to an index and returns the result of LeapDistortionCoeffsByIndexEx()
+ * @sa LeapDistortionCoeffsByIndexEx for additional information
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param hDevice A device handle returned by LeapOpenDevice().
@@ -2535,6 +2803,31 @@ LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffs(LEAP_CONNECTION hConnection, eLe
  * @since 5.4.0
  */
 LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffsEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
+
+/** \ingroup Functions
+ * This finds the default device and returns the result of LeapDistortionCoeffsByIndexEx()
+ * @sa LeapDistortionCoeffsByIndexEx for additional information
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 8.
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffsByIndex(LEAP_CONNECTION hConnection, uint8_t cameraIndex, float* dest);
+
+/** \ingroup Functions
+ * Returns an OpenCV-compatible lens distortion for a particular device, using
+ * the 8-parameter rational model.
+ *
+ * The order of the returned array is: [k1, k2, p1, p2, k3, k4, k5, k6]
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 8.
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapDistortionCoeffsByIndexEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, uint8_t cameraIndex, float* dest);
 
 /** \ingroup Functions
  * Provides the human-readable canonical name of the specified device model.
@@ -2679,6 +2972,32 @@ LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrix(LEAP_CONNECTION hConnection, eL
 
 /** \ingroup Functions
  *
+ * This converts the camera perspective to an index and returns the result of LeapScaleOffsetMatrixByIndexEx()
+ * @sa LeapScaleOffsetMatrixByIndexEx for additional information
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param[out] dest A pointer to a single-precision float array of size 16, containing
+ *  the coefficients of the 4x4 matrix in Column Major order
+ * @since 5.x.x
+ */
+LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrixEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
+
+/** \ingroup Functions
+ * This finds the default device and returns the result of LeapScaleOffsetMatrixByIndexEx()
+ * @sa LeapScaleOffsetMatrixByIndexEx for additional information
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param cameraIndex The index of the camera to use
+ * @param[out] dest A pointer to a single-precision float array of size 16, containing
+ *  the coefficients of the 4x4 matrix in Column Major order
+ * @since 5.8.0
+ */
+LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrixByIndex(LEAP_CONNECTION hConnection, uint8_t cameraIndex, float* dest);
+
+/** \ingroup Functions
+ *
  * Returns the appropriate scale and offset coefficients required to project
  * normalised Rectilinear coordinates to image-scale coordinates.
  *
@@ -2696,7 +3015,7 @@ LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrix(LEAP_CONNECTION hConnection, eL
  *
  * The pipeline would be:
  * 1) Take 3D points from hand tracking.
- * 2) Apply an extrinsic transformation to a specific camera's coordinate system (@sa LeapExtrinsicCameraMatrixEx)
+ * 2) Apply an extrinsic transformation to a specific camera's coordinate system
  * 3) Apply a perspective division to transform 3D points to rays.
  * 4) Apply the ScaleOffset matrix to these points.
  *
@@ -2705,12 +3024,12 @@ LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrix(LEAP_CONNECTION hConnection, eL
  *
  * @param hConnection The connection handle created by LeapCreateConnection().
  * @param hDevice A device handle returned by LeapOpenDevice().
- * @param camera The camera to use, a member of the eLeapPerspectiveType enumeration
+ * @param cameraIndex The index of the camera to use
  * @param[out] dest A pointer to a single-precision float array of size 16, containing
  *  the coefficients of the 4x4 matrix in Column Major order
- * @since 5.x.x
+ * @since 5.8.0
  */
-LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrixEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, eLeapPerspectiveType camera, float* dest);
+LEAP_EXPORT void LEAP_CALL LeapScaleOffsetMatrixByIndexEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, uint8_t cameraIndex, float* dest);
 
 /** \ingroup Enum
  * Defines the parameters used to access version information.
