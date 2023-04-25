@@ -125,15 +125,15 @@ void ALeapMultiplayerCharacter::StopFire()
 
 void ALeapMultiplayerCharacter::HandleFire_Implementation()
 {
-	FVector spawnLocation = GetActorLocation() + (GetActorRotation().Vector() * 100.0f) + (GetActorUpVector() * 50.0f);
-	FRotator spawnRotation = GetActorRotation();
+	FVector spawnLocation = GetActorLocation() + (GetControlRotation().Vector() * 100.0f) + (GetActorUpVector() * 50.0f);
+	FRotator spawnRotation = GetControlRotation();
 
 	FActorSpawnParameters spawnParameters;
 	spawnParameters.Instigator = GetInstigator();
 	spawnParameters.Owner = this;
 
 	ALeapMultiplayerProjectile* spawnedProjectile =
-		GetWorld()->SpawnActor<ALeapMultiplayerProjectile>(ProjectileClass, spawnLocation, spawnRotation, spawnParameters);
+		GetWorld()->SpawnActor<ALeapMultiplayerProjectile>(spawnLocation, spawnRotation, spawnParameters);
 }
 
 void ALeapMultiplayerCharacter::OnHealthUpdate()
