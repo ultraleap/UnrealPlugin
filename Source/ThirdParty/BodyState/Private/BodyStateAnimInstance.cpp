@@ -52,6 +52,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	// Defaults
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
+	ScaleModelToTrackingData = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 
