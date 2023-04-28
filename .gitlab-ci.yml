@@ -42,7 +42,7 @@ documentation::generate-tracking-documentation:
       allow_failure: true
       
     - if: $CI_COMMIT_BRANCH
-      when: manual
+      when: always
       allow_failure: true
  
  
