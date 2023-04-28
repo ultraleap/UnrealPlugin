@@ -32,20 +32,6 @@ documentation::generate-tracking-documentation:
     - windows  
   timeout: 30m
 
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-      allow_failure: true
-
-    - if: $CI_PIPELINE_SOURCE == "pipeline"
-      when: always
-      allow_failure: true
-      
-    - if: $CI_COMMIT_BRANCH
-      when: always
-      allow_failure: true
- 
- 
   script:
      # Generate XML documentation using Doxygen
     - echo "Generate docs"
