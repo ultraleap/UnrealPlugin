@@ -191,10 +191,10 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				IsLibrarySupported = false;	//Not supported since Leap SDK 3.0
+				IsLibrarySupported = true;
 
 				string PlatformString = "Mac";
-				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeap.dylib"));
+				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.dylib"));
 
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Android)
