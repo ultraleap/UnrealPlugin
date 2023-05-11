@@ -285,9 +285,26 @@ typedef enum _eLeapConnectionConfig {
    * The client is aware of how to handle multiple devices through the API.
    * @since 4.1.0
    */
-  eLeapConnectionConfig_MultiDeviceAware = 0x00000001,
+  eLeapConnectionConfig_MultiDeviceAware = 0x00000001,  
 } eLeapConnectionConfig;
 LEAP_STATIC_ASSERT(sizeof(eLeapConnectionConfig) == 4, "Incorrect enum size");
+
+typedef enum _eLeapTrackingOrigin {
+  /**
+   * A Device Center Origin results in tracking data relative to the center of the hand-tracking cameras.
+   * @since 5.12.0
+   */
+  eLeapTrackingOrigin_DeviceCenter = 0,
+
+  /**
+   * A Device Primary Camera Origin will give tracking data relative to position and orientation of
+   * the first hand-tracking camera sensor on a device.
+   * @since 5.12.0
+   */
+  eLeapTrackingOrigin_DevicePrimaryCamera = 1
+  
+} eLeapTrackingOrigin;
+LEAP_STATIC_ASSERT(sizeof(eLeapTrackingOrigin) == 4, "Incorrect enum size");
 
 /** \ingroup Structs
  * Specifies the configuration for a connection.
@@ -312,6 +329,16 @@ typedef struct _LEAP_CONNECTION_CONFIG {
    */
   /** For internal use. @since 3.0.0 */
   const char* server_namespace;
+
+  /** 
+   * The client can specify that hand tracking data should be relative to
+   * the position and orientation of different locations on a device.
+   * 
+   * The options are described in the eLeapTrackingOrigin enum.
+   * 
+   * @since 5.12.0 
+   */
+  eLeapTrackingOrigin tracking_origin;
 } LEAP_CONNECTION_CONFIG;
 
 /** \ingroup Enum
