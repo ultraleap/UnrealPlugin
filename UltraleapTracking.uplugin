@@ -24,7 +24,6 @@
 				"Android",
 				"Linux",
 				"Mac"
-
 			]
 		},
 		{
@@ -35,7 +34,7 @@
 				"Win64",
 				"Android",
 				"Linux",
-                "Mac"
+        "Mac"
 			]
 		},
 		{
@@ -46,7 +45,7 @@
 				"Win64",
 				"Android",
 				"Linux",
-                "Mac"
+        "Mac"
 			]
 		}
 	]
