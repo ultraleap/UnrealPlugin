@@ -194,10 +194,10 @@ namespace UnrealBuildTool.Rules
             
 				IsLibrarySupported = true;	
 				string PlatformString = "Mac";
-				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
-				PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
-				PublicAdditionalShadowFiles.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
-				RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
+				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.dylib"));
+				PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.dylib"));
+				PublicAdditionalShadowFiles.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.dylib"));
+				RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.dylib"));
                 
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Android)
