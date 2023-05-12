@@ -196,7 +196,7 @@ namespace UnrealBuildTool.Rules
 				string PlatformString = "Mac";
 				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
 				PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
-				PublicAdditionalShadowFiles.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
+				//PublicAdditionalShadowFiles.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
 				RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "libLeapC.5.dylib"));
                 
 			}
