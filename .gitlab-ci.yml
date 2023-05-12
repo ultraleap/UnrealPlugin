@@ -18,7 +18,7 @@ variables:
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
   UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
-  #UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_0: "$ENGINE_UAT_PATH_UE5_0/Engine/Build/Build.version"
+  UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_0: "$ENGINE_UAT_PATH_UE5_0/Engine/Build/Build.version"
   
   VERSIONTRUNC: "Unknown"
 stages:
@@ -70,22 +70,22 @@ build:build-project:
     - $UNREAL_VERSION_CONTENT_UE5 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
     - $UNREAL_VERSION_UE5 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
     
-    #- $UNREAL_VERSION_CONTENT_UE5_0 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
-    #- $UNREAL_VERSION_UE5_0 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
+    - $UNREAL_VERSION_CONTENT_UE5_0 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5 | ConvertFrom-Json
+    - $UNREAL_VERSION_UE5_0 = $UNREAL_VERSION_CONTENT_UE5.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5.PatchVersion.ToString()
     
     - echo "$UNREAL_VERSION"
     - echo "$UNREAL_VERSION_UE5"
-    #- echo "$UNREAL_VERSION_UE5_0"
+    - echo "$UNREAL_VERSION_UE5_0"
    
 
     - echo "$ENGINE_PATH"
     - echo "$ENGINE_PATH_UE5"
-    #- echo "$ENGINE_PATH_UE5_0"
+    - echo "$ENGINE_PATH_UE5_0"
     - echo "$PROJECT_PATH"
     - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - echo "$ENGINE_UAT_PATH"
     - echo "$ENGINE_UAT_PATH_UE5"
-    #- echo "$ENGINE_UAT_PATH_UE5_0"
+    - echo "$ENGINE_UAT_PATH_UE5_0"
     - echo "Working dir"
     - pwd
    
@@ -112,10 +112,10 @@ build:build-project:
     - echo "Unreal 5.1 build complete."
     
     
-    #- $UE5_PACKAGE_PATH_0 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_0"
+    - $UE5_PACKAGE_PATH_0 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_0"
     - echo "$UE5_PACKAGE_PATH_0"
 
-    #- $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_0" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_0 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  >> ./$PROJECT_NAME.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_0" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_0 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  >> ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -128,7 +128,7 @@ build:build-project:
     - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - $BUILD_LOCATION = "$PROJECT_PATH/$PROJECT_NAME"
     - $BUILD_LOCATION_UE5 =  "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_1"
-    #- $BUILD_LOCATION_UE5_0 =  "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_0"
+    - $BUILD_LOCATION_UE5_0 =  "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_0"
 
 
     - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
@@ -145,11 +145,11 @@ build:build-project:
     - $BUILD_FULL_VERSION = $VERSIONTRUNC
     - $BUILD_PATH = "./build/$PROJECT_NAME-$BUILD_FULL_VERSION/"
     - $BUILD_PATH_UE5 = "./build/$PROJECT_NAME" + "_ue5_1" +"-$BUILD_FULL_VERSION/"
-    #- $BUILD_PATH_UE5_0 = "./build/$PROJECT_NAME" + "_ue5_0" +"-$BUILD_FULL_VERSION/"
+    - $BUILD_PATH_UE5_0 = "./build/$PROJECT_NAME" + "_ue5_0" +"-$BUILD_FULL_VERSION/"
     
     - mkdir "$BUILD_PATH"  
     - mkdir "$BUILD_PATH_UE5"
-    #- mkdir "$BUILD_PATH_UE5_0"
+    - mkdir "$BUILD_PATH_UE5_0"
 
     - echo "$BUILD_PATH"
     - echo "$BUILD_LOCATION"
@@ -157,33 +157,33 @@ build:build-project:
     - echo "$BUILD_PATH_UE5"
     - echo "$BUILD_LOCATION_UE5"
     
-    #- echo "$BUILD_PATH_UE5_0"
-    #- echo "$BUILD_LOCATION_UE5_0"
+    - echo "$BUILD_PATH_UE5_0"
+    - echo "$BUILD_LOCATION_UE5_0"
 
 
     - mv "$BUILD_LOCATION/*" "$BUILD_PATH"
     - mv "$BUILD_LOCATION_UE5/*" "$BUILD_PATH_UE5"
-    #- mv "$BUILD_LOCATION_UE5_0/*" "$BUILD_PATH_UE5_0"
+    - mv "$BUILD_LOCATION_UE5_0/*" "$BUILD_PATH_UE5_0"
 
      # pdbs
     - Remove-Item "$BUILD_PATH/Binaries/Win64/*.pdb" 
     - Remove-Item "$BUILD_PATH_UE5/Binaries/Win64/*.pdb"
-    #- Remove-Item "$BUILD_PATH_UE5_0/Binaries/Win64/*.pdb"
+    - Remove-Item "$BUILD_PATH_UE5_0/Binaries/Win64/*.pdb"
    
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace_4_27/$PROJECT_NAME"
     - $BUILD_MARKET_PLACE_PATH_UE5 = "./build/MarketPlace_UE5_1/$PROJECT_NAME"
-    #- $BUILD_MARKET_PLACE_PATH_UE5_0 = "./build/MarketPlace_UE5_0/$PROJECT_NAME"
+    - $BUILD_MARKET_PLACE_PATH_UE5_0 = "./build/MarketPlace_UE5_0/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH"
     - echo "$BUILD_MARKET_PLACE_PATH_UE5"
-    #- echo "$BUILD_MARKET_PLACE_PATH_UE5_0"
+    - echo "$BUILD_MARKET_PLACE_PATH_UE5_0"
 
 
     - mkdir "$BUILD_MARKET_PLACE_PATH"
     - mkdir "$BUILD_MARKET_PLACE_PATH_UE5"
-    #- mkdir "$BUILD_MARKET_PLACE_PATH_UE5_0"
+    - mkdir "$BUILD_MARKET_PLACE_PATH_UE5_0"
 
     # UE4 contents
     - Copy-Item "$BUILD_PATH*" -Destination "$BUILD_MARKET_PLACE_PATH" -Recurse
@@ -228,24 +228,24 @@ build:build-project:
     
     
     # UE5_0 contents
-    #- Copy-Item "$BUILD_PATH_UE5_0*" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_0" -Recurse
+    - Copy-Item "$BUILD_PATH_UE5_0*" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_0" -Recurse
     # Copy the FilterPlugin.ini
     - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
-    #- Copy-Item "$PROJECT_PATH/Config/FilterPlugin.ini" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_0/Config"
+    - Copy-Item "$PROJECT_PATH/Config/FilterPlugin.ini" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_0/Config"
     # Clean the binaries folder
     # pdbs
-    #- Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/*.pdb"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/*.pdb"
     # modules
-    #- Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor.modules"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor.modules"
     # dlls
-    #- Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor-BodyState.dll"
-    #- Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor-UltraleapTracking.dll"
-    #- Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor-UltraleapTrackingEditor.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor-BodyState.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor-UltraleapTracking.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Binaries/Win64/UnrealEditor-UltraleapTrackingEditor.dll"
     # intermediate folder
-    #- Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Intermediate" -Recurse
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_0/Intermediate" -Recurse
 
     # zip it
-    #- Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5_0" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5_0.zip"
+    - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5_0" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5_0.zip"
 
 
   artifacts:
@@ -254,7 +254,7 @@ build:build-project:
     - "./$PROJECT_NAME.log"
     - "./build/MarketPlace_4_27/"
     - "./build/MarketPlace_UE5_1/"
-    #- "./build/MarketPlace_UE5_0/"
+    - "./build/MarketPlace_UE5_0/"
     
     when: always
     expire_in: 2 weeks
