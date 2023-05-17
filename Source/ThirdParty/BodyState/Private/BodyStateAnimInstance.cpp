@@ -215,7 +215,7 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	}
 
 	// Get bones and parent indices
-#if ENGINE_MAJOR_VERSION >= 5 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
 	USkinnedAsset* SkeletalMesh = Component->GetSkinnedAsset();
 #else
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
@@ -790,7 +790,7 @@ bool UBodyStateAnimInstance::GetNamesAndTransforms(
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
 	// Get bones and parent indices
-#if ENGINE_MAJOR_VERSION >= 5
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
 	USkinnedAsset* SkeletalMesh = Component->GetSkinnedAsset();
 #else
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
