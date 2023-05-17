@@ -878,7 +878,7 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 void FLeapWrapper::TickDevices(const float DeltaTime) 
 {
 	// safe point to cleanup force deleted devices
-	for (auto DeviceToRemove : DevicesToCleanup)
+	for (IHandTrackingWrapper* DeviceToRemove : DevicesToCleanup)
 	{
 		RemoveDevice(DeviceToRemove->GetDeviceID());
 	}
@@ -891,7 +891,7 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 	//UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d"), Devices.Num());
 	
 	AllDevices.Append(CombinedDevices);
-	for (auto Device : AllDevices)
+	for (IHandTrackingWrapper* Device : AllDevices)
 	{
 		auto InternalDevice = Device->GetDevice();
 		if (InternalDevice)
