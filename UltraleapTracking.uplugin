@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 14,
-	"VersionName": "4.8.0",
+	"VersionName": "4.9.0",
 	"FriendlyName": "Ultraleap Tracking Plugin",
 	"Description": "Support for  Ultraleap hand tracking devices.",
 	"Category": "Input Devices",
@@ -34,7 +34,7 @@
 				"Win64",
 				"Android",
 				"Linux",
-        "Mac"
+				"Mac"
 			]
 		},
 		{
@@ -45,7 +45,7 @@
 				"Win64",
 				"Android",
 				"Linux",
-        "Mac"
+				"Mac"
 			]
 		}
 	]
