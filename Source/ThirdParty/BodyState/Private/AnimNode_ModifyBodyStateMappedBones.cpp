@@ -25,6 +25,12 @@
 #include "Runtime/Engine/Public/Animation/AnimInstanceProxy.h"
 #include "Skeleton/BodyStateArm.h"
 
+
+#include "Runtime/Launch/Resources/Version.h"
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
+	#include "Engine.h"
+#endif
+
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones() : FAnimNode_SkeletalControlBase()
 {
 	WorldIsGame = false;
