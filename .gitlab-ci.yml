@@ -95,7 +95,7 @@ build:build-project:
     - echo "==============================================="
     
     # Piped to a log file, remove at the end of this line if you want to see the output during build
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Linux -Rocket > ./$PROJECT_NAME.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Linux -Rocket" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -105,7 +105,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_1"
     - echo "$UE5_PACKAGE_PATH"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  >> ./$PROJECT_NAME.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -115,7 +115,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH_2 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_2"
     - echo "$UE5_PACKAGE_PATH_2"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_2" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_2 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  >> ./$PROJECT_NAME.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_2" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_2 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
