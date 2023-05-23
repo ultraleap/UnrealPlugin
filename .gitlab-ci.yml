@@ -18,7 +18,7 @@ variables:
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
   UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
-  UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_2: "$ENGINE_UAT_PATH_UE5_2/Engine/Build/Build.version"
+  UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_2: "$ENGINE_PATH_UE5_2/Engine/Build/Build.version"
   
   VERSIONTRUNC: "Unknown"
 stages:
@@ -63,11 +63,6 @@ build:build-project:
   allow_failure: false
 
   script:   
-
-
-    - echo "$UNREAL_ENGINE_BUILD_VERSION_FILE"
-    - echo "$UNREAL_ENGINE_BUILD_VERSION_FILE_UE5
-    - echo "$UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_2"
 
 
     # Get Unreal version and changeset from the project. from json
