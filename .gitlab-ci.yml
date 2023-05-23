@@ -63,6 +63,13 @@ build:build-project:
   allow_failure: false
 
   script:   
+
+
+    - echo "$UNREAL_ENGINE_BUILD_VERSION_FILE"
+    - echo "$UNREAL_ENGINE_BUILD_VERSION_FILE_UE5
+    - echo "$UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_2"
+
+
     # Get Unreal version and changeset from the project. from json
     - $UNREAL_VERSION_CONTENT = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
     - $UNREAL_VERSION = $UNREAL_VERSION_CONTENT.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT.PatchVersion.ToString()
@@ -95,7 +102,7 @@ build:build-project:
     - echo "==============================================="
     
     # Piped to a log file, remove at the end of this line if you want to see the output during build
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Linux -Rocket" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$PROJECT_PATH/$PROJECT_NAME -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Linux -Rocket > ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -105,7 +112,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_1"
     - echo "$UE5_PACKAGE_PATH"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  >> ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
@@ -115,7 +122,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH_2 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_2"
     - echo "$UE5_PACKAGE_PATH_2"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_2" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_2 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_2" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_2 -CreateSubFolder -VS2019 -TargetPlatforms=Win64 -Rocket  >> ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
