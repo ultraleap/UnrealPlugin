@@ -13,6 +13,8 @@
 #include "Net/UnrealNetwork.h"
 #include "LeapMultiplayerProjectile.h"
 #include "TimerManager.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 //#include "IDamageInterface.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,32 +72,50 @@ ALeapMultiplayerCharacter::ALeapMultiplayerCharacter()
 
 void ALeapMultiplayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	// Set up gameplay key bindings
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	//// Set up gameplay key bindings
+	//check(PlayerInputComponent);
+	//PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	//PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ALeapMultiplayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ALeapMultiplayerCharacter::MoveRight);
+	//PlayerInputComponent->BindAxis("MoveForward", this, &ALeapMultiplayerCharacter::MoveForward);
+	//PlayerInputComponent->BindAxis("MoveRight", this, &ALeapMultiplayerCharacter::MoveRight);
 
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &ALeapMultiplayerCharacter::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &ALeapMultiplayerCharacter::LookUpAtRate);
+	//// We have 2 versions of the rotation bindings to handle different kinds of devices differently
+	//// "turn" handles devices that provide an absolute delta, such as a mouse.
+	//// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
+	//PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	//PlayerInputComponent->BindAxis("TurnRate", this, &ALeapMultiplayerCharacter::TurnAtRate);
+	//PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	//PlayerInputComponent->BindAxis("LookUpRate", this, &ALeapMultiplayerCharacter::LookUpAtRate);
 
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &ALeapMultiplayerCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &ALeapMultiplayerCharacter::TouchStopped);
+	//// handle touch devices
+	//PlayerInputComponent->BindTouch(IE_Pressed, this, &ALeapMultiplayerCharacter::TouchStarted);
+	//PlayerInputComponent->BindTouch(IE_Released, this, &ALeapMultiplayerCharacter::TouchStopped);
 
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ALeapMultiplayerCharacter::OnResetVR);
+	//// VR headset functionality
+	//PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ALeapMultiplayerCharacter::OnResetVR);
 
-	// Handle firing projectiles
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ALeapMultiplayerCharacter::StartFire);
-	// PlayerInputComponent->BindAction("Fire", IE_Released, this, &ALeapMultiplayerCharacter::StopFire);
+	//// Handle firing projectiles
+	//PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ALeapMultiplayerCharacter::StartFire);
+	//// PlayerInputComponent->BindAction("Fire", IE_Released, this, &ALeapMultiplayerCharacter::StopFire);
+
+
+		// Set up action bindings
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ALeapMultiplayerCharacter::StartFire);
+
+
+		// Jumping
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		// Moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ALeapMultiplayerCharacter::Move);
+
+		// Looking
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ALeapMultiplayerCharacter::Look);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -239,5 +259,57 @@ void ALeapMultiplayerCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void ALeapMultiplayerCharacter::Move(const FInputActionValue& Value)
+{
+	// input is a Vector2D
+	FVector2D MovementVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		// get right vector
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// add movement
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+}
+
+void ALeapMultiplayerCharacter::Look(const FInputActionValue& Value)
+{
+	// input is a Vector2D
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// add yaw and pitch input to controller
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ALeapMultiplayerCharacter::BeginPlay()
+{
+	// Call the base class
+	Super::BeginPlay();
+
+	// Add Input Mapping Context
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+				ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
 	}
 }
