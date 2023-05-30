@@ -36,7 +36,11 @@ public:
 	template <typename T>
 	static FString EnumToString(const FString& enumName, const T value)
 	{
+#if ENGINE_MAJOR_VERSION >= 5
+		UEnum* pEnum = FindObject<UEnum>(nullptr, *enumName);
+#else
 		UEnum* pEnum = FindObject<UEnum>(ANY_PACKAGE, *enumName);
+#endif
 		return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
 	}
 };

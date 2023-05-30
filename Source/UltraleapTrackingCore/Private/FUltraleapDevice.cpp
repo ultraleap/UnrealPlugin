@@ -309,7 +309,7 @@ ELeapDeviceType ToBlueprintDeviceType(eLeapDevicePID LeapType)
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_3DI;
 			break;
 		case eLeapDevicePID_LMC2:
-			return ELeapDeviceType::LEAP_DEVICE_TYPE_LMC2;
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_LEAP_MOTION_CONTROLLER_2;
 			break;
 		default:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;

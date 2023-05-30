@@ -82,7 +82,14 @@ namespace UnrealBuildTool.Rules
 			}
 		}
 
-		public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
+        private void Setlib(string platformStr, string libStr)
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, platformStr, libStr));
+            PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, platformStr, libStr));
+            RuntimeDependencies.Add(Path.Combine(BinariesPath, platformStr, libStr));
+        }
+
+        public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 			//OptimizeCode = CodeOptimization.Never;
@@ -191,12 +198,10 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				IsLibrarySupported = false;	//Not supported since Leap SDK 3.0
-
-				string PlatformString = "Mac";
-				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeap.dylib"));
-
-			}
+				IsLibrarySupported = true;	
+                Setlib("Mac", "libLeapC.5.dylib");
+                Setlib("Mac", "libLeapC.5_intel.dylib");
+            }
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
 				IsLibrarySupported = true;

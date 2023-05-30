@@ -24,6 +24,14 @@
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "Skeleton/BodyStateSkeleton.h"
 #include "BodyStateInputInterface.h"
+
+#include "Runtime/Launch/Resources/Version.h"
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
+	#include "Animation/NodeMappingProviderInterface.h"
+	#include "BoneContainer.h"
+#endif
+
 #include "BodyStateAnimInstance.generated.h"
 
 
