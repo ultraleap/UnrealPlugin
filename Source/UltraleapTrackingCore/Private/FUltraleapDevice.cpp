@@ -314,6 +314,9 @@ ELeapDeviceType ToBlueprintDeviceType(eLeapDevicePID LeapType)
 		case eLeapDevicePID_3Di:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_3DI;
 			break;
+		case eLeapDevicePID_LMC2:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_LEAP_MOTION_CONTROLLER_2;
+			break;
 		default:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;
 	}
@@ -522,6 +525,10 @@ void FUltraleapDevice::ParseEvents()
 	}
 	if (LastLeapTime == 0)
 		LastLeapTime = Leap->GetNow();
+	
+	// apply any tracking system specific changes to the hand
+	// e.g. Pinch and Grasp simulation for OpenXR
+	Leap->PostLeapHandUpdate(CurrentFrame);
 
 	CheckHandVisibility();
 	CheckGrabGesture();
@@ -695,7 +702,7 @@ void FUltraleapDevice::CheckPinchGesture()
 			const FLeapHandData& FinalHandData = Hand;
 			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
 			{
-				if (!(IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
+				if ((!IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
 					(IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold)))
 				{
 					TimeSinceLastLeftPinch = 0;

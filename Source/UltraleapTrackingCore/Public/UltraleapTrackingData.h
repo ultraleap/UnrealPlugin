@@ -101,6 +101,9 @@ enum ELeapDeviceType
 	/** The Ultraleap 3Di hand tracking camera. @since 5.3.0 */
 	LEAP_DEVICE_TYPE_3DI,
 
+	/** The Ultraleap leap motion controller 2 hand tracking module. @since 5.11 */
+	LEAP_DEVICE_TYPE_LEAP_MOTION_CONTROLLER_2,
+
 	/** An invalid device type. Not currently in use. @since 3.1.3 */
 	LEAP_DEVICE_INVALID = 0xFFFFFFFF
 };

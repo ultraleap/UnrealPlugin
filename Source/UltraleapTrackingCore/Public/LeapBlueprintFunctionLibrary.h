@@ -60,5 +60,10 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	// Debug functions, remove completely when no longer needed
 	static void ShutdownLeap();
 
+	/** Used for binding the tracking service */
+	static void BindTrackingServiceAndroid();
+	/** Used for unbinding the tracking service */
+	static void UnbindTrackingServiceAndroid();
+
 	static FRotator DebugRotator;
 };

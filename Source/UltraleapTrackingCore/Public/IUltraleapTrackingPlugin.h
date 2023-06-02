@@ -127,6 +127,8 @@ public:
 	virtual bool ContainsDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 	virtual LEAP_VERSION* GetLeapVersion() = 0;
+	// apply any post frame processing
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) = 0;
 };
 class ILeapConnectorCallbacks
 {

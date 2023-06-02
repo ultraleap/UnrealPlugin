@@ -82,12 +82,20 @@ namespace UnrealBuildTool.Rules
 			}
 		}
 
-		public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
+        private void Setlib(string platformStr, string libStr)
+        {
+            PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, platformStr, libStr));
+            PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, platformStr, libStr));
+            RuntimeDependencies.Add(Path.Combine(BinariesPath, platformStr, libStr));
+        }
+
+        public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 			//OptimizeCode = CodeOptimization.Never;
 			PublicIncludePaths.AddRange(
 				new string[] {
+                   
 					// ... add public include paths required here ...
 				}
 				);
@@ -102,7 +110,8 @@ namespace UnrealBuildTool.Rules
 			PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
-					"Engine",
+                    "ApplicationCore",
+                    "Engine",
 					"Core",
 					"CoreUObject",
 					"InputCore",
@@ -116,16 +125,16 @@ namespace UnrealBuildTool.Rules
 					"LiveLinkInterface",
 					"LiveLinkMessageBusFramework",
 					"BodyState",
-					"PhysicsCore"
+					"PhysicsCore",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
 
-			PrivateDependencyModuleNames.AddRange(
+            PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
 					// ... add private dependencies that you statically link with here ...
-				}
+                }
 				);
 
 			DynamicallyLoadedModuleNames.AddRange(
@@ -135,7 +144,9 @@ namespace UnrealBuildTool.Rules
 				}
 				);
 
-			LoadLeapLib(Target);
+            PublicIncludePathModuleNames.Add("Launch");
+
+            LoadLeapLib(Target);
 		}
 
 		public string GetUProjectPath()
@@ -187,12 +198,10 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				IsLibrarySupported = false;	//Not supported since Leap SDK 3.0
-
-				string PlatformString = "Mac";
-				PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, PlatformString, "libLeap.dylib"));
-
-			}
+				IsLibrarySupported = true;	
+                Setlib("Mac", "libLeapC.5.dylib");
+                Setlib("Mac", "libLeapC.5_intel.dylib");
+            }
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
 				IsLibrarySupported = true;
@@ -202,7 +211,9 @@ namespace UnrealBuildTool.Rules
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "arm64-v8a", "libLeapC.so"));
 
 				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "UltraleapTracking_APL.xml"));
-			}
+
+                PrivateDependencyModuleNames.AddRange(new string[] { "Launch" });
+            }
 			else if (Target.Platform == UnrealTargetPlatform.Linux)
 			{
 				IsLibrarySupported = true;
