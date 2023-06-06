@@ -3,7 +3,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: none
   ErrorActionPreference: stop
 
-  PROJECT_NAME: "UltraleapTracking"
+  PROJECT_NAME: "UltraleapTrackingPlugin"
   PROJECT_PATH: "$CI_PROJECT_DIR/Plugins/UltraleapTrackingPlugin"   
   
   ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
@@ -156,7 +156,7 @@ build:build-project:
     - echo "$BUILD_PATH"
     - echo "$BUILD_LOCATION"
 
-    - echo "$BUILD_PATH_UE5"
+    #- echo "$BUILD_PATH_UE5"
     #- echo "$BUILD_LOCATION_UE5"
     
     - echo "$BUILD_PATH_UE5_2"
