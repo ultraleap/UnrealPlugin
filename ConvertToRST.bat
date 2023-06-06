@@ -1,1 +1,0 @@
-pandoc -s -f commonmark -t rst Documentation\documentation.md > Documentation.rst
