@@ -98,7 +98,7 @@ build:build-project:
     - echo "==============================================="
     
     
-    - $UE4_PACKAGE_PATH = $PACK_PATH/$PROJECT_NAME + "_ue4_27"
+    - $UE4_PACKAGE_PATH = "$PACK_PATH/$PROJECT_NAME" + "_ue4_27"
     - echo "$UE4_PACKAGE_PATH"
     
     # Piped to a log file, remove at the end of this line if you want to see the output during build
