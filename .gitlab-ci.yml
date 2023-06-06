@@ -5,6 +5,7 @@ variables:
 
   PROJECT_NAME: "UltraleapTracking"
   PROJECT_PATH: "$CI_PROJECT_DIR/Plugins/UltraleapTrackingPlugin"   
+  PACK_PATH: "$CI_PROJECT_DIR"   
   
   ENGINE_PATH: "C:/Program Files/Epic Games/UE_4.27"
   ENGINE_UAT_PATH: "$ENGINE_PATH/Engine/Build/BatchFiles/RunUAT.bat"
@@ -97,7 +98,7 @@ build:build-project:
     - echo "==============================================="
     
     
-    - $UE4_PACKAGE_PATH = "$PROJECT_NAME" + "_ue4_27"
+    - $UE4_PACKAGE_PATH = "$PACK_PATH" + "$PROJECT_NAME" + "_ue4_27"
     - echo "$UE4_PACKAGE_PATH"
     
     # Piped to a log file, remove at the end of this line if you want to see the output during build
@@ -117,7 +118,7 @@ build:build-project:
     
     #- echo "Unreal 5.1 build complete."
     
-    - $UE5_PACKAGE_PATH_2 = "$PROJECT_NAME" + "_ue5_2"
+    - $UE5_PACKAGE_PATH_2 = "$PACK_PATH" + "$PROJECT_NAME" + "_ue5_2"
     - echo "$UE5_PACKAGE_PATH_2"
 
     - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_2" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_2 -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Mac -Rocket  >> ./$PROJECT_NAME.log" 
