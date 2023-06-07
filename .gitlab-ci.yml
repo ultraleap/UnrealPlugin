@@ -41,7 +41,7 @@ documentation::generate-tracking-documentation:
     - doxygen
 
   after_script:
-    - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
+    - $DOXY_LOCATION = "$PACK_PATH/DoxyOutput"
     - echo "$DOXY_LOCATION"
     
     - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR"
