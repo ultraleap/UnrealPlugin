@@ -173,7 +173,7 @@ build:build-project:
 
      # pdbs
     - Remove-Item "$BUILD_PATH/Binaries/Win64/*.pdb" 
-    - Remove-Item "$BUILD_PATH_UE5/Binaries/Win64/*.pdb"
+    #- Remove-Item "$BUILD_PATH_UE5/Binaries/Win64/*.pdb"
     - Remove-Item "$BUILD_PATH_UE5_2/Binaries/Win64/*.pdb"
    
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
@@ -183,12 +183,12 @@ build:build-project:
     - $BUILD_MARKET_PLACE_PATH_UE5_2 = "./build/MarketPlace_UE5_2/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH"
-    - echo "$BUILD_MARKET_PLACE_PATH_UE5"
+    #- echo "$BUILD_MARKET_PLACE_PATH_UE5"
     - echo "$BUILD_MARKET_PLACE_PATH_UE5_2"
 
 
     - mkdir "$BUILD_MARKET_PLACE_PATH"
-    - mkdir "$BUILD_MARKET_PLACE_PATH_UE5"
+    #- mkdir "$BUILD_MARKET_PLACE_PATH_UE5"
     - mkdir "$BUILD_MARKET_PLACE_PATH_UE5_2"
 
     # UE4 contents
