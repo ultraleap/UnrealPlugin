@@ -87,6 +87,7 @@ build:build-project:
     - echo "$PROJECT_PATH"
     - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - echo "$ENGINE_UAT_PATH"
+    - echo "$PACK_PATH"
     #- echo "$ENGINE_UAT_PATH_UE5"
     - echo "$ENGINE_UAT_PATH_UE5_2"
     - echo "Working dir"
