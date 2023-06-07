@@ -272,7 +272,7 @@ build:build-project:
 
 
 package:win64:
-  stage: build
+  stage: package
   tags:
     - unreal
     - windows
