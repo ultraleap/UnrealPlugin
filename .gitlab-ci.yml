@@ -298,7 +298,7 @@ package:win64:
 
 
   artifacts:
-    name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
+    name: "UE 4.27 Game"
     paths:
 
     - "./UE4_27_GAME_PATH/"
