@@ -270,8 +270,8 @@ build:build-project:
     when: always
     expire_in: 2 weeks
 
-
 package:win64:
+
   stage: package
   tags:
     - unreal
@@ -294,8 +294,6 @@ package:win64:
   after_script:
 
    - Compress-Archive -Path "$UE4_27_GAME_PATH" -DestinationPath "$UE4_27_GAME_PATH.zip"
-
-
 
   artifacts:
     name: "UE 4.27 Game"
