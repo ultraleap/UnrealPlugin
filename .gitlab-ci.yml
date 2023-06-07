@@ -133,7 +133,7 @@ build:build-project:
      # Get the project/app version from the uplugin file
      # this holds the plugin version
     - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
-    - $BUILD_LOCATION = "$PACK_PATH/$PROJECT_NAME"
+    - $BUILD_LOCATION = "$PACK_PATH/$PROJECT_NAME" + "_ue4_27"
     #- $BUILD_LOCATION_UE5 =  "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_1"
     - $BUILD_LOCATION_UE5_2 = "$PACK_PATH/$PROJECT_NAME" + "_ue5_2"
 
