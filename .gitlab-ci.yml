@@ -283,6 +283,7 @@ package:win64:
 
   script:   
 
+    - echo "$UE4_27_PROJECT"
     - mkdir "$UE4_27_GAME_PATH"  
     - echo "$UE4_27_GAME_PATH"
 
