@@ -287,7 +287,7 @@ package:win64:
     - mkdir "$UE4_27_GAME_PATH"  
     - echo "$UE4_27_GAME_PATH"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "ENGINE_UAT_PATH" -ArgumentList "BuildCookRun -project=$UE4_27_PROJECT -noP4 -targetplatform=Win64 -clientconfig=Development -serverconfig=Development -cook -map=InteractionObjects.umap -build -stage -pak -archive -archivedirectory=$UE4_27_GAME_PATH  > ./package_game_ue_4_27.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH" -ArgumentList "BuildCookRun -project=$UE4_27_PROJECT -noP4 -targetplatform=Win64 -clientconfig=Development -serverconfig=Development -cook -map=InteractionObjects.umap -build -stage -pak -archive -archivedirectory=$UE4_27_GAME_PATH  > ./package_game_ue_4_27.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
      
