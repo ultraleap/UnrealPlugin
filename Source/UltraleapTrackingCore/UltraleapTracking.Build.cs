@@ -198,9 +198,10 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				IsLibrarySupported = true;	
-                Setlib("Mac", "libLeapC.5.dylib");
-                Setlib("Mac", "libLeapC.5_intel.dylib");
+				//TODO uncomment once we support mac 10.15 client, UE marketplace using xcode 10.15 for UE 5.1
+				//IsLibrarySupported = true;	
+                //Setlib("Mac", "libLeapC.5.dylib");
+                //Setlib("Mac", "libLeapC.5_intel.dylib");
             }
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
