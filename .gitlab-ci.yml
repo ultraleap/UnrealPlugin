@@ -308,7 +308,7 @@ deploy:upload-to-aws-s3:
      # This is so we can write "one BASH command" over multiple lines.
      - |
         
-        export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | '0-9a-zA-Z' | head -c12).zip";
+        export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | head -c12).zip";
         zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
         # Upload to AWS S3
         aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
