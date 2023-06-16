@@ -311,8 +311,8 @@ deploy:upload-to-aws-s3:
   script:
 
     - $ZIP_5_2 = "./build/MarketPlace_UE5_2/$PROJECT_NAME" + ".zip"
-    - touch "${AWS_UPLOAD_TXT}"
-    - echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
+    #- touch "${AWS_UPLOAD_TXT}"
+    #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
     # The pipe (|) is to denote a YAML scalar.
     # This is so we can write "one BASH command" over multiple lines.
 
