@@ -300,17 +300,20 @@ deploy:upload-to-aws-s3:
      #- $versions="4_27 5_2"
      #- touch "${AWS_UPLOAD_TXT}"
      #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
+     - $ZIP_OUTPUT_NAME="./build/MarketPlace_UE5_2/$PROJECT_NAME" + ".zip"
      - $VERSION = "4_27"
+     - aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
+
      # The pipe (|) is to denote a YAML scalar.
      # This is so we can write "one BASH command" over multiple lines.
-     - |
+     #- |
         
-        export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
-        zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
-        # Upload to AWS S3
-        aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
-        # Add new environment to GitLab with the Uploaded File's URL
-        curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
+     #   export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
+     #   zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
+     #   # Upload to AWS S3
+     #   aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
+     #   # Add new environment to GitLab with the Uploaded File's URL
+     #   curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
         #echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
 
         #if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
