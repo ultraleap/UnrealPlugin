@@ -304,6 +304,8 @@ deploy:upload-to-aws-s3:
      - $VERSION = "4_27"
 
      - ls -l "$CI_BUILDS_DIR" 
+
+     - ls -l "$CI_PROJECT_DIR" 
      #- aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
 
      # The pipe (|) is to denote a YAML scalar.
