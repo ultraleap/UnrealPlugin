@@ -298,7 +298,7 @@ deploy:upload-to-aws-s3:
   
    script:
      #- $versions="4_27 5_2"
-     - touch "${AWS_UPLOAD_TXT}"
+     #- touch "${AWS_UPLOAD_TXT}"
      - echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
      - $VERSION = "4_27"
      # The pipe (|) is to denote a YAML scalar.
@@ -311,7 +311,7 @@ deploy:upload-to-aws-s3:
         aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
         # Add new environment to GitLab with the Uploaded File's URL
         curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
-        echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
+        #echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
 
         #if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
         #  # ZIP up the file
