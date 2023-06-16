@@ -275,6 +275,12 @@ build:build-project:
 # Please raise an IT Support ticket for support; if required.
 deploy:upload-to-aws-s3:
 
+  tags:
+    - unreal
+    - windows
+
+  retry: 2
+  timeout: 1h
 
   stage: deploy
   # Run manually; can be changed if desired
