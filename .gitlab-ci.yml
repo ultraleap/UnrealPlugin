@@ -302,8 +302,8 @@ deploy:upload-to-aws-s3:
      # The pipe (|) is to denote a YAML scalar.
      # This is so we can write "one BASH command" over multiple lines.
      - |
-        for VERSION in ( '4_27' '5_1' '5_2' )
-        do(
+        for VERSION in ( ['4_27', '5_1', '5_2'] )
+        do
           export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
           if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
             # ZIP up the file
@@ -315,4 +315,4 @@ deploy:upload-to-aws-s3:
             echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
           else;
             echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "$...
-           )
+           
