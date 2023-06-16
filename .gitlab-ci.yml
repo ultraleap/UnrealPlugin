@@ -289,7 +289,7 @@ deploy:upload-to-aws-s3:
     # Basename for output ZIP used for upload
     ZIP_NAME: UltraleapTracking
     # CI_BUILDS_DIR provides basepath from CI/CD variables
-    BUILD_DIR: ${CI_BUILDS_DIR}/build/
+    BUILD_DIR: ${CI_PROJECT_DIR}/build/
     # Basename used for output directories
     BUILD_DIR_NAME: MarketPlace
     # AWS Bucket details
@@ -301,10 +301,11 @@ deploy:upload-to-aws-s3:
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
     - echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
+    - $VERSION = "4_27"
     # The pipe (|) is to denote a YAML scalar.
     # This is so we can write "one BASH command" over multiple lines.
     - |
-      for VERSION in ( '4_27' '5_1' '5_2' ); do
+      #for VERSION in ( '4_27' '5_1' '5_2' ); do
         export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
         if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
           # ZIP up the file
@@ -317,7 +318,7 @@ deploy:upload-to-aws-s3:
         else;
           echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "${AWS_UPLOAD_TXT}";
         fi;
-      done
+      #done
   after_script:
     - echo "===== Finish S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
   
