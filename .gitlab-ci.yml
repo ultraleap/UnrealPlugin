@@ -299,7 +299,7 @@ deploy:upload-to-aws-s3:
    script:
      #- $versions="4_27 5_2"
      #- touch "${AWS_UPLOAD_TXT}"
-     - echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
+     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
      - $VERSION = "4_27"
      # The pipe (|) is to denote a YAML scalar.
      # This is so we can write "one BASH command" over multiple lines.
