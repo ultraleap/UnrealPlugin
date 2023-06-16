@@ -303,7 +303,7 @@ deploy:upload-to-aws-s3:
      #- $ZIP_OUTPUT_NAME="$BUILD_DIR/MarketPlace_UE5_2/$PROJECT_NAME" + ".zip"
      - $VERSION = "4_27"
 
-     - ls -l '$BUILD_DIR' 
+     - ls -l "$CI_BUILDS_DIR" 
      #- aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
 
      # The pipe (|) is to denote a YAML scalar.
