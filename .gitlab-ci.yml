@@ -306,16 +306,23 @@ deploy:upload-to-aws-s3:
      - |
         
         export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
-        if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
-          # ZIP up the file
-          zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
-          # Upload to AWS S3
-          aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
-          # Add new environment to GitLab with the Uploaded File's URL
-          curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
-          echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
-        else;
-          echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "$...
+        zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
+        # Upload to AWS S3
+        aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
+        # Add new environment to GitLab with the Uploaded File's URL
+        curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
+        echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
+
+        #if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
+        #  # ZIP up the file
+        #  zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
+        #  # Upload to AWS S3
+        #  aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
+        #  # Add new environment to GitLab with the Uploaded File's URL
+        #  curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
+        #  echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
+        #else;
+        #  echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "$...
         
           
            
