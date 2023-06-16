@@ -274,64 +274,61 @@ build:build-project:
 # AWS account access managed by the IT team.
 # Please raise an IT Support ticket for support; if required.
 deploy:upload-to-aws-s3:
-   image:
-       # Uses official Amazon AWS CLI image from Docker Hub
-      name: amazon/aws-cli
-       # Change entrypoint to 'nothing' to allow us to use shell commands
-      entrypoint: [""]
-   # Run after the build stage
-   stage: deploy
-    # Run manually; can be changed if desired
-   when: manual
+  image:
+    # Uses official Amazon AWS CLI image from Docker Hub
+    name: amazon/aws-cli
+    # Change entrypoint to 'nothing' to allow us to use shell commands
+    entrypoint: [""]
 
-   variables:
-        # Basename for output ZIP used for upload
-       ZIP_NAME: UltraleapTracking
-        # CI_BUILDS_DIR provides basepath from CI/CD variables
-       BUILD_DIR: ${CI_PROJECT_DIR}/build/
-        # Basename used for output directories
-       BUILD_DIR_NAME: MarketPlace
-        # AWS Bucket details
-       AWS_BUCKET_NAME: ultraleap-public-files
-       AWS_BUCKET_REGION: eu-west-2
-       AWS_UPLOAD_TXT: "${CI_PROJECT_DIR}/s3-download-urls.txt"
+  # Run after the build stage
+  stage: deploy
+  # Run manually; can be changed if desired
+  when: manual
+
+  variables:
+    # Basename for output ZIP used for upload
+    ZIP_NAME: UltraleapTracking
+    # CI_BUILDS_DIR provides basepath from CI/CD variables
+    BUILD_DIR: ${CI_BUILDS_DIR}/build/
+    # Basename used for output directories
+    BUILD_DIR_NAME: MarketPlace
+    # AWS Bucket details
+    AWS_BUCKET_NAME: ultraleap-public-files
+    AWS_BUCKET_REGION: eu-west-2
+    AWS_UPLOAD_TXT: "${CI_PROJECT_DIR}/s3-download-urls.txt"
   
-   script:
-     #- $versions="4_27 5_2"
-     #- touch "${AWS_UPLOAD_TXT}"
-     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
-     - $ZIP_OUTPUT_NAME="$BUILD_DIR/MarketPlace_UE5_2/$PROJECT_NAME" + ".zip"
-     - $VERSION = "4_27"
-
-     - ls -l "$CI_BUILDS_DIR" 
-
-     - ls -l "$CI_PROJECT_DIR" 
-     - aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
-
-     # The pipe (|) is to denote a YAML scalar.
-     # This is so we can write "one BASH command" over multiple lines.
-     #- |
-        
-     
-        #zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
-
-        #Compress-Archive -Path "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" -DestinationPath "${ZIP_OUTPUT_NAME}"
-        # Upload to AWS S3
-        #aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
-        # Add new environment to GitLab with the Uploaded File's URL
-        #curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
-        #echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
-
-        #if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
-        #  # ZIP up the file
-        #  zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
-        #  # Upload to AWS S3
-        #  aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
-        #  # Add new environment to GitLab with the Uploaded File's URL
-        #  curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
-        #  echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
-        #else;
-        #  echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "$...
-        
-          
-           
+  script:
+    - yum install -y zip
+    - touch "${AWS_UPLOAD_TXT}"
+    - echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
+    # The pipe (|) is to denote a YAML scalar.
+    # This is so we can write "one BASH command" over multiple lines.
+    - |
+      for VERSION in ( '4_27' '5_1' '5_2' ); do
+        export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
+        if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
+          # ZIP up the file
+          zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
+          # Upload to AWS S3
+          aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
+          echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
+          # Add new environment to GitLab with the Uploaded File's URL
+          curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
+        else;
+          echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "${AWS_UPLOAD_TXT}";
+        fi;
+      done
+  after_script:
+    - echo "===== Finish S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
+  
+  artifacts:
+    paths: [ "s3-download-urls.txt" ]
+    expire_in: 1 month
+    expose_as: File Download URL List
+    name: s3-download-urls
+    when: always
+  
+  # Setup job dependencies
+  needs:
+    - job: build:build-project
+      artifacts: true
