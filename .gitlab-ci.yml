@@ -300,7 +300,7 @@ deploy:upload-to-aws-s3:
      #- $versions="4_27 5_2"
      #- touch "${AWS_UPLOAD_TXT}"
      #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
-     - $ZIP_OUTPUT_NAME="./build/MarketPlace_UE5_2/$PROJECT_NAME" + ".zip"
+     - $ZIP_OUTPUT_NAME="$CI_PROJECT_DIR/build/MarketPlace_UE5_2/$PROJECT_NAME" + ".zip"
      - $VERSION = "4_27"
      - aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read;
 
