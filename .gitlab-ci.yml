@@ -297,12 +297,13 @@ deploy:upload-to-aws-s3:
        AWS_UPLOAD_TXT: "${CI_PROJECT_DIR}/s3-download-urls.txt"
   
    script:
+     - $versions="4_27 5_2"
      - touch "${AWS_UPLOAD_TXT}"
      - echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
      # The pipe (|) is to denote a YAML scalar.
      # This is so we can write "one BASH command" over multiple lines.
      - |
-        for VERSION in ( ['4_27', '5_1', '5_2'] )
+        for VERSION in ${versions}
         do
           export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
           if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
@@ -315,4 +316,6 @@ deploy:upload-to-aws-s3:
             echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
           else;
             echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "$...
+        done
+          
            
