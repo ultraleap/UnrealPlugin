@@ -268,8 +268,6 @@ build:build-project:
 
 
 
-
-
 # Upload build artifacts to an S3 bucket for public access.
 # Created by Luke Driffield in the IT team.
 # AWS account access managed by the IT team.
