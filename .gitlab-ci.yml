@@ -274,6 +274,10 @@ build:build-project:
 # AWS account access managed by the IT team.
 # Please raise an IT Support ticket for support; if required.
 deploy:upload-to-aws-s3:
+  
+  tags:
+    - docker
+
   image:
     # Uses official Amazon AWS CLI image from Docker Hub
     name: amazon/aws-cli
@@ -307,7 +311,7 @@ deploy:upload-to-aws-s3:
     - |
       #for VERSION in ( '4_27' '5_1' '5_2' ); do
         export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
-        if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
+        #if [ -d "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/" ]; then
           # ZIP up the file
           zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/";
           # Upload to AWS S3
@@ -315,9 +319,9 @@ deploy:upload-to-aws-s3:
           echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}";
           # Add new environment to GitLab with the Uploaded File's URL
           curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
-        else;
+        #else;
           echo "${ZIP_OUTPUT_NAME} => Nothing to upload" >> "${AWS_UPLOAD_TXT}";
-        fi;
+        #fi;
       #done
   after_script:
     - echo "===== Finish S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
