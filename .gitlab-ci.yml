@@ -306,6 +306,8 @@ deploy:upload-to-aws-s3:
     - ls -l "$BUILD_DIR"
 
     - yum install -y zip
+    - yum install -y export
+
     - touch "${AWS_UPLOAD_TXT}"
     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
     - $VERSION = "4_27"
