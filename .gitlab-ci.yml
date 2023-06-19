@@ -308,7 +308,8 @@ deploy:upload-to-aws-s3:
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
-    - $VERSION = "4_27"
+    #- $VERSION = "4_27"
+    - export VERSION = "4_27"
     #- echo "${BUILD_DIR}/${BUILD_DIR_NAME}_*${VERSION}/"
     # The pipe (|) is to denote a YAML scalar.
     # This is so we can write "one BASH command" over multiple lines.
