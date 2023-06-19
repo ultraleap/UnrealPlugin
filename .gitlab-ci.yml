@@ -302,6 +302,10 @@ deploy:upload-to-aws-s3:
     AWS_UPLOAD_TXT: "${CI_PROJECT_DIR}/s3-download-urls.txt"
   
   script:
+
+    - ls -l "$CI_PROJECT_DIR"
+    - ls -l "$BUILD_DIR"
+
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
