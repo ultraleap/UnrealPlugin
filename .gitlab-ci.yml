@@ -307,6 +307,10 @@ deploy:upload-to-aws-s3:
 
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
+    
+    - touch foo.txt
+    - aws s3 cp foo.txt s3://$AWS_BUCKET_NAME/foo.txt
+    
     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
     #- $VERSION = "4_27"
     - export VERSION="4_27"
@@ -324,10 +328,10 @@ deploy:upload-to-aws-s3:
 
     - |
 
-     export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$('%A_%d_%b_%T_%Z_%Y')" 
-     zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_${VERSION}/"
-     aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
-     echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
+     #ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION/_/.}_$('%A_%d_%b_%T_%Z_%Y')" 
+     #zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_${VERSION}/"
+     #aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
+     #echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
     #  curl --data "name=${ZIP_OUTPUT_NAME}&external_url=https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" --header "JOB-TOKEN: ${CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/environments";
 
       #for VERSION in ( '4_27' '5_1' '5_2' ); do
