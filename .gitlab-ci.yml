@@ -255,9 +255,9 @@ build:build-project:
 
 
     #Prepare github zips with bins file 
-    - Compress-Archive -Path "$BUILD_PATH" -DestinationPath "${BUILD_PATH}/${BUILD_PATH}.zip"   
-    - Compress-Archive -Path "$BUILD_PATH_UE5" -DestinationPath "${BUILD_PATH_UE5}/${BUILD_PATH_UE5}.zip"  
-    - Compress-Archive -Path "$BUILD_PATH_UE5_2" -DestinationPath "${BUILD_PATH_UE5_2}/${BUILD_PATH_UE5_2}.zip"  
+    - Compress-Archive -Path "$BUILD_PATH" -DestinationPath "$BUILD_PATH.zip"   
+    - Compress-Archive -Path "$BUILD_PATH_UE5" -DestinationPath "$BUILD_PATH_UE5.zip"  
+    - Compress-Archive -Path "$BUILD_PATH_UE5_2" -DestinationPath "$BUILD_PATH_UE5_2.zip"  
 
 
   artifacts:
@@ -269,9 +269,9 @@ build:build-project:
     - "./${BUILD_MARKET_PLACE_PATH_UE5_2}/${PROJECT_NAME}.zip"
 
     # these artifiacts are for github
-    - "./${BUILD_PATH}/${BUILD_PATH}.zip"
-    - "./${BUILD_PATH_UE5}/${BUILD_PATH_UE5}.zip" 
-    - "./${BUILD_PATH_UE5_2}/${BUILD_PATH_UE5_2}.zip"
+    - "./$BUILD_PATH/"
+    - "./$BUILD_PATH_UE5/" 
+    - "./$BUILD_PATH_UE5_2/"
     
     when: always
     expire_in: 2 weeks
