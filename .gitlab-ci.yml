@@ -367,6 +367,6 @@ deploy:upload-to-aws-s3:
     when: always
   
   # Setup job dependencies
-  needs:
-    - job: build:build-project
-      artifacts: true
+  #needs:
+  #  - job: build:build-project
+  #    artifacts: true
