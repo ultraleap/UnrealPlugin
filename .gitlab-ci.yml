@@ -300,7 +300,6 @@ deploy:upload-to-aws-s3:
     AWS_BUCKET_REGION: eu-west-2
     AWS_UPLOAD_TXT: "${CI_PROJECT_DIR}/s3-download-urls.txt"
   
-
   script:
 
     - ls -l "$CI_PROJECT_DIR"
@@ -316,9 +315,11 @@ deploy:upload-to-aws-s3:
 
     - ls -l "$CI_PROJECT_DIR"
     
-    - aws s3 cp "${AWS_UPLOAD_TXT}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
+    - aws s3 cp "${ZIP_OUTPUT_NAME}.zip" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" 
 
-#
+    - export echo https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
+
+#   
     #- aws s3 cp foo.txt s3://$AWS_BUCKET_NAME/foo.txt
     
     #- echo "===== Start S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
