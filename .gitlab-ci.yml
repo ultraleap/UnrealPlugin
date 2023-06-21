@@ -264,14 +264,14 @@ build:build-project:
     name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
     paths:
     - "./$PROJECT_NAME.log"
-    - "./build/MarketPlace_4_27/"
-    - "./build/MarketPlace_UE5_1/"
-    - "./build/MarketPlace_UE5_2/"
+    - "./$BUILD_MARKET_PLACE_PATH.zip"
+    - "./$BUILD_MARKET_PLACE_PATH_UE5.zip"
+    - "./$BUILD_MARKET_PLACE_PATH_UE5_2.zip"
 
     # these artifiacts are for github
-    - "./$BUILD_PATH/"
-    - "./$BUILD_PATH_UE5/" 
-    - "./$BUILD_PATH_UE5_2/"
+    - "./$BUILD_PATH.zip"
+    - "./$BUILD_PATH_UE5.zip" 
+    - "./$BUILD_PATH_UE5_2.zip"
     
     when: always
     expire_in: 2 weeks
