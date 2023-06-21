@@ -313,7 +313,7 @@ deploy:upload-to-aws-s3:
     # - zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/${BUILD_DIR_NAME}_${VERSION}/"
     - zip -r "${ZIP_OUTPUT_NAME}" "${AWS_UPLOAD_TXT}"
 
-    - ls -l $CI_PROJECT_DIR"
+    - ls -l "$CI_PROJECT_DIR"
     
     - aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
 
