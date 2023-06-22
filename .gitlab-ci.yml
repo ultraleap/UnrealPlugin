@@ -264,9 +264,9 @@ build:build-project:
     name: "$env:CI_PROJECT_NAME-$env:CI_COMMIT_REF_SLUG-$env:CI_JOB_ID-$env:CI_COMMIT_SHORT_SHA"
     paths:
     - "./$PROJECT_NAME.log"
-    - "./${BUILD_MARKET_PLACE_PATH}.zip"
-    - "./${BUILD_MARKET_PLACE_PATH_UE5}.zip"
-    - "./${BUILD_MARKET_PLACE_PATH_UE5_2}.zip"
+    - "./build/MarketPlace_4_27/${PROJECT_NAME}.zip"
+    - "./build/MarketPlace_UE5_1/${PROJECT_NAME}.zip"
+    - "./build/MarketPlace_UE5_2/${PROJECT_NAME}.zip"
 
     # these artifiacts are for github
     #- "./$BUILD_PATH/"
