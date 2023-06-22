@@ -266,8 +266,8 @@ build:build-project:
 
 
     - Compress-Archive -Path "$BUILD_PATH" -DestinationPath "${GITHUB_PATH_4_27}/${PROJECT_NAME}_ue4_27_${BUILD_FULL_VERSION}.zip"   
-    - Compress-Archive -Path "$BUILD_PATH_UE5" -DestinationPath "${GITHUB_PATH_4_27}/${PROJECT_NAME}_ue5_1_${BUILD_FULL_VERSION}.zip"
-    - Compress-Archive -Path "$BUILD_PATH_UE5_2" -DestinationPath "${GITHUB_PATH_4_27}/${PROJECT_NAME}_ue5_2_${BUILD_FULL_VERSION}.zip"
+    - Compress-Archive -Path "$BUILD_PATH_UE5" -DestinationPath "${$GITHUB_PATH_UE5_1}/${PROJECT_NAME}_ue5_1_${BUILD_FULL_VERSION}.zip"
+    - Compress-Archive -Path "$BUILD_PATH_UE5_2" -DestinationPath "${$GITHUB_PATH_UE5_2}/${PROJECT_NAME}_ue5_2_${BUILD_FULL_VERSION}.zip"
 
 
   artifacts:
@@ -279,9 +279,9 @@ build:build-project:
     - "./build/MarketPlace_UE5_2/${PROJECT_NAME}.zip"
 
     # these artifiacts are for github
-    - "./${GITHUB_PATH_4_27}/${PROJECT_NAME}_ue4_27_${BUILD_FULL_VERSION}.zip"
+    - "./$GITHUB_PATH_4_27/"
     #- "./${GITHUB_PATH_4_27}/${PROJECT_NAME}_ue5_1_${BUILD_FULL_VERSION}.zip" 
-    - "./${GITHUB_PATH_4_27}/${PROJECT_NAME}_ue5_2_${BUILD_FULL_VERSION}.zip"
+    - "./$GITHUB_PATH_UE5_2/"
     
     when: always
     expire_in: 2 weeks
