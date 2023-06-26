@@ -27,33 +27,33 @@ stages:
   #- build
   - deploy
 
-documentation::generate-tracking-documentation:
-  stage: documentation
-  tags:
-    - unreal
-    - windows  
-  timeout: 30m
+#documentation::generate-tracking-documentation:
+#  stage: documentation
+#  tags:
+#    - unreal
+#    - windows  
+#  timeout: 30m
 
-  script:
-     # Generate XML documentation using Doxygen
-    - echo "Generate docs"
+#  script:
+#     # Generate XML documentation using Doxygen
+#    - echo "Generate docs"
 
-    # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
-    - doxygen
+#    # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
+#    - doxygen
 
-  after_script:
-    - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
-    - echo "$DOXY_LOCATION"
+#  after_script:
+#    - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
+#    - echo "$DOXY_LOCATION"
     
-    - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR"
-  artifacts:
-    name: "Artifacts"
-    paths:
-      - "xml"
+#    - mv "$DOXY_LOCATION/*" "$CI_PROJECT_DIR"
+#  artifacts:
+#    name: "Artifacts"
+#    paths:
+#      - "xml"
 
-    when: always
-    expire_in: never
-  needs: []
+#    when: always
+#    expire_in: never
+#  needs: []
 
 #build:build-project:
 #  stage: build
