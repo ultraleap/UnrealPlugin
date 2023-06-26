@@ -335,9 +335,13 @@ deploy:upload-to-aws-s3:
     - export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
   
 
-    - pushd ${BUILD_DIR}/MarketPlace_4_27
+ 
     - zip -r /${CI_PROJECT_DIR}/${ZIP_OUTPUT_NAME} ${ZIP_NAME}
     - popd
+
+    - cd "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}";
+    - zip -r ${CI_PROJECT_DIR}/${ZIP_OUTPUT_NAME} ./* ;
+    - cd -;
 
     #- zip -r -j "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}" 
 
