@@ -179,7 +179,7 @@ build:build-project:
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace_4_27/$PROJECT_NAME"
     #- $BUILD_MARKET_PLACE_PATH_UE5 = "./build/MarketPlace_UE5_1/$PROJECT_NAME"
-    - $BUILD_MARKET_PLACE_PATH_UE5_2 = "./build/MarketPlace_UE5_2/$PROJECT_NAME"
+    - $BUILD_MARKET_PLACE_PATH_UE5_2 = "./build/MarketPlace_5_2/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH"
     #- echo "$BUILD_MARKET_PLACE_PATH_UE5"
@@ -324,27 +324,29 @@ deploy:upload-to-aws-s3:
   
   script:
 
-    - ls -l "$CI_PROJECT_DIR"
-    #- ls -l "$BUILD_DIR"
-
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
+    - |+
+      for VERSION in $('4_27' '5_2')
+      do
+         export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
+
+         mv "${BUILD_DIR}/MarketPlace_${VERSION}/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
+
+         aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
+
+         echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
+         echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" > "${AWS_UPLOAD_TXT}"
+      done
     
-    - export VERSION="4_27"
-    #- export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}"
-    - export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
-
-    - mv "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
-
-    #- zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}" 
-
     
+    #- export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
 
-    - ls -l "$CI_PROJECT_DIR" -R
-    
-    - aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
-    - echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
-    - echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}"
+    #- mv "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
+
+    #- aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
+    #- echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
+    #- echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" > "${AWS_UPLOAD_TXT}"
 
     #- aws s3 cp foo.txt s3://$AWS_BUCKET_NAME/foo.txt
     
