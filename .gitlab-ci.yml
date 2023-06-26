@@ -329,7 +329,7 @@ deploy:upload-to-aws-s3:
 
     - |
 
-      for VERSION in ( '4_27' '5_2' ); do
+      for VERSION in $( '4_27' '5_2' ); do
 
         export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
 
