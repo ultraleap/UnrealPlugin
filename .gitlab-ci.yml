@@ -17,7 +17,7 @@ variables:
   
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH/Engine/Build/Build.version"
-  UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
+  #UNREAL_ENGINE_BUILD_VERSION_FILE_UE5: "$ENGINE_PATH_UE5/Engine/Build/Build.version"
   UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_2: "$ENGINE_PATH_UE5_2/Engine/Build/Build.version"
   
   VERSIONTRUNC: "Unknown"
@@ -79,18 +79,18 @@ build:build-project:
     - $UNREAL_VERSION_UE5_2 = $UNREAL_VERSION_CONTENT_UE5_2.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_2.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_2.PatchVersion.ToString()
     
     - echo "$UNREAL_VERSION"
-    - echo "$UNREAL_VERSION_UE5"
+    #- echo "$UNREAL_VERSION_UE5"
     - echo "$UNREAL_VERSION_UE5_2"
    
 
     - echo "$ENGINE_PATH"
-    - echo "$ENGINE_PATH_UE5"
+    #- echo "$ENGINE_PATH_UE5"
     - echo "$ENGINE_PATH_UE5_2"
     - echo "$PROJECT_PATH"
     - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - echo "$ENGINE_UAT_PATH"
     #- echo "$ENGINE_UAT_PATH_UE5"
-    #- echo "$ENGINE_UAT_PATH_UE5_2"
+    - echo "$ENGINE_UAT_PATH_UE5_2"
     - echo "Working dir"
     - pwd
    
@@ -172,22 +172,22 @@ build:build-project:
 
      # pdbs
     - Remove-Item "$BUILD_PATH/Binaries/Win64/*.pdb" 
-    - Remove-Item "$BUILD_PATH_UE5/Binaries/Win64/*.pdb"
+    #- Remove-Item "$BUILD_PATH_UE5/Binaries/Win64/*.pdb"
     - Remove-Item "$BUILD_PATH_UE5_2/Binaries/Win64/*.pdb"
    
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH = "./build/MarketPlace_4_27/$PROJECT_NAME"
-    - $BUILD_MARKET_PLACE_PATH_UE5 = "./build/MarketPlace_UE5_1/$PROJECT_NAME"
+    #- $BUILD_MARKET_PLACE_PATH_UE5 = "./build/MarketPlace_UE5_1/$PROJECT_NAME"
     - $BUILD_MARKET_PLACE_PATH_UE5_2 = "./build/MarketPlace_UE5_2/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH"
-    - echo "$BUILD_MARKET_PLACE_PATH_UE5"
+    #- echo "$BUILD_MARKET_PLACE_PATH_UE5"
     - echo "$BUILD_MARKET_PLACE_PATH_UE5_2"
 
 
     - mkdir "$BUILD_MARKET_PLACE_PATH"
-    - mkdir "$BUILD_MARKET_PLACE_PATH_UE5"
+    #- mkdir "$BUILD_MARKET_PLACE_PATH_UE5"
     - mkdir "$BUILD_MARKET_PLACE_PATH_UE5_2"
 
     # UE4 contents
