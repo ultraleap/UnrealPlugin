@@ -23,8 +23,8 @@ variables:
   VERSIONTRUNC: "Unknown"
 
 stages:
-  - documentation
-  - build
+  #- documentation
+  #- build
   - deploy
 
 documentation::generate-tracking-documentation:
@@ -333,13 +333,12 @@ deploy:upload-to-aws-s3:
     - export VERSION="4_27"
     #- export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}"
     - export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
- 
-    - cd "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}";
-    - zip -r ${CI_PROJECT_DIR}/${ZIP_OUTPUT_NAME} ./* ;
-    - cd -;
 
-    #- zip -r -j "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}" 
+    - mv "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
 
+    #- zip -r "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}" 
+
+    
 
     - ls -l "$CI_PROJECT_DIR" -R
     
@@ -398,6 +397,6 @@ deploy:upload-to-aws-s3:
     when: always
   
   # Setup job dependencies
-  needs:
-    - job: build:build-project
-      artifacts: true
+  #needs:
+  #  - job: build:build-project
+  #    artifacts: true
