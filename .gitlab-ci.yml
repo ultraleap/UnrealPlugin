@@ -275,7 +275,7 @@ build:build-project:
     - "./$PROJECT_NAME.log"
     - "./build/MarketPlace_4_27/${PROJECT_NAME}.zip"
     #- "./build/MarketPlace_UE5_1/${PROJECT_NAME}.zip"
-    - "./build/MarketPlace_UE5_2/${PROJECT_NAME}.zip"
+    - "./build/MarketPlace_5_2/${PROJECT_NAME}.zip"
 
     # these artifiacts are for github
     - "./github/${PROJECT_NAME}_ue4_27/${PROJECT_NAME}_ue4_27.zip"
@@ -326,20 +326,38 @@ deploy:upload-to-aws-s3:
 
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
-    - |+
-      for VERSION in $('4_27' '5_2')
-      do
-         export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
+
+    - |
+
+      for VERSION in ( '4_27' '5_2' ); do
+
+        export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
 
          mv "${BUILD_DIR}/MarketPlace_${VERSION}/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
 
          aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
 
          echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
+
          echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" > "${AWS_UPLOAD_TXT}"
+
       done
-    
-    
+
+
+    #- |+
+    #  for VERSION in $('4_27' '5_2')
+    #  do
+    #     export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
+
+    #     mv "${BUILD_DIR}/MarketPlace_${VERSION}/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
+
+    #     aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
+
+    #     echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
+    #     echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" > "${AWS_UPLOAD_TXT}"
+    #  done
+
+
     #- export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
 
     #- mv "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
