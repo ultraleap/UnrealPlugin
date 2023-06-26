@@ -336,7 +336,7 @@ deploy:upload-to-aws-s3:
   
 
     - pushd ${BUILD_DIR}/MarketPlace_4_27
-    - zip -r /${CI_PROJECT_DIR}/${ZIP_OUTPUT_NAME} ./${ZIP_NAME}/
+    - zip -r /${CI_PROJECT_DIR}/${ZIP_OUTPUT_NAME} ${ZIP_NAME}
     - popd
 
     #- zip -r -j "${ZIP_OUTPUT_NAME}" "${BUILD_DIR}/MarketPlace_4_27/${ZIP_NAME}" 
