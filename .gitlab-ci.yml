@@ -327,6 +327,8 @@ deploy:upload-to-aws-s3:
     - yum install -y zip
     - touch "${AWS_UPLOAD_TXT}"
 
+    - echo "===== Started S3 Upload $(date +'%A %d %b %T %Z %Y') =====" > "${AWS_UPLOAD_TXT}"
+
     - |
 
       for VERSION in "4_27" "5_2"; do
@@ -335,12 +337,12 @@ deploy:upload-to-aws-s3:
          mv "${BUILD_DIR}/MarketPlace_${VERSION}/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
          aws s3 cp "${ZIP_OUTPUT_NAME}" "s3://$AWS_BUCKET_NAME/${ZIP_OUTPUT_NAME}" --acl public-read
          echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}"
-         echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" > "${AWS_UPLOAD_TXT}"
+         echo "${ZIP_OUTPUT_NAME} => https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${ZIP_OUTPUT_NAME}" >> "${AWS_UPLOAD_TXT}"
 
       done
 
   after_script:
-    - echo "===== Finish S3 Upload $(date +'%A %d %b %T %Z %Y') =====" > "${AWS_UPLOAD_TXT}"
+    - echo "===== Finished S3 Upload $(date +'%A %d %b %T %Z %Y') =====" >> "${AWS_UPLOAD_TXT}"
   
   artifacts:
     paths: [ "s3-download-urls.txt" ]
