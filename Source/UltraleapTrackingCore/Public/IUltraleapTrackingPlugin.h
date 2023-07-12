@@ -100,6 +100,10 @@ public:
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) = 0;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;
 
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) = 0;
+
+	virtual FTransform GetDeviceTransform() = 0;
+
 	virtual const char* ResultString(eLeapRS Result) = 0;
 
 	virtual void EnableImageStream(bool bEnable) = 0;
@@ -114,6 +118,7 @@ public:
 		ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW) = 0;
 
 	virtual uint32_t GetDeviceID() = 0;
+
 
 	virtual void SetCallbackDelegate(LeapWrapperCallbackInterface* InCallbackDelegate) = 0;
 	virtual void SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallbackInterface* InCallbackDelegate) = 0;

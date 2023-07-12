@@ -72,6 +72,22 @@ public:
 	{
 		return nullptr;
 	}
+
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) override
+	{
+		pVersionPart->major = 0;
+		pVersionPart->minor = 0;
+		pVersionPart->patch = 0;
+		return false;
+	}
+
+    virtual FTransform GetDeviceTransform() override
+	{
+		FTransform transform;
+		transform.SetIdentity();
+		return transform;
+	}
+
 	virtual const char* ResultString(eLeapRS Result) override
 	{
 		return nullptr;
@@ -80,6 +96,7 @@ public:
 	virtual void EnableImageStream(bool bEnable) override
 	{
 	}
+
 	virtual bool IsConnected() override
 	{
 		return bIsConnected;
@@ -206,6 +223,11 @@ public:
 	{
 		return nullptr;
 	}
+
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) override;
+
+	virtual FTransform GetDeviceTransform() override;
+
 	virtual const char* ResultString(eLeapRS Result) override;
 
 	virtual void EnableImageStream(bool bEnable) override;

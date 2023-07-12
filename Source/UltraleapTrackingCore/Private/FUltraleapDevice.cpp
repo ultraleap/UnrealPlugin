@@ -1164,6 +1164,7 @@ void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 {
 	Leap->OpenConnection(this);
 }
+
 void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 {
 	if (GEngine && GEngine->XRSystem.IsValid())
@@ -1179,6 +1180,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		// set this here as set options is re-called on connect
 		Options.bUseOpenXRAsSource = InOptions.bUseOpenXRAsSource;
 	}
+
 	// Did we change the mode?
 	if (Options.Mode != InOptions.Mode)
 	{
@@ -1189,7 +1191,6 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		else
 		{
 			bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
-
 			SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
 		}
 	}
@@ -1205,6 +1206,20 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	}
 	else
 	{
+		bool readDeviceTransform = false;
+
+		if (IsGetDeviceTransformSupported() && HMDType != TEXT("OpenXR"))
+		{
+			auto transform = GetDeviceTransform();
+			Options.HMDPositionOffset = transform.GetTranslation();
+			Options.HMDRotationOffset = transform.GetRotation().Rotator();
+			readDeviceTransform = true;
+		}
+		else
+		{
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("Reading the device transform from the service is not supported by this version of the service"));
+		}
+
 		// Vive
 		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will
 		// pass through here (is it supposed to?)
@@ -1261,20 +1276,23 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
-			Options.HMDPositionOffset = FVector(90,0,0);
-		} 
 
+			if (!readDeviceTransform)
+			{
+				Options.HMDPositionOffset = FVector(90, 0, 0);
+			}
+		} 
 		// Rift, note requires negative timewarp!
 		else if (HMDType == TEXT("OculusHMD") || HMDType == TEXT("OpenXR"))
 		{
 			// Apply default options to zero offsets/rotations
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
+			if (InOptions.HMDPositionOffset.IsNearlyZero() && !readDeviceTransform)
 			{
 				// in mm
 				FVector OculusOffset = FVector(80.0, 0, 0);
 				Options.HMDPositionOffset = OculusOffset;
 			}
-			if (InOptions.HMDRotationOffset.IsNearlyZero())
+			if (InOptions.HMDRotationOffset.IsNearlyZero() && !readDeviceTransform)
 			{
 				Options.HMDRotationOffset = FRotator(-4, 0, 0);	   // typically oculus mounts sag a tiny bit
 			}
@@ -1288,8 +1306,8 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.TimewarpFactor = -1.f;
 					Options.HandInterpFactor = 0.5;
 					Options.FingerInterpFactor = 0.5f;
-
 					break;
+
 				case ELeapTrackingFidelity::LEAP_NORMAL:
 					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 					{
@@ -1314,8 +1332,10 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.HandInterpFactor = -1.f;
 					Options.FingerInterpFactor = -1.f;
 					break;
+
 				case ELeapTrackingFidelity::LEAP_CUSTOM:
 					break;
+
 				default:
 					break;
 			}
@@ -1324,13 +1344,14 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		else if (HMDType == TEXT("PicoXRHMD"))
 		{
 			// Apply default options to zero offsets/rotations
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
+			if (InOptions.HMDPositionOffset.IsNearlyZero() && !readDeviceTransform)
 			{
 				// in mm
 				FVector Offset = FVector(50.0, 0, 0);
 				Options.HMDPositionOffset = Offset;
 			}
-			if (InOptions.HMDRotationOffset.IsNearlyZero())
+
+			if (InOptions.HMDRotationOffset.IsNearlyZero() && !readDeviceTransform)
 			{
 				Options.HMDRotationOffset = FRotator(-4, 0, 0);	  // does it point down because velcro?
 			}
@@ -1344,8 +1365,8 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.TimewarpFactor = -1.f;
 					Options.HandInterpFactor = 0.5;
 					Options.FingerInterpFactor = 0.5f;
-
 					break;
+
 				case ELeapTrackingFidelity::LEAP_NORMAL:
 					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 					{
@@ -1370,8 +1391,10 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.HandInterpFactor = -1.f;
 					Options.FingerInterpFactor = -1.f;
 					break;
+
 				case ELeapTrackingFidelity::LEAP_CUSTOM:
 					break;
+
 				default:
 					break;
 			}
@@ -1380,7 +1403,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		// Cardboard and Daydream
 		else if (HMDType == TEXT("FGoogleVRHMD"))
 		{
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
+			if (InOptions.HMDPositionOffset.IsNearlyZero() && !readDeviceTransform)
 			{
 				// in mm
 				FVector DayDreamOffset = FVector(80.0, 0, 0);
@@ -1399,27 +1422,32 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.HandInterpFactor = -1.f;
 					Options.FingerInterpFactor = -1.f;
 					break;
+
 				case ELeapTrackingFidelity::LEAP_CUSTOM:
 					break;
+
 				default:
 					break;
 			}
 
 			// let's use basic vive settings for cardboard for now
 		}
-		// Other, e.g. cardboard
-		else
+		else // Other, e.g. cardboard
 		{
-			// UE_LOG(UltraleapTrackingLog, Log, TEXT("%d doesn't have proper defaults
-			// set yet, using passed in custom settings."), HMDType);
+			if (!readDeviceTransform)
+			{
+				//UE_LOG(UltraleapTrackingLog, Log, TEXT("%d doesn't have proper defaults set yet, using passed in custom settings."), HMDType);
+			}
 		}
 	}
+
 	// HMD offset not allowed in OpenXR (already corrected)
 	if (Options.bUseOpenXRAsSource)
 	{
 		Options.HMDPositionOffset = FVector(0, 0, 0);
 		Options.HMDRotationOffset = FRotator(0, 0, 0);
 	}
+
 	// Ensure other factors are synced
 	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
@@ -1441,6 +1469,43 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
 }
+
+bool FUltraleapDevice::IsGetDeviceTransformSupported()
+{
+	LEAP_VERSION version;
+	bool isSupported = false;
+		
+	if (Leap->GetVersion(eLeapVersionPart_ServerLibrary, &version))
+	{
+		isSupported = (version.major >= 5 && version.minor >= 11);
+	}
+
+	if (!isSupported)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetDeviceTransform is not supported on this version of the service"));
+	}
+
+	return isSupported;
+}
+
+/// <summary>
+/// Reads the device pose from the tracking platform as a 4x4 matrix
+/// </summary>
+/// <returns>The device pose (transform and offset, known to the platform for this headset</returns>
+FTransform FUltraleapDevice::GetDeviceTransform()
+{
+	if (IsGetDeviceTransformSupported())
+	{
+		return Leap->GetDeviceTransform();
+	}
+	else
+	{
+		FTransform identity;
+		identity.SetIdentity();
+		return identity;
+	}
+}
+
 FLeapOptions FUltraleapDevice::GetOptions()
 {
 	return Options;
