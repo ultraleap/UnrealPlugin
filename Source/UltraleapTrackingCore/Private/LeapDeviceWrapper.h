@@ -52,6 +52,10 @@ public:
 
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override;	 // Used in polling example
 
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) override;
+
+	virtual FTransform GetDeviceTransform() override;
+
 	virtual void EnableImageStream(bool bEnable) override;
 	virtual int64_t GetNow() override
 	{

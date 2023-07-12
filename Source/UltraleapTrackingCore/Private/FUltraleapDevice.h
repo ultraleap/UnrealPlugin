@@ -47,6 +47,8 @@ public:
 	virtual void SendControllerEvents() override;
 	virtual void GetLatestFrameData(FLeapFrameData& OutData,const bool ApplyDeviceOrigin = false) override;
 	FLeapOptions GetOptions() override;
+	bool IsGetDeviceTransformSupported();
+	FTransform GetDeviceTransform();
 	FLeapStats GetStats() override;
 	virtual ELeapDeviceType GetDeviceType()
 	{
