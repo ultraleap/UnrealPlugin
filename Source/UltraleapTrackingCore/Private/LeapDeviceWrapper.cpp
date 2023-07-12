@@ -13,6 +13,12 @@
 
 #pragma region Leap Device Wrapper
 
+// Device transforms come in in OpenXR space. OpenXR uses a right handed, y-up coordinate system, Unreal is left handed, z-up
+// Unreal units are in mm by default, OpenXR is in m
+const float OPENXR_DISTANCE_UNITS_TO_UNREAL_UNITS = 1000.0; // m -> mm
+
+
+
 // created when a device is found
 FLeapDeviceWrapper::FLeapDeviceWrapper(const uint32_t DeviceIDIn, const LEAP_DEVICE_INFO& DeviceInfoIn,
 	const LEAP_DEVICE DeviceHandleIn, const LEAP_CONNECTION ConnectionHandleIn, IHandTrackingWrapper* ConnectorIn)
@@ -128,7 +134,6 @@ void FLeapDeviceWrapper::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool Sho
 }
 
 
-
 LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetFrame()
 {
 	LEAP_TRACKING_EVENT* currentFrame;
@@ -189,6 +194,63 @@ LEAP_DEVICE_INFO* FLeapDeviceWrapper::GetDeviceProperties()
 	currentDevice = CurrentDeviceInfo;
 	DataLock->Unlock();
 	return currentDevice;
+}
+
+/// <summary>
+/// Retrieve the specfied version information for the LeapC client or server
+/// </summary>
+/// <param name="versionPart">Requested version target</param>
+/// <param name="pVersionPart">Pointer to a LEAP_VERSION structure</param>
+/// <returns>True, if call was successful, otherwise false</returns>
+bool FLeapDeviceWrapper::GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart)
+{
+	eLeapRS Result = LeapGetVersion(ConnectionHandle, versionPart, pVersionPart);
+
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapC LeapGetVersion returned an unsuccessful result\n"));
+		return false;
+	}
+
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapC LeapGetVersion returned %d,%d,%d\n"), pVersionPart->major, pVersionPart->minor,
+		pVersionPart->patch);
+	return true;
+}
+
+/// <summary>
+/// Retrieves the device transform for the device from the tracking service.
+/// </summary>
+/// <returns></returns>
+FTransform FLeapDeviceWrapper::GetDeviceTransform()
+{
+	FTransform pluginTransform;
+	pluginTransform.SetIdentity();
+
+	float* transform = new float[16];	 // 4x4 matrix
+	eLeapRS Result = LeapGetDeviceTransform(DeviceHandle, transform);
+
+	if (Result == eLeapRS_Success)
+	{
+		FMatrix m(FVector(transform[0], transform[4], transform[8]), FVector(transform[1], transform[5], transform[9]),
+			FVector(transform[2], transform[6], transform[10]), FVector(transform[3], transform[7], transform[11]));
+
+		pluginTransform.SetScale3D(FVector(1));
+		pluginTransform.SetLocation(m.GetColumn(3) * OPENXR_DISTANCE_UNITS_TO_UNREAL_UNITS);
+		pluginTransform.SetRotation(m.ToQuat());
+	}
+	else if (Result == eLeapRS_Unsupported)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapGetDeviceTransform is not supported on this version of the service"));
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetDeviceTransform failed in FLeapDeviceWrapper::LeapGetDeviceTransform"));
+	}
+
+	// Clean up
+	delete[] transform;
+
+	return pluginTransform;
 }
 
 void FLeapDeviceWrapper::EnableImageStream(bool bEnable)

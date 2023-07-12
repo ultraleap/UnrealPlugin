@@ -830,6 +830,7 @@ IHandTrackingWrapper* FLeapWrapper::GetSingularDeviceBySerial(const FString& Dev
 	}
 	return nullptr;
 }
+
 // gets a device, finds or creates combined device
 IHandTrackingWrapper* FLeapWrapper::GetDevice(
 	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass, const bool AllowOpenXR)
@@ -875,6 +876,33 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 	}
 	return Ret;
 }
+
+/// <summary>
+/// Retrieve the specfied version information for the LeapC client or server
+/// </summary>
+/// <param name="versionPart">Requested version target</param>
+/// <param name="pVersionPart">Pointer to a LEAP_VERSION structure</param>
+/// <returns>True, if call was successful, otherwise false</returns>
+bool FLeapWrapper::GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart)
+{
+	eLeapRS Result = LeapGetVersion(ConnectionHandle, versionPart, pVersionPart);
+
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapC LeapGetVersion returned an unsuccessful result\n"));
+		return false;
+	}
+
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapC LeapGetVersion returned %d,%d,%d\n"), pVersionPart->major, pVersionPart->minor, pVersionPart->patch);
+	return true;
+}
+
+
+FTransform FLeapWrapper::GetDeviceTransform()
+{
+	return Devices[0]->GetDeviceTransform();
+}
+
 void FLeapWrapper::TickDevices(const float DeltaTime) 
 {
 	// safe point to cleanup force deleted devices
