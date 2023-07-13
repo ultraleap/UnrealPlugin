@@ -141,6 +141,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void GetHandSize(float& OutHandSize);
 
+	/**
+	 * Get the grab strength for both hands
+	 * @param GrabStrength - returns the grab strength as an array
+	 * Index 0 of the array is for the left hand
+	 * Index 1 of the array is for the right hand
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetLRGrabStrength(TArray<float> &GrabStrength);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool CanGrabWithThreshold(const float GrabStrength, uint8 Type);
 
 	/** Multidevice configuration, Singular subscribes to a single device. 
 	Combined subscribes to multiple devices combined into one device
@@ -240,6 +251,8 @@ private:
 #endif
 	void ConnectToInputEvents();
 	bool IsConnectedToInputEvents;
+
+	EHandType FromIEHandTypeToEHandType(uint8 Type);
 
 	IHandTrackingWrapper* CurrentHandTrackingDevice = nullptr;
 
