@@ -77,6 +77,7 @@ void ULeapComponent::ConnectToInputEvents()
 	// Subscribe to active device
 	UpdateActiveDevice(ActiveDeviceSerial);
 }
+
 void ULeapComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -445,4 +446,64 @@ void ULeapComponent::GetHandSize(float& OutHandSize)
 		Length += FVector::Dist(Bone.PrevJoint, Bone.NextJoint);
 	}
 	OutHandSize = Length;
+}
+
+void ULeapComponent::GetLRGrabStrength(TArray<float>& GrabStrength)
+{
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	if (Hands.Num()==2)
+	{
+		// The first element of the array is for the left hand
+		GrabStrength.Add(Hands[0].GrabStrength);
+		// The second element of the array is for the right hand
+		GrabStrength.Add(Hands[1].GrabStrength);
+	}
+}
+
+EHandType ULeapComponent::FromIEHandTypeToEHandType(uint8 Type)
+{
+	if (Type == 0)
+	{
+		return EHandType::LEAP_HAND_LEFT;
+	}
+	return EHandType::LEAP_HAND_RIGHT;
+}
+
+
+bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
+{
+	EHandType TmpType = FromIEHandTypeToEHandType(Type);
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	if (!Hands.Num())
+	{
+		return false;
+	}
+
+	for (int32 i = 0; i < Hands.Num(); ++i)
+	{
+		switch (TmpType)
+		{
+			case LEAP_HAND_LEFT:
+				if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT &&
+					(Hands[i].GrabStrength >= GrabStrength || Hands[i].PinchStrength >= GrabStrength))
+				{
+					return true;
+				}
+				break;
+			case LEAP_HAND_RIGHT:
+				if (Hands[i].HandType == EHandType::LEAP_HAND_RIGHT &&
+					(Hands[i].GrabStrength >= GrabStrength || Hands[i].PinchStrength >= GrabStrength))
+				{
+					return true;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	return false;
 }
