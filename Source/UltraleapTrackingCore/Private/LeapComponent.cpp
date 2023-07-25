@@ -462,8 +462,6 @@ void ULeapComponent::GetLRGrabStrength(TArray<float>& GrabStrength)
 	}
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 EHandType ULeapComponent::FromIEHandTypeToEHandType(uint8 Type)
 {
 	if (Type == 0)
@@ -509,4 +507,3 @@ bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
 	}
 	return false;
 }
-PRAGMA_ENABLE_OPTIMIZATION

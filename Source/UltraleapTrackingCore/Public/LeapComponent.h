@@ -150,6 +150,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void GetLRGrabStrength(TArray<float> &GrabStrength);
 
+	/**
+	 * Checks if the hand type can grab, byt checking the pinch or grab strength
+	 * @param GrabStrength - the grab strength 
+	 * @param Type - the hand type
+	 * @return bool, if we can grab with this hand type (left or right)
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool CanGrabWithThreshold(const float GrabStrength, uint8 Type);
 
@@ -252,6 +258,11 @@ private:
 	void ConnectToInputEvents();
 	bool IsConnectedToInputEvents;
 
+	/**
+	 * Converts IEHandType enum (as a uint8) to EHandType
+	 * @param Type - the hand type
+	 * @return EHandType
+	 */
 	EHandType FromIEHandTypeToEHandType(uint8 Type);
 
 	IHandTrackingWrapper* CurrentHandTrackingDevice = nullptr;
