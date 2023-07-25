@@ -30,7 +30,7 @@ void FUltraleapInput::PreInit()
 
 	EKeys::AddKey(FKeyDetails(FUltraleapKey::UltraleapHand_Left_Pinch, LOCTEXT("UltraleapHand_Left_Pinch", "Ultraleap Hand (L) Pinch"), FKeyDetails::GamepadKey | FKeyDetails::NotBlueprintBindableKey, "UltraleapHand"));
 	EKeys::AddKey(FKeyDetails(FUltraleapKey::UltraleapHand_Left_Grab, LOCTEXT("UltraleapHand_Left_Grab", "Ultraleap Hand (L) Grab"), FKeyDetails::GamepadKey | FKeyDetails::NotBlueprintBindableKey, "UltraleapHand"));
-	EKeys::AddKey(FKeyDetails(FUltraleapKey::UltraleapHand_Right_Pinch, LOCTEXT("UltraleapHand_Right_Pinch", "Ultraleap Hand (L) Pinch"), FKeyDetails::GamepadKey | FKeyDetails::NotBlueprintBindableKey, "UltraleapHand"));
-	EKeys::AddKey(FKeyDetails(FUltraleapKey::UltraleapHand_Right_Grab, LOCTEXT("UltraleapHand_Right_Grab", "Ultraleap Hand (L) Grab"), FKeyDetails::GamepadKey | FKeyDetails::NotBlueprintBindableKey, "UltraleapHand"));
+	EKeys::AddKey(FKeyDetails(FUltraleapKey::UltraleapHand_Right_Pinch, LOCTEXT("UltraleapHand_Right_Pinch", "Ultraleap Hand (R) Pinch"), FKeyDetails::GamepadKey | FKeyDetails::NotBlueprintBindableKey, "UltraleapHand"));
+	EKeys::AddKey(FKeyDetails(FUltraleapKey::UltraleapHand_Right_Grab, LOCTEXT("UltraleapHand_Right_Grab", "Ultraleap Hand (R) Grab"), FKeyDetails::GamepadKey | FKeyDetails::NotBlueprintBindableKey, "UltraleapHand"));
 	
 }
