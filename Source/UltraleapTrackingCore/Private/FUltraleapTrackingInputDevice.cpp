@@ -186,10 +186,12 @@ FUltraleapTrackingInputDevice::FUltraleapTrackingInputDevice(const TSharedRef<FG
 	// Origin will be different if mixing vr with desktop/mount
 
 	// Add IM keys
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchL, LOCTEXT("LeapPinchL", "Leap (L) Pinch"), FKeyDetails::GamepadKey));
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("LeapGrabL", "Leap (L) Grab"), FKeyDetails::GamepadKey));
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("LeapPinchR", "Leap (R) Pinch"), FKeyDetails::GamepadKey));
-	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("LeapGrabR", "Leap (R) Grab"), FKeyDetails::GamepadKey));
+	EKeys::AddMenuCategoryDisplayInfo("UltraleapHand", LOCTEXT("UltraleapHandSubCategory", "Ultraleap Hand"), TEXT("GraphEditor.PadEvent_16x"));
+
+	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchL, LOCTEXT("UltraleapHand_Left_Pinch", "Ultraleap Hand (L) Pinch"), FKeyDetails::GamepadKey, "UltraleapHand"));
+	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabL, LOCTEXT("UltraleapHand_Left_Grab", "Ultraleap Hand (L) Grab"), FKeyDetails::GamepadKey, "UltraleapHand"));
+	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapPinchR, LOCTEXT("UltraleapHand_Right_Pinch", "Ultraleap Hand (R) Pinch"), FKeyDetails::GamepadKey, "UltraleapHand"));
+	EKeys::AddKey(FKeyDetails(EKeysLeap::LeapGrabR, LOCTEXT("UltraleapHand_Right_Grab", "Ultraleap Hand (R) Grab"), FKeyDetails::GamepadKey, "UltraleapHand"));
 
 	IBodyState::Get().SetupGlobalDeviceManager(this);
 	FLeapUtility::InitLeapStatics();

@@ -12,7 +12,6 @@
 #include "FUltraleapAnimCustomDetailsPanel.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
-#include "UltraleapInput.h"
 
 IMPLEMENT_MODULE(FUltraleapTrackingEditorModule, UltraleapTrackingEditor);
 
@@ -30,5 +29,4 @@ void FUltraleapTrackingEditorModule::StartupModule()
 	PropertyModule.RegisterCustomClassLayout(ULeapComponent::StaticClass()->GetFName(),
 		FOnGetDetailCustomizationInstance::CreateStatic(&FUltraleapLeapCustomDetailsPanel::MakeInstance));
 
-	FUltraleapInput::PreInit();
 }
