@@ -44,38 +44,43 @@ void ULeapPoseComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// ...
 }
 
-void ULeapPoseComponent::SaveNewPose(FString PoseName, FPoseSnapshot Pose)
+PRAGMA_DISABLE_OPTIMIZATION
+void ULeapPoseComponent::SaveNewPose(FString PoseName)
 {
 	if (ULeapSaveGame* SaveGameInstance = Cast<ULeapSaveGame>(UGameplayStatics::CreateSaveGameObject(ULeapSaveGame::StaticClass())))
 	{
-		SaveGameInstance->Poses.Remove(PoseName);
+		//SaveGameInstance->Poses.Remove(PoseName);
 
-		// Set data on the savegame object.
-		SaveGameInstance->Poses.Add(PoseName, Pose);
-
-		// Save the data immediately.
-		if (UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("UltraleapSaveSlot"), 0))
+		if (Hand)
 		{
-			// Save succeeded.
+			FPoseSnapshot Pose;
+			Hand->GetAnimInstance()->SnapshotPose(Pose);
+
+			// Set data on the savegame object.
+			SaveGameInstance->Poses.Add(PoseName, &(Pose));
+
+			// Save the data immediately.
+			if (UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("UltraleapSaveSlot"), 0))
+			{
+				// Save succeeded.
+			}
 		}
 	}
 }
+PRAGMA_ENABLE_OPTIMIZATION
 
-FPoseSnapshot ULeapPoseComponent::GetPose(FString PoseName)
+void ULeapPoseComponent::GetPose(FString PoseName, FPoseSnapshot& Pose)
 {
-
 	if (ULeapSaveGame* LoadedGame = Cast<ULeapSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("UltraleapSaveSlot"), 0)))
 	{
 		if (LoadedGame->Poses.Contains(PoseName))
 		{
-			LoadedGame->Poses[PoseName];
+			Pose = *(LoadedGame->Poses[PoseName]);
 		}
 		// The operation was successful, so LoadedGame now contains the data we saved earlier.
 		// UE_LOG(LogTemp, Warning, TEXT("LOADED: %s"), *LoadedGame->PlayerName);
 	}
-
-
-	return FPoseSnapshot();
+	
 }
 
 

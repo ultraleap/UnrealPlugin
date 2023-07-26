@@ -24,6 +24,6 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	uint32 UserIndex;
 
-	TMap<FString, FPoseSnapshot> Poses;
+	TMap<FString, FPoseSnapshot*> Poses;
 
 };

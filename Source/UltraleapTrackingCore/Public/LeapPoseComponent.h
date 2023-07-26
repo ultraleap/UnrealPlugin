@@ -18,11 +18,13 @@ public:
 	// Sets default values for this component's properties
 	ULeapPoseComponent();
 
-	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	void SaveNewPose(FString PoseName, FPoseSnapshot Pose);
+	
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	FPoseSnapshot GetPose(FString PoseName);
+	void GetPose(FString PoseName, FPoseSnapshot& Pose);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void SaveNewPose(FString PoseName);
 
 	USkeletalMeshComponent *Hand;
 
