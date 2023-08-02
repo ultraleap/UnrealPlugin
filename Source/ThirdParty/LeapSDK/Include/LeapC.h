@@ -327,7 +327,7 @@ typedef struct _LEAP_CONNECTION_CONFIG {
    * will change the server ip and port the connection will attempt to connect to.
    * 
    */
-  /** For internal use. @since 3.0.0 */
+  /** For public use. @since 5.12.0 */
   const char* server_namespace;
 
   /** 
@@ -1182,6 +1182,15 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceInfo(LEAP_DEVICE hDevice, LEAP_DEVICE
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceTransform(LEAP_DEVICE hDevice, float* transform);
 
 /** \ingroup Functions
+ * Returns whether a device transform is available for the device.
+ *
+ * @param hDevice A handle to the device to be queried.
+ * @returns Returns boolean.
+ * @since 5.13.0
+ */
+LEAP_EXPORT bool LEAP_CALL LeapDeviceTransformAvailable(LEAP_DEVICE hDevice);
+
+/** \ingroup Functions
  * Get the camera count of the specified device from the hand tracking service.
  *
  * @param hDevice A handle to the device to be queried.
@@ -2018,6 +2027,12 @@ typedef struct _LEAP_IMU_EVENT {
   float temperature;
 } LEAP_IMU_EVENT;
 
+typedef struct _LEAP_NEW_DEVICE_TRANSFORM {
+    /** Reserved for future use. @since 5.13.0 */
+  uint32_t reserved;
+} LEAP_NEW_DEVICE_TRANSFORM; 
+
+
 /** \ingroup Structs
  * Streaming stereo image pairs from the device.
  *
@@ -2207,7 +2222,16 @@ typedef enum _eLeapEventType {
    * An IMU reading. @since 4.1.0
    * This event is stored in union member imu_event (LEAP_IMU_EVENT).
    */
-  eLeapEventType_IMU
+  eLeapEventType_IMU,
+
+  /**
+   * Notification that the service received a new device transformation matrix
+   * Use LeapGetDeviceTransform to update your cached information.
+   *
+   * @since 5.13.0
+   */
+  eLeapEventType_NewDeviceTransform
+
 } eLeapEventType;
 LEAP_STATIC_ASSERT(sizeof(eLeapEventType) == 4, "Incorrect enum size");
 
@@ -2268,6 +2292,8 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
     const LEAP_EYE_EVENT* eye_event;
     /** An IMU message. @since 4.1.0 */
     const LEAP_IMU_EVENT* imu_event;
+    /** A notification message. @since 5.13.0 */
+    const LEAP_NEW_DEVICE_TRANSFORM* new_device_transform_event;
   };
 
   /** A unique ID for the attached device that sent this message. A value of
