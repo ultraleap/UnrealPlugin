@@ -373,13 +373,120 @@ void FUltraleapDevice::Tick(float DeltaTime)
 	FrameTimeInMicros = DeltaTime * 1000000;
 	DeltaTimeFromTick = DeltaTime;
 	
+	// Jitter
+	RenderFrameTimeInMicros = DeltaTime * 1000000;
+	RenderFrameRateInHz = 1000 / RenderFrameTimeInMicros;
+
+	HandleStatsInput();
 }
 
-// Main loop event emitter
+void FUltraleapDevice::HandleStatsInput()
+{
+	if (IsInGameThread())
+	{
+		FString timeWarpState;
+		FString headPoseState;
+		FString interpolationState;
+
+		// Can't override the settings during a stats run
+		if (LeapFrameTransformStats.IsStatsSweepComplete == true)
+		{
+			// Affects interpolation
+			/*if (FSlateApplication::Get().GetModifierKeys().IsLeftShiftDown())
+			{
+				Options.bUseInterpolation = false;
+				interpolationState = "Interpolation off";
+			}
+			else
+			{
+				Options.bUseInterpolation = true;
+				interpolationState = "Interpolation on";
+			}*/
+
+			if (FSlateApplication::Get().GetModifierKeys().IsLeftControlDown())
+			{
+				Options.bUseTimeWarp = false;
+				timeWarpState = "Time warp off";
+			}
+			else
+			{
+				Options.bUseTimeWarp = true;
+				Options.TimewarpOffset = 2750;
+				Options.TimewarpFactor = 1.0;
+				timeWarpState = "Time warp on";
+
+				if (FSlateApplication::Get().GetModifierKeys().IsLeftShiftDown())
+				{
+					Options.bUseTimeWarp = true;
+					Options.TimewarpOffset = 2750;
+					Options.TimewarpFactor = 10.0;
+					timeWarpState = "Time warp on BIG TIME";
+				}
+			}
+
+			if (FSlateApplication::Get().GetModifierKeys().IsRightControlDown())
+			{
+				bFreezeFrameBeforeHeadPose = true;
+				interpolationState = "Frozen before head pose correction";
+			}
+			else
+			{
+				bFreezeFrameBeforeHeadPose = false;
+			}
+
+			if (FSlateApplication::Get().GetModifierKeys().IsRightAltDown())
+			{
+				bUseHeadPose = false;
+				headPoseState = "Head pose correction off";
+				timeWarpState = "";
+			}
+			else
+			{
+				bUseHeadPose = true;
+				headPoseState = "Head pose correction on";
+			}
+
+			if (FSlateApplication::Get().GetModifierKeys().IsRightShiftDown())
+			{
+				bFreezeFrameAfterHeadPose = true;
+				headPoseState = "Frozen after all corrections (inter/head pose)";
+				timeWarpState = "";
+				interpolationState = "";
+			}
+			else
+			{
+				bFreezeFrameAfterHeadPose = false;
+			}
+		}
+
+		if (FSlateApplication::Get().GetModifierKeys().IsLeftAltDown())
+		{
+			SetStatsRunOptions(LeapFrameTransformStats.StartStatsSweep(true));
+		}
+
+		if (LeapFrameTransformStats.IsStatsSweepComplete == false && LeapFrameTransformStats.IsCurrentStatsRunActive == false)
+		{
+			SetStatsRunOptions(LeapFrameTransformStats.StartNextStatsRun());
+		}
+
+		if (LeapFrameTransformStats.IsStatsSweepComplete)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				0, 1.0f, FColor::Blue, FString::Printf(TEXT("Not collecting stats")), true, FVector2D(2, 2));
+		}
+
+		// GEngine->AddOnScreenDebugMessage(4, 60.0f, FColor::Blue, FString::Printf(TEXT("> %s   %s   %s"), *interpolationState,
+		// *headPoseState, *timeWarpState), true, FVector2D(2, 2));
+		GEngine->AddOnScreenDebugMessage(
+			4, 60.0f, FColor::Blue, FString::Printf(TEXT("> %s "), *timeWarpState), true, FVector2D(2, 2));
+	}
+}
+	// Main loop event emitter
 void FUltraleapDevice::SendControllerEvents()
 {
 	CaptureAndEvaluateInput();
 }
+
 void FUltraleapDevice::GetLatestFrameData(FLeapFrameData& OutData,const bool ApplyDeviceOriginIn /* = false */)
 {
 	OutData = CurrentFrame;
@@ -415,13 +522,85 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 	{
 		return;
 	}
+
+	// Jitter ..
+	if (PastFrame.FrameId == Frame->tracking_frame_id)
+	{
+		return;
+	}
+
 	if (!Options.bUseOpenXRAsSource)
 	{
+		// Jitter ....
+		extern ENGINE_API float GAverageFPS;
+		extern ENGINE_API float GAverageMS;
+
+		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Blue,
+			FString::Printf(TEXT("Frame %d has %d hands"), Frame->tracking_frame_id, Frame->nHands), true, FVector2D(2, 2));
+		GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green,
+			FString::Printf(TEXT("Render Frame Rate: %f Hands Frame Rate %f"), GAverageFPS, Frame->framerate), true,
+			FVector2D(2, 2));
+		
+		LeapFrameTransformSample newSample;
+		//*****************************************************************************************
+		// Sampling ....
+		if (Frame->nHands > 0)
+		{
+			// Temp
+			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
+
+			if (LeapFrameTransformStats.Enabled)
+			{
+				LeapFrameTransformStats.UseInterpolation = Options.bUseInterpolation;
+				LeapFrameTransformStats.UseTimewarp = Options.bUseTimeWarp;
+
+				newSample.HandTrackingFrameRate = CurrentFrame.FrameRate;
+				newSample.RenderFrameTimeInMicros = RenderFrameTimeInMicros;
+				newSample.OriginalFrame.TimeStamp = CurrentFrame.TimeStamp;
+				newSample.AverageRenderFPS = GAverageFPS;
+				newSample.AverageRenderMS = GAverageMS;
+
+				for (int i = 0; i < CurrentFrame.Hands.Num(); i++)
+				{
+					if (CurrentFrame.Hands[i].HandType == LEAP_HAND_LEFT)
+					{
+						newSample.LeftHandId = i;
+					}
+					else if (CurrentFrame.Hands[i].HandType == LEAP_HAND_RIGHT)
+					{
+						newSample.LeftHandId = i;
+					}
+				}
+
+				if (newSample.LeftHandId != -1)
+				{
+					newSample.OriginalFrame.Position_Left = GetJointPositionToSample(CurrentFrame.Hands[newSample.LeftHandId]);
+					newSample.OriginalFrame.Rotation_Left = GetJointRotationToSample(CurrentFrame.Hands[newSample.LeftHandId]);
+				}
+
+				if (newSample.RightHandId != -1)
+				{
+					newSample.OriginalFrame.Position_Right = GetJointPositionToSample(CurrentFrame.Hands[newSample.RightHandId]);
+					newSample.OriginalFrame.Rotation_Right = GetJointRotationToSample(CurrentFrame.Hands[newSample.RightHandId]);
+				}
+			}
+		}
+
+		// /Jitter
+
 		TimeWarpTimeStamp = Frame->info.timestamp;
 		int64 LeapTimeNow = 0;
 		LeapTimeNow = Leap->GetNow();
-		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
 
+		// Jitter
+		SnapshotHandler.AddCurrentHMDSample(LeapTimeNow);
+		newSample.InterpolationOn = Options.bUseInterpolation;
+		// / Jitter
+		
+		// #JitterInvesitgation - why different offsets for hands and fingers?
+		// Also, is this comment correct - i.e. is it dodgy?
+		// TODO Dodgy - test with an offset not dependent on frame rate
+		// We base this time on the frame rate - but if the frame rate drops we will extrapolate more into the future - which seems wrong...
 		HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 		FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
 
@@ -432,27 +611,95 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 
 			// Get the future interpolated finger frame
 			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + FingerInterpolationTimeOffset);
-
 			if (!Frame)
 			{
 				return;
 			}
+
 			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 
-			// Get the future interpolated hand frame, farther than fingers to provide
-			// lower latency
-			Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
-			if (!Frame)
+			// Idea - don't call this twice if we don't need to (also minimises risk of call crossing a point where a new tracking
+			// frame has come in between calls)
+			if (FingerInterpolationTimeOffset != HandInterpolationTimeOffset)
 			{
-				return;
+				// Get the future interpolated hand frame, farther than fingers to provide
+				// lower latency
+				Frame = Leap->GetInterpolatedFrameAtTime(LeapTimeNow + HandInterpolationTimeOffset);
+				if (!Frame)
+				{
+					return;
+				}
+
+				CurrentFrame.SetInterpolationPartialFromLeapFrame(
+					Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 			}
-			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame,Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
+
+			// Jitter ...
+			if (Frame->nHands > 0 && LeapFrameTransformStats.Enabled && LeapFrameTransformStats.InterpolationCollectionEnabled)
+			{
+				newSample.InterpolatedFrame.TimeStamp = CurrentFrame.TimeStamp;
+
+				for (int i = 0; i < CurrentFrame.Hands.Num(); i++)
+				{
+					if (CurrentFrame.Hands[i].HandType == LEAP_HAND_LEFT)
+					{
+						newSample.LeftHandId = i;
+					}
+					else if (CurrentFrame.Hands[i].HandType == LEAP_HAND_RIGHT)
+					{
+						newSample.LeftHandId = i;
+					}
+				}
+
+				if (newSample.LeftHandId != -1)
+				{
+					newSample.InterpolatedFrame.Position_Left = GetJointPositionToSample(
+						CurrentFrame.Hands
+							[newSample.LeftHandId]);	//  FVector(CurrentFrame.Hands[newSample.LeftHandId].Middle.Metacarpal.PrevJoint.X,
+														//  CurrentFrame.Hands[newSample.LeftHandId].Middle.Metacarpal.PrevJoint.Y,
+														//  CurrentFrame.Hands[newSample.LeftHandId].Middle.Metacarpal.PrevJoint.Z);
+					newSample.InterpolatedFrame.Rotation_Left = GetJointRotationToSample(CurrentFrame.Hands[newSample.LeftHandId]);
+
+					if (GEngine)
+					{
+						// float delta = (newSample.InterpolatedFrame.Position_Left -
+						// LeapFrameTransformStats.GetPreviousSample().InterpolatedFrame.Position_Left).Size(); float
+						// deltaAsPercentOfMaxDelta = LeapFrameTransformStats.GetDeltaAsPercent(Interpolated, 90);
+
+						// GEngine->AddOnScreenDebugMessage(2, 5.0f,
+						// LeapFrameTransformStats.ColourBasedOnDelta(deltaAsPercentOfMaxDelta), FString::Printf(TEXT("I: %s Delta
+						// %f  %f"), *GetJointPositionToSample(CurrentFrame.Hands[newSample.LeftHandId]).ToString(), delta,
+						// deltaAsPercentOfMaxDelta), true, FVector2D(2, 2));
+					}
+				}
+
+				if (newSample.RightHandId != -1)
+				{
+					newSample.InterpolatedFrame.Position_Right = GetJointPositionToSample(
+						CurrentFrame
+							.Hands[newSample.RightHandId]);	   // FVector(CurrentFrame.Hands[newSample.RightHandId].Palm.Position.X,
+															   // CurrentFrame.Hands[newSample.RightHandId].Palm.Position.Y,
+															   // CurrentFrame.Hands[newSample.RightHandId].Palm.Position.Z);
+					newSample.InterpolatedFrame.Rotation_Right =
+						GetJointRotationToSample(CurrentFrame.Hands[newSample.RightHandId]);
+				}
+
+				newSample.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
+
+				//*****************************************************************************************
+			}
+
+			LeapFrameTransformStats.AddLeapFrameTransformSample(CurrentFrame.FrameId, newSample);
 
 			// Track our extrapolation time in stats
 			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
 		}
 		else
 		{
+			// Jitter ...
+			LeapFrameTransformStats.AddLeapFrameTransformSample(CurrentFrame.FrameId, newSample);
+			// /Jitter
+
 			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 			Stats.FrameExtrapolationInMS = 0;
 		}
@@ -463,11 +710,29 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 		Stats.FrameExtrapolationInMS = 0;
 	}
 
+	if (bFreezeFrameBeforeHeadPose == true)
+	{
+		CurrentFrame = PreHeadPoseFrozenFrame;
+	}
+	else
+	{
+		PreHeadPoseFrozenFrame = CurrentFrame;
+	}
+
 	ParseEvents();
 }
 
 void FUltraleapDevice::ParseEvents()
 {
+	// Jitter
+	LeapFrameTransformSample& newSample = LeapFrameTransformStats.GetCurrentSample();
+
+	newSample.TimeWarpOn = Options.bUseTimeWarp;
+	newSample.TimeWarpFactor = Options.TimewarpFactor;
+	newSample.TimeWarpOffset = Options.TimewarpOffset;
+	newSample.FreezeFrameBeforeHeadPose = bFreezeFrameBeforeHeadPose;
+	// / Jitter
+	
 	// Are we in HMD mode? add our HMD snapshot
 	// Note with Open XR, the data is already transformed for the HMD/player camera
 	if (Options.Mode == LEAP_MODE_VR && Options.bTransformOriginToHMD && !Options.bUseOpenXRAsSource)
@@ -485,6 +750,20 @@ void FUltraleapDevice::ParseEvents()
 		FRotator FinalHMDRotation = SnapshotNow.Orientation.Rotator();
 		FVector FinalHMDTranslation = SnapshotNow.Position;
 
+		// Jitter
+		newSample.HeadPoseRotation = FinalHMDRotation;
+		newSample.HeadPoseTranslation = FinalHMDTranslation;
+
+		FLeapHandData handDataWithoutTimeWarp;
+
+		if (CurrentFrame.NumberOfHandsVisible > 0)
+		{
+			handDataWithoutTimeWarp = CurrentFrame.Hands[0];
+			handDataWithoutTimeWarp.RotateHand(FinalHMDRotation);
+			handDataWithoutTimeWarp.TranslateHand(FinalHMDTranslation);
+		}
+		// / Jitter
+		
 		// Determine time-warp, only relevant for VR
 		if (Options.bUseTimeWarp)
 		{
@@ -498,15 +777,93 @@ void FUltraleapDevice::ParseEvents()
 			FRotator WarpRotation = SnapshotDifference.Orientation.Rotator() * Options.TimewarpFactor;
 			FVector WarpTranslation = SnapshotDifference.Position * Options.TimewarpFactor;
 
+			// Jitter
+			newSample.TimeWarpTimeStamp = SnapshotNow.Timestamp;
+			newSample.TimeWarpRequestedTimeStamp = SnapshotNow.Timestamp - Options.TimewarpOffset;
+			newSample.WarpPoseTranslation = WarpTranslation;
+			newSample.WarpPoseRotation = WarpRotation;
+			newSample.TimeWarpInterpolationSnapshotDelta = SnapshotDifference.DeltaInterpolationSnapshotTimestamps;
+			// / Jitter
+			
 			FinalHMDTranslation += WarpTranslation;
 
 			FinalHMDRotation = FLeapUtility::CombineRotators(WarpRotation, FinalHMDRotation);
 			CurrentFrame.FinalRotationAdjustment = FinalHMDRotation;
 		}
 
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Red,
+				FString::Printf(TEXT("FinalHMDTranslation: %s"), *FinalHMDTranslation.ToString()), true, FVector2D(2, 2));
+		}
+
 		// Rotate our frame by time warp difference
-		CurrentFrame.RotateFrame(FinalHMDRotation);
-		CurrentFrame.TranslateFrame(FinalHMDTranslation);
+		if (bUseHeadPose)
+		{
+			CurrentFrame.RotateFrame(FinalHMDRotation);
+			CurrentFrame.TranslateFrame(FinalHMDTranslation);
+
+			if (CurrentFrame.NumberOfHandsVisible > 0)
+			{
+				newSample.JointPositionHeadPoseCorrected = GetJointPositionToSample(handDataWithoutTimeWarp);
+				newSample.JointPositionTimeWarpCorrected = GetJointPositionToSample(CurrentFrame.Hands[0]);
+				newSample.TimeWarpDelta = newSample.JointPositionHeadPoseCorrected - newSample.JointPositionTimeWarpCorrected;
+				float delta = newSample.TimeWarpDelta.Size();
+			}
+
+			newSample.FinalHMDTranslation = FinalHMDTranslation;
+			newSample.FinalHMDRotation = FinalHMDRotation;
+
+			LockedFinalHMDRotation = FinalHMDRotation;
+			LockedFinalHMDTranslation = FinalHMDTranslation;
+		}
+		else
+		{
+			CurrentFrame.RotateFrame(LockedFinalHMDRotation);
+			CurrentFrame.TranslateFrame(LockedFinalHMDTranslation);
+		}
+
+		if (bFreezeFrameAfterHeadPose)
+		{
+			CurrentFrame = PastFrame;
+		}
+
+		if (CurrentFrame.NumberOfHandsVisible > 0 && LeapFrameTransformStats.Enabled)
+		{
+			newSample.FinalHMDTranslation = FinalHMDTranslation;
+			newSample.TimeWarpTranslatedFrame.TimeStamp = CurrentFrame.TimeStamp;
+
+			if (newSample.LeftHandId != -1)
+			{
+				newSample.TimeWarpTranslatedFrame.Position_Left = GetJointPositionToSample(
+					CurrentFrame.Hands[newSample.LeftHandId]);	  // FVector(CurrentFrame.Hands[newSample.LeftHandId].Palm.Position.X,
+																  // CurrentFrame.Hands[newSample.LeftHandId].Palm.Position.Y,
+																  // CurrentFrame.Hands[newSample.LeftHandId].Palm.Position.Z);
+				newSample.TimeWarpTranslatedFrame.Rotation_Left =
+					GetJointRotationToSample(CurrentFrame.Hands[newSample.LeftHandId]);
+
+				if (GEngine)
+				{
+					// GEngine->AddOnScreenDebugMessage(5, 5.0f, FColor::Red, FString::Printf(TEXT("Tracking Frame ID: %d"),
+					// CurrentFrame.FrameId), true, FVector2D(2, 2)); GEngine->AddOnScreenDebugMessage(6, 5.0f, FColor::Green,
+					// FString::Printf(TEXT("W: %s %f"),
+					// *GetJointPositionToSample(CurrentFrame.Hands[newSample.LeftHandId]).ToString(),
+					// LeapFrameTransformStats.GetDeltaAsPercent(SIXDOF, 45)), true, FVector2D(2, 2));
+				}
+			}
+
+			if (newSample.RightHandId != -1)
+			{
+				newSample.TimeWarpTranslatedFrame.Position_Right = GetJointPositionToSample(
+					CurrentFrame.Hands[newSample.RightHandId]);	   // FVector(CurrentFrame.Hands[newSample.RightHandId].Palm.Position.X,
+																   // CurrentFrame.Hands[newSample.RightHandId].Palm.Position.Y,
+																   // CurrentFrame.Hands[newSample.RightHandId].Palm.Position.Z);
+				newSample.TimeWarpTranslatedFrame.Rotation_Right =
+					GetJointRotationToSample(CurrentFrame.Hands[newSample.LeftHandId]);
+			}
+
+			newSample.TimeWarpTranslatedFrame.TimeStamp = CurrentFrame.TimeStamp;
+		}
 
 		// store device origin for combiner
 		// Ideally this should include the HMD offset
@@ -517,6 +874,12 @@ void FUltraleapDevice::ParseEvents()
 		FRotator ScreentopToDesktop(-90, 0, 180);
 		CurrentFrame.RotateFrame(ScreentopToDesktop.GetInverse());
 	}
+
+	if (LeapFrameTransformStats.Enabled)
+	{
+		LeapFrameTransformStats.ThisSampleCollectionComplete();
+	}
+
 	if (LastLeapTime == 0)
 		LastLeapTime = Leap->GetNow();
 	
@@ -1210,6 +1573,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		// pass through here (is it supposed to?)
 		if (HMDType == TEXT("SteamVR") || HMDType == TEXT("GearVR"))
 		{
+			// Remove for Jitter investigation ..
 			switch (InOptions.TrackingFidelity)
 			{
 				case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
@@ -1441,6 +1805,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
 }
+
 FLeapOptions FUltraleapDevice::GetOptions()
 {
 	return Options;
@@ -1450,10 +1815,45 @@ FLeapStats FUltraleapDevice::GetStats()
 {
 	return Stats;
 }
+
+FLeapFrameTransformStats FUltraleapDevice::GetLeapFrameTransformStats()
+{
+	return LeapFrameTransformStats;
+}
+
+FVector FUltraleapDevice::GetJointPositionToSample(FLeapHandData hand)
+{
+	// return hand.Palm.Position;
+	return hand.Middle.Metacarpal.PrevJoint;
+}
+
+FRotator FUltraleapDevice::GetJointRotationToSample(FLeapHandData hand)
+{
+	// return hand.Palm.Orientation;
+	return hand.Middle.Metacarpal.Rotation;
+}
+
 void FUltraleapDevice::OnDeviceDetach()
 {
 	ShutdownLeap();
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceDetach call from BodyState."));
+}
+
+void FUltraleapDevice::SetStatsRunOptions(StatsRunOptions options)
+{
+	// We don't set all the options, just the ones we specify for the sweep.
+	Options.bUseTimeWarp = options.Options.bUseTimeWarp;
+	Options.TimewarpFactor = options.Options.TimewarpFactor;
+	Options.TimewarpOffset = options.Options.TimewarpOffset;
+
+	Options.bUseInterpolation = options.Options.bUseInterpolation;
+	Options.FingerInterpFactor = options.Options.FingerInterpFactor;
+	Options.HandInterpFactor = options.Options.HandInterpFactor;
+
+	bFreezeFrameBeforeHeadPose = options.FreezeFrameBeforeHeadPose;
+
+	GEngine->AddOnScreenDebugMessage(
+		0, 60, FColor::Blue, FString::Printf(TEXT("Collecting stats for %s"), *options.RunName), true, FVector2D(2, 2));
 }
 
 #pragma endregion Leap Input Device

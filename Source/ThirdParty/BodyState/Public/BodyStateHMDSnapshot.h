@@ -31,6 +31,7 @@ struct BODYSTATE_API BodyStateHMDSnapshot
 {
 public:
 	double Timestamp;
+	double DeltaInterpolationSnapshotTimestamps;
 	FVector Position;
 	FQuat Orientation;
 

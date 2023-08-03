@@ -24,6 +24,8 @@
 #include "UltraleapTrackingData.h"
 #include "IUltraleapTrackingPlugin.h"
 
+// Jitter
+#include <FLeapFrameTransformStats.h>
 
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
 {
@@ -48,6 +50,14 @@ public:
 	virtual void GetLatestFrameData(FLeapFrameData& OutData,const bool ApplyDeviceOrigin = false) override;
 	FLeapOptions GetOptions() override;
 	FLeapStats GetStats() override;
+
+	// Jitter 
+	FLeapFrameTransformStats GetLeapFrameTransformStats();
+	bool bUseHeadPose = true;
+	bool bFreezeFrameAfterHeadPose = false;
+	bool bFreezeFrameBeforeHeadPose = false;
+	// /Jitter
+
 	virtual ELeapDeviceType GetDeviceType()
 	{
 		return DeviceType;
@@ -98,6 +108,24 @@ protected:
 	float DeltaTimeFromTick;
 
 private:
+
+	// Jitter
+	FLeapFrameTransformStats LeapFrameTransformStats;
+	void HandleStatsInput();
+	FVector GetJointPositionToSample(FLeapHandData hand);
+	FRotator GetJointRotationToSample(FLeapHandData hand);
+	void SetStatsRunOptions(StatsRunOptions options);
+
+	// Frame timing - Jitter
+	double RenderFrameRateInHz;
+	int64 RenderFrameTimeInMicros;
+
+	FRotator LockedFinalHMDRotation;
+	FVector LockedFinalHMDTranslation;
+
+	FLeapFrameData PreHeadPoseFrozenFrame;
+
+	// /Jitter
 	bool UseTimeBasedVisibilityCheck = false;
 	bool UseTimeBasedGestureCheck = false;
 	// Time Based Variables
@@ -164,6 +192,9 @@ private:
 	LeapUtilityTimer FrameTimer;
 	double GameTimeInSec;
 	int64 FrameTimeInMicros;
+	
+	
+	
 
 	// Game thread Data
 	

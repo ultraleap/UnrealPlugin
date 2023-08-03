@@ -75,6 +75,7 @@ BodyStateHMDSnapshot BodyStateHMDSnapshot::InterpolateWithOtherAtTimeStamp(BodyS
 		result.Position = Position * FactorThis + Other.Position * FactorOther;
 		result.Orientation = FQuat::Slerp(Orientation, Other.Orientation, FactorThis);
 		result.Timestamp = DesiredTimeStamp;
+		result.DeltaInterpolationSnapshotTimestamps = Timestamp - Other.Timestamp;
 		return result;
 	}
 	else

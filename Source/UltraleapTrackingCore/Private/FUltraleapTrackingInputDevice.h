@@ -94,8 +94,10 @@ public:
 	virtual int32 RequestCombinedDevice(
 		const TArray<FString>& DeviceSerials, const enum EBSDeviceCombinerClass CombinerClass) override;
 	virtual int32 GetDefaultDeviceID() override;
-
+	
 private:
+
+
 	// Private UProperties
 	
 	TArray<ULeapComponent*> EventDelegates;	   // delegate storage
