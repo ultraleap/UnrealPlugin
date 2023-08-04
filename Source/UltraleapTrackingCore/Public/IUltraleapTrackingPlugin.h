@@ -27,6 +27,7 @@ public:
 	virtual void GetLatestFrameData(FLeapFrameData& OutData, const bool ApplyDeviceOrigin  = false) = 0;
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) = 0;
 	virtual void SetOptions(const FLeapOptions& InOptions) = 0;
+	virtual void SetCustomOptions(const FLeapOptions& InOptions) = 0;
 	virtual FLeapOptions GetOptions() = 0;
 	virtual FLeapStats GetStats() = 0;
 	virtual ELeapDeviceType GetDeviceType() = 0;
@@ -199,6 +200,9 @@ public:
 
 	/** Set Leap Options such as time warp, interpolation and tracking modes */
 	virtual void SetOptions(const FLeapOptions& InOptions, const TArray<FString>& DeviceSerials){};
+
+	/** Set Leap Options such as time warp, interpolation and tracking modes */
+	virtual void SetCustomOptions(const FLeapOptions& InOptions){};
 
 	/** Get the currently set Leap Options */
 	virtual FLeapOptions GetOptions(const FString& DeviceSerial)

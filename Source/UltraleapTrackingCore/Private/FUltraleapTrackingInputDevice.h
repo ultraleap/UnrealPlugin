@@ -77,6 +77,7 @@ public:
 	FCriticalSection LeapSection;
 
 	void SetOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials);
+	void SetCustomOptions(const FLeapOptions& Options);
 	FLeapOptions GetOptions(const FString& DeviceSerial);
 	FLeapStats GetStats(const FString& DeviceSerial);
 	const TArray<FString>& GetAttachedDevices()

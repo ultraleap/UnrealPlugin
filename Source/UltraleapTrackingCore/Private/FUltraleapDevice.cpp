@@ -1441,6 +1441,10 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
 }
+void FUltraleapDevice::SetCustomOptions(const FLeapOptions& InOptions)
+{
+	Options = InOptions;
+}
 FLeapOptions FUltraleapDevice::GetOptions()
 {
 	return Options;

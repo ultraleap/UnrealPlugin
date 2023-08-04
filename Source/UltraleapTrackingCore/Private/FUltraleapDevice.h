@@ -81,6 +81,7 @@ public:
 	void ShutdownLeap();
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible) override;
 	virtual void SetOptions(const FLeapOptions& Options) override;
+	virtual void SetCustomOptions(const FLeapOptions& Options) override;
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);

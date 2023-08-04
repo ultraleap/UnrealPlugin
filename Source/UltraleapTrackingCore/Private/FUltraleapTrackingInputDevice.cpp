@@ -566,6 +566,32 @@ void FUltraleapTrackingInputDevice::SetOptions(const FLeapOptions& InOptions, co
 		Device->SetOptions(InOptions);
 	}
 }
+void FUltraleapTrackingInputDevice::SetCustomOptions(const FLeapOptions& InOptions)
+{
+	
+	// if setting global options, check for switch to OpenXR
+	// as in this case the fallback device will change
+	const bool OpenXRModeChanged = InOptions.bUseOpenXRAsSource != IsInOpenXRMode;
+
+	IsInOpenXRMode = InOptions.bUseOpenXRAsSource;
+
+	auto DeviceWrapper = GetFallbackDeviceWrapper();
+	if (DeviceWrapper)
+	{
+		auto Device = DeviceWrapper->GetDevice();
+		if (Device)
+		{
+			Device->SetCustomOptions(InOptions);
+		}
+	}
+	// notify as the default device has changed
+	// so bodystate needs to refresh which skeleton it's listening to
+	if (OpenXRModeChanged)
+	{
+		UBodyStateBPLibrary::OnDefaultDeviceChanged();
+	}
+	
+}
 FLeapOptions FUltraleapTrackingInputDevice::GetOptions(const FString& DeviceSerial)
 {
 	IHandTrackingDevice* Device = GetDeviceBySerial(DeviceSerial);
