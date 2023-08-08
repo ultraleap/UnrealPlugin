@@ -58,6 +58,11 @@ void ULeapBlueprintFunctionLibrary::SetLeapOptions(const FLeapOptions& InOptions
 	IUltraleapTrackingPlugin::Get().SetOptions(InOptions, DeviceSerials);
 }
 
+void ULeapBlueprintFunctionLibrary::SetCustomLeapOptions(const FLeapOptions& InOptions)
+{
+	IUltraleapTrackingPlugin::Get().SetCustomOptions(InOptions);
+}
+
 void ULeapBlueprintFunctionLibrary::GetLeapOptions(FLeapOptions& OutOptions, const FString& DeviceSerial)
 {
 	OutOptions = IUltraleapTrackingPlugin::Get().GetOptions(DeviceSerial);

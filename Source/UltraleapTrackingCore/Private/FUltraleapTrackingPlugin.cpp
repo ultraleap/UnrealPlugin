@@ -112,6 +112,14 @@ void FUltraleapTrackingPlugin::SetOptions(const FLeapOptions& Options, const TAr
 	}
 }
 
+void FUltraleapTrackingPlugin::SetCustomOptions(const FLeapOptions& Options)
+{
+	if (bActive)
+	{
+		LeapInputDevice->SetCustomOptions(Options);
+	}
+}
+
 FLeapOptions FUltraleapTrackingPlugin::GetOptions(const FString& DeviceSerial)
 {
 	if (bActive)

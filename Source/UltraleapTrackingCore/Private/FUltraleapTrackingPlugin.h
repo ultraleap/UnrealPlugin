@@ -26,6 +26,7 @@ public:
 	virtual void RemoveEventDelegate(const ULeapComponent* EventDelegate) override;
 	virtual FLeapStats GetLeapStats(const FString& DeviceSerial) override;
 	virtual void SetOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials) override;
+	virtual void SetCustomOptions(const FLeapOptions& Options) override;
 	virtual FLeapOptions GetOptions(const FString& DeviceSerial) override;
 	virtual void AreHandsVisible(bool& LeftHandIsVisible, bool& RightHandIsVisible, const FString& DeviceSerial) override;
 	virtual void GetLatestFrameData(FLeapFrameData& OutData,const FString& DeviceSerial) override;

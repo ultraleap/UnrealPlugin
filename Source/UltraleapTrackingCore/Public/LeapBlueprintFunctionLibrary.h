@@ -29,6 +29,10 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
 	static void SetLeapOptions(const FLeapOptions& Options, const TArray<FString>& DeviceSerials);
 
+	/** Set global leap options */
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void SetCustomLeapOptions(const FLeapOptions& Options);
+
 	/** Gets currently set global options */
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerial"))
 	static void GetLeapOptions(FLeapOptions& OutOptions, const FString& DeviceSerial);
