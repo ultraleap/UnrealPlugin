@@ -25,7 +25,7 @@
 #include "IUltraleapTrackingPlugin.h"
 
 // Jitter
-#include <FLeapFrameTransformStats.h>
+#include <ULeapFrameTransformStats.h>
 
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
 {
@@ -52,7 +52,12 @@ public:
 	FLeapStats GetStats() override;
 
 	// Jitter 
-	FLeapFrameTransformStats GetLeapFrameTransformStats();
+	UFUNCTION(BlueprintCallable)
+	ULeapFrameTransformStats* GetLeapFrameTransformStats();
+
+	UPROPERTY()
+	ULeapFrameTransformStats* LeapFrameTransformStats;
+
 	bool bUseHeadPose = true;
 	bool bFreezeFrameAfterHeadPose = false;
 	bool bFreezeFrameBeforeHeadPose = false;
@@ -109,12 +114,12 @@ protected:
 
 private:
 
-	// Jitter
-	FLeapFrameTransformStats LeapFrameTransformStats;
+	
+
 	void HandleStatsInput();
 	FVector GetJointPositionToSample(FLeapHandData hand);
 	FRotator GetJointRotationToSample(FLeapHandData hand);
-	void SetStatsRunOptions(StatsRunOptions options);
+	void SetStatsRunOptions(FStatsRunOptions options);
 
 	// Frame timing - Jitter
 	double RenderFrameRateInHz;

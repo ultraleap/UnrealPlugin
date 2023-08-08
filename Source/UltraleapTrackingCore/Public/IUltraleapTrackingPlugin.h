@@ -10,6 +10,7 @@
 
 #include "IInputDeviceModule.h"
 #include "UltraleapTrackingData.h"
+#include "ULeapFrameTransformStats.h"
 
 class ULeapComponent;
 
@@ -36,6 +37,7 @@ public:
 	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) = 0;
 	virtual void GetDebugInfo(int32& NumCombinedLeft, int32& NumCombinedRight) = 0;
 	virtual int32 GetBodyStateDeviceID() = 0;
+	virtual ULeapFrameTransformStats* GetLeapFrameTransformStats() = 0;
 };
 class ITrackingDeviceWrapper
 {

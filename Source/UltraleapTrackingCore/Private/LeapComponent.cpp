@@ -44,6 +44,21 @@ void ULeapComponent::SetShouldAddHmdOrigin(bool& bShouldAdd)
 	// this needs to propagate to all other components with same id
 }
 
+ULeapFrameTransformStats* ULeapComponent::GetLeapFrameTransformStats()
+{
+	
+    if (CurrentHandTrackingDevice)
+	{
+		IHandTrackingDevice* Device = CurrentHandTrackingDevice->GetDevice();
+		if (Device)
+		{
+			return Device->GetLeapFrameTransformStats();
+		}
+	}
+
+	return nullptr;
+}
+
 void ULeapComponent::AreHandsVisible(bool& LeftIsVisible, bool& RightIsVisible)
 {
 	if (CurrentHandTrackingDevice)

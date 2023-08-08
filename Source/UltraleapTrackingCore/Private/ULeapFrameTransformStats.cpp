@@ -1,11 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "FLeapFrameTransformStats.h"
+#include "ULeapFrameTransformStats.h"
 
 DEFINE_LOG_CATEGORY(LeapTransformStats);
 
-FLeapFrameTransformStats::FLeapFrameTransformStats()
+ULeapFrameTransformStats::ULeapFrameTransformStats()
 {
 	//// Set up our stats runs
 	//StatsRunOptions lowLatencyStatsRun;
@@ -18,7 +16,7 @@ FLeapFrameTransformStats::FLeapFrameTransformStats()
 	//lowLatencyStatsRun.Options.FingerInterpFactor = 0.5f;
 	//StatsSweepRunDetails.Add(lowLatencyStatsRun);
 
-	StatsRunOptions normalStatsRun;
+	FStatsRunOptions normalStatsRun;
 	normalStatsRun.RunName = "Normal";
 	normalStatsRun.FreezeFrameBeforeHeadPose = false;
 	normalStatsRun.Options.bUseTimeWarp = true;
@@ -29,7 +27,7 @@ FLeapFrameTransformStats::FLeapFrameTransformStats()
 	normalStatsRun.Options.FingerInterpFactor = 0.f;
 	StatsSweepRunDetails.Add(normalStatsRun);
 
-	StatsRunOptions normalStatsRun2;
+	FStatsRunOptions normalStatsRun2;
 	normalStatsRun2.RunName = "Normal Pre Head Pose Frozen Hands";
 	normalStatsRun2.FreezeFrameBeforeHeadPose = true;
 	normalStatsRun2.Options.bUseTimeWarp = true;
@@ -77,11 +75,11 @@ FLeapFrameTransformStats::FLeapFrameTransformStats()
 	UE_LOG(LeapTransformStats, Log, TEXT("Setup %d stats runs"), StatsSweepRunDetails.Num());
 }
 
-FLeapFrameTransformStats::~FLeapFrameTransformStats()
+ULeapFrameTransformStats::~ULeapFrameTransformStats()
 {
 }
 
-void FLeapFrameTransformStats::AddLeapFrameTransformSample(int frameID, LeapFrameTransformSample newSample)
+void ULeapFrameTransformStats::AddLeapFrameTransformSample(int frameID, FLeapFrameTransformSample newSample)
 {
 	if (IsCurrentStatsRunActive)
 	{
@@ -94,7 +92,7 @@ void FLeapFrameTransformStats::AddLeapFrameTransformSample(int frameID, LeapFram
 /// <summary>
 /// Current sample has had all data committed
 /// </summary>
-void FLeapFrameTransformStats::ThisSampleCollectionComplete()
+void ULeapFrameTransformStats::ThisSampleCollectionComplete()
 {
 	if (IsCurrentStatsRunActive)
 	{
@@ -119,12 +117,12 @@ void FLeapFrameTransformStats::ThisSampleCollectionComplete()
 	}
 }
 
-LeapFrameTransformSample& FLeapFrameTransformStats::GetCurrentSample()
+FLeapFrameTransformSample& ULeapFrameTransformStats::GetCurrentSample()
 {
 	return Samples[CurrentIndex];
 }
 
-void FLeapFrameTransformStats::LogLiveStats()
+void ULeapFrameTransformStats::LogLiveStats()
 {
 	if (haveData && logLiveStats)
 	{
@@ -227,7 +225,7 @@ void FLeapFrameTransformStats::LogLiveStats()
 	}
 }
 
-float FLeapFrameTransformStats::GetPositionDeltaMagnitude(FrameDeltaType frameType)
+float ULeapFrameTransformStats::GetPositionDeltaMagnitude(FrameDeltaType frameType)
 {
 	switch (frameType)
 	{
@@ -261,7 +259,7 @@ float FLeapFrameTransformStats::GetPositionDeltaMagnitude(FrameDeltaType frameTy
 	}
 }
 
-FVector FLeapFrameTransformStats::GetCurrentPositionRelativeToRollingAverage(FrameType frameType, int32 sampleSize)
+FVector ULeapFrameTransformStats::GetCurrentPositionRelativeToRollingAverage(FrameType frameType, int32 sampleSize)
 {
 	FVector rollingAverage = GetRollingAverage(frameType, sampleSize);
 
@@ -286,13 +284,13 @@ FVector FLeapFrameTransformStats::GetCurrentPositionRelativeToRollingAverage(Fra
 	return FVector();
 }
 
-float FLeapFrameTransformStats::GetDelta(FrameType frameType)
+float ULeapFrameTransformStats::GetDelta(FrameType frameType)
 {
 	return GetDelta(frameType, CurrentIndex);
 }
 
 
-float FLeapFrameTransformStats::GetDelta(FrameType frameType, int index)
+float ULeapFrameTransformStats::GetDelta(FrameType frameType, int index)
 {
 	FVector sampleNow, samplePrevious;
 	
@@ -325,7 +323,7 @@ float FLeapFrameTransformStats::GetDelta(FrameType frameType, int index)
 	return (sampleNow - samplePrevious).Size();
 }
 
-FColor FLeapFrameTransformStats::ColourBasedOnDelta(float deltaAsPercentOfMaxDelta)
+FColor ULeapFrameTransformStats::ColourBasedOnDelta(float deltaAsPercentOfMaxDelta)
 {
 	if (deltaAsPercentOfMaxDelta < 50)
 	{
@@ -343,7 +341,7 @@ FColor FLeapFrameTransformStats::ColourBasedOnDelta(float deltaAsPercentOfMaxDel
 	return FColor::White;
 }
 
-StatsRunOptions FLeapFrameTransformStats::StartNextStatsRun()
+FStatsRunOptions ULeapFrameTransformStats::StartNextStatsRun()
 {
 	if (StatsSweepIndex+1 < StatsSweepRunDetails.Num())
 	{
@@ -361,13 +359,13 @@ StatsRunOptions FLeapFrameTransformStats::StartNextStatsRun()
 		StatsSweepIndex = 0;
 		IsCurrentStatsRunActive = false;
 		IsStatsSweepComplete = true;
-		StatsRunOptions default;
-		default.RunName = "Default";
-		return default;
+		FStatsRunOptions defaultOptions;
+		defaultOptions.RunName = "Default";
+		return defaultOptions;
 	}
 }
 
-float FLeapFrameTransformStats::GetDeltaAsPercent(FrameType frameType, int32 sampleSize)
+float ULeapFrameTransformStats::GetDeltaAsPercent(FrameType frameType, int32 sampleSize)
 {
 	FVector sampleNow, samplePrevious;
 	FMath hlpr;
@@ -411,7 +409,7 @@ float FLeapFrameTransformStats::GetDeltaAsPercent(FrameType frameType, int32 sam
 }
 
 
-float FLeapFrameTransformStats::GetStandardDeviation(FrameType frameType, int32 sampleSize)
+float ULeapFrameTransformStats::GetStandardDeviation(FrameType frameType, int32 sampleSize)
 {
 	FVector rollingAverage = GetRollingAverage(frameType, sampleSize);
 	FVector samplePosition;
@@ -449,7 +447,7 @@ float FLeapFrameTransformStats::GetStandardDeviation(FrameType frameType, int32 
 	return hlpr.Sqrt(sum / sampleSize);
 }
 
-FVector FLeapFrameTransformStats::GetRollingAverage(FrameType frameType, int32 sampleSize)
+FVector ULeapFrameTransformStats::GetRollingAverage(FrameType frameType, int32 sampleSize)
 {
 	double x = 0, y = 0, z = 0;
 	FVector samplePosition;
@@ -486,7 +484,7 @@ FVector FLeapFrameTransformStats::GetRollingAverage(FrameType frameType, int32 s
 	return FVector((float)x / (float) sampleSize, (float)y / (float)sampleSize, (float)z / (float)sampleSize);
 }
 
-void FLeapFrameTransformStats::CalculateSummaryStats(SummaryStatsType forStage)
+void ULeapFrameTransformStats::CalculateSummaryStats(SummaryStatsType forStage)
 {
 	FMath hlpr;
 	float maxDeviation = 0.0;
@@ -559,7 +557,7 @@ void FLeapFrameTransformStats::CalculateSummaryStats(SummaryStatsType forStage)
 
 }
 
-float FLeapFrameTransformStats::GetSummaryStatsDelta(SummaryStatsType forStage, int32 index, FVector averagePosition)
+float ULeapFrameTransformStats::GetSummaryStatsDelta(SummaryStatsType forStage, int32 index, FVector averagePosition)
 {
 	switch (forStage)
 	{
@@ -591,7 +589,7 @@ float FLeapFrameTransformStats::GetSummaryStatsDelta(SummaryStatsType forStage, 
 	return 0;
 }
 
-FVector  FLeapFrameTransformStats::GetAveragePosition(SummaryStatsType forStage)
+FVector  ULeapFrameTransformStats::GetAveragePosition(SummaryStatsType forStage)
 {
 	switch (forStage)
 	{
@@ -621,7 +619,7 @@ FVector  FLeapFrameTransformStats::GetAveragePosition(SummaryStatsType forStage)
 	}
 }
 
-StatsRunOptions FLeapFrameTransformStats::StartStatsSweep(bool logLiveStatistics)
+FStatsRunOptions ULeapFrameTransformStats::StartStatsSweep(bool logLiveStatistics)
 {
 	if (IsCurrentStatsRunActive == false && IsStatsSweepComplete == true)
 	{
@@ -636,7 +634,7 @@ StatsRunOptions FLeapFrameTransformStats::StartStatsSweep(bool logLiveStatistics
 	return StatsSweepRunDetails[StatsSweepIndex];
 }
 
-LeapFrameTransformSample& FLeapFrameTransformStats::GetPreviousSample()
+FLeapFrameTransformSample& ULeapFrameTransformStats::GetPreviousSample()
 {
 	if (CurrentIndex < 1 && haveData)
 	{
@@ -648,7 +646,7 @@ LeapFrameTransformSample& FLeapFrameTransformStats::GetPreviousSample()
 	}
 }
 
-LeapFrameTransformSample& FLeapFrameTransformStats::GetSample(int index)
+FLeapFrameTransformSample& ULeapFrameTransformStats::GetSample(int index)
 {
 	FMath hlpr;
 	int index2 = (hlpr.Abs(index) % (MAX_FRAME_DATA_ENTRIES - 1));

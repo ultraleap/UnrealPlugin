@@ -12,6 +12,7 @@
 #include "LeapWrapper.h"
 #include "UltraleapTrackingData.h"
 #include "IUltraleapTrackingPlugin.h"
+#include "ULeapFrameTransformStats.h"
 
 #if WITH_EDITOR
 #include "DetailLayoutBuilder.h"
@@ -31,8 +32,10 @@ UCLASS(ClassGroup = "Input Controller", meta = (BlueprintSpawnableComponent))
 
 class ULTRALEAPTRACKING_API ULeapComponent : public UActorComponent, public ILeapConnectorCallbacks
 {
-	GENERATED_UCLASS_BODY()
 public:
+	GENERATED_UCLASS_BODY()
+
+
 	~ULeapComponent();
 
 	/** Called when a device connects to the leap service, this may happen before the game starts and you may not get the call*/
@@ -107,6 +110,9 @@ public:
 	// By default in vr mode the first/primary device has this set to true
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Leap Properties")
 	bool bAddHmdOrigin;
+
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	ULeapFrameTransformStats* GetLeapFrameTransformStats();
 
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetShouldAddHmdOrigin(bool& bShouldAdd);

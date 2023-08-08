@@ -257,6 +257,7 @@ FUltraleapDevice::FUltraleapDevice(
 	: 
 	Leap(LeapDeviceWrapper), TrackingDeviceWrapper(TrackingDeviceWrapperIn)
 {
+	LeapFrameTransformStats = NewObject<ULeapFrameTransformStats>(); 
 	// Link callbacks
 
 	// Open the connection
@@ -389,7 +390,7 @@ void FUltraleapDevice::HandleStatsInput()
 		FString interpolationState;
 
 		// Can't override the settings during a stats run
-		if (LeapFrameTransformStats.IsStatsSweepComplete == true)
+		if (LeapFrameTransformStats->IsStatsSweepComplete == true)
 		{
 			// Affects interpolation
 			/*if (FSlateApplication::Get().GetModifierKeys().IsLeftShiftDown())
@@ -461,24 +462,25 @@ void FUltraleapDevice::HandleStatsInput()
 
 		if (FSlateApplication::Get().GetModifierKeys().IsLeftAltDown())
 		{
-			SetStatsRunOptions(LeapFrameTransformStats.StartStatsSweep(true));
+			SetStatsRunOptions(LeapFrameTransformStats->StartStatsSweep(true));
 		}
 
-		if (LeapFrameTransformStats.IsStatsSweepComplete == false && LeapFrameTransformStats.IsCurrentStatsRunActive == false)
+		if (LeapFrameTransformStats->IsStatsSweepComplete == false && LeapFrameTransformStats->IsCurrentStatsRunActive == false)
 		{
-			SetStatsRunOptions(LeapFrameTransformStats.StartNextStatsRun());
+			SetStatsRunOptions(LeapFrameTransformStats->StartNextStatsRun());
 		}
 
-		if (LeapFrameTransformStats.IsStatsSweepComplete)
+		if (LeapFrameTransformStats->IsStatsSweepComplete)
 		{
 			GEngine->AddOnScreenDebugMessage(
 				0, 1.0f, FColor::Blue, FString::Printf(TEXT("Not collecting stats")), true, FVector2D(2, 2));
 		}
 
-		// GEngine->AddOnScreenDebugMessage(4, 60.0f, FColor::Blue, FString::Printf(TEXT("> %s   %s   %s"), *interpolationState,
-		// *headPoseState, *timeWarpState), true, FVector2D(2, 2));
-		GEngine->AddOnScreenDebugMessage(
-			4, 60.0f, FColor::Blue, FString::Printf(TEXT("> %s "), *timeWarpState), true, FVector2D(2, 2));
+		GEngine->AddOnScreenDebugMessage(4, 60.0f, FColor::Blue, FString::Printf(TEXT("> %s   %s   %s"), *interpolationState,
+		 *headPoseState, *timeWarpState), true, FVector2D(2, 2));
+
+		//GEngine->AddOnScreenDebugMessage(
+		//	4, 60.0f, FColor::Blue, FString::Printf(TEXT("> %s "), *timeWarpState), true, FVector2D(2, 2));
 	}
 }
 	// Main loop event emitter
@@ -541,7 +543,7 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			FString::Printf(TEXT("Render Frame Rate: %f Hands Frame Rate %f"), GAverageFPS, Frame->framerate), true,
 			FVector2D(2, 2));
 		
-		LeapFrameTransformSample newSample;
+		FLeapFrameTransformSample newSample;
 		//*****************************************************************************************
 		// Sampling ....
 		if (Frame->nHands > 0)
@@ -549,10 +551,10 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			// Temp
 			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
 
-			if (LeapFrameTransformStats.Enabled)
+			if (LeapFrameTransformStats->Enabled)
 			{
-				LeapFrameTransformStats.UseInterpolation = Options.bUseInterpolation;
-				LeapFrameTransformStats.UseTimewarp = Options.bUseTimeWarp;
+				LeapFrameTransformStats->UseInterpolation = Options.bUseInterpolation;
+				LeapFrameTransformStats->UseTimewarp = Options.bUseTimeWarp;
 
 				newSample.HandTrackingFrameRate = CurrentFrame.FrameRate;
 				newSample.RenderFrameTimeInMicros = RenderFrameTimeInMicros;
@@ -635,7 +637,7 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			}
 
 			// Jitter ...
-			if (Frame->nHands > 0 && LeapFrameTransformStats.Enabled && LeapFrameTransformStats.InterpolationCollectionEnabled)
+			if (Frame->nHands > 0 && LeapFrameTransformStats->Enabled && LeapFrameTransformStats->InterpolationCollectionEnabled)
 			{
 				newSample.InterpolatedFrame.TimeStamp = CurrentFrame.TimeStamp;
 
@@ -689,7 +691,7 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 				//*****************************************************************************************
 			}
 
-			LeapFrameTransformStats.AddLeapFrameTransformSample(CurrentFrame.FrameId, newSample);
+			LeapFrameTransformStats->AddLeapFrameTransformSample(CurrentFrame.FrameId, newSample);
 
 			// Track our extrapolation time in stats
 			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
@@ -697,7 +699,7 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 		else
 		{
 			// Jitter ...
-			LeapFrameTransformStats.AddLeapFrameTransformSample(CurrentFrame.FrameId, newSample);
+			LeapFrameTransformStats->AddLeapFrameTransformSample(CurrentFrame.FrameId, newSample);
 			// /Jitter
 
 			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
@@ -725,7 +727,7 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 void FUltraleapDevice::ParseEvents()
 {
 	// Jitter
-	LeapFrameTransformSample& newSample = LeapFrameTransformStats.GetCurrentSample();
+	FLeapFrameTransformSample& newSample = LeapFrameTransformStats->GetCurrentSample();
 
 	newSample.TimeWarpOn = Options.bUseTimeWarp;
 	newSample.TimeWarpFactor = Options.TimewarpFactor;
@@ -828,7 +830,7 @@ void FUltraleapDevice::ParseEvents()
 			CurrentFrame = PastFrame;
 		}
 
-		if (CurrentFrame.NumberOfHandsVisible > 0 && LeapFrameTransformStats.Enabled)
+		if (CurrentFrame.NumberOfHandsVisible > 0 && LeapFrameTransformStats->Enabled)
 		{
 			newSample.FinalHMDTranslation = FinalHMDTranslation;
 			newSample.TimeWarpTranslatedFrame.TimeStamp = CurrentFrame.TimeStamp;
@@ -844,11 +846,10 @@ void FUltraleapDevice::ParseEvents()
 
 				if (GEngine)
 				{
-					// GEngine->AddOnScreenDebugMessage(5, 5.0f, FColor::Red, FString::Printf(TEXT("Tracking Frame ID: %d"),
-					// CurrentFrame.FrameId), true, FVector2D(2, 2)); GEngine->AddOnScreenDebugMessage(6, 5.0f, FColor::Green,
-					// FString::Printf(TEXT("W: %s %f"),
-					// *GetJointPositionToSample(CurrentFrame.Hands[newSample.LeftHandId]).ToString(),
-					// LeapFrameTransformStats.GetDeltaAsPercent(SIXDOF, 45)), true, FVector2D(2, 2));
+					GEngine->AddOnScreenDebugMessage(5, 5.0f, FColor::Red, FString::Printf(TEXT("Tracking Frame ID: %d"),
+				    CurrentFrame.FrameId), true, FVector2D(2, 2)); GEngine->AddOnScreenDebugMessage(6, 5.0f, FColor::Green,
+					FString::Printf(TEXT("W: %s %f"), *GetJointPositionToSample(CurrentFrame.Hands[newSample.LeftHandId]).ToString(),
+					 LeapFrameTransformStats->GetDeltaAsPercent(SIXDOF, 45)), true, FVector2D(2, 2));
 				}
 			}
 
@@ -875,9 +876,9 @@ void FUltraleapDevice::ParseEvents()
 		CurrentFrame.RotateFrame(ScreentopToDesktop.GetInverse());
 	}
 
-	if (LeapFrameTransformStats.Enabled)
+	if (LeapFrameTransformStats->Enabled)
 	{
-		LeapFrameTransformStats.ThisSampleCollectionComplete();
+		LeapFrameTransformStats->ThisSampleCollectionComplete();
 	}
 
 	if (LastLeapTime == 0)
@@ -1816,7 +1817,7 @@ FLeapStats FUltraleapDevice::GetStats()
 	return Stats;
 }
 
-FLeapFrameTransformStats FUltraleapDevice::GetLeapFrameTransformStats()
+ULeapFrameTransformStats* FUltraleapDevice::GetLeapFrameTransformStats()
 {
 	return LeapFrameTransformStats;
 }
@@ -1839,7 +1840,7 @@ void FUltraleapDevice::OnDeviceDetach()
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("OnDeviceDetach call from BodyState."));
 }
 
-void FUltraleapDevice::SetStatsRunOptions(StatsRunOptions options)
+void FUltraleapDevice::SetStatsRunOptions(FStatsRunOptions options)
 {
 	// We don't set all the options, just the ones we specify for the sweep.
 	Options.bUseTimeWarp = options.Options.bUseTimeWarp;

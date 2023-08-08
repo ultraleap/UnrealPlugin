@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UltraleapTrackingData.h"
-
-const int32 MAX_FRAME_DATA_ENTRIES = 1000;
+#include "ULeapFrameTransformStats.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LeapTransformStats, Log, All);
 
+const int32 MAX_FRAME_DATA_ENTRIES = 1000;
+
+UENUM(BlueprintType)
 enum FrameDeltaType
 {
 	OriginalToSelf,
@@ -19,6 +21,7 @@ enum FrameDeltaType
 	WarpedToOriginal
 };
 
+UENUM(BlueprintType)
 enum FrameType
 {
 	Original,
@@ -27,6 +30,7 @@ enum FrameType
 	SIXDOF
 };
 
+UENUM(BlueprintType)
 enum SummaryStatsType
 {
 	InterpolationStage,
@@ -34,9 +38,13 @@ enum SummaryStatsType
 	TimeWarpCorrectionStage
 };
 
-struct TransformSample
+USTRUCT(BlueprintType)
+struct FTransformSample
 {
 public:
+	GENERATED_USTRUCT_BODY()
+
+
 	double TimeStamp;
 	double maxDelta = 0;
 	FVector Position_Left;
@@ -45,9 +53,13 @@ public:
 	FRotator Rotation_Right;
 };
 
-struct LeapFrameTransformSample
+USTRUCT(BlueprintType)
+struct FLeapFrameTransformSample
 {
 public:
+	GENERATED_USTRUCT_BODY()
+
+
 	int LeftHandId = -1;
 	int RightHandId = -1;
 
@@ -61,12 +73,12 @@ public:
 	float AverageRenderFPS;
 	float AverageRenderMS;
 	int FrameID;
-	TransformSample OriginalFrame;      // 1
-	TransformSample InterpolatedFrame;  // 2 - if on
+	FTransformSample OriginalFrame;      // 1
+	FTransformSample InterpolatedFrame;  // 2 - if on
 	float FrameExtrapolationInMS;
-	TransformSample SixDOF; // 3
-	TransformSample SixDOFTranslatedFame; // 3
-	TransformSample TimeWarpTranslatedFrame; // 4 - if on
+	FTransformSample SixDOF; // 3
+	FTransformSample SixDOFTranslatedFame; // 3
+	FTransformSample TimeWarpTranslatedFrame; // 4 - if on
 	bool FreezeFrameBeforeHeadPose;
 	
 	double TimeWarpTimeStamp;
@@ -86,9 +98,12 @@ public:
 	FRotator FinalHMDRotation;
 };
 
-struct StatsRunOptions
+USTRUCT(BlueprintType)
+struct FStatsRunOptions
 {
 public:
+	GENERATED_USTRUCT_BODY()
+
 	FString RunName = "";
 	bool FreezeFrameBeforeHeadPose;
 	FLeapOptions Options;
@@ -97,39 +112,46 @@ public:
 /**
  * 
  */
-class FLeapFrameTransformStats
+UCLASS(BlueprintType, Blueprintable)
+class ULeapFrameTransformStats : public UObject
 {
 public:
-	void AddLeapFrameTransformSample(int frameID, LeapFrameTransformSample newSample);
-	LeapFrameTransformSample& GetCurrentSample();
+	GENERATED_BODY()
 
-public:
-	FLeapFrameTransformStats();
-	~FLeapFrameTransformStats();
+	ULeapFrameTransformStats();
+	~ULeapFrameTransformStats();
 
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	bool UseTimewarp;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	bool UseInterpolation;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+	TArray<FStatsRunOptions> StatsSweepRunDetails; 
 
-	StatsRunOptions StartStatsSweep(bool logLiveStatistics);
+	UFUNCTION(BlueprintCallable, Category = "Stats|Capture")
+	FStatsRunOptions StartStatsSweep(bool logLiveStatistics);
 
-	LeapFrameTransformSample& GetPreviousSample();
-	LeapFrameTransformSample& GetSample(int index);
+	FLeapFrameTransformSample& GetPreviousSample();
+	FLeapFrameTransformSample& GetSample(int index);
 	float GetDeltaAsPercent(FrameType frameType, int32 sampleSize);
 	float GetDelta(FrameType frameType);
 	float GetDelta(FrameType frameType, int Index);
 	FColor ColourBasedOnDelta(float deltaAsPercentOfMaxDelta);
-	StatsRunOptions StartNextStatsRun();
+	FStatsRunOptions StartNextStatsRun();
+	void AddLeapFrameTransformSample(int frameID, FLeapFrameTransformSample newSample);
+	FLeapFrameTransformSample& GetCurrentSample();
+
 	bool IsCurrentStatsRunActive = false;
 	bool IsStatsSweepComplete = true;
 	int StatsSweepIndex = 0;
-	TArray<StatsRunOptions> StatsSweepRunDetails; 
+
 	void ThisSampleCollectionComplete();
 	
 	const bool Enabled = true;
 	const bool InterpolationCollectionEnabled = false;
 
 private:
-	LeapFrameTransformSample Samples[MAX_FRAME_DATA_ENTRIES];
+	FLeapFrameTransformSample Samples[MAX_FRAME_DATA_ENTRIES];
 	int CurrentIndex = 0;
 	void LogLiveStats();
 
