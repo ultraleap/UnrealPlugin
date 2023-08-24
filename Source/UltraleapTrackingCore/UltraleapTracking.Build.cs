@@ -174,36 +174,28 @@ namespace UnrealBuildTool.Rules
 				//Lib
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
-                if (!Target.bBuildEditor)
+				//System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+
+				if (IsEnginePlugin())
 				{
 					PublicDelayLoadDLLs.Add("LeapC.dll");
+					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
 				}
-				RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"), Path.Combine(LibraryPath, PlatformString, "LeapC.dll"));
-                RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll.manifest"), Path.Combine(LibraryPath, PlatformString, "LeapC.dll.manifest"));
+				//Engine plugin, just add the dependency path
+				else
+				{
+					//DLL
+					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
+				
+					System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
 
-                
-                //System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
-
-                //            if (IsEnginePlugin())
-                //{
-                //	PublicDelayLoadDLLs.Add("LeapC.dll");
-                //	RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
-                //}
-                ////Engine plugin, just add the dependency path
-                //else
-                //{
-                //	//DLL
-                //	string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
-
-                //	System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
-
-                //	RuntimeDependencies.Add(PluginDLLPath);
-                //	if (!Target.bBuildEditor)
-                //	{
-                //		PublicDelayLoadDLLs.Add("LeapC.dll");
-                //	}
-                //}
-            }
+					RuntimeDependencies.Add(PluginDLLPath);
+					if (!Target.bBuildEditor)
+					{
+						PublicDelayLoadDLLs.Add("LeapC.dll");
+					}
+				}
+			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
 				IsLibrarySupported = true;	
