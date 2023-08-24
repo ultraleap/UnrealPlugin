@@ -160,8 +160,20 @@ namespace UnrealBuildTool.Rules
 			return DLLString.GetHashCode() + DLLString.Length;	//ensure both hash and file lengths match
 		}
 
+        private void CopyToBinaries(string Filepath)
+        {
+            string binariesDir = Path.Combine(BinariesPath, Target.Platform.ToString());
+            string filename = Path.GetFileName(Filepath);
 
-		public bool LoadLeapLib(ReadOnlyTargetRules Target)
+            if (!Directory.Exists(binariesDir))
+                Directory.CreateDirectory(binariesDir);
+
+            if (!File.Exists(Path.Combine(binariesDir, filename)))
+                File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
+        }
+
+
+        public bool LoadLeapLib(ReadOnlyTargetRules Target)
 		{
 			bool IsLibrarySupported = false;
 
@@ -171,12 +183,17 @@ namespace UnrealBuildTool.Rules
 
 				string PlatformString = Target.Platform.ToString();
 
-				//Lib
-				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+				string DLLFilePath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll");
+                string DLLManifestFilePath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll.manifest");
 
-				//System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+                //Lib
+                PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+				CopyToBinaries(DLLFilePath);
+                CopyToBinaries(DLLManifestFilePath);
 
-				if (IsEnginePlugin())
+                //System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+
+                if (IsEnginePlugin())
 				{
 					PublicDelayLoadDLLs.Add("LeapC.dll");
 					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
