@@ -160,19 +160,6 @@ namespace UnrealBuildTool.Rules
 			return DLLString.GetHashCode() + DLLString.Length;	//ensure both hash and file lengths match
 		}
 
-        private void CopyToBinaries(string Filepath)
-        {
-            string binariesDir = Path.Combine(BinariesPath, Target.Platform.ToString());
-            string filename = Path.GetFileName(Filepath);
-
-            if (!Directory.Exists(binariesDir))
-                Directory.CreateDirectory(binariesDir);
-
-            if (!File.Exists(Path.Combine(binariesDir, filename)))
-                File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
-        }
-
-
         public bool LoadLeapLib(ReadOnlyTargetRules Target)
 		{
 			bool IsLibrarySupported = false;
