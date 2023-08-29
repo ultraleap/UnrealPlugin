@@ -199,9 +199,9 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				IsLibrarySupported = true;	
-                Setlib("Mac", "libLeapC.5.dylib");
-                Setlib("Mac", "libLeapC.5_intel.dylib");
+				//IsLibrarySupported = true;	
+                //Setlib("Mac", "libLeapC.5.dylib");
+                //Setlib("Mac", "libLeapC.5_intel.dylib");
             }
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
