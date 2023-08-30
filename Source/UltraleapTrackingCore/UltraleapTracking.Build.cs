@@ -144,7 +144,7 @@ namespace UnrealBuildTool.Rules
 				}
 				);
 
-            PublicIncludePathModuleNames.Add("Launch");
+            PublicIncludePathModuleNames.AddRange(new string[] { "Launch" });
 
             LoadLeapLib(Target);
 		}
