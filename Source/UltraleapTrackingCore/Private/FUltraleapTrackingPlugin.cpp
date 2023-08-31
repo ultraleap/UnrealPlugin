@@ -187,7 +187,7 @@ void* FUltraleapTrackingPlugin::GetLeapHandle()
 	if (Plugin != nullptr)
 	{
 		FString BaseDir = Plugin->GetBaseDir();
-		LeapCLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/Win64/LeapC.dll"));
+		LeapCLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/LeapSDK/Lib/Win64/LeapC.dll"));
 
 		NewLeapDLLHandle = !LeapCLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*LeapCLibraryPath) : nullptr;
 	}

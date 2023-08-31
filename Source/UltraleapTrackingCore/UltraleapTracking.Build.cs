@@ -183,31 +183,32 @@ namespace UnrealBuildTool.Rules
 
 				string PlatformString = Target.Platform.ToString();
 
-				string DLLFilePath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll");
-                string DLLManifestFilePath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll.manifest");
-
+                string ThirdPartyDllPath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll");
+                string ThirdPartyDllManifPath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll.manifest");
+                string BinDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
+                string BinDLLManifPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll.manifest");
+                //Lib
+                PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+                //System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+                // Copy third party DLLs to the BinariesPath 
+                RuntimeDependencies.Add(BinDLLPath, ThirdPartyDllPath);
+                RuntimeDependencies.Add(BinDLLManifPath, ThirdPartyDllManifPath);
                 //Lib
                 PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
-				CopyToBinaries(DLLFilePath);
-                CopyToBinaries(DLLManifestFilePath);
+				// This will copy dlls if not copied already
+				CopyToBinaries(ThirdPartyDllPath);
+                CopyToBinaries(ThirdPartyDllManifPath);
 
                 //System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
                 if (IsEnginePlugin())
 				{
 					PublicDelayLoadDLLs.Add("LeapC.dll");
-					RuntimeDependencies.Add(Path.Combine(BinariesPath, PlatformString, "LeapC.dll"));
 				}
 				//Engine plugin, just add the dependency path
 				else
 				{
-					//DLL
-					string PluginDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
-				
-					System.Console.WriteLine("Project plugin detected, using dll at " + PluginDLLPath);
-
-					RuntimeDependencies.Add(PluginDLLPath);
 					if (!Target.bBuildEditor)
 					{
 						PublicDelayLoadDLLs.Add("LeapC.dll");
