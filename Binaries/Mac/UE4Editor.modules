@@ -1,9 +1,0 @@
-{
-	"BuildId": "17155196",
-	"Modules": 
-	{
-		"BodyState": "UE4Editor-BodyState.dylib",
-		"UltraleapTracking": "UE4Editor-UltraleapTracking.dylib",
-		"UltraleapTrackingEditor": "UE4Editor-UltraleapTrackingEditor.dylib"
-	}
-}
