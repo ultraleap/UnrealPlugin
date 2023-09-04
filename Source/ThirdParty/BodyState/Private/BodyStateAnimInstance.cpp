@@ -52,6 +52,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	// Defaults
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
+	ScaleModelToTrackingData = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 
@@ -214,7 +215,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	}
 
 	// Get bones and parent indices
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+	USkinnedAsset* SkeletalMesh = Component->GetSkinnedAsset();
+#else
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+#endif
 
 #if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 27)
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetRefSkeleton();
@@ -785,8 +790,11 @@ bool UBodyStateAnimInstance::GetNamesAndTransforms(
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
 	// Get bones and parent indices
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+	USkinnedAsset* SkeletalMesh = Component->GetSkinnedAsset();
+#else
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
-	
+#endif
 	
 	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
@@ -1301,9 +1309,16 @@ int32 UBodyStateAnimInstance::GetActiveDeviceID()
 {
 	return GetDeviceIDFromDeviceSerial(ActiveDeviceSerial);
 }
+
 void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
 {
 	UpdateDeviceList();
+	
+	BodyStateSkeleton = GetCurrentSkeleton();
+	if (BodyStateSkeleton != nullptr)
+	{
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
+	}
 }
 void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
 {

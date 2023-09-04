@@ -5,7 +5,7 @@ Ultraleap Unreal Plugin
 
 ## Introduction
 
-Ultraleap's Unreal Plugin enables the data produced by integrating Ultraleap's hand tracking data to be used by developers inside their Unreal projects. It has been built to make it as easy as possible to design and use hand tracking in XR projects. Examples are included to quickly get you up and running with Ultraleap's hand tracking technology.
+Ultraleap's Unreal Engine Plugin enables the data produced by integrating Ultraleap's hand tracking data to be used by developers inside their Unreal projects. It has been built to make it as easy as possible to design and use hand tracking in XR projects. Examples are included to quickly get you up and running with Ultraleap's hand tracking technology.
 
 ## Getting Started
 

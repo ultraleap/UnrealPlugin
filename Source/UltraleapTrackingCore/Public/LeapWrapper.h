@@ -153,6 +153,10 @@ public:
 	{
 	
 	}
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override
+	{
+	}
+
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -247,6 +251,9 @@ public:
 		return false;
 	}
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) override;
+	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override
+	{
+	}
 	// ILeapConnector
 	virtual void GetDeviceSerials(TArray<FString>& DeviceSerials) override;
 	virtual IHandTrackingWrapper* GetDevice(
@@ -258,6 +265,10 @@ public:
 	virtual void RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback) override;
 	virtual void PostEarlyInit() override;
 	// End of ILeapConnector
+
+	// This will handle when an app is deactivated, when system goes to sleep
+	void HandleApplicationDeactivate();
+
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);
@@ -300,6 +311,9 @@ private:
 	FGraphEventRef TaskRefPolicy;
 	FGraphEventRef TaskRefConfigChange;
 	FGraphEventRef TaskRefConfigResponse;
+
+	// Delegate to access the deactivation event
+	FDelegateHandle HasDeactivateHandle;
 
 	// void setImage();
 	void SetFrame(const LEAP_TRACKING_EVENT* Frame);

@@ -709,6 +709,7 @@ This can be run in VR as an embodied avatar or in desktop mode.
 * Move the newly created animation blueprint outside of the metahumans common folder
 * Reparent the blueprint to **BodyStateAnimInstance**. ![](https://imgur.com/JR4UV03.png)
 * Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist Translation** and click **Auto map**. ![](https://imgur.com/P51oMTa.png)
+* Right click and delete the mapping for the **BONE LOWER ARM L** and **BONE LOWER ARM R** for both left and right **Bone Map** lists
 * Copy the nodes from the template **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim graph and eventgraph) into your anim blueprint. ![](https://imgur.com/Q1n3GM7.png) ![](https://imgur.com/lraQXBv.png)
 * You can use select all to copy paste events
 * Compile your new animation blueprint. At this point there will be missing variable errors

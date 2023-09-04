@@ -308,6 +308,9 @@ ELeapDeviceType ToBlueprintDeviceType(eLeapDevicePID LeapType)
 		case eLeapDevicePID_3Di:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_3DI;
 			break;
+		case eLeapDevicePID_LMC2:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_LEAP_MOTION_CONTROLLER_2;
+			break;
 		default:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;
 	}
@@ -516,6 +519,10 @@ void FUltraleapDevice::ParseEvents()
 	}
 	if (LastLeapTime == 0)
 		LastLeapTime = Leap->GetNow();
+	
+	// apply any tracking system specific changes to the hand
+	// e.g. Pinch and Grasp simulation for OpenXR
+	Leap->PostLeapHandUpdate(CurrentFrame);
 
 	CheckHandVisibility();
 	CheckGrabGesture();
@@ -689,7 +696,7 @@ void FUltraleapDevice::CheckPinchGesture()
 			const FLeapHandData& FinalHandData = Hand;
 			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
 			{
-				if (!(IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
+				if ((!IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
 					(IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold)))
 				{
 					TimeSinceLastLeftPinch = 0;
@@ -1254,8 +1261,8 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
-			Options.HMDPositionOffset = FVector(90,0,0);
-		} 
+			Options.HMDPositionOffset = FVector(90, 0, 0);
+		}
 
 		// Rift, note requires negative timewarp!
 		else if (HMDType == TEXT("OculusHMD") || HMDType == TEXT("OpenXR"))
@@ -1312,7 +1319,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
-		} 
+		}
 		// Pico
 		else if (HMDType == TEXT("PicoXRHMD"))
 		{
@@ -1325,7 +1332,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 			}
 			if (InOptions.HMDRotationOffset.IsNearlyZero())
 			{
-				Options.HMDRotationOffset = FRotator(-4, 0, 0);	  // does it point down because velcro?
+				Options.HMDRotationOffset = FRotator(-4, 0, 0);	   // does it point down because velcro?
 			}
 
 			switch (InOptions.TrackingFidelity)
