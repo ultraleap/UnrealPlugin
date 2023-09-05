@@ -160,6 +160,18 @@ namespace UnrealBuildTool.Rules
 			return DLLString.GetHashCode() + DLLString.Length;	//ensure both hash and file lengths match
 		}
 
+        private void CopyToBinaries(string Filepath)
+        {
+            string binariesDir = Path.Combine(BinariesPath, Target.Platform.ToString());
+            string filename = Path.GetFileName(Filepath);
+
+            if (!Directory.Exists(binariesDir))
+                Directory.CreateDirectory(binariesDir);
+
+            if (!File.Exists(Path.Combine(binariesDir, filename)))
+                File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
+        }
+
         public bool LoadLeapLib(ReadOnlyTargetRules Target)
 		{
 			bool IsLibrarySupported = false;
@@ -180,6 +192,10 @@ namespace UnrealBuildTool.Rules
                 // Copy third party DLLs to the BinariesPath 
                 RuntimeDependencies.Add(BinDLLPath, ThirdPartyDllPath);
                 RuntimeDependencies.Add(BinDLLManifPath, ThirdPartyDllManifPath);
+
+                // This will copy dlls if not copied already
+                CopyToBinaries(ThirdPartyDllPath);
+                CopyToBinaries(ThirdPartyDllManifPath);
 
                 if (IsEnginePlugin())
 				{
