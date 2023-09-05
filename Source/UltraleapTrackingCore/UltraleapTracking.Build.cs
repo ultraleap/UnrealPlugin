@@ -193,8 +193,6 @@ namespace UnrealBuildTool.Rules
                 // Copy third party DLLs to the BinariesPath 
                 RuntimeDependencies.Add(BinDLLPath, ThirdPartyDllPath);
                 RuntimeDependencies.Add(BinDLLManifPath, ThirdPartyDllManifPath);
-                //Lib
-                PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
 
 				// This will copy dlls if not copied already
 				CopyToBinaries(ThirdPartyDllPath);
