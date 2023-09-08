@@ -110,7 +110,7 @@ build:build-project:
     - $UE5_PACKAGE_PATH_3 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_3"
     - echo "$UE5_PACKAGE_PATH_3"
 
-    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_3" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_3 -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Mac -Rocket  >> ./$PROJECT_NAME.log" 
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_3" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_3 -CreateSubFolder -VS2022 -TargetPlatforms=Win64+Mac -Rocket  >> ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
     
