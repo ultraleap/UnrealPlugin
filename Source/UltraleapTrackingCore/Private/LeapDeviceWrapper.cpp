@@ -145,14 +145,28 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeSt
 	
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in  FLeapDeviceWrapper::GetInterpolatedFrameAtTime"));
-		// if the device goes bad (currently due to system sleep wake and replug)
-		// clean it up
-		if (Connector)
+		if (Result == eLeapRS_RoutineIsNotSeer)
 		{
-			Connector->CleanupBadDevice(this);
-			Connector = nullptr;
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in FLeapDeviceWrapper::GetInterpolatedFrameAtTime: TimeStamp %lld was in the future"), TimeStamp);
 			return nullptr;
+		}
+		else if (Result == eLeapRS_TimestampTooEarly)
+		{
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in FLeapDeviceWrapper::GetInterpolatedFrameAtTime: TimeStamp %lld was too far in the past"), TimeStamp);
+			return nullptr;
+		}
+		else
+		{
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("Result was: %i"), Result);
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in  FLeapDeviceWrapper::GetInterpolatedFrameAtTime"));
+			// if the device goes bad (currently due to system sleep wake and replug)
+			// clean it up
+			if (Connector)
+			{
+				Connector->CleanupBadDevice(this);
+				Connector = nullptr;
+				return nullptr;
+			}
 		}
 	}
 	// Check validity of frame size
