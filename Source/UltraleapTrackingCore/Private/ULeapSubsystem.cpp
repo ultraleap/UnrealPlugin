@@ -12,12 +12,12 @@ void UULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* H
 	}
 }
 
-void UULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
+void UULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
 	if (ReleasedActor!=nullptr)
 	{
 		OnLeapRelease.Broadcast(ReleasedActor);
-		OnLeapReleaseNative.Execute(ReleasedActor, HandLeft, HandRight);
+		OnLeapReleaseNative.Execute(ReleasedActor, HandLeft, HandRight, BoneName);
 	}
 }
 

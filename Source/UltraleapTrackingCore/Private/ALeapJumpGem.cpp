@@ -70,11 +70,11 @@ void AALeapJumpGem::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* Hand
 	}
 }
 
-void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
+void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
 	if (ReleasedActor != nullptr && this == ReleasedActor && HandLeft != nullptr)
 	{
-		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("L_Palm"));
+		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, BoneName);
 		ReleasedActor->SetActorRelativeLocation(FVector(-2,0,7));
 	}
 }
