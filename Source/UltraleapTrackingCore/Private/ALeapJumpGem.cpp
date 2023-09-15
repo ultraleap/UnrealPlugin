@@ -8,7 +8,6 @@
 
 
 #include "ALeapJumpGem.h"
-#include "ULeapSubsystem.h"
 #include "LeapUtility.h"
 
 // Sets default values
@@ -47,7 +46,7 @@ void AALeapJumpGem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UULeapSubsystem* LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
 	if (LeapSubsystem!=nullptr)
 	{
 		LeapSubsystem->OnLeapGrabNative.BindUObject(this, &AALeapJumpGem::OnGrabbed);
@@ -87,8 +86,6 @@ void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* Ha
 void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
-	UULeapSubsystem* LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
 	if (LeapSubsystem != nullptr)
 	{
 		LeapSubsystem->OnLeapGrabNative.Unbind();
@@ -104,7 +101,6 @@ void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AALeapJumpGem::RepeatingAction()
 {
-	UULeapSubsystem* LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
 	if (LeapSubsystem != nullptr)
 	{
 		LeapSubsystem->GrabActionCall(GetActorLocation(), GetActorForwardVector());

@@ -10,6 +10,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ULeapSubsystem.h"
+
 #include "ALeapJumpGem.generated.h"
 
 class UStaticMeshComponent;
@@ -32,6 +34,8 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void RepeatingAction();
+
+	UULeapSubsystem* LeapSubsystem;
 
 	FTimerHandle TimerHandle;
 
