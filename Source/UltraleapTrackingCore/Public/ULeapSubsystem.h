@@ -12,6 +12,8 @@ DECLARE_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRelease, AActor*, ReleasedActor);
 DECLARE_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapGrabAction, FVector, Location, FVector, ForwardVec);
+
 /**
  * 
  */
@@ -31,6 +33,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap release Events")
 	FLeapRelease OnLeapRelease;
 
+	UPROPERTY(BlueprintAssignable, Category = "Leap release Events")
+	FLeapGrabAction OnLeapGrabAction;
+
 
 	FLeapGrabNative OnLeapGrabNative;
 	FLeapReleaseNative OnLeapReleaseNative;
@@ -41,5 +46,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
+	void GrabActionCall(FVector Location, FVector ForwardVec);
+
 	
 };

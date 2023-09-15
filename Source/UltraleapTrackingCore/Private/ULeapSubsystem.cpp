@@ -21,3 +21,8 @@ void UULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponen
 	}
 }
 
+void UULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
+{
+	OnLeapGrabAction.Broadcast(Location, ForwardVec);
+}
+

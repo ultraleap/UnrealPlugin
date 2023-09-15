@@ -66,7 +66,7 @@ void AALeapJumpGem::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* Hand
 {
 	if (GrabbedActor != nullptr && this == GrabbedActor)
 	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("OnGrabbed: %s"), *GrabbedActor->GetName());
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &AALeapJumpGem::RepeatingAction, 0.04f, true, .0f);
 	}
 }
 
@@ -76,6 +76,11 @@ void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* Ha
 	{
 		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, BoneName);
 		ReleasedActor->SetActorRelativeLocation(FVector(-2,0,7));
+
+		if (GetWorldTimerManager().IsTimerActive(TimerHandle))
+		{
+			GetWorldTimerManager().ClearTimer(TimerHandle);
+		}
 	}
 }
 
@@ -88,5 +93,20 @@ void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		LeapSubsystem->OnLeapGrabNative.Unbind();
 		LeapSubsystem->OnLeapReleaseNative.Unbind();
+	}
+
+	if (GetWorldTimerManager().IsTimerActive(TimerHandle))
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+	}
+	
+}
+
+void AALeapJumpGem::RepeatingAction()
+{
+	UULeapSubsystem* LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	if (LeapSubsystem != nullptr)
+	{
+		LeapSubsystem->GrabActionCall(GetActorLocation(), GetActorForwardVector());
 	}
 }
