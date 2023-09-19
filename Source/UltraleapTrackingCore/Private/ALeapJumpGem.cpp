@@ -115,13 +115,15 @@ bool AALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
 		FRotator PalmRot = Hand.Palm.Orientation;
 		FVector PalmRotForward = UKismetMathLibrary::GetRightVector(PalmRot);
 		float DotProd = FVector::DotProduct(CamLocation, PalmRotForward);
+		// -1 is when the two vectors are parallel, -0.4 just for the range 
 		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
 		{
-			this->SetActorHiddenInGame(false);
+			SetActorHiddenInGame(false);
 			return true;
 		}
 	}
-	this->SetActorHiddenInGame(true);
+	
+	SetActorHiddenInGame(true);
 	return false;
 }
 
