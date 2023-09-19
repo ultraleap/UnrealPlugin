@@ -279,6 +279,8 @@ FUltraleapDevice::FUltraleapDevice(
 	}
 
 	Init();
+
+	LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -538,9 +540,17 @@ void FUltraleapDevice::ParseEvents()
 			Component->OnLeapTrackingData.Broadcast(CurrentFrame);
 		});
 
+	// Add the current frame to the leap subsystem
+	if (LeapSubsystem != nullptr)
+	{
+		LeapSubsystem->LeapTrackingDataCall(CurrentFrame);
+	}
+
 	// It's now the past data
 	PastFrame = CurrentFrame;
 	LastLeapTime = Leap->GetNow();
+
+	
 }
 
 void FUltraleapDevice::CheckHandVisibility()

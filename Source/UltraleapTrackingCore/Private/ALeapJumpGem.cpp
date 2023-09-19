@@ -9,6 +9,8 @@
 
 #include "ALeapJumpGem.h"
 #include "LeapUtility.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AALeapJumpGem::AALeapJumpGem()
@@ -17,7 +19,7 @@ AALeapJumpGem::AALeapJumpGem()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//Definition for the Mesh that will serve as our visual representation.
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> DefaultMesh(TEXT("/Engine/BasicShapes/Cone.Cone"));
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> DefaultMesh(TEXT("StaticMesh'/Engine/VREditor/TransformGizmo/StartRotationHandleIndicator.StartRotationHandleIndicator'"));
     StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JumpGem"));
 	if (StaticMesh!=nullptr)
 	{
@@ -51,7 +53,9 @@ void AALeapJumpGem::BeginPlay()
 	{
 		LeapSubsystem->OnLeapGrabNative.BindUObject(this, &AALeapJumpGem::OnGrabbed);
 		LeapSubsystem->OnLeapReleaseNative.BindUObject(this, &AALeapJumpGem::OnReleased);
+		LeapSubsystem->OnLeapTrackingDatanative.BindUObject(this, &AALeapJumpGem::OnLeapTrackingData);
 	}
+
 }
 
 // Called every frame
@@ -75,12 +79,50 @@ void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* Ha
 	{
 		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, BoneName);
 		ReleasedActor->SetActorRelativeLocation(FVector(-2,0,7));
+		ReleasedActor->SetActorRelativeRotation(FRotator(0, 90, 0));
 
 		if (GetWorldTimerManager().IsTimerActive(TimerHandle))
 		{
 			GetWorldTimerManager().ClearTimer(TimerHandle);
 		}
 	}
+}
+
+void AALeapJumpGem::OnLeapTrackingData(const FLeapFrameData& Frame)
+{
+	TArray<FLeapHandData> Hands = Frame.Hands;
+	for (int32 i = 0; i < Hands.Num(); ++i)
+	{
+		switch (Hands[i].HandType)
+		{
+			case EHandType::LEAP_HAND_LEFT:
+				IsLeftHandFacingCamera(Hands[i]);
+				break;
+			case EHandType::LEAP_HAND_RIGHT:
+				break;
+			default:
+				break;
+		}	
+	}
+}
+
+bool AALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
+{
+	APlayerCameraManager* PlayerCameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	if (PlayerCameraManager!=nullptr)
+	{
+		FVector CamLocation = PlayerCameraManager->GetActorRightVector();
+		FRotator PalmRot = Hand.Palm.Orientation;
+		FVector PalmRotForward = UKismetMathLibrary::GetRightVector(PalmRot);
+		float DotProd = FVector::DotProduct(CamLocation, PalmRotForward);
+		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
+		{
+			this->SetActorHiddenInGame(false);
+			return true;
+		}
+	}
+	this->SetActorHiddenInGame(true);
+	return false;
 }
 
 void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -90,6 +132,7 @@ void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		LeapSubsystem->OnLeapGrabNative.Unbind();
 		LeapSubsystem->OnLeapReleaseNative.Unbind();
+		LeapSubsystem->OnLeapTrackingDatanative.Unbind();
 	}
 
 	if (GetWorldTimerManager().IsTimerActive(TimerHandle))

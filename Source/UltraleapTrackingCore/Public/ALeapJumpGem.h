@@ -11,6 +11,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ULeapSubsystem.h"
+#include "UltraleapTrackingData.h"
 
 #include "ALeapJumpGem.generated.h"
 
@@ -46,5 +47,9 @@ public:
 	void OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
 
 	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
+
+	void OnLeapTrackingData(const FLeapFrameData& Frame);
+
+	bool IsLeftHandFacingCamera(FLeapHandData Hand);
 
 };

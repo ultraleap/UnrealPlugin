@@ -26,3 +26,8 @@ void UULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
 	OnLeapGrabAction.Broadcast(Location, ForwardVec);
 }
 
+void UULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
+{
+	OnLeapTrackingDatanative.ExecuteIfBound(Frame);
+}
+
