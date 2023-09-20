@@ -69,6 +69,7 @@ void AALeapJumpGem::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* Hand
 {
 	if (GrabbedActor != nullptr && this == GrabbedActor)
 	{
+		// Trigger a timer when the actor is grabbed
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &AALeapJumpGem::RepeatingAction, 0.04f, true, .0f);
 	}
 }
@@ -77,10 +78,13 @@ void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* Ha
 {
 	if (ReleasedActor != nullptr && this == ReleasedActor && HandLeft != nullptr)
 	{
+		// Attach the gem to the hand
 		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, BoneName);
+		// Set up the posistion and rotation of the gem relative to the palm
 		ReleasedActor->SetActorRelativeLocation(FVector(-2,0,7));
 		ReleasedActor->SetActorRelativeRotation(FRotator(0, 90, 0));
 
+		// Stop the timer when the actor is released
 		if (GetWorldTimerManager().IsTimerActive(TimerHandle))
 		{
 			GetWorldTimerManager().ClearTimer(TimerHandle);
@@ -115,7 +119,7 @@ bool AALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
 		FRotator PalmRot = Hand.Palm.Orientation;
 		FVector PalmRotForward = UKismetMathLibrary::GetRightVector(PalmRot);
 		float DotProd = FVector::DotProduct(CamLocation, PalmRotForward);
-		// -1 is when the two vectors are parallel, -0.4 just for the range 
+		// -1.f is when the two vectors are parallel, -0.4f just for the range 
 		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
 		{
 			SetActorHiddenInGame(false);
@@ -130,6 +134,8 @@ bool AALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
 void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
+
+	// Unbind all the events 
 	if (LeapSubsystem != nullptr)
 	{
 		LeapSubsystem->OnLeapGrabNative.Unbind();
