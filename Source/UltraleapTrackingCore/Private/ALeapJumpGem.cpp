@@ -17,6 +17,7 @@
 #include "TimerManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/StaticMesh.h"
 
 // Sets default values
 AALeapJumpGem::AALeapJumpGem()
