@@ -280,7 +280,10 @@ FUltraleapDevice::FUltraleapDevice(
 
 	Init();
 
-	LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	if (GEngine != nullptr)
+	{
+		LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

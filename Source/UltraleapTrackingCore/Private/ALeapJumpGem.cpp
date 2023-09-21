@@ -19,6 +19,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 AALeapJumpGem::AALeapJumpGem()
@@ -55,8 +56,11 @@ AALeapJumpGem::AALeapJumpGem()
 void AALeapJumpGem::BeginPlay()
 {
 	Super::BeginPlay();
-
-	LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	if (GEngine!=nullptr)
+	{
+		LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	}
+	
 	if (LeapSubsystem!=nullptr)
 	{
 		LeapSubsystem->OnLeapGrabNative.BindUObject(this, &AALeapJumpGem::OnGrabbed);
