@@ -11,6 +11,10 @@
 #include "LeapUtility.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Materials/Material.h"
+#include "Components/StaticMeshComponent.h"
+#include "TimerManager.h"
 
 // Sets default values
 AALeapJumpGem::AALeapJumpGem()
