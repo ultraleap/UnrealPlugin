@@ -18,6 +18,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Camera/PlayerCameraManager.h"
 
 // Sets default values
 AALeapJumpGem::AALeapJumpGem()
