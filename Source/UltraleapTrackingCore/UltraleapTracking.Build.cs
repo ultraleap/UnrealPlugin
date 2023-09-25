@@ -126,6 +126,7 @@ namespace UnrealBuildTool.Rules
 					"LiveLinkMessageBusFramework",
 					"BodyState",
 					"PhysicsCore",
+                    "UMG",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
