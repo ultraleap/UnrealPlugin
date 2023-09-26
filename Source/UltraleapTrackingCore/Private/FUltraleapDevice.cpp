@@ -719,6 +719,12 @@ void FUltraleapDevice::CheckPinchGesture()
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
 						CallFunctionOnComponents(
 							[FinalHandData](ULeapComponent* Component) { Component->OnHandPinched.Broadcast(FinalHandData); });
+
+						if (LeapSubsystem != nullptr)
+						{
+							LeapSubsystem->LeapPinchCall(FinalHandData);
+						}
+
 					}
 				}
 				else if (IsLeftPinching && (TimeSinceLastLeftPinch > PinchTimeout))
@@ -727,6 +733,12 @@ void FUltraleapDevice::CheckPinchGesture()
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
 					CallFunctionOnComponents(
 						[FinalHandData](ULeapComponent* Component) { Component->OnHandUnpinched.Broadcast(FinalHandData); });
+
+					if (LeapSubsystem != nullptr)
+					{
+						LeapSubsystem->LeapUnPinchCall(FinalHandData);
+					}
+
 				}
 			}
 			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)

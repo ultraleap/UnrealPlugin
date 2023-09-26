@@ -21,14 +21,25 @@ public:
 
 	ULeapWidgetInteractionComponent();
 	
-	void DrawLeapCircles(FLeapHandData& Hand);
+	void DrawLeapCursor(FLeapHandData& Hand);
 	
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	APawn* LeapPawn = nullptr;
+	APawn* LeapPawn;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	int32 CursorDistanceFromHand;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	UMaterial* MaterialBase;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	UMaterialInstanceDynamic* LeapDynMaterial;
 
 protected:
 
@@ -38,11 +49,15 @@ private:
 
 
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
+	void OnLeapPinch(const FLeapHandData& HandData);
+	void OnLeapUnPinch(const FLeapHandData& HandData);
+
 	void SpawnStaticMeshActor(const FVector& InLocation);
 	void CreatStaticMeshForCursor();
 
-	UWorld* World = nullptr;
-	AStaticMeshActor* PointerActor = nullptr;
-	UStaticMeshComponent* StaticMesh = nullptr;
+	UWorld* World;
+	AStaticMeshActor* PointerActor;
+	
+	APlayerCameraManager* PlayerCameraManager;
 	
 };

@@ -31,3 +31,13 @@ void UULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
 	OnLeapTrackingDatanative.ExecuteIfBound(Frame);
 }
 
+void UULeapSubsystem::LeapPinchCall(const FLeapHandData& HandData)
+{
+	OnLeapPinch.ExecuteIfBound(HandData);
+}
+
+void UULeapSubsystem::LeapUnPinchCall(const FLeapHandData& HandData)
+{
+	OnLeapUnpinched.ExecuteIfBound(HandData);
+}
+

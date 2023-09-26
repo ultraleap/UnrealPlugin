@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapGrabAction, FVector, Location,
 DECLARE_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
 DECLARE_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*);
 DECLARE_DELEGATE_OneParam(FLeapFrameSignatureNative, const FLeapFrameData&);
+DECLARE_DELEGATE_OneParam(FLeapHandSignaturenative, const FLeapHandData&);
 
 /**
  * 
@@ -43,6 +44,8 @@ public:
 	FLeapGrabNative OnLeapGrabNative;
 	FLeapReleaseNative OnLeapReleaseNative;
 	FLeapFrameSignatureNative OnLeapTrackingDatanative;
+	FLeapHandSignaturenative OnLeapPinch;
+	FLeapHandSignaturenative OnLeapUnpinched;
 
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
@@ -57,6 +60,8 @@ public:
 
 
 	void LeapTrackingDataCall(const FLeapFrameData& Frame);
+	void LeapPinchCall(const FLeapHandData& HandData);
+	void LeapUnPinchCall(const FLeapHandData& HandData);
 
 	
 };
