@@ -29,15 +29,18 @@ void UULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
 void UULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
 {
 	OnLeapTrackingDatanative.ExecuteIfBound(Frame);
+	OnLeapFrameMulti.Broadcast(Frame);
 }
 
 void UULeapSubsystem::LeapPinchCall(const FLeapHandData& HandData)
 {
-	OnLeapPinch.ExecuteIfBound(HandData);
+	//OnLeapPinch.ExecuteIfBound(HandData);
+	OnLeapPinchMulti.Broadcast(HandData);
 }
 
 void UULeapSubsystem::LeapUnPinchCall(const FLeapHandData& HandData)
 {
-	OnLeapUnpinched.ExecuteIfBound(HandData);
+	//OnLeapUnpinched.ExecuteIfBound(HandData);
+	OnLeapUnPinchMulti.Broadcast(HandData);
 }
 

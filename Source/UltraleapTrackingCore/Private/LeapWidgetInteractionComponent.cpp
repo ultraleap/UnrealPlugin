@@ -6,17 +6,28 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "LeapUtility.h"
 
-ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent() 
-	: CursorDistanceFromHand(30)
+ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(
+	const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()) 
+	: Super(ObjectInitializer)
+	, CursorDistanceFromHand(30)
+	, StaticMesh(nullptr)
+	, MaterialBase(nullptr)
+	, CursorSize(0.03) 
+	, HandType(EHandType::LEAP_HAND_LEFT)
+	, LeapSubsystem(nullptr)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
 	, World(nullptr)
-	, StaticMesh(nullptr)
-	, PlayerCameraManager(nullptr)
-	, MaterialBase(nullptr)
 	, LeapDynMaterial(nullptr)
+	, PlayerCameraManager(nullptr)
+	, bIsPinched(false)
 {
 	CreatStaticMeshForCursor();
+}
+
+ULeapWidgetInteractionComponent::~ULeapWidgetInteractionComponent()
+{
+
 }
 
 void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
@@ -31,13 +42,17 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 	if (DefaultMesh.Succeeded())
 	{
 		StaticMesh->SetStaticMesh(DefaultMesh.Object);
-		StaticMesh->SetRelativeScale3D(FVector(0.03f, 0.03f, 0.03f));
+		StaticMesh->SetWorldScale3D(CursorSize*FVector(1, 1, 1));
 	}
 }
 
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
 	FLeapHandData TmpHand = Hand;
+	if (TmpHand.HandType != HandType)
+	{
+		return;
+	}
 
 	if (StaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
 	{
@@ -76,9 +91,9 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 
 	if (LeapSubsystem != nullptr)
 	{
-		LeapSubsystem->OnLeapTrackingDatanative.BindUObject(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
-		LeapSubsystem->OnLeapPinch.BindUObject(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
-		LeapSubsystem->OnLeapUnpinched.BindUObject(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
+		LeapSubsystem->OnLeapPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
+		LeapSubsystem->OnLeapUnPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
+		LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
 	}
 
 	World = GetWorld();
@@ -93,33 +108,45 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		LeapDynMaterial = UMaterialInstanceDynamic::Create(MaterialBase, NULL);
 	}
 	
-	if (LeapDynMaterial != nullptr)
+	if (LeapDynMaterial != nullptr && StaticMesh != nullptr)
 	{
 		StaticMesh->SetMaterial(0, LeapDynMaterial);
+
+		FVector Scale = CursorSize * FVector(1, 1, 1);
+		StaticMesh->SetWorldScale3D(Scale);
 	}
-	
 }
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 {
-	if (StaticMesh)
+
+	UE_LOG(UltraleapTrackingLog, Error, TEXT("HandType %i"), (uint8)HandType);
+
+	if (HandData.HandType == HandType && StaticMesh)
 	{
-		FVector Scale = StaticMesh->GetRelativeScale3D();
+		FVector Scale = CursorSize * FVector(1, 1, 1);
 		Scale = Scale / 2;
-		StaticMesh->SetRelativeScale3D(Scale);
+		StaticMesh->SetWorldScale3D(Scale);
+		PressPointerKey(EKeys::LeftMouseButton);
+
+		bIsPinched = true;
 	}
-	PressPointerKey(EKeys::LeftMouseButton);
 }
 
 void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandData)
 {
-	if (StaticMesh)
+	if (HandData.HandType == HandType && StaticMesh && bIsPinched)
 	{
-		FVector Scale = StaticMesh->GetRelativeScale3D();
-		Scale = Scale * 2;
-		StaticMesh->SetRelativeScale3D(Scale);
-	}
-	ReleasePointerKey(EKeys::LeftMouseButton);
+		FVector Scale = StaticMesh->GetComponentScale();
+		if (FMath::IsNearlyEqual(Scale.X, (CursorSize / 2), 1.0E-2F))
+		{
+			Scale = Scale * 2;
+			StaticMesh->SetWorldScale3D(Scale);
+		}
+		ReleasePointerKey(EKeys::LeftMouseButton);
+
+		bIsPinched = false;
+	}	
 }
 
 void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLocation)
@@ -148,10 +175,15 @@ void ULeapWidgetInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlay
 
 	if (LeapSubsystem != nullptr)
 	{
-		LeapSubsystem->OnLeapTrackingDatanative.Unbind();
-		LeapSubsystem->OnLeapPinch.Unbind();
-		LeapSubsystem->OnLeapUnpinched.Unbind();
+		LeapSubsystem->OnLeapPinchMulti.Clear();
+		LeapSubsystem->OnLeapUnPinchMulti.Clear();
+		LeapSubsystem->OnLeapFrameMulti.Clear();
 	}
+}
+
+void ULeapWidgetInteractionComponent::InitializeComponent()
+{
+
 }
 
 void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& Frame)
@@ -159,11 +191,10 @@ void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& F
 	TArray<FLeapHandData> Hands = Frame.Hands;
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
+		DrawLeapCursor(Hands[i]);
 		switch (Hands[i].HandType)
 		{
 			case EHandType::LEAP_HAND_LEFT:
-				DrawLeapCursor(Hands[i]);
-				//IsLeftHandFacingCamera(Hands[i]);
 				break;
 			case EHandType::LEAP_HAND_RIGHT:
 				break;

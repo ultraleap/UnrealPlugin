@@ -19,15 +19,19 @@ class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInte
 
 public:
 
-	ULeapWidgetInteractionComponent();
+	ULeapWidgetInteractionComponent(
+		const FObjectInitializer& ObjectInitializer);
+
+	ULeapWidgetInteractionComponent(TEnumAsByte<EHandType> InHandType);
+
+	~ULeapWidgetInteractionComponent();
 	
 	void DrawLeapCursor(FLeapHandData& Hand);
 	
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	APawn* LeapPawn;
+	virtual void InitializeComponent() override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	int32 CursorDistanceFromHand;
@@ -38,26 +42,36 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	UMaterial* MaterialBase;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	UMaterialInstanceDynamic* LeapDynMaterial;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI",
+		meta = (ClampMin = "0.01", ClampMax = "0.1", UIMin = "0.01", UIMax = "0.1"))
+	float CursorSize;
 
-protected:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	TEnumAsByte<EHandType> HandType;
 
 	UULeapSubsystem* LeapSubsystem;
 
-private:
-
-
+	UFUNCTION()
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
+	UFUNCTION()
 	void OnLeapPinch(const FLeapHandData& HandData);
+	UFUNCTION()
 	void OnLeapUnPinch(const FLeapHandData& HandData);
+
+
+private:
 
 	void SpawnStaticMeshActor(const FVector& InLocation);
 	void CreatStaticMeshForCursor();
 
-	UWorld* World;
+	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
+	UWorld* World;
 	
+	UMaterialInstanceDynamic* LeapDynMaterial;
 	APlayerCameraManager* PlayerCameraManager;
+
+	bool bIsPinched;
+
 	
 };

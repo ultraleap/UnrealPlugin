@@ -12,6 +12,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapGrab, AActor*, GrabbedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRelease, AActor*, ReleasedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapGrabAction, FVector, Location, FVector, ForwardVec);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHand, const FLeapHandData&, HandData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrame, const FLeapFrameData&, FrameData);
+
 // Native C++ events
 DECLARE_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
 DECLARE_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*);
@@ -44,8 +47,11 @@ public:
 	FLeapGrabNative OnLeapGrabNative;
 	FLeapReleaseNative OnLeapReleaseNative;
 	FLeapFrameSignatureNative OnLeapTrackingDatanative;
-	FLeapHandSignaturenative OnLeapPinch;
-	FLeapHandSignaturenative OnLeapUnpinched;
+
+
+	FLeapHand OnLeapPinchMulti;
+	FLeapHand OnLeapUnPinchMulti;
+	FLeapFrame OnLeapFrameMulti;
 
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
@@ -58,9 +64,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void GrabActionCall(FVector Location, FVector ForwardVec);
 
-
+	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void LeapTrackingDataCall(const FLeapFrameData& Frame);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void LeapPinchCall(const FLeapHandData& HandData);
+
+	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void LeapUnPinchCall(const FLeapHandData& HandData);
 
 	
