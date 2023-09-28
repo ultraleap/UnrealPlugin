@@ -19,19 +19,27 @@ class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInte
 
 public:
 
-	ULeapWidgetInteractionComponent(
-		const FObjectInitializer& ObjectInitializer);
-
-	ULeapWidgetInteractionComponent(TEnumAsByte<EHandType> InHandType);
+	ULeapWidgetInteractionComponent(const FObjectInitializer& ObjectInitializer);
 
 	~ULeapWidgetInteractionComponent();
 	
+	/**
+	 * Called every fram to draw the cursor
+	 * @param Hand - hand data from the api
+	 */
 	void DrawLeapCursor(FLeapHandData& Hand);
 	
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void InitializeComponent() override;
+
+	UFUNCTION()
+	void OnLeapTrackingData(const FLeapFrameData& Frame);
+	UFUNCTION()
+	void OnLeapPinch(const FLeapHandData& HandData);
+	UFUNCTION()
+	void OnLeapUnPinch(const FLeapHandData& HandData);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	int32 CursorDistanceFromHand;
@@ -51,27 +59,25 @@ public:
 
 	UULeapSubsystem* LeapSubsystem;
 
-	UFUNCTION()
-	void OnLeapTrackingData(const FLeapFrameData& Frame);
-	UFUNCTION()
-	void OnLeapPinch(const FLeapHandData& HandData);
-	UFUNCTION()
-	void OnLeapUnPinch(const FLeapHandData& HandData);
-
 
 private:
 
+	/**
+	 * Used to spawn a mesh at a location
+	 * @param InLocation - the spawn location
+	 */
 	void SpawnStaticMeshActor(const FVector& InLocation);
+
+	/**
+	 * Used to screat a static mesh for the cursor, same mesh will be driven by hand data
+	 */
 	void CreatStaticMeshForCursor();
 
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
 	UWorld* World;
-	
 	UMaterialInstanceDynamic* LeapDynMaterial;
 	APlayerCameraManager* PlayerCameraManager;
-
 	bool bIsPinched;
 
-	
 };
