@@ -57,6 +57,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	TEnumAsByte<EHandType> HandType;
 
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	float InterpolationDelta;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	float InterpolationSpeed;
+
 	UULeapSubsystem* LeapSubsystem;
 
 

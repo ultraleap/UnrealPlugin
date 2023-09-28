@@ -14,6 +14,8 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, CursorSize(0.03) 
 	, HandType(EHandType::LEAP_HAND_LEFT)
 	, LeapSubsystem(nullptr)
+	, InterpolationDelta(0.01)
+	, InterpolationSpeed(10)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
 	, World(nullptr)
@@ -72,7 +74,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
 
 		//Interp is needed to reduce the jitter
-		FTransform NewTransform = UKismetMathLibrary::TInterpTo(GetComponentTransform(), TargetTrans, 0.01, 10);
+		FTransform NewTransform = UKismetMathLibrary::TInterpTo(GetComponentTransform(), TargetTrans, InterpolationDelta, InterpolationSpeed);
 		// This will set this component's transform with the more stable interp
 		SetWorldTransform(NewTransform);
 		// Set the sphere location in the widget using the hit result inherited from the parent class
