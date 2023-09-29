@@ -10,7 +10,8 @@
 #include "LeapWidgetInteractionComponent.generated.h"
 
 /**
- * 
+ * This component will provide far field widgets with interactions 
+ * Will need to add 2 components, for the left hand and the right one
  */
 UCLASS(ClassGroup = "LeapUserInterface", meta = (BlueprintSpawnableComponent))
 class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInteractionComponent
@@ -30,7 +31,6 @@ public:
 	void DrawLeapCursor(FLeapHandData& Hand);
 	
 	virtual void BeginPlay() override;
-
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void InitializeComponent() override;
 
@@ -41,26 +41,34 @@ public:
 	UFUNCTION()
 	void OnLeapUnPinch(const FLeapHandData& HandData);
 
+	/** This will add an offset between the hands and the widget
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	int32 CursorDistanceFromHand;
-
+	/** The default static mesh is a sphere, but can be changed to anything
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	UStaticMeshComponent* StaticMesh;
-
+	/** This can be used to change the cursor's color 
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	UMaterial* MaterialBase;
-
+	/** This can be used to change the cursor's size
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI",
 		meta = (ClampMin = "0.01", ClampMax = "0.1", UIMin = "0.01", UIMax = "0.1"))
 	float CursorSize;
-
+	/** Hand type, for left and right hands
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	TEnumAsByte<EHandType> HandType;
 
-
+	/** Interpolation setting delta time since last tick
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	float InterpolationDelta;
-
+	/** Interpolation setting if 0 then no interp is applied 
+	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	float InterpolationSpeed;
 
