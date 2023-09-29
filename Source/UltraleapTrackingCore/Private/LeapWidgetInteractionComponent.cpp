@@ -13,6 +13,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, MaterialBase(nullptr)
 	, CursorSize(0.03) 
 	, HandType(EHandType::LEAP_HAND_LEFT)
+	, WidgetInteraction(EUIType::FAR)
 	, LeapSubsystem(nullptr)
 	, InterpolationDelta(0.01)
 	, InterpolationSpeed(10)
@@ -22,6 +23,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, LeapDynMaterial(nullptr)
 	, PlayerCameraManager(nullptr)
 	, bIsPinched(false)
+	, bHandTouchWidget(false)
 {
 	CreatStaticMeshForCursor();
 }
@@ -41,7 +43,7 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("StaticMesh is nullptr in CreatStaticMeshForCursor()"));
 		return;
 	}
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/Explore/Diamond_Mat.Diamond_Mat"));
 	
 	if (DefaultMesh.Succeeded())
@@ -49,6 +51,12 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 		StaticMesh->SetStaticMesh(DefaultMesh.Object);
 		StaticMesh->SetWorldScale3D(CursorSize*FVector(1, 1, 1));
 	}
+}
+
+bool ULeapWidgetInteractionComponent::NearlyEqualVectors(FVector A, FVector B, float ErrorTolerance)
+{
+	FVector Diff = A - B;
+	return FMath::IsNearlyEqual(Diff.Size(), SMALL_NUMBER, ErrorTolerance);
 }
 
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
@@ -62,7 +70,16 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 	if (StaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
 	{
 		// The cursor position is the addition of the Pawn pose and the hand pose
-		FVector HandLocation = TmpHand.Index.Proximal.PrevJoint;
+		FVector HandLocation = FVector();
+		if (WidgetInteraction == EUIType::NEAR)
+		{
+			HandLocation = TmpHand.Index.Distal.NextJoint;
+		}
+		else
+		{
+			HandLocation = TmpHand.Index.Metacarpal.PrevJoint;
+		}
+
 		FVector PawnLocation = LeapPawn->GetActorLocation();
 		FVector CursorLocation = HandLocation + PawnLocation;
 		FTransform TargetTrans = FTransform();
@@ -79,6 +96,18 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		SetWorldTransform(NewTransform);
 		// Set the sphere location in the widget using the hit result inherited from the parent class
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
+
+		if (WidgetInteraction == EUIType::NEAR)
+		{
+			if (NearlyEqualVectors(CursorLocation, LastHitResult.ImpactPoint, 4E+0F))
+			{
+				NearClickLeftMouse();
+			}
+			else
+			{
+				NearReleaseLeftMouse();
+			}
+		}
 	}
 	else
 	{
@@ -116,10 +145,14 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	}
 
 	// Subscribe events from leap, for pinch, unpinch and get the tracking data
-	LeapSubsystem->OnLeapPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
-	LeapSubsystem->OnLeapUnPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
+	if (WidgetInteraction != EUIType::NEAR)
+	{
+		LeapSubsystem->OnLeapPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
+		LeapSubsystem->OnLeapUnPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
+	}
+	// Will need to get tracking data regardless of the interaction type (near or far)
 	LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
-
+	
 	if (MaterialBase != nullptr)
 	{
 		LeapDynMaterial = UMaterialInstanceDynamic::Create(MaterialBase, NULL);
@@ -174,6 +207,39 @@ void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandDat
 	}	
 }
 
+void ULeapWidgetInteractionComponent::NearClickLeftMouse()
+{
+	if (!bHandTouchWidget)
+	{
+		FVector Scale = CursorSize * FVector(1, 1, 1);
+		Scale = Scale / 2;
+		StaticMesh->SetWorldScale3D(Scale);
+		// Press the LeftMouseButton
+		PressPointerKey(EKeys::LeftMouseButton);
+		bHandTouchWidget = true;
+
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("<<<<<<<< Mouse clicked >>>>>>>>"));
+	}
+}
+
+void ULeapWidgetInteractionComponent::NearReleaseLeftMouse()
+{
+	if (bHandTouchWidget)
+	{
+		FVector Scale = StaticMesh->GetComponentScale();
+		if (FMath::IsNearlyEqual(Scale.X, (CursorSize / 2), 1.0E-2F))
+		{
+			Scale = Scale * 2;
+			StaticMesh->SetWorldScale3D(Scale);
+		}
+		// Release the LeftMouseButton
+		ReleasePointerKey(EKeys::LeftMouseButton);
+		bHandTouchWidget = false;
+
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("######## Mouse Released #########"));
+	}
+}
+
 void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLocation)
 {
 	if (World == nullptr)
@@ -203,12 +269,15 @@ void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLoca
 void ULeapWidgetInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
+	// Clean up the subsystem events 
 	if (LeapSubsystem != nullptr)
 	{
-		LeapSubsystem->OnLeapPinchMulti.Clear();
-		LeapSubsystem->OnLeapUnPinchMulti.Clear();
 		LeapSubsystem->OnLeapFrameMulti.Clear();
+		if (WidgetInteraction != EUIType::NEAR)
+		{
+			LeapSubsystem->OnLeapPinchMulti.Clear();
+			LeapSubsystem->OnLeapUnPinchMulti.Clear();
+		}
 	}
 }
 

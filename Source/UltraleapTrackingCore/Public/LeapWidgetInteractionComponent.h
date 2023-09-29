@@ -72,6 +72,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	float InterpolationSpeed;
 
+	/** WidgetInteraction type, this requires the InteractionDistance to be <= 30 in order to change to NEAR interactions
+	 *  Changing this to NEAR will enable interactions with widgets by direct touch
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI", 
+		meta = (EditCondition = "InteractionDistance <= 30"))
+	TEnumAsByte <EUIType> WidgetInteraction;
+
 	UULeapSubsystem* LeapSubsystem;
 
 
@@ -88,6 +95,12 @@ private:
 	 */
 	void CreatStaticMeshForCursor();
 
+	void NearClickLeftMouse();
+	void NearReleaseLeftMouse();
+
+
+	bool NearlyEqualVectors(FVector A, FVector B, float ErrorTolerance = SMALL_NUMBER);
+
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
 	UWorld* World;
@@ -95,4 +108,5 @@ private:
 	APlayerCameraManager* PlayerCameraManager;
 	bool bIsPinched;
 
+	bool bHandTouchWidget;
 };
