@@ -77,7 +77,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		}
 		else
 		{
-			HandLocation = TmpHand.Index.Metacarpal.PrevJoint;
+			HandLocation = TmpHand.Palm.Position;
 		}
 
 		FVector PawnLocation = LeapPawn->GetActorLocation();
@@ -186,6 +186,7 @@ void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 		StaticMesh->SetWorldScale3D(Scale);
 		// Press the LeftMouseButton
 		PressPointerKey(EKeys::LeftMouseButton);
+
 		bIsPinched = true;
 	}
 }
@@ -217,8 +218,6 @@ void ULeapWidgetInteractionComponent::NearClickLeftMouse()
 		// Press the LeftMouseButton
 		PressPointerKey(EKeys::LeftMouseButton);
 		bHandTouchWidget = true;
-
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("<<<<<<<< Mouse clicked >>>>>>>>"));
 	}
 }
 
@@ -234,9 +233,8 @@ void ULeapWidgetInteractionComponent::NearReleaseLeftMouse()
 		}
 		// Release the LeftMouseButton
 		ReleasePointerKey(EKeys::LeftMouseButton);
-		bHandTouchWidget = false;
 
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("######## Mouse Released #########"));
+		bHandTouchWidget = false;
 	}
 }
 
