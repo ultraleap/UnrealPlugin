@@ -99,6 +99,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
+			// Use touch for near interactions, with 4 cm error tolerance
 			if (NearlyEqualVectors(CursorLocation, LastHitResult.ImpactPoint, 4E+0F))
 			{
 				NearClickLeftMouse();
@@ -173,6 +174,14 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapDynMaterial or  StaticMesh is nullptr in BeginPlay"));
 		return;
+	}
+	if (HandType == EHandType::LEAP_HAND_LEFT)
+	{
+		PointerIndex = 0;
+	}
+	else
+	{
+		PointerIndex = 1;
 	}
 }
 
