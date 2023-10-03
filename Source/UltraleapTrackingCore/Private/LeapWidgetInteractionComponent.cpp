@@ -8,7 +8,7 @@
 
 ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()) 
 	: Super(ObjectInitializer)
-	, CursorDistanceFromHand(30)
+	, CursorDistanceFromHand(50)
 	, StaticMesh(nullptr)
 	, MaterialBase(nullptr)
 	, CursorSize(0.03) 
@@ -59,6 +59,13 @@ bool ULeapWidgetInteractionComponent::NearlyEqualVectors(FVector A, FVector B, f
 	return FMath::IsNearlyEqual(Diff.Size(), SMALL_NUMBER, ErrorTolerance);
 }
 
+bool ULeapWidgetInteractionComponent::LessVectors(FVector A, FVector B, float ErrorTolerance)
+{
+	FVector Diff = A - B;
+	return Diff.Size() <= ErrorTolerance;
+}
+
+
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
 	FLeapHandData TmpHand = Hand;
@@ -73,7 +80,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FVector HandLocation = FVector();
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			HandLocation = TmpHand.Index.Distal.NextJoint;
+			HandLocation = TmpHand.Index.Intermediate.NextJoint;
 		}
 		else
 		{
@@ -85,26 +92,39 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FTransform TargetTrans = FTransform();
 		TargetTrans.SetLocation(CursorLocation);
 
+		FVector Direction = FVector();
+
 		// The direction is the line between the hmd and the hand, CursorDistanceFromHand is used to add an offset in the palm direction 
-		FVector Direction = CursorLocation + (CursorDistanceFromHand * TmpHand.Palm.Direction) - PlayerCameraManager->GetTransform().GetLocation();
+		if (WidgetInteraction == EUIType::NEAR)
+		{
+			Direction = TmpHand.Index.Intermediate.NextJoint - TmpHand.Index.Intermediate.PrevJoint;
+		}
+		else
+		{
+			Direction = CursorLocation + (CursorDistanceFromHand * TmpHand.Palm.Direction) - PlayerCameraManager->GetTransform().GetLocation();
+		}
+		
 		Direction.Normalize();
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
 
 		//Interp is needed to reduce the jitter
 		FTransform NewTransform = UKismetMathLibrary::TInterpTo(GetComponentTransform(), TargetTrans, InterpolationDelta, InterpolationSpeed);
 		// This will set this component's transform with the more stable interp
-		SetWorldTransform(NewTransform);
+
+		FHitResult SweepHitResult;
+		K2_SetWorldTransform(NewTransform, true, SweepHitResult, true);
+	
 		// Set the sphere location in the widget using the hit result inherited from the parent class
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
 			// Use touch for near interactions, with 4 cm error tolerance
-			if (NearlyEqualVectors(CursorLocation, LastHitResult.ImpactPoint, 4E+0F))
+			if (LessVectors(CursorLocation, LastHitResult.ImpactPoint, 6E+0F))
 			{
 				NearClickLeftMouse();
 			}
-			else
+			else 
 			{
 				NearReleaseLeftMouse();
 			}

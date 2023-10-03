@@ -101,6 +101,8 @@ private:
 
 	bool NearlyEqualVectors(FVector A, FVector B, float ErrorTolerance = SMALL_NUMBER);
 
+	bool LessVectors(FVector A, FVector B, float ErrorTolerance = SMALL_NUMBER);
+
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
 	UWorld* World;
