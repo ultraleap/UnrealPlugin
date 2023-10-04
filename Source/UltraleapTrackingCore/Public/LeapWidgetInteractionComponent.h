@@ -98,6 +98,8 @@ private:
 	void NearClickLeftMouse();
 	void NearReleaseLeftMouse();
 
+	void ScaleUpAndClickButton(const FKey Button = EKeys::LeftMouseButton);
+	void ScaleDownAndUnClickButton(const FKey Button = EKeys::LeftMouseButton);
 
 	bool NearlyEqualVectors(FVector A, FVector B, float ErrorTolerance = SMALL_NUMBER);
 

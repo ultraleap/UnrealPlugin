@@ -207,32 +207,18 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == HandType && StaticMesh)
+	if (HandData.HandType == HandType && !bIsPinched)
 	{
-		// Onpinch scale the cursor by 1/2
-		FVector Scale = CursorSize * FVector(1, 1, 1);
-		Scale = Scale / 2;
-		StaticMesh->SetWorldScale3D(Scale);
-		// Press the LeftMouseButton
-		PressPointerKey(EKeys::LeftMouseButton);
-
+		ScaleUpAndClickButton();
 		bIsPinched = true;
 	}
 }
 
 void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == HandType && StaticMesh && bIsPinched)
+	if (HandData.HandType == HandType && bIsPinched)
 	{
-		// OnUnpinch scale the cursor by 2
-		FVector Scale = StaticMesh->GetComponentScale();
-		if (FMath::IsNearlyEqual(Scale.X, (CursorSize / 2), 1.0E-2F))
-		{
-			Scale = Scale * 2;
-			StaticMesh->SetWorldScale3D(Scale);
-		}
-		//Release the LeftMouseButton
-		ReleasePointerKey(EKeys::LeftMouseButton);
+		ScaleDownAndUnClickButton();
 		bIsPinched = false;
 	}	
 }
@@ -241,11 +227,7 @@ void ULeapWidgetInteractionComponent::NearClickLeftMouse()
 {
 	if (!bHandTouchWidget)
 	{
-		FVector Scale = CursorSize * FVector(1, 1, 1);
-		Scale = Scale / 2;
-		StaticMesh->SetWorldScale3D(Scale);
-		// Press the LeftMouseButton
-		PressPointerKey(EKeys::LeftMouseButton);
+		ScaleUpAndClickButton();
 		bHandTouchWidget = true;
 	}
 }
@@ -254,17 +236,38 @@ void ULeapWidgetInteractionComponent::NearReleaseLeftMouse()
 {
 	if (bHandTouchWidget)
 	{
+		ScaleDownAndUnClickButton();
+		bHandTouchWidget = false;
+	}
+}
+
+void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
+{
+	if (StaticMesh!=nullptr)
+	{
+		// Scale the cursor by 1/2
+		FVector Scale = CursorSize * FVector(1, 1, 1);
+		Scale = Scale / 2;
+		StaticMesh->SetWorldScale3D(Scale);
+	}
+	// Press the LeftMouseButton
+	PressPointerKey(Button);
+}
+
+void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Button)
+{
+	if (StaticMesh!=nullptr)
+	{
+		// Scale the cursor by 2
 		FVector Scale = StaticMesh->GetComponentScale();
 		if (FMath::IsNearlyEqual(Scale.X, (CursorSize / 2), 1.0E-2F))
 		{
 			Scale = Scale * 2;
 			StaticMesh->SetWorldScale3D(Scale);
 		}
-		// Release the LeftMouseButton
-		ReleasePointerKey(EKeys::LeftMouseButton);
-
-		bHandTouchWidget = false;
 	}
+	// Release the LeftMouseButton
+	ReleasePointerKey(Button);
 }
 
 void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLocation)
