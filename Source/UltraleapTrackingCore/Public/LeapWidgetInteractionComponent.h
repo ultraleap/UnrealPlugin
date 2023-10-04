@@ -7,6 +7,7 @@
 #include "ULeapSubsystem.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/Material.h"
 #include "LeapWidgetInteractionComponent.generated.h"
 
 /**
