@@ -29,6 +29,10 @@
 #include "PersonaUtils.h"
 #endif
 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+#include "Engine/SkinnedAsset.h"
+#endif
+
 
 FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
 {
@@ -1258,7 +1262,7 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 		}
 		Message += "\n\nEdit the mappings manually in 'Mapped Bone List -> Bone Map' in the preview panel to continue.";
 	}
-	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), &TitleText);
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), TitleText);
 
 #endif
 }

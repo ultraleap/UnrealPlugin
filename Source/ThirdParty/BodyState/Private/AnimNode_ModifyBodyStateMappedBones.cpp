@@ -28,7 +28,7 @@
 
 #include "Runtime/Launch/Resources/Version.h"
 #if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
-	#include "Engine.h"
+	#include "Engine/Engine.h"
 #endif
 
 FAnimNode_ModifyBodyStateMappedBones::FAnimNode_ModifyBodyStateMappedBones() : FAnimNode_SkeletalControlBase()
