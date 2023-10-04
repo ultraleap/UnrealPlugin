@@ -23,7 +23,7 @@
 #include "SceneViewExtension.h"
 #include "UltraleapTrackingData.h"
 #include "IUltraleapTrackingPlugin.h"
-#include "ULeapSubsystem.h"
+#include "LeapSubsystem.h"
 
 
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice
@@ -98,7 +98,7 @@ protected:
 	FLeapFrameData CurrentFrame;
 	float DeltaTimeFromTick;
 
-	UULeapSubsystem* LeapSubsystem;
+	ULeapSubsystem* LeapSubsystem;
 
 private:
 	bool UseTimeBasedVisibilityCheck = false;

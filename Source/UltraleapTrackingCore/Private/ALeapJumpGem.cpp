@@ -58,7 +58,7 @@ void AALeapJumpGem::BeginPlay()
 	Super::BeginPlay();
 	if (GEngine!=nullptr)
 	{
-		LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+		LeapSubsystem = GEngine->GetEngineSubsystem<ULeapSubsystem>();
 	}
 	
 	if (LeapSubsystem!=nullptr)

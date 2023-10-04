@@ -10,7 +10,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ULeapSubsystem.h"
+#include "LeapSubsystem.h"
 #include "UltraleapTrackingData.h"
 
 #include "ALeapJumpGem.generated.h"
@@ -36,7 +36,7 @@ protected:
 
 	void RepeatingAction();
 
-	UULeapSubsystem* LeapSubsystem;
+	ULeapSubsystem* LeapSubsystem;
 
 	FTimerHandle TimerHandle;
 

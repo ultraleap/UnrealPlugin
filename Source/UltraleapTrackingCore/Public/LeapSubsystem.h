@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "Subsystems/EngineSubsystem.h"
 #include "UltraleapTrackingData.h"
-#include "ULeapSubsystem.generated.h"
+#include "LeapSubsystem.generated.h"
 
-// Blueprint event
+//// Blueprint event
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapGrab, AActor*, GrabbedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRelease, AActor*, ReleasedActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapGrabAction, FVector, Location, FVector, ForwardVec);
@@ -25,7 +25,7 @@ DECLARE_DELEGATE_OneParam(FLeapHandSignaturenative, const FLeapHandData&);
  * 
  */
 UCLASS()
-class ULTRALEAPTRACKING_API UULeapSubsystem : public UEngineSubsystem
+class ULTRALEAPTRACKING_API ULeapSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 

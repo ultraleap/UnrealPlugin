@@ -90,7 +90,7 @@ namespace UnrealBuildTool.Rules
 					"AnimGraph",
 					"AnimGraphRuntime",
 					"BodyState",
-                    "InputCore",
+                    //"InputCore",
 
                 }
 				);

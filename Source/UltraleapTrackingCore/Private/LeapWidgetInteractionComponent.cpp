@@ -5,18 +5,22 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "LeapUtility.h"
+#include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
 
 ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()) 
 	: Super(ObjectInitializer)
-	, CursorDistanceFromHand(50)
+	
+	
+	, HandType(EHandType::LEAP_HAND_LEFT)
+	, WidgetInteraction(EUIType::FAR)
 	, StaticMesh(nullptr)
 	, MaterialBase(nullptr)
 	, CursorSize(0.03) 
-	, HandType(EHandType::LEAP_HAND_LEFT)
-	, WidgetInteraction(EUIType::FAR)
-	, LeapSubsystem(nullptr)
+	, CursorDistanceFromHand(50)
 	, InterpolationDelta(0.01)
 	, InterpolationSpeed(10)
+	, LeapSubsystem(nullptr)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
 	, World(nullptr)
@@ -119,7 +123,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			// Use touch for near interactions, with 4 cm error tolerance
+			// Use touch for near interactions, with 6 cm error tolerance
 			if (LessVectors(CursorLocation, LastHitResult.ImpactPoint, 6E+0F))
 			{
 				NearClickLeftMouse();
@@ -146,7 +150,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("GEngine or World is nullptr in BeginPlay"));
 		return;
 	}
-	LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+	LeapSubsystem = GEngine->GetEngineSubsystem<ULeapSubsystem>();
 	if (LeapSubsystem==nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapSubsystem is nullptr in BeginPlay"));

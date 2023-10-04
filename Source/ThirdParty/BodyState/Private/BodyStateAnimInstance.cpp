@@ -1262,7 +1262,12 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 		}
 		Message += "\n\nEdit the mappings manually in 'Mapped Bone List -> Bone Map' in the preview panel to continue.";
 	}
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3)
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), TitleText);
+#else
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), &TitleText);
+#endif
 
 #endif
 }

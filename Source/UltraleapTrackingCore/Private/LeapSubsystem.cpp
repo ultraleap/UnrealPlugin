@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ULeapSubsystem.h"
+#include "LeapSubsystem.h"
 
-void UULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
+void ULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
 {
 	if (GrabbedActor!=nullptr)
 	{
@@ -12,7 +12,7 @@ void UULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* H
 	}
 }
 
-void UULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
+void ULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
 	if (ReleasedActor!=nullptr)
 	{
@@ -21,24 +21,24 @@ void UULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponen
 	}
 }
 
-void UULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
+void ULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
 {
 	OnLeapGrabAction.Broadcast(Location, ForwardVec);
 }
 
-void UULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
+void ULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
 {
 	OnLeapTrackingDatanative.ExecuteIfBound(Frame);
 	OnLeapFrameMulti.Broadcast(Frame);
 }
 
-void UULeapSubsystem::LeapPinchCall(const FLeapHandData& HandData)
+void ULeapSubsystem::LeapPinchCall(const FLeapHandData& HandData)
 {
 	//OnLeapPinch.ExecuteIfBound(HandData);
 	OnLeapPinchMulti.Broadcast(HandData);
 }
 
-void UULeapSubsystem::LeapUnPinchCall(const FLeapHandData& HandData)
+void ULeapSubsystem::LeapUnPinchCall(const FLeapHandData& HandData)
 {
 	//OnLeapUnpinched.ExecuteIfBound(HandData);
 	OnLeapUnPinchMulti.Broadcast(HandData);

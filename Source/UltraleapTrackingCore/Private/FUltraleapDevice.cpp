@@ -282,7 +282,7 @@ FUltraleapDevice::FUltraleapDevice(
 
 	if (GEngine != nullptr)
 	{
-		LeapSubsystem = GEngine->GetEngineSubsystem<UULeapSubsystem>();
+		LeapSubsystem = GEngine->GetEngineSubsystem<ULeapSubsystem>();
 	}
 }
 

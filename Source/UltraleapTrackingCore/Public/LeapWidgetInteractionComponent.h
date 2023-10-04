@@ -4,10 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/WidgetInteractionComponent.h"
-#include "ULeapSubsystem.h"
+#include "LeapSubsystem.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/Material.h"
+#include "Components/StaticMeshComponent.h"
+#include "GameFramework/Pawn.h"
+#include "Materials/MaterialInstanceDynamic.h"
+
 #include "LeapWidgetInteractionComponent.generated.h"
 
 /**
@@ -42,27 +46,37 @@ public:
 	UFUNCTION()
 	void OnLeapUnPinch(const FLeapHandData& HandData);
 
-	/** This will add an offset between the hands and the widget
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	int32 CursorDistanceFromHand;
-	/** The default static mesh is a sphere, but can be changed to anything
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	UStaticMeshComponent* StaticMesh;
-	/** This can be used to change the cursor's color 
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	UMaterial* MaterialBase;
-	/** This can be used to change the cursor's size
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI",
-		meta = (ClampMin = "0.01", ClampMax = "0.1", UIMin = "0.01", UIMax = "0.1"))
-	float CursorSize;
+
 	/** Hand type, for left and right hands
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	TEnumAsByte<EHandType> HandType;
+
+	/** WidgetInteraction type, this requires the InteractionDistance to be <= 30 in order to change to NEAR interactions
+	 *  Changing this to NEAR will enable interactions with widgets by direct touch
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI", meta = (EditCondition = "InteractionDistance <= 30"))
+	TEnumAsByte<EUIType> WidgetInteraction;
+
+	/** The default static mesh is a sphere, but can be changed to anything
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	UStaticMeshComponent* StaticMesh;
+
+	/** This can be used to change the cursor's color
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	UMaterial* MaterialBase;
+
+	/** This can be used to change the cursor's size
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI", meta = (ClampMin = "0.01", ClampMax = "0.1", UIMin = "0.01", UIMax = "0.1"))
+	float CursorSize;
+
+	/** This will add an offset between the hands and the widget
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	int32 CursorDistanceFromHand;
 
 	/** Interpolation setting delta time since last tick
 	 */
@@ -73,14 +87,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	float InterpolationSpeed;
 
-	/** WidgetInteraction type, this requires the InteractionDistance to be <= 30 in order to change to NEAR interactions
-	 *  Changing this to NEAR will enable interactions with widgets by direct touch
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI", 
-		meta = (EditCondition = "InteractionDistance <= 30"))
-	TEnumAsByte <EUIType> WidgetInteraction;
+	
 
-	UULeapSubsystem* LeapSubsystem;
+	ULeapSubsystem* LeapSubsystem;
 
 
 private:
