@@ -20,7 +20,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, CursorDistanceFromHand(50)
 	, InterpolationDelta(0.01)
 	, InterpolationSpeed(10)
-	, IndexDitanceFromUI(5)
+	, IndexDitanceFromUI(0)
 	, LeapSubsystem(nullptr)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
@@ -48,7 +48,7 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("StaticMesh is nullptr in CreatStaticMeshForCursor()"));
 		return;
 	}
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/Explore/Diamond_Mat.Diamond_Mat"));
 	
 	if (DefaultMesh.Succeeded())
@@ -57,19 +57,6 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 		StaticMesh->SetWorldScale3D(CursorSize*FVector(1, 1, 1));
 	}
 }
-
-bool ULeapWidgetInteractionComponent::NearlyEqualVectors(FVector A, FVector B, float ErrorTolerance)
-{
-	float Diff = A.Size() - B.Size();
-	return FMath::IsNearlyEqual(Diff, SMALL_NUMBER, ErrorTolerance);
-}
-
-bool ULeapWidgetInteractionComponent::LessVectors(FVector A, FVector B, float ErrorTolerance)
-{
-	FVector Diff = A - B;
-	return Diff.Size() <= ErrorTolerance;
-}
-
 
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
@@ -124,16 +111,18 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			// Use touch for near interactions, with 4 cm error tolerance
-			if (NearlyEqualVectors(CursorLocation, LastHitResult.ImpactPoint, IndexDitanceFromUI))
+			float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
+			// 5 cm is the distance between the finger base to the finger tip
+			if (Dist < IndexDitanceFromUI + 5)
 			{
 				NearClickLeftMouse(TmpHand.HandType);
-				
 			}
-			else // if (LessVectors(CursorLocation, LastHitResult.ImpactPoint, 7E+0F)) 
+			// added 2 cm, cause of the jitter can cause accidental release
+			else if (Dist > IndexDitanceFromUI + 7)
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
+	
 		}
 	}
 	else
