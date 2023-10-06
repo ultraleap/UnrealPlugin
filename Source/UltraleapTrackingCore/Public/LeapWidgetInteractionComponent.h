@@ -50,7 +50,7 @@ public:
 	/** Hand type, for left and right hands
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	TEnumAsByte<EHandType> HandType;
+	TEnumAsByte<EHandType> LeapHandType;
 
 	/** WidgetInteraction type, this requires the InteractionDistance to be <= 30 in order to change to NEAR interactions
 	 *  Changing this to NEAR will enable interactions with widgets by direct touch
@@ -75,7 +75,7 @@ public:
 
 	/** This will add an offset between the hands and the widget
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	int32 CursorDistanceFromHand;
 
 	/** Interpolation setting delta time since last tick
@@ -85,12 +85,18 @@ public:
 	/** Interpolation setting if 0 then no interp is applied 
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	float InterpolationSpeed;
+	float InterpolationSpeed;	
 
-	
+	/** The distance in cm betweenn index and UI to trigger touch interaction
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Near")
+	float IndexDitanceFromUI;
 
 	ULeapSubsystem* LeapSubsystem;
 
+	#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	#endif
 
 private:
 
@@ -105,8 +111,8 @@ private:
 	 */
 	void CreatStaticMeshForCursor();
 
-	void NearClickLeftMouse();
-	void NearReleaseLeftMouse();
+	void NearClickLeftMouse(TEnumAsByte<EHandType> HandType);
+	void NearReleaseLeftMouse(TEnumAsByte<EHandType> HandType);
 
 	void ScaleUpAndClickButton(const FKey Button = EKeys::LeftMouseButton);
 	void ScaleDownAndUnClickButton(const FKey Button = EKeys::LeftMouseButton);

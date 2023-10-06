@@ -12,7 +12,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	: Super(ObjectInitializer)
 	
 	
-	, HandType(EHandType::LEAP_HAND_LEFT)
+	, LeapHandType(EHandType::LEAP_HAND_LEFT)
 	, WidgetInteraction(EUIType::FAR)
 	, StaticMesh(nullptr)
 	, MaterialBase(nullptr)
@@ -20,6 +20,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, CursorDistanceFromHand(50)
 	, InterpolationDelta(0.01)
 	, InterpolationSpeed(10)
+	, IndexDitanceFromUI(5)
 	, LeapSubsystem(nullptr)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
@@ -59,8 +60,8 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 
 bool ULeapWidgetInteractionComponent::NearlyEqualVectors(FVector A, FVector B, float ErrorTolerance)
 {
-	FVector Diff = A - B;
-	return FMath::IsNearlyEqual(Diff.Size(), SMALL_NUMBER, ErrorTolerance);
+	float Diff = A.Size() - B.Size();
+	return FMath::IsNearlyEqual(Diff, SMALL_NUMBER, ErrorTolerance);
 }
 
 bool ULeapWidgetInteractionComponent::LessVectors(FVector A, FVector B, float ErrorTolerance)
@@ -73,7 +74,7 @@ bool ULeapWidgetInteractionComponent::LessVectors(FVector A, FVector B, float Er
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
 	FLeapHandData TmpHand = Hand;
-	if (TmpHand.HandType != HandType)
+	if (TmpHand.HandType != LeapHandType)
 	{
 		return;
 	}
@@ -84,7 +85,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FVector HandLocation = FVector();
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			HandLocation = TmpHand.Index.Intermediate.NextJoint;
+			HandLocation = TmpHand.Index.Intermediate.PrevJoint;
 		}
 		else
 		{
@@ -101,11 +102,11 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		// The direction is the line between the hmd and the hand, CursorDistanceFromHand is used to add an offset in the palm direction 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			Direction = TmpHand.Index.Intermediate.NextJoint - TmpHand.Index.Intermediate.PrevJoint;
+			Direction = TmpHand.Index.Distal.NextJoint - TmpHand.Index.Intermediate.PrevJoint;
 		}
 		else
 		{
-			Direction = CursorLocation + (CursorDistanceFromHand * TmpHand.Palm.Direction) - PlayerCameraManager->GetTransform().GetLocation();
+			Direction = CursorLocation + (CursorDistanceFromHand * TmpHand.Palm.Orientation.Vector()) - PlayerCameraManager->GetTransform().GetLocation();
 		}
 		
 		Direction.Normalize();
@@ -123,14 +124,15 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			// Use touch for near interactions, with 6 cm error tolerance
-			if (LessVectors(CursorLocation, LastHitResult.ImpactPoint, 6E+0F))
+			// Use touch for near interactions, with 4 cm error tolerance
+			if (NearlyEqualVectors(CursorLocation, LastHitResult.ImpactPoint, IndexDitanceFromUI))
 			{
-				NearClickLeftMouse();
+				NearClickLeftMouse(TmpHand.HandType);
+				
 			}
-			else 
+			else // if (LessVectors(CursorLocation, LastHitResult.ImpactPoint, 7E+0F)) 
 			{
-				NearReleaseLeftMouse();
+				NearReleaseLeftMouse(TmpHand.HandType);
 			}
 		}
 	}
@@ -199,7 +201,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapDynMaterial or  StaticMesh is nullptr in BeginPlay"));
 		return;
 	}
-	if (HandType == EHandType::LEAP_HAND_LEFT)
+	if (LeapHandType == EHandType::LEAP_HAND_LEFT)
 	{
 		PointerIndex = 0;
 	}
@@ -211,7 +213,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == HandType && !bIsPinched)
+	if (HandData.HandType == LeapHandType && !bIsPinched)
 	{
 		ScaleUpAndClickButton();
 		bIsPinched = true;
@@ -220,25 +222,25 @@ void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 
 void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == HandType && bIsPinched)
+	if (HandData.HandType == LeapHandType && bIsPinched)
 	{
 		ScaleDownAndUnClickButton();
 		bIsPinched = false;
 	}	
 }
 
-void ULeapWidgetInteractionComponent::NearClickLeftMouse()
+void ULeapWidgetInteractionComponent::NearClickLeftMouse(TEnumAsByte<EHandType> HandType)
 {
-	if (!bHandTouchWidget)
+	if (!bHandTouchWidget && HandType == LeapHandType)
 	{
 		ScaleUpAndClickButton();
 		bHandTouchWidget = true;
 	}
 }
 
-void ULeapWidgetInteractionComponent::NearReleaseLeftMouse()
+void ULeapWidgetInteractionComponent::NearReleaseLeftMouse(TEnumAsByte<EHandType> HandType)
 {
-	if (bHandTouchWidget)
+	if (bHandTouchWidget && HandType == LeapHandType)
 	{
 		ScaleDownAndUnClickButton();
 		bHandTouchWidget = false;
@@ -273,6 +275,18 @@ void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Butto
 	// Release the LeftMouseButton
 	ReleasePointerKey(Button);
 }
+
+#if WITH_EDITOR
+void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	// Set the WidgetInteraction type to far when the distance is more than 30
+	if (InteractionDistance > 30 && WidgetInteraction == EUIType::NEAR)
+	{
+		WidgetInteraction = EUIType::FAR;
+	}
+}
+#endif
 
 void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLocation)
 {
