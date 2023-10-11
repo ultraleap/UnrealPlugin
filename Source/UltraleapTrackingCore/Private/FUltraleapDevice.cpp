@@ -1393,6 +1393,11 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
 
+	if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+	{
+		LeapSubsystem->SetUseOpenXR(Options.bUseOpenXRAsSource);
+	}
+
 }
 FLeapOptions FUltraleapDevice::GetOptions()
 {
