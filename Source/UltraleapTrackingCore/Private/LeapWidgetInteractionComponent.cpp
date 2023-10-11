@@ -20,7 +20,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, CursorDistanceFromHand(50)
 	, InterpolationDelta(0.01)
 	, InterpolationSpeed(10)
-	, IndexDitanceFromUI(0)
+	, IndexDitanceFromUI(0.00f)
 	, LeapSubsystem(nullptr)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
@@ -85,7 +85,6 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		TargetTrans.SetLocation(CursorLocation);
 
 		FVector Direction = FVector();
-
 		// The direction is the line between the hmd and the hand, CursorDistanceFromHand is used to add an offset in the palm direction 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
@@ -113,12 +112,12 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		{
 			float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
 			// 5 cm is the distance between the finger base to the finger tip
-			if (Dist < IndexDitanceFromUI + 5)
+			if (Dist < (IndexDitanceFromUI + 5.00f))
 			{
 				NearClickLeftMouse(TmpHand.HandType);
 			}
 			// added 2 cm, cause of the jitter can cause accidental release
-			else if (Dist > IndexDitanceFromUI + 7)
+			else if (Dist > (IndexDitanceFromUI + 7.0f))
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
@@ -141,7 +140,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("GEngine or World is nullptr in BeginPlay"));
 		return;
 	}
-	LeapSubsystem = GEngine->GetEngineSubsystem<ULeapSubsystem>();
+	LeapSubsystem = ULeapSubsystem::Get();
 	if (LeapSubsystem==nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapSubsystem is nullptr in BeginPlay"));

@@ -3,21 +3,31 @@
 
 #include "LeapSubsystem.h"
 
+ULeapSubsystem::ULeapSubsystem() 
+	: bUseOpenXR(false)
+{
+}
+
+ULeapSubsystem* ULeapSubsystem::Get()
+{
+	return GEngine->GetEngineSubsystem<ULeapSubsystem>();
+}
+
 void ULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
 {
-	if (GrabbedActor!=nullptr)
+	if (GrabbedActor != nullptr && HandLeft != nullptr && HandRight != nullptr)
 	{
 		OnLeapGrab.Broadcast(GrabbedActor);
-		OnLeapGrabNative.Execute(GrabbedActor, HandLeft, HandRight);
+		//OnLeapGrabNative.Execute(GrabbedActor, HandLeft, HandRight);
 	}
 }
 
 void ULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
-	if (ReleasedActor!=nullptr)
+	if (ReleasedActor != nullptr && HandLeft != nullptr && HandRight != nullptr)
 	{
 		OnLeapRelease.Broadcast(ReleasedActor);
-		OnLeapReleaseNative.Execute(ReleasedActor, HandLeft, HandRight, BoneName);
+		//OnLeapReleaseNative.Execute(ReleasedActor, HandLeft, HandRight, BoneName);
 	}
 }
 
@@ -28,7 +38,7 @@ void ULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
 
 void ULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
 {
-	OnLeapTrackingDatanative.ExecuteIfBound(Frame);
+	//OnLeapTrackingDatanative.ExecuteIfBound(Frame);
 	OnLeapFrameMulti.Broadcast(Frame);
 }
 
@@ -44,3 +54,12 @@ void ULeapSubsystem::LeapUnPinchCall(const FLeapHandData& HandData)
 	OnLeapUnPinchMulti.Broadcast(HandData);
 }
 
+bool ULeapSubsystem::GetUseOpenXR()
+{
+	return bUseOpenXR;
+}
+
+void ULeapSubsystem::SetUseOpenXR(bool UseXR)
+{
+	bUseOpenXR = UseXR;
+}

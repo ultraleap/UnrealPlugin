@@ -31,6 +31,10 @@ class ULTRALEAPTRACKING_API ULeapSubsystem : public UEngineSubsystem
 
 public:
 
+	ULeapSubsystem();
+
+	static ULeapSubsystem* Get();
+
 	/** Called when grabbing is called*/
 	UPROPERTY(BlueprintAssignable, Category = "Leap grab Events")
 	FLeapGrab OnLeapGrab;
@@ -53,6 +57,8 @@ public:
 	FLeapHand OnLeapUnPinchMulti;
 	FLeapFrame OnLeapFrameMulti;
 
+	
+
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
 
@@ -73,5 +79,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
 	void LeapUnPinchCall(const FLeapHandData& HandData);
 
-	
+	//UFUNCTION()
+	bool GetUseOpenXR();
+
+	//UFUNCTION()
+	void SetUseOpenXR(bool UseXR);
+
+private:
+
+	//UPROPERTY()
+	bool bUseOpenXR;
 };

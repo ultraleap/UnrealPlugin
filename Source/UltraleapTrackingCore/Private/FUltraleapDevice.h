@@ -98,8 +98,6 @@ protected:
 	FLeapFrameData CurrentFrame;
 	float DeltaTimeFromTick;
 
-	ULeapSubsystem* LeapSubsystem;
-
 private:
 	bool UseTimeBasedVisibilityCheck = false;
 	bool UseTimeBasedGestureCheck = false;
