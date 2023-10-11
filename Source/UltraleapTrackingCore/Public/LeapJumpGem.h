@@ -13,18 +13,18 @@
 #include "LeapSubsystem.h"
 #include "UltraleapTrackingData.h"
 
-#include "ALeapJumpGem.generated.h"
+#include "LeapJumpGem.generated.h"
 
 class UStaticMeshComponent;
 
 UCLASS()
-class ULTRALEAPTRACKING_API AALeapJumpGem : public AActor
+class ULTRALEAPTRACKING_API ALeapJumpGem : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AALeapJumpGem();
+	ALeapJumpGem();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* StaticMesh;
@@ -44,10 +44,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
 	void OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
-
+	UFUNCTION()
 	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
-
+	UFUNCTION()
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
 	bool IsLeftHandFacingCamera(FLeapHandData Hand);

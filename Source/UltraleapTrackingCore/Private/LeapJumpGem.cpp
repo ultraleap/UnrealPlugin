@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 
-#include "ALeapJumpGem.h"
+#include "LeapJumpGem.h"
 #include "LeapUtility.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -22,7 +22,7 @@
 #include "Engine/Engine.h"
 
 // Sets default values
-AALeapJumpGem::AALeapJumpGem()
+ALeapJumpGem::ALeapJumpGem()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -53,7 +53,7 @@ AALeapJumpGem::AALeapJumpGem()
 }
 
 // Called when the game starts or when spawned
-void AALeapJumpGem::BeginPlay()
+void ALeapJumpGem::BeginPlay()
 {
 	Super::BeginPlay();
 	if (GEngine!=nullptr)
@@ -63,30 +63,30 @@ void AALeapJumpGem::BeginPlay()
 	
 	if (LeapSubsystem!=nullptr)
 	{
-		LeapSubsystem->OnLeapGrabNative.BindUObject(this, &AALeapJumpGem::OnGrabbed);
-		LeapSubsystem->OnLeapReleaseNative.BindUObject(this, &AALeapJumpGem::OnReleased);
-		LeapSubsystem->OnLeapTrackingDatanative.BindUObject(this, &AALeapJumpGem::OnLeapTrackingData);
+		LeapSubsystem->OnLeapGrab.AddDynamic(this, &ALeapJumpGem::OnGrabbed);
+		LeapSubsystem->OnLeapRelease.AddDynamic(this, &ALeapJumpGem::OnReleased);
+		LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ALeapJumpGem::OnLeapTrackingData);
 	}
 
 }
 
 // Called every frame
-void AALeapJumpGem::Tick(float DeltaTime)
+void ALeapJumpGem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-void AALeapJumpGem::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
+void ALeapJumpGem::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
 {
 	if (GrabbedActor != nullptr && this == GrabbedActor)
 	{
 		// Trigger a timer when the actor is grabbed
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &AALeapJumpGem::RepeatingAction, 0.04f, true, .0f);
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapJumpGem::RepeatingAction, 0.04f, true, .0f);
 	}
 }
 
-void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
+void ALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
 	if (ReleasedActor != nullptr && this == ReleasedActor && HandLeft != nullptr)
 	{
@@ -104,7 +104,7 @@ void AALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* Ha
 	}
 }
 
-void AALeapJumpGem::OnLeapTrackingData(const FLeapFrameData& Frame)
+void ALeapJumpGem::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
 	TArray<FLeapHandData> Hands = Frame.Hands;
 	for (int32 i = 0; i < Hands.Num(); ++i)
@@ -122,7 +122,7 @@ void AALeapJumpGem::OnLeapTrackingData(const FLeapFrameData& Frame)
 	}
 }
 
-bool AALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
+bool ALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
 {
 	APlayerCameraManager* PlayerCameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 	if (PlayerCameraManager!=nullptr)
@@ -143,16 +143,16 @@ bool AALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
 	return false;
 }
 
-void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
 	// Unbind all the events 
 	if (LeapSubsystem != nullptr)
 	{
-		LeapSubsystem->OnLeapGrabNative.Unbind();
-		LeapSubsystem->OnLeapReleaseNative.Unbind();
-		LeapSubsystem->OnLeapTrackingDatanative.Unbind();
+		LeapSubsystem->OnLeapPinchMulti.Clear();
+		LeapSubsystem->OnLeapUnPinchMulti.Clear();
+		LeapSubsystem->OnLeapFrameMulti.Clear();
 	}
 
 	if (GetWorldTimerManager().IsTimerActive(TimerHandle))
@@ -162,7 +162,7 @@ void AALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	
 }
 
-void AALeapJumpGem::RepeatingAction()
+void ALeapJumpGem::RepeatingAction()
 {
 	if (LeapSubsystem != nullptr)
 	{
