@@ -268,10 +268,16 @@ void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Butto
 void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	// Set the WidgetInteraction type to far when the distance is more than 30
-	if (InteractionDistance > 30 && WidgetInteraction == EUIType::NEAR)
+	
+	if (WidgetInteraction == EUIType::NEAR)
 	{
-		WidgetInteraction = EUIType::FAR;
+		//Set interpolation speed to 20 for faster cursor movment for near interactions
+		InterpolationSpeed = 20.0f;
+		// Set the WidgetInteraction type to far when the distance is more than 30
+		if (InteractionDistance > 30)
+		{
+			WidgetInteraction = EUIType::FAR;
+		}	
 	}
 }
 #endif
