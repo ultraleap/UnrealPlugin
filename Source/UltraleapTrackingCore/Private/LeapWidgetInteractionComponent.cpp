@@ -112,7 +112,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		{
 			float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
 			// 5 cm is the distance between the finger base to the finger tip
-			if (Dist < (IndexDitanceFromUI + 5.00f))
+			if (Dist < (IndexDitanceFromUI + 5.0f))
 			{
 				NearClickLeftMouse(TmpHand.HandType);
 			}
