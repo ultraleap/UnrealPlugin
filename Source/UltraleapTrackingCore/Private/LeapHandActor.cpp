@@ -7,7 +7,7 @@
  ******************************************************************************/
 
 
-#include "LeapJumpGem.h"
+#include "LeapHandActor.h"
 #include "LeapUtility.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -22,7 +22,8 @@
 #include "Engine/Engine.h"
 
 // Sets default values
-ALeapJumpGem::ALeapJumpGem()
+ALeapHandActor::ALeapHandActor() 
+	//: WidgetComponent(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -50,10 +51,21 @@ ALeapJumpGem::ALeapJumpGem()
 			StaticMesh->SetMaterial(0, LeapDynMaterial);
 		}
     }
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("LeapWristWidget");
+	static ConstructorHelpers::FClassFinder<UUserWidget> PopupWidgetObj(TEXT("/UltraleapTracking/UIInputModules/BasicTestUMG"));
+	if (PopupWidgetObj.Succeeded())
+	{
+		WidgetComponent->SetWidgetClass(PopupWidgetObj.Class);
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapWristWidget could not initialize in ALeapHandActor"));
+	}
 }
 
 // Called when the game starts or when spawned
-void ALeapJumpGem::BeginPlay()
+void ALeapHandActor::BeginPlay()
 {
 	Super::BeginPlay();
 	if (GEngine!=nullptr)
@@ -63,30 +75,30 @@ void ALeapJumpGem::BeginPlay()
 	
 	if (LeapSubsystem!=nullptr)
 	{
-		LeapSubsystem->OnLeapGrab.AddDynamic(this, &ALeapJumpGem::OnGrabbed);
-		LeapSubsystem->OnLeapRelease.AddDynamic(this, &ALeapJumpGem::OnReleased);
-		LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ALeapJumpGem::OnLeapTrackingData);
+		LeapSubsystem->OnLeapGrab.AddDynamic(this, &ALeapHandActor::OnGrabbed);
+		LeapSubsystem->OnLeapRelease.AddDynamic(this, &ALeapHandActor::OnReleased);
+		LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ALeapHandActor::OnLeapTrackingData);
 	}
 
 }
 
 // Called every frame
-void ALeapJumpGem::Tick(float DeltaTime)
+void ALeapHandActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-void ALeapJumpGem::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
+void ALeapHandActor::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
 {
 	if (GrabbedActor != nullptr && this == GrabbedActor)
 	{
 		// Trigger a timer when the actor is grabbed
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapJumpGem::RepeatingAction, 0.04f, true, .0f);
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapHandActor::RepeatingAction, 0.04f, true, .0f);
 	}
 }
 
-void ALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
+void ALeapHandActor::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
 	if (ReleasedActor != nullptr && this == ReleasedActor && HandLeft != nullptr)
 	{
@@ -104,7 +116,7 @@ void ALeapJumpGem::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* Han
 	}
 }
 
-void ALeapJumpGem::OnLeapTrackingData(const FLeapFrameData& Frame)
+void ALeapHandActor::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
 	TArray<FLeapHandData> Hands = Frame.Hands;
 	for (int32 i = 0; i < Hands.Num(); ++i)
@@ -122,7 +134,7 @@ void ALeapJumpGem::OnLeapTrackingData(const FLeapFrameData& Frame)
 	}
 }
 
-bool ALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
+bool ALeapHandActor::IsLeftHandFacingCamera(FLeapHandData Hand)
 {
 	APlayerCameraManager* PlayerCameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 	if (PlayerCameraManager!=nullptr)
@@ -134,16 +146,26 @@ bool ALeapJumpGem::IsLeftHandFacingCamera(FLeapHandData Hand)
 		// -1.f is when the two vectors are parallel, -0.4f just for the range 
 		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
 		{
+			if (WidgetComponent)
+			{
+				//WidgetComponent->SetWindowVisibility(EWindowVisibility::SelfHitTestInvisible);
+			}
+			
 			SetActorHiddenInGame(false);
 			return true;
 		}
+	}
+
+	if (WidgetComponent)
+	{
+		//WidgetComponent->SetWindowVisibility(EWindowVisibility::Visible);
 	}
 	
 	SetActorHiddenInGame(true);
 	return false;
 }
 
-void ALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ALeapHandActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
@@ -162,7 +184,7 @@ void ALeapJumpGem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	
 }
 
-void ALeapJumpGem::RepeatingAction()
+void ALeapHandActor::RepeatingAction()
 {
 	if (LeapSubsystem != nullptr)
 	{

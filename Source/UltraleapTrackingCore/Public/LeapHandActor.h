@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 /******************************************************************************
  * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
  *                                                                            *
@@ -6,28 +5,35 @@
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
  * between Ultraleap and you, your company or other organization.             *
  ******************************************************************************/
+
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "LeapSubsystem.h"
 #include "UltraleapTrackingData.h"
+#include "Components/WidgetComponent.h"
 
-#include "LeapJumpGem.generated.h"
+#include "LeapHandActor.generated.h"
 
 class UStaticMeshComponent;
+//class UWidgetComponent;
 
 UCLASS()
-class ULTRALEAPTRACKING_API ALeapJumpGem : public AActor
+class ULTRALEAPTRACKING_API ALeapHandActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ALeapJumpGem();
+	ALeapHandActor();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UWidgetComponent* WidgetComponent;
 
 protected:
 	// Called when the game starts or when spawned
