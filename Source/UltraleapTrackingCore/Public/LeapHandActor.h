@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 /******************************************************************************
  * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
  *                                                                            *
@@ -13,18 +12,18 @@
 #include "LeapSubsystem.h"
 #include "UltraleapTrackingData.h"
 
-#include "LeapJumpGem.generated.h"
+#include "LeapHandActor.generated.h"
 
 class UStaticMeshComponent;
 
 UCLASS()
-class ULTRALEAPTRACKING_API ALeapJumpGem : public AActor
+class ULTRALEAPTRACKING_API ALeapHandActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ALeapJumpGem();
+	ALeapHandActor();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* StaticMesh;
