@@ -22,7 +22,8 @@
 #include "Engine/Engine.h"
 
 // Sets default values
-ALeapHandActor::ALeapHandActor()
+ALeapHandActor::ALeapHandActor() 
+	//: WidgetComponent(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -50,6 +51,17 @@ ALeapHandActor::ALeapHandActor()
 			StaticMesh->SetMaterial(0, LeapDynMaterial);
 		}
     }
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("LeapWristWidget");
+	/*static ConstructorHelpers::FClassFinder<UUserWidget> PopupWidgetObj(TEXT("/UltraleapTracking/UIInputModules/BasicTestUMG.BasicTestUMG"));
+	if (PopupWidgetObj.Succeeded())
+	{
+		WidgetComponent->SetWidgetClass(PopupWidgetObj.Class);
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapWristWidget could not initialize in ALeapHandActor"));
+	}*/
 }
 
 // Called when the game starts or when spawned
@@ -138,7 +150,7 @@ bool ALeapHandActor::IsLeftHandFacingCamera(FLeapHandData Hand)
 			return true;
 		}
 	}
-	
+
 	SetActorHiddenInGame(true);
 	return false;
 }

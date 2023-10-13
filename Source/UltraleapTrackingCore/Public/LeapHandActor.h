@@ -5,16 +5,20 @@
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
  * between Ultraleap and you, your company or other organization.             *
  ******************************************************************************/
+
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "LeapSubsystem.h"
 #include "UltraleapTrackingData.h"
+#include "Components/WidgetComponent.h"
 
 #include "LeapHandActor.generated.h"
 
 class UStaticMeshComponent;
+//class UWidgetComponent;
 
 UCLASS()
 class ULTRALEAPTRACKING_API ALeapHandActor : public AActor
@@ -27,6 +31,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UWidgetComponent* WidgetComponent;
 
 protected:
 	// Called when the game starts or when spawned
