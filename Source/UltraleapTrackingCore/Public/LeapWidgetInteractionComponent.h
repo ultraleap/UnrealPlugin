@@ -61,7 +61,7 @@ public:
 	/** WidgetInteraction type, this requires the InteractionDistance to be <= 30 in order to change to NEAR interactions
 	 *  Changing this to NEAR will enable interactions with widgets by direct touch
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI", meta = (EditCondition = "InteractionDistance <= 30"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI" /* , meta = (EditCondition = "InteractionDistance <= 30")*/)
 	TEnumAsByte<EUIType> WidgetInteraction;
 
 	/** The default static mesh is a sphere, but can be changed to anything
@@ -93,11 +93,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	float InterpolationSpeed;	
 
+	/** This will automatically enable near distance interactions mode when the 
+	* Distance between the hand and widget is less than 30 cm 
+	* and far mode when the ditance is more than 35 cm
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
+	bool bAutoMode;
+
 	/** The distance in cm betweenn index and UI to trigger touch interaction
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Near")
 	float IndexDitanceFromUI;
-
 	ULeapSubsystem* LeapSubsystem;
 
 	#if WITH_EDITOR
@@ -131,4 +137,5 @@ private:
 	bool bIsPinched;
 
 	bool bHandTouchWidget;
+	bool bAutoModeTrigger;
 };

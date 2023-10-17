@@ -26,6 +26,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, CursorDistanceFromHand(50)
 	, InterpolationDelta(0.01)
 	, InterpolationSpeed(10)
+	, bAutoMode(false)
 	, IndexDitanceFromUI(0.00f)
 	, LeapSubsystem(nullptr)
 	, LeapPawn(nullptr)
@@ -35,6 +36,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, PlayerCameraManager(nullptr)
 	, bIsPinched(false)
 	, bHandTouchWidget(false)
+	, bAutoModeTrigger(false)
 {
 	CreatStaticMeshForCursor();
 }
@@ -82,7 +84,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		}
 		else
 		{
-			HandLocation = TmpHand.Palm.Position;
+			HandLocation = TmpHand.Middle.Metacarpal.PrevJoint;
 		}
 
 		FVector PawnLocation = LeapPawn->GetActorLocation();
@@ -92,14 +94,8 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		FVector Direction = FVector();
 		// The direction is the line between the hmd and the hand, CursorDistanceFromHand is used to add an offset in the palm direction 
-		if (WidgetInteraction == EUIType::NEAR)
-		{
-			Direction = TmpHand.Index.Distal.NextJoint - TmpHand.Index.Intermediate.PrevJoint;
-		}
-		else
-		{
-			Direction = CursorLocation + (CursorDistanceFromHand * TmpHand.Palm.Orientation.Vector()) - PlayerCameraManager->GetTransform().GetLocation();
-		}
+
+		Direction = TmpHand.Index.Metacarpal.NextJoint - TmpHand.Index.Metacarpal.PrevJoint;
 		
 		Direction.Normalize();
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
@@ -114,9 +110,9 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		// Set the sphere location in the widget using the hit result inherited from the parent class
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
+		float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
 			// 5 cm is the distance between the finger base to the finger tip
 			if (Dist < (IndexDitanceFromUI + 5.0f))
 			{
@@ -127,8 +123,23 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
-	
 		}
+		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance 
+		// between the hand and the widget
+		if (bAutoMode )
+		{
+			if (Dist < 30 && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
+			{
+				WidgetInteraction = EUIType::NEAR;
+				bAutoModeTrigger = true;
+			}
+			else if (Dist > 45 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
+			{
+				WidgetInteraction = EUIType::FAR;
+				bAutoModeTrigger = false;
+			}
+		}
+
 	}
 	else
 	{
@@ -207,7 +218,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == LeapHandType && !bIsPinched)
+	if (HandData.HandType == LeapHandType && !bIsPinched && WidgetInteraction == EUIType::FAR)
 	{
 		ScaleUpAndClickButton();
 		bIsPinched = true;
@@ -216,7 +227,7 @@ void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 
 void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == LeapHandType && bIsPinched)
+	if (HandData.HandType == LeapHandType && bIsPinched && WidgetInteraction == EUIType::FAR)
 	{
 		ScaleDownAndUnClickButton();
 		bIsPinched = false;
@@ -280,10 +291,10 @@ void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEve
 		//Set interpolation speed to 20 for faster cursor movment for near interactions
 		InterpolationSpeed = 20.0f;
 		// Set the WidgetInteraction type to far when the distance is more than 30
-		if (InteractionDistance > 30)
+		if (InteractionDistance > 30 && !bAutoMode)
 		{
 			WidgetInteraction = EUIType::FAR;
-		}	
+		}
 	}
 }
 #endif
