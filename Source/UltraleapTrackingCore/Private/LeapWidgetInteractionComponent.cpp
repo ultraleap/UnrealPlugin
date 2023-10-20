@@ -57,7 +57,7 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 		return;
 	}
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/Explore/Diamond_Mat.Diamond_Mat"));
+	MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine2/Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
 	
 	if (DefaultMesh.Succeeded())
 	{
@@ -95,8 +95,15 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FVector Direction = FVector();
 		// The direction is the line between the hmd and the hand, CursorDistanceFromHand is used to add an offset in the palm direction 
 
-		Direction = TmpHand.Index.Metacarpal.NextJoint - TmpHand.Index.Metacarpal.PrevJoint;
-		
+		if (WidgetInteraction == EUIType::NEAR)
+		{
+			Direction = TmpHand.Middle.Metacarpal.NextJoint - TmpHand.Middle.Metacarpal.PrevJoint;
+		}
+		else
+		{
+			Direction = TmpHand.Index.Metacarpal.NextJoint - TmpHand.Index.Metacarpal.PrevJoint;
+		}
+
 		Direction.Normalize();
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
 
@@ -113,13 +120,13 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			// 5 cm is the distance between the finger base to the finger tip
-			if (Dist < (IndexDitanceFromUI + 5.0f))
+			// 6 cm is the distance between the finger base to the finger tip
+			if (Dist < (IndexDitanceFromUI + 6.0f))
 			{
 				NearClickLeftMouse(TmpHand.HandType);
 			}
 			// added 2 cm, cause of the jitter can cause accidental release
-			else if (Dist > (IndexDitanceFromUI + 7.0f))
+			else if (Dist > (IndexDitanceFromUI + 8.0f))
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
@@ -132,11 +139,13 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 			{
 				WidgetInteraction = EUIType::NEAR;
 				bAutoModeTrigger = true;
+				StaticMesh->SetHiddenInGame(true);
 			}
 			else if (Dist > 45 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
 			{
 				WidgetInteraction = EUIType::FAR;
 				bAutoModeTrigger = false;
+				StaticMesh->SetHiddenInGame(false);
 			}
 		}
 

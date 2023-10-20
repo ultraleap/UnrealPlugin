@@ -908,12 +908,15 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 	AllDevices.Append(Devices);
 	AllDevices.Append(CombinedDevices);
 
-	for (auto Device : AllDevices)
+	for (IHandTrackingWrapper* Device : AllDevices)
 	{
-		auto InternalDevice = Device->GetDevice();
-		if (InternalDevice)
+		if (Device!=nullptr)
 		{
-			InternalDevice->SendControllerEvents();
+			auto InternalDevice = Device->GetDevice();
+			if (InternalDevice)
+			{
+				InternalDevice->SendControllerEvents();
+			}
 		}
 	}
 }
