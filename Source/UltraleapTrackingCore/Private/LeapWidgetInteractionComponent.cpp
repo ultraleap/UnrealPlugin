@@ -97,7 +97,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			Direction = TmpHand.Middle.Metacarpal.NextJoint - TmpHand.Middle.Metacarpal.PrevJoint;
+			Direction = TmpHand.Index.Distal.NextJoint - TmpHand.Index.Distal.PrevJoint;
 		}
 		else
 		{
