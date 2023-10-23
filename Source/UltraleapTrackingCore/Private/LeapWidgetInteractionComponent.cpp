@@ -93,8 +93,8 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		TargetTrans.SetLocation(CursorLocation);
 
 		FVector Direction = FVector();
-		// The direction is the line between the hmd and the hand, CursorDistanceFromHand is used to add an offset in the palm direction 
 
+		// Distal index used for Near interaction direction, Metacarpal for far ones
 		if (WidgetInteraction == EUIType::NEAR)
 		{
 			Direction = TmpHand.Index.Distal.NextJoint - TmpHand.Index.Distal.PrevJoint;
