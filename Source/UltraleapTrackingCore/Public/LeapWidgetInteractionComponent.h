@@ -129,6 +129,13 @@ private:
 	void ScaleUpAndClickButton(const FKey Button = EKeys::LeftMouseButton);
 	void ScaleDownAndUnClickButton(const FKey Button = EKeys::LeftMouseButton);
 
+	/**
+	 * Used to switch between FAR/NEAR modes, depending on the distance of the hand 
+	 * from the widget
+	 * @param Dist - distance of the hand from the widget
+	 */
+	void HandleAutoMode(float Dist);
+
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
 	UWorld* World;

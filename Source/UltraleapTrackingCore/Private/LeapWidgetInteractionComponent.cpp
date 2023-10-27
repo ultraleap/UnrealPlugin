@@ -66,6 +66,25 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 	}
 }
 
+void ULeapWidgetInteractionComponent::HandleAutoMode(float Dist)
+{
+	if (bAutoMode)
+	{
+		if (Dist < 30 && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
+		{
+			WidgetInteraction = EUIType::NEAR;
+			bAutoModeTrigger = true;
+			StaticMesh->SetHiddenInGame(true);
+		}
+		else if (Dist > 45 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
+		{
+			WidgetInteraction = EUIType::FAR;
+			bAutoModeTrigger = false;
+			StaticMesh->SetHiddenInGame(false);
+		}
+	}
+}
+
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
 	FLeapHandData TmpHand = Hand;
@@ -133,21 +152,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		}
 		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance 
 		// between the hand and the widget
-		if (bAutoMode )
-		{
-			if (Dist < 30 && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
-			{
-				WidgetInteraction = EUIType::NEAR;
-				bAutoModeTrigger = true;
-				StaticMesh->SetHiddenInGame(true);
-			}
-			else if (Dist > 45 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
-			{
-				WidgetInteraction = EUIType::FAR;
-				bAutoModeTrigger = false;
-				StaticMesh->SetHiddenInGame(false);
-			}
-		}
+		HandleAutoMode(Dist);
 
 	}
 	else
