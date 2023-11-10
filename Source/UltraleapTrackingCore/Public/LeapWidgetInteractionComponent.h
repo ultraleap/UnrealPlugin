@@ -45,11 +45,11 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void InitializeComponent() override;
 
-	UFUNCTION()
+	//UFUNCTION()
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
-	UFUNCTION()
+	//UFUNCTION()
 	void OnLeapPinch(const FLeapHandData& HandData);
-	UFUNCTION()
+	//UFUNCTION()
 	void OnLeapUnPinch(const FLeapHandData& HandData);
 
 

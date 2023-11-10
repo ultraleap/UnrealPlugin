@@ -193,11 +193,11 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	// Subscribe events from leap, for pinch, unpinch and get the tracking data
 	if (WidgetInteraction != EUIType::NEAR)
 	{
-		LeapSubsystem->OnLeapPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
-		LeapSubsystem->OnLeapUnPinchMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
+		LeapSubsystem->OnLeapPinchMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
+		LeapSubsystem->OnLeapUnPinchMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
 	}
 	// Will need to get tracking data regardless of the interaction type (near or far)
-	LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
+	LeapSubsystem->OnLeapFrameMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
 	
 	if (MaterialBase != nullptr)
 	{

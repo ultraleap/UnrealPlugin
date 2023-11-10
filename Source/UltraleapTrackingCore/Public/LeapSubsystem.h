@@ -12,14 +12,19 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FLeapGrab, AActor*, GrabbedActor,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FLeapRelease, AActor*, ReleasedActor, USkeletalMeshComponent*, HandLeft, USkeletalMeshComponent*, HandRight, FName, BoneName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapGrabAction, FVector, Location, FVector, ForwardVec);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHand, const FLeapHandData&, HandData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrame, const FLeapFrameData&, FrameData);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLeapHand, const FLeapHandData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLeapFrame, const FLeapFrameData&);
+
+
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*);
+DECLARE_MULTICAST_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FLeapGrabActionNative, FVector, FVector);
 
 // Native C++ events
-DECLARE_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
-DECLARE_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*);
-DECLARE_DELEGATE_OneParam(FLeapFrameSignatureNative, const FLeapFrameData&);
-DECLARE_DELEGATE_OneParam(FLeapHandSignaturenative, const FLeapHandData&);
+//DECLARE_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
+//DECLARE_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*);
+//DECLARE_DELEGATE_OneParam(FLeapFrameSignatureNative, const FLeapFrameData&);
+//DECLARE_DELEGATE_OneParam(FLeapHandSignaturenative, const FLeapHandData&);
 
 /**
  * 
@@ -50,8 +55,6 @@ public:
 
 	FLeapGrabNative OnLeapGrabNative;
 	FLeapReleaseNative OnLeapReleaseNative;
-	FLeapFrameSignatureNative OnLeapTrackingDatanative;
-
 
 	FLeapHand OnLeapPinchMulti;
 	FLeapHand OnLeapUnPinchMulti;

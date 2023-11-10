@@ -18,6 +18,7 @@ void ULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* Ha
 	if (GrabbedActor != nullptr && HandLeft != nullptr && HandRight != nullptr)
 	{
 		OnLeapGrab.Broadcast(GrabbedActor, HandLeft, HandRight);
+		OnLeapGrabNative.Broadcast(GrabbedActor, HandLeft, HandRight);
 	}
 }
 
@@ -26,6 +27,7 @@ void ULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent
 	if (ReleasedActor != nullptr && HandLeft != nullptr && HandRight != nullptr)
 	{
 		OnLeapRelease.Broadcast(ReleasedActor, HandLeft, HandRight, BoneName);
+		OnLeapReleaseNative.Broadcast(ReleasedActor, HandLeft, HandRight, BoneName);
 	}
 }
 

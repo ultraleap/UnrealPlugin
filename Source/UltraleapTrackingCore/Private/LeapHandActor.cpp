@@ -52,7 +52,7 @@ ALeapHandActor::ALeapHandActor()
 		}
     }
 
-	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("LeapWristWidget");
+	// WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("LeapWristWidget");
 	/*static ConstructorHelpers::FClassFinder<UUserWidget> PopupWidgetObj(TEXT("/UltraleapTracking/UIInputModules/BasicTestUMG.BasicTestUMG"));
 	if (PopupWidgetObj.Succeeded())
 	{
@@ -75,9 +75,9 @@ void ALeapHandActor::BeginPlay()
 	
 	if (LeapSubsystem!=nullptr)
 	{
-		LeapSubsystem->OnLeapGrab.AddDynamic(this, &ALeapHandActor::OnGrabbed);
-		LeapSubsystem->OnLeapRelease.AddDynamic(this, &ALeapHandActor::OnReleased);
-		LeapSubsystem->OnLeapFrameMulti.AddDynamic(this, &ALeapHandActor::OnLeapTrackingData);
+		LeapSubsystem->OnLeapGrabNative.AddUObject(this, &ALeapHandActor::OnGrabbed);
+		LeapSubsystem->OnLeapReleaseNative.AddUObject(this, &ALeapHandActor::OnReleased);
+		LeapSubsystem->OnLeapFrameMulti.AddUObject(this, &ALeapHandActor::OnLeapTrackingData);
 	}
 
 }
@@ -118,7 +118,7 @@ void ALeapHandActor::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* H
 
 void ALeapHandActor::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
-	TArray<FLeapHandData> Hands = Frame.Hands;
+	Hands = Frame.Hands;
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
 		switch (Hands[i].HandType)
@@ -178,6 +178,14 @@ void ALeapHandActor::RepeatingAction()
 {
 	if (LeapSubsystem != nullptr)
 	{
-		LeapSubsystem->GrabActionCall(GetActorLocation(), GetActorForwardVector());
+		FVector Direction = FVector();
+		for (FLeapHandData& Hand : Hands)
+		{
+			if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
+			{
+				Direction = Hand.Index.Metacarpal.NextJoint - Hand.Index.Metacarpal.PrevJoint;
+			}
+		}
+		LeapSubsystem->GrabActionCall(GetActorLocation(), Direction);
 	}
 }

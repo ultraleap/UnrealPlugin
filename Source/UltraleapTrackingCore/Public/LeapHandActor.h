@@ -32,8 +32,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* StaticMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UWidgetComponent* WidgetComponent;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//UWidgetComponent* WidgetComponent;
 
 protected:
 	// Called when the game starts or when spawned
@@ -46,15 +46,17 @@ protected:
 
 	FTimerHandle TimerHandle;
 
+	TArray<FLeapHandData> Hands;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION()
+	//UFUNCTION()
 	void OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
-	UFUNCTION()
+	//UFUNCTION()
 	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
-	UFUNCTION()
+	//UFUNCTION()
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
 	bool IsLeftHandFacingCamera(FLeapHandData Hand);
