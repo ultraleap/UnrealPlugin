@@ -93,6 +93,8 @@ void ALeapHandActor::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* Han
 {
 	if (GrabbedActor != nullptr && this == GrabbedActor)
 	{
+		// Offset needed so teleportation trace will not collide with the hand
+		GrabbedActor->SetActorRelativeLocation(FVector(20, 0, 0));
 		// Trigger a timer when the actor is grabbed
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapHandActor::RepeatingAction, 0.04f, true, .0f);
 	}
@@ -106,7 +108,7 @@ void ALeapHandActor::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* H
 		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, BoneName);
 		// Set up the posistion and rotation of the gem relative to the palm
 		ReleasedActor->SetActorRelativeLocation(FVector(-2,0,7));
-		ReleasedActor->SetActorRelativeRotation(FRotator(0, 90, 0));
+		ReleasedActor->SetActorRelativeRotation(FRotator(0, 0, 0));
 
 		// Stop the timer when the actor is released
 		if (GetWorldTimerManager().IsTimerActive(TimerHandle))
@@ -178,14 +180,6 @@ void ALeapHandActor::RepeatingAction()
 {
 	if (LeapSubsystem != nullptr)
 	{
-		FVector Direction = FVector();
-		for (FLeapHandData& Hand : Hands)
-		{
-			if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
-			{
-				Direction = Hand.Index.Metacarpal.NextJoint - Hand.Index.Metacarpal.PrevJoint;
-			}
-		}
-		LeapSubsystem->GrabActionCall(GetActorLocation(), Direction);
+		LeapSubsystem->GrabActionCall(GetActorLocation(), GetActorForwardVector());		
 	}
 }

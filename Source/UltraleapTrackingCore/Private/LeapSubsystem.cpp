@@ -4,7 +4,7 @@
 #include "LeapSubsystem.h"
 
 ULeapSubsystem::ULeapSubsystem() 
-	: bUseOpenXR(false)
+	: bUseOpenXR(false), bUseDeviceOrigin(false), LeapPawn(nullptr)
 {
 }
 
@@ -38,8 +38,19 @@ void ULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
 
 void ULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
 {
-	//OnLeapTrackingDatanative.ExecuteIfBound(Frame);
-	OnLeapFrameMulti.Broadcast(Frame);
+	if (!IsInGameThread())
+	{
+		return;
+	}
+	FLeapFrameData TmpFrame = Frame;
+	if (LeapPawn!=nullptr && bUseDeviceOrigin)
+	{
+		FVector PawnLocation = LeapPawn->GetActorLocation();
+		FRotator PawnRot = LeapPawn->GetActorRotation();
+		TmpFrame.RotateFrame(PawnRot);
+		TmpFrame.TranslateFrame(PawnLocation);
+	}
+	OnLeapFrameMulti.Broadcast(TmpFrame);
 }
 
 void ULeapSubsystem::LeapPinchCall(const FLeapHandData& HandData)

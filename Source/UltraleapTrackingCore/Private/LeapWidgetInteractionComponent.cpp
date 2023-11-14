@@ -70,13 +70,13 @@ void ULeapWidgetInteractionComponent::HandleAutoMode(float Dist)
 {
 	if (bAutoMode)
 	{
-		if (Dist < 30 && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
+		if (Dist < 40 && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
 		{
 			WidgetInteraction = EUIType::NEAR;
 			bAutoModeTrigger = true;
 			StaticMesh->SetHiddenInGame(true);
 		}
-		else if (Dist > 45 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
+		else if (Dist > 55 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
 		{
 			WidgetInteraction = EUIType::FAR;
 			bAutoModeTrigger = false;
@@ -106,8 +106,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 			HandLocation = TmpHand.Middle.Metacarpal.PrevJoint;
 		}
 
-		FVector PawnLocation = LeapPawn->GetActorLocation();
-		FVector CursorLocation = HandLocation + PawnLocation;
+		FVector CursorLocation = HandLocation;
 		FTransform TargetTrans = FTransform();
 		TargetTrans.SetLocation(CursorLocation);
 
@@ -117,13 +116,18 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		if (WidgetInteraction == EUIType::NEAR)
 		{
 			Direction = TmpHand.Index.Distal.NextJoint - TmpHand.Index.Distal.PrevJoint;
+			Direction.Normalize();
 		}
 		else
 		{
-			Direction = TmpHand.Index.Metacarpal.NextJoint - TmpHand.Index.Metacarpal.PrevJoint;
+			Direction = (TmpHand.Index.Metacarpal.NextJoint - TmpHand.Index.Metacarpal.PrevJoint);
+			Direction.Normalize();
+			// Need this offset so the cursor does not show up high in the widget
+			// TODO expose the cursor height as a var
+			Direction = Direction - 0.6 * (FVector(0, 0, 1));
 		}
 
-		Direction.Normalize();
+		
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
 
 		//Interp is needed to reduce the jitter
@@ -198,6 +202,8 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	}
 	// Will need to get tracking data regardless of the interaction type (near or far)
 	LeapSubsystem->OnLeapFrameMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
+
+	LeapSubsystem->SetUsePawnOrigin(true, LeapPawn);
 	
 	if (MaterialBase != nullptr)
 	{
@@ -351,6 +357,7 @@ void ULeapWidgetInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlay
 			LeapSubsystem->OnLeapPinchMulti.Clear();
 			LeapSubsystem->OnLeapUnPinchMulti.Clear();
 		}
+		LeapSubsystem->SetUsePawnOrigin(false, nullptr);
 	}
 }
 

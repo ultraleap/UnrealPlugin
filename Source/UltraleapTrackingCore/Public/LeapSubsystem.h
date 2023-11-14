@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/EngineSubsystem.h"
 #include "UltraleapTrackingData.h"
+#include "GameFramework/Pawn.h"
 #include "LeapSubsystem.generated.h"
 
 //// Blueprint event
@@ -88,8 +89,21 @@ public:
 	//UFUNCTION()
 	void SetUseOpenXR(bool UseXR);
 
+	void SetUsePawnOrigin(bool UseOrigin, APawn* Pawn)
+	{
+		bUseDeviceOrigin = UseOrigin;
+		if (Pawn!=nullptr)
+		{
+			LeapPawn = Pawn;
+		}
+	}
+
 private:
 
 	//UPROPERTY()
 	bool bUseOpenXR;
+
+	bool bUseDeviceOrigin;
+
+	APawn* LeapPawn;
 };
