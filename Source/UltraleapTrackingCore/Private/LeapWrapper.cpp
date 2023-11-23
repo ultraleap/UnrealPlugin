@@ -7,32 +7,33 @@
  ******************************************************************************/
 
 #include "LeapWrapper.h"
-#include "LeapDeviceWrapper.h"
+
+#include "HAL/PlatformFilemanager.h"
 #include "LeapAsync.h"
+#include "LeapBlueprintFunctionLibrary.h"
+#include "LeapDeviceWrapper.h"
 #include "LeapUtility.h"
+#include "Misc/FileHelper.h"
 #include "Multileap/DeviceCombiner.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
-#include "LeapBlueprintFunctionLibrary.h"
 
 #pragma region LeapC Wrapper
 
 FLeapWrapper::FLeapWrapper()
-	: bIsRunning(false)
-	, DataLock(new FCriticalSection())
-	, InterpolatedFrame(nullptr)
-	, InterpolatedFrameSize(0)
+	: bIsRunning(false), DataLock(new FCriticalSection()), InterpolatedFrame(nullptr), InterpolatedFrameSize(0)
 {
 	UseOpenXR = true;
 
 	if (!HasDeactivateHandle.IsValid())
 	{
-		HasDeactivateHandle = FCoreDelegates::ApplicationWillDeactivateDelegate.AddRaw(this, &FLeapWrapper::HandleApplicationDeactivate);
+		HasDeactivateHandle =
+			FCoreDelegates::ApplicationWillDeactivateDelegate.AddRaw(this, &FLeapWrapper::HandleApplicationDeactivate);
 	}
 }
 
 void FLeapWrapper::HandleApplicationDeactivate()
 {
-	// This will reset the tracking service for Android app, when the device goes to sleep 
+	// This will reset the tracking service for Android app, when the device goes to sleep
 	AsyncTask(ENamedThreads::GameThread,
 		[this]()
 		{
@@ -64,7 +65,7 @@ FLeapWrapper::~FLeapWrapper()
 		CloseConnection();
 	}
 
-	// Always remove delegate events and reset 
+	// Always remove delegate events and reset
 	if (HasDeactivateHandle.IsValid())
 	{
 		FCoreDelegates::ApplicationWillDeactivateDelegate.Remove(HasDeactivateHandle);
@@ -83,16 +84,33 @@ void FLeapWrapper::SetCallbackDelegate(const uint32_t DeviceID, LeapWrapperCallb
 {
 	MapDeviceToCallback.Add(DeviceID, InCallbackDelegate);
 }
+bool ReadClientConfig(FString& FileContent)
+{
+	FString FilePath = FPaths::ProjectPluginsDir() + TEXT("UltraleapTracking/Binaries/Win64/client_config.json");
+
+	return FFileHelper::LoadFileToString(FileContent, *FilePath);
+}
+
 LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCallbackDelegate, bool UseMultiDeviceMode)
 {
 	ConnectorCallbackDelegate = InCallbackDelegate;
 	// Don't use config for now
 	LEAP_CONNECTION_CONFIG Config = {0};
-	
-	Config.server_namespace = "Leap Service";
+
+	FString ClientConfig;
+
+	if (ReadClientConfig(ClientConfig))
+	{
+		Config.server_namespace = StringCast<ANSICHAR>(*ClientConfig).Get();
+	}
+	else
+	{
+		Config.server_namespace = "Leap Service";
+	}
+
 	Config.size = sizeof(Config);
 	Config.flags = 0;
-	
+
 	if (UseMultiDeviceMode)
 	{
 		Config.flags = _eLeapConnectionConfig::eLeapConnectionConfig_MultiDeviceAware;
@@ -107,21 +125,23 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 			bIsRunning = true;
 
 			LEAP_CONNECTION* Handle = &ConnectionHandle;
-			ProducerLambdaFuture = FLeapAsync::RunLambdaOnBackGroundThread([&, Handle] {
-				UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop started."));
-				ServiceMessageLoop();
-				UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop stopped."));
+			ProducerLambdaFuture = FLeapAsync::RunLambdaOnBackGroundThread(
+				[&, Handle]
+				{
+					UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop started."));
+					ServiceMessageLoop();
+					UE_LOG(UltraleapTrackingLog, Log, TEXT("ServiceMessageLoop stopped."));
 
-				CloseConnectionHandle(Handle);
-			});
+					CloseConnectionHandle(Handle);
+				});
 		}
 	}
-	
+
 	return &ConnectionHandle;
 }
 LeapWrapperCallbackInterface* FLeapWrapper::GetCallbackDelegateFromDeviceID(const uint32_t DeviceID)
 {
-	if(MapDeviceToCallback.Contains(DeviceID))
+	if (MapDeviceToCallback.Contains(DeviceID))
 	{
 		return *MapDeviceToCallback.Find(DeviceID);
 	}
@@ -138,7 +158,6 @@ void FLeapWrapper::CloseConnection()
 	}
 	bIsConnected = false;
 	bIsRunning = false;
-	
 
 	// Wait for thread to exit - Blocking call, but it should be very quick.
 	FTimespan ExitWaitTimeSpan = FTimespan::FromSeconds(3);
@@ -154,7 +173,7 @@ void FLeapWrapper::CloseConnection()
 void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 {
 	eLeapRS Result = LeapSetTrackingMode(ConnectionHandle, TrackingMode);
-	
+
 	if (Result != eLeapRS_Success)
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingMode failed in  FLeapWrapper::SetTrackingMode."));
@@ -278,7 +297,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTimeEx(int64 TimeStamp,
 	LEAP_DEVICE DeviceHandle = nullptr;
 
 	DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
-	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize );
+	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
 
 	// Check validity of frame size
 	if (FrameSize > 0)
@@ -296,7 +315,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTimeEx(int64 TimeStamp,
 		InterpolatedFrameSize = FrameSize;
 
 		// Grab the new frame
-		LeapInterpolateFrameEx(ConnectionHandle,DeviceHandle,TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
+		LeapInterpolateFrameEx(ConnectionHandle, DeviceHandle, TimeStamp, InterpolatedFrame, InterpolatedFrameSize);
 	}
 
 	return InterpolatedFrame;
@@ -386,7 +405,6 @@ void FLeapWrapper::Millisleep(int milliseconds)
 	FPlatformProcess::Sleep(((float) milliseconds) / 1000.f);
 }
 
-
 void FLeapWrapper::SetFrame(const LEAP_TRACKING_EVENT* Frame)
 {
 	DataLock->Lock();
@@ -415,7 +433,6 @@ void FLeapWrapper::HandleConnectionEvent(const LEAP_CONNECTION_EVENT* Connection
 void FLeapWrapper::HandleConnectionLostEvent(const LEAP_CONNECTION_LOST_EVENT* ConnectionLostEvent)
 {
 	bIsConnected = false;
-	
 
 	if (ConnectorCallbackDelegate)
 	{
@@ -436,7 +453,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
 		return;
 	}
-	
+
 	// Create a struct to hold the device properties, we have to provide a buffer for the serial string
 	LEAP_DEVICE_INFO DeviceProperties = {sizeof(DeviceProperties)};
 	// Start with a length of 1 (pretending we don't know a priori what the length is).
@@ -460,16 +477,18 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		}
 	}
 	AddDevice(DeviceEvent->device.id, DeviceProperties, DeviceHandle);
-	
+
 	if (ConnectorCallbackDelegate)
 	{
-		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, DeviceProperties, this] {
-				if (ConnectorCallbackDelegate)
+		TaskRefDeviceFound = FLeapAsync::RunShortLambdaOnGameThread(
+			[DeviceEvent, DeviceProperties, this]
 			{
-				ConnectorCallbackDelegate->OnDeviceFound(&DeviceProperties);
-				free(DeviceProperties.serial);
-			}
-		});
+				if (ConnectorCallbackDelegate)
+				{
+					ConnectorCallbackDelegate->OnDeviceFound(&DeviceProperties);
+					free(DeviceProperties.serial);
+				}
+			});
 	}
 	else
 	{
@@ -484,9 +503,11 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 {
 	if (ConnectorCallbackDelegate)
 	{
-		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread([DeviceEvent, this] {
-				if (ConnectorCallbackDelegate)
+		TaskRefDeviceLost = FLeapAsync::RunShortLambdaOnGameThread(
+			[DeviceEvent, this]
 			{
+				if (ConnectorCallbackDelegate)
+				{
 					FString DeviceSerial;
 					for (auto LeapDeviceWrapper : Devices)
 					{
@@ -497,19 +518,19 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 						}
 					}
 					ConnectorCallbackDelegate->OnDeviceLost(TCHAR_TO_ANSI(*DeviceSerial));
-			}
-		});
+				}
+			});
 	}
-	//TODO: Why does the old code close the device handle once opened?
+	// TODO: Why does the old code close the device handle once opened?
 	RemoveDevice(DeviceEvent->device.id);
 }
 void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& DeviceInfo, const LEAP_DEVICE DeviceHandle)
 {
 	AsyncTask(ENamedThreads::GameThread,
-		[this,DeviceInfo, DeviceID, DeviceHandle]()
+		[this, DeviceInfo, DeviceID, DeviceHandle]()
 		{
 			IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
-		
+
 			Devices.Add(Device);
 			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
 			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
@@ -517,27 +538,25 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 			NotifyDeviceAdded(Device);
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
-		
+
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d."), Devices.Num());
-		
 		});
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
 	// This will reset the tracking service for Android app
-	AsyncTask(ENamedThreads::GameThread, [this]() { 
-		ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid();
-		ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid();
-	});
-	
+	AsyncTask(ENamedThreads::GameThread,
+		[this]()
+		{
+			ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid();
+			ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid();
+		});
+
 	if (IsInGameThread())
 	{
 		return RemoveDeviceDirect(DeviceID);
 	}
-	AsyncTask(ENamedThreads::GameThread,
-		[this, DeviceID]() { 
-			RemoveDeviceDirect(DeviceID);
-		});
+	AsyncTask(ENamedThreads::GameThread, [this, DeviceID]() { RemoveDeviceDirect(DeviceID); });
 }
 void FLeapWrapper::RemoveDeviceDirect(const uint32_t DeviceID)
 {
@@ -565,18 +584,16 @@ void FLeapWrapper::RemoveDeviceDirect(const uint32_t DeviceID)
 void FLeapWrapper::HandleDeviceFailureEvent(const LEAP_DEVICE_FAILURE_EVENT* DeviceFailureEvent, const uint32_t DeviceID)
 {
 	LeapWrapperCallbackInterface* CallbackDelegate = GetCallbackDelegateFromDeviceID(DeviceID);
-	
+
 	if (CallbackDelegate)
 	{
 		TaskRefDeviceFailure = FLeapAsync::RunShortLambdaOnGameThread([CallbackDelegate, DeviceFailureEvent, this]
-		{
-			CallbackDelegate->OnDeviceFailure(DeviceFailureEvent->status, DeviceFailureEvent->hDevice);
-		});
+			{ CallbackDelegate->OnDeviceFailure(DeviceFailureEvent->status, DeviceFailureEvent->hDevice); });
 	}
 }
 
 /** Called by ServiceMessageLoop() when a tracking event is returned by LeapPollConnection(). */
-void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent,const uint32_t DeviceID)
+void FLeapWrapper::HandleTrackingEvent(const LEAP_TRACKING_EVENT* TrackingEvent, const uint32_t DeviceID)
 {
 	auto CallbackDelegate = GetCallbackDelegateFromDeviceID(DeviceID);
 	// Callback delegate is checked twice since the second call happens on the second thread and may be invalidated!
@@ -607,11 +624,11 @@ void FLeapWrapper::HandleLogEvent(const LEAP_LOG_EVENT* LogEvent, const uint32_t
 		TaskRefLog = FLeapAsync::RunShortLambdaOnGameThread(
 			[CallbackDelegate, LogEvent, this]
 			{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnLog(LogEvent->severity, LogEvent->timestamp, LogEvent->message);
-			}
-		});
+				if (CallbackDelegate)
+				{
+					CallbackDelegate->OnLog(LogEvent->severity, LogEvent->timestamp, LogEvent->message);
+				}
+			});
 	}
 }
 
@@ -627,11 +644,11 @@ void FLeapWrapper::HandlePolicyEvent(const LEAP_POLICY_EVENT* PolicyEvent, const
 		TaskRefPolicy = FLeapAsync::RunShortLambdaOnGameThread(
 			[CallbackDelegate, CurrentPolicy, this]
 			{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnPolicy(CurrentPolicy);
-			}
-		});
+				if (CallbackDelegate)
+				{
+					CallbackDelegate->OnPolicy(CurrentPolicy);
+				}
+			});
 	}
 }
 
@@ -647,11 +664,11 @@ void FLeapWrapper::HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* Track
 		TaskRefPolicy = FLeapAsync::RunShortLambdaOnGameThread(
 			[CallbackDelegate, CurrentMode, this]
 			{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnTrackingMode((eLeapTrackingMode) CurrentMode);
-			}
-		});
+				if (CallbackDelegate)
+				{
+					CallbackDelegate->OnTrackingMode((eLeapTrackingMode) CurrentMode);
+				}
+			});
 	}
 }
 
@@ -664,11 +681,11 @@ void FLeapWrapper::HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* Confi
 		TaskRefConfigChange = FLeapAsync::RunShortLambdaOnGameThread(
 			[CallbackDelegate, ConfigChangeEvent, this]
 			{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnConfigChange(ConfigChangeEvent->requestID, ConfigChangeEvent->status);
-			}
-		});
+				if (CallbackDelegate)
+				{
+					CallbackDelegate->OnConfigChange(ConfigChangeEvent->requestID, ConfigChangeEvent->status);
+				}
+			});
 	}
 }
 
@@ -681,11 +698,11 @@ void FLeapWrapper::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* C
 		TaskRefConfigResponse = FLeapAsync::RunShortLambdaOnGameThread(
 			[CallbackDelegate, ConfigResponseEvent, this]
 			{
-			if (CallbackDelegate)
-			{
-				CallbackDelegate->OnConfigResponse(ConfigResponseEvent->requestID, ConfigResponseEvent->value);
-			}
-		});
+				if (CallbackDelegate)
+				{
+					CallbackDelegate->OnConfigResponse(ConfigResponseEvent->requestID, ConfigResponseEvent->value);
+				}
+			});
 	}
 }
 
@@ -814,7 +831,7 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("Created new aggregator"));
 		CombinedDevices.Add(Ret);
-		//NotifyDeviceAdded(Ret);
+		// NotifyDeviceAdded(Ret);
 	}
 	return Ret;
 }
@@ -855,7 +872,6 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 		return Devices[0];
 	}
 
-
 	// singular mode, find the device
 	if (DeviceSerials.Num() == 1)
 	{
@@ -875,7 +891,7 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 	}
 	return Ret;
 }
-void FLeapWrapper::TickDevices(const float DeltaTime) 
+void FLeapWrapper::TickDevices(const float DeltaTime)
 {
 	// safe point to cleanup force deleted devices
 	for (IHandTrackingWrapper* DeviceToRemove : DevicesToCleanup)
@@ -887,9 +903,9 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 
 	// tick real devices first
 	AllDevices.Append(Devices);
-	
-	//UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d"), Devices.Num());
-	
+
+	// UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d"), Devices.Num());
+
 	AllDevices.Append(CombinedDevices);
 	for (IHandTrackingWrapper* Device : AllDevices)
 	{
@@ -943,7 +959,7 @@ void FLeapWrapper::PostEarlyInit()
 		AddOpenXRDevice(nullptr);
 	}
 }
-	// Must be called from the game thread
+// Must be called from the game thread
 void FLeapWrapper::NotifyDeviceAdded(IHandTrackingWrapper* Device)
 {
 	for (auto Callback : LeapConnectorCallbacks)
@@ -975,11 +991,10 @@ void FLeapWrapper::CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper*
 		NotifyDeviceRemoved(CombinedDevice);
 		delete CombinedDevice;
 	}
-
 }
 void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 {
-	 DevicesToCleanup.AddUnique(DeviceWrapper);
+	DevicesToCleanup.AddUnique(DeviceWrapper);
 }
 void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
@@ -1000,7 +1015,6 @@ void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDeleg
 	Devices.Add(Device);
 
 	NotifyDeviceAdded(Device);
-	UE_LOG(
-		UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
 }
 #pragma endregion LeapC Wrapper
