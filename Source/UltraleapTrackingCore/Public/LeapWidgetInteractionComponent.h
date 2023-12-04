@@ -17,8 +17,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "ViewportInteractionUtils.h"
 
 #include "LeapWidgetInteractionComponent.generated.h"
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRayComponentVisible, bool, Visible);
 
 /**
  * This component will provide far field widgets with interactions 
@@ -40,16 +44,15 @@ public:
 	 * @param Hand - hand data from the api
 	 */
 	void DrawLeapCursor(FLeapHandData& Hand);
-	
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void InitializeComponent() override;
 
-	//UFUNCTION()
+	
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
-	//UFUNCTION()
+
 	void OnLeapPinch(const FLeapHandData& HandData);
-	//UFUNCTION()
+
 	void OnLeapUnPinch(const FLeapHandData& HandData);
 
 
@@ -84,15 +87,6 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
 	int32 CursorDistanceFromHand;
 
-	/** Interpolation setting delta time since last tick
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	float InterpolationDelta;
-	/** Interpolation setting if 0 then no interp is applied 
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI")
-	float InterpolationSpeed;	
-
 	/** This will automatically enable near distance interactions mode when the 
 	* Distance between the hand and widget is less than 40 cm 
 	* and far mode when the ditance is more than 45 cm
@@ -109,6 +103,41 @@ public:
 	#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	#endif
+
+	/** Controls how much rotation wrist movment adds to the ray 
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Far",
+		meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
+	float WristRotationFactor;
+
+	/** Activate one euro filter, used to reduce ray jitter
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Far")
+	bool bUseOnEuroFilter;
+	/** One euro filter param, lower values will reduce jitter but add lag
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Far")
+	float MinCutoff;
+
+	/** For counter-acting the camera rotation to stabilize the rays
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Far")
+	float YAxisCalibOffset;
+
+
+	/** For counter-acting the camera rotation to stabilize the rays
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leap UI | Far")
+	float ZAxisCalibOffset;
+
+	/** Event on rays visibility changed
+	 */
+	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "Leap UI")
+	FLeapRayComponentVisible OnRayComponentVisible;
+
+	FVector GetHandRayDirection(FLeapHandData& TmpHand, FVector& Position);
+
+	FVector GetNeckOffset();
 
 private:
 
@@ -134,7 +163,11 @@ private:
 	 * from the widget
 	 * @param Dist - distance of the hand from the widget
 	 */
-	void HandleAutoMode(float Dist);
+	void HandleDistanceChange(float Dist, float MinDistance = 40.0f);
+
+	// One euro filter params
+	float CutoffSlope;
+	float DeltaCutoff;
 
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
@@ -145,4 +178,14 @@ private:
 
 	bool bHandTouchWidget;
 	bool bAutoModeTrigger;
+
+	ViewportInteractionUtils::FOneEuroFilter SmoothingOneEuroFilter;
+
+	// Params used to compute the neck offset 
+	TArray<FRotator> CalibratedHeadRot;
+	TArray<FVector> CalibratedHeadPos;
+
+	// Max rotation when head is rolling or pitching
+	float AxisRotOffset;
+	
 };

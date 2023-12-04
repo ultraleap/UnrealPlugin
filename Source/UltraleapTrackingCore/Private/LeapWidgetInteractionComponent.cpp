@@ -16,19 +16,22 @@
 
 ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()) 
 	: Super(ObjectInitializer)
-	
-	
 	, LeapHandType(EHandType::LEAP_HAND_LEFT)
 	, WidgetInteraction(EUIType::FAR)
 	, StaticMesh(nullptr)
 	, MaterialBase(nullptr)
 	, CursorSize(0.03) 
-	, CursorDistanceFromHand(50)
-	, InterpolationDelta(0.01)
-	, InterpolationSpeed(10)
+	, CursorDistanceFromHand(50.0f)
 	, bAutoMode(false)
-	, IndexDitanceFromUI(0.00f)
+	, IndexDitanceFromUI(0.0f)
 	, LeapSubsystem(nullptr)
+	, WristRotationFactor(0.0f)
+	, bUseOnEuroFilter(true)
+	, MinCutoff(5.0f)
+	, YAxisCalibOffset(4.0f)
+	, ZAxisCalibOffset(2.0f)
+	, CutoffSlope(0.3f)
+	, DeltaCutoff(1.0f)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
 	, World(nullptr)
@@ -36,9 +39,27 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, PlayerCameraManager(nullptr)
 	, bIsPinched(false)
 	, bHandTouchWidget(false)
-	, bAutoModeTrigger(false)
+	, bAutoModeTrigger(false) 
+	, AxisRotOffset(45.0f)
+	
 {
 	CreatStaticMeshForCursor();
+
+	CalibratedHeadRot.Add({0, 0, 0}); // Look straight
+	CalibratedHeadPos.Add({0, 0, 0});
+
+	CalibratedHeadRot.Add({-AxisRotOffset, 0, 0});	  // Look down
+	CalibratedHeadPos.Add({0, 0, -ZAxisCalibOffset});
+
+	CalibratedHeadRot.Add({AxisRotOffset, 0, 0});	 // Look Up
+	CalibratedHeadPos.Add({0, 0, ZAxisCalibOffset});
+
+	CalibratedHeadRot.Add({0, 0, -AxisRotOffset});	  // Roll left
+	CalibratedHeadPos.Add({0, -YAxisCalibOffset, -ZAxisCalibOffset / 2});
+
+	CalibratedHeadRot.Add({0, 0, AxisRotOffset});	 // Roll right
+	CalibratedHeadPos.Add({0, YAxisCalibOffset, -ZAxisCalibOffset / 2});
+
 }
 
 ULeapWidgetInteractionComponent::~ULeapWidgetInteractionComponent()
@@ -66,24 +87,35 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 	}
 }
 
-void ULeapWidgetInteractionComponent::HandleAutoMode(float Dist)
+void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float MinDistance)
 {
-	if (bAutoMode)
+	float ExistDistance = MinDistance + 15;
+	if (Dist < MinDistance && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
 	{
-		if (Dist < 40 && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
+		WidgetInteraction = EUIType::NEAR;
+
+		// Broadcast event when the rays visbility change
+		OnRayComponentVisible.Broadcast(false);
+		bAutoModeTrigger = true;
+		if (bAutoMode)
 		{
-			WidgetInteraction = EUIType::NEAR;
-			bAutoModeTrigger = true;
 			StaticMesh->SetHiddenInGame(true);
 		}
-		else if (Dist > 55 && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
+			
+	}
+	else if (Dist > ExistDistance && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
+	{
+		WidgetInteraction = EUIType::FAR;
+		// Broadcast event when the rays visbility change
+		OnRayComponentVisible.Broadcast(false);
+		bAutoModeTrigger = false;
+		if (bAutoMode)
 		{
-			WidgetInteraction = EUIType::FAR;
-			bAutoModeTrigger = false;
 			StaticMesh->SetHiddenInGame(false);
 		}
 	}
 }
+
 
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
@@ -96,51 +128,48 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 	if (StaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
 	{
 		// The cursor position is the addition of the Pawn pose and the hand pose
-		FVector HandLocation = FVector();
-		if (WidgetInteraction == EUIType::NEAR)
-		{
-			HandLocation = TmpHand.Index.Intermediate.PrevJoint;
-		}
-		else
-		{
-			HandLocation = TmpHand.Middle.Metacarpal.PrevJoint;
-		}
-
-		FVector CursorLocation = HandLocation;
-		FTransform TargetTrans = FTransform();
-		TargetTrans.SetLocation(CursorLocation);
-
+		FVector Position = FVector::ZeroVector;
 		FVector Direction = FVector();
 
-		// Distal index used for Near interaction direction, Metacarpal for far ones
-		if (WidgetInteraction == EUIType::NEAR)
+		FVector IndexDistalN = TmpHand.Index.Distal.NextJoint;
+		FVector IndexDistalP = TmpHand.Index.Distal.PrevJoint;
+		FVector IndexProx = TmpHand.Index.Proximal.PrevJoint;
+
+		FRotator ForwardRot = PlayerCameraManager->GetActorForwardVector().Rotation();
+		ForwardRot = FRotator(0, ForwardRot.Yaw, 0);
+		FVector ForwardDirection = ForwardRot.Vector();
+		
+		FVector IndexInterm = TmpHand.Index.Intermediate.PrevJoint;
+		
+		bool bNear = (WidgetInteraction == EUIType::NEAR);
+
+		Position = bNear ? IndexInterm : IndexProx;
+
+		FVector FilteredPosition =  FVector::ZeroVector;
+		// One euro filter will reduce the jitter
+		if (bUseOnEuroFilter)
 		{
-			Direction = TmpHand.Index.Distal.NextJoint - TmpHand.Index.Distal.PrevJoint;
-			Direction.Normalize();
+			FilteredPosition = SmoothingOneEuroFilter.Filter(Position, World->GetDeltaSeconds());
 		}
 		else
 		{
-			Direction = (TmpHand.Index.Metacarpal.NextJoint - TmpHand.Index.Metacarpal.PrevJoint);
-			Direction.Normalize();
-			// Need this offset so the cursor does not show up high in the widget
-			// TODO expose the cursor height as a var
-			Direction = Direction - 0.6 * (FVector(0, 0, 1));
+			FilteredPosition = Position;
 		}
+		// Get Direction for near or far interactions
+		Direction = bNear ? (IndexDistalN - IndexDistalP) : GetHandRayDirection(TmpHand, FilteredPosition);
+		FVector FilteredDirection = FVector::ZeroVector;
 
-		
+		FTransform TargetTrans = FTransform();
+		TargetTrans.SetLocation(FilteredPosition);
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
-
-		//Interp is needed to reduce the jitter
-		FTransform NewTransform = UKismetMathLibrary::TInterpTo(GetComponentTransform(), TargetTrans, InterpolationDelta, InterpolationSpeed);
-		// This will set this component's transform with the more stable interp
-
-		FHitResult SweepHitResult;
-		K2_SetWorldTransform(NewTransform, true, SweepHitResult, true);
 	
-		// Set the sphere location in the widget using the hit result inherited from the parent class
+		FHitResult SweepHitResult;
+		K2_SetWorldTransform(TargetTrans, true, SweepHitResult, true);
+	
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
-		float Dist = FVector::Dist(CursorLocation, LastHitResult.ImpactPoint);
+		float Dist = FVector::Dist(FilteredPosition, LastHitResult.ImpactPoint);
+
 		if (WidgetInteraction == EUIType::NEAR)
 		{
 			// 6 cm is the distance between the finger base to the finger tip
@@ -156,13 +185,88 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		}
 		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance 
 		// between the hand and the widget
-		HandleAutoMode(Dist);
+		// Also trigger event when visibility changed
+		HandleDistanceChange(Dist);
 
 	}
 	else
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("nullptr in DrawLeapCircles"));
 	}
+}
+
+FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpHand, FVector& Position)
+{
+	if (World == nullptr && PlayerCameraManager==nullptr)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("World or PlayerCameraManager nullptr in GetHandRayDirection"));
+		return FVector::ZeroVector;
+	}
+
+	// Use neck offset to overcome camera roll and pitch rotations
+	FVector NeckOffset = GetNeckOffset();
+	// Get the neck postion
+	FVector CameraLocationWithNeckOffset = PlayerCameraManager->GetCameraLocation();
+	CameraLocationWithNeckOffset -= NeckOffset;
+	CameraLocationWithNeckOffset -= 15 * FVector::UpVector;
+
+	//Get the general right direction of the camera
+	FRotator RightRot = PlayerCameraManager->GetActorRightVector().Rotation();
+	RightRot = FRotator(0, RightRot.Yaw, 0);
+	FVector RightDirection = RightRot.Vector();
+	// Get shoulders positions, with respect to the neck
+	FVector ShoulderPos = FVector::ZeroVector;
+	// Use the camera location with offset to overcome head Roll and Pitch
+	ShoulderPos = CameraLocationWithNeckOffset;
+	ShoulderPos += WristRotationFactor * PlayerCameraManager->GetActorForwardVector();
+	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -15:15);
+
+	// Get approximate pintch position
+	Position += FVector::UpVector;
+	Position += 6 * PlayerCameraManager->GetActorForwardVector();
+	Position += PlayerCameraManager->GetActorRightVector() * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? 2 : -2);
+
+	// Get the direction from the shoulders to the pinch position
+	FVector Direction = Position - ShoulderPos;
+	return Direction;
+}
+
+FVector ULeapWidgetInteractionComponent::GetNeckOffset()
+{
+	if (PlayerCameraManager==nullptr)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("PlayerCameraManager in GetNeckOffset"));
+		return FVector();
+	}
+	FRotator HMDRotation = PlayerCameraManager->GetCameraRotation();
+	float AlphaPitch = 0;
+	float AlphaRoll = 0;
+	FVector PitchOffset, RollOffset;
+	if (HMDRotation.Pitch < 0)
+	{
+		AlphaPitch = UKismetMathLibrary::NormalizeToRange(-HMDRotation.Pitch, 0, -CalibratedHeadRot[1].Pitch);
+		PitchOffset = FMath::Lerp(FVector(0), CalibratedHeadPos[1], AlphaPitch);
+	}
+	else
+	{
+		AlphaPitch = UKismetMathLibrary::NormalizeToRange(HMDRotation.Pitch, 0, CalibratedHeadRot[2].Pitch);
+		PitchOffset = FMath::Lerp(FVector(0), CalibratedHeadPos[2], AlphaPitch);
+	}
+
+	if (HMDRotation.Roll < 0)
+	{
+		AlphaRoll = UKismetMathLibrary::NormalizeToRange(-HMDRotation.Roll, 0, -CalibratedHeadRot[3].Roll);
+		RollOffset = FMath::Lerp(FVector(0) , CalibratedHeadPos[3], AlphaRoll);
+	}
+	else
+	{
+		AlphaRoll = UKismetMathLibrary::NormalizeToRange(HMDRotation.Roll, 0, CalibratedHeadRot[4].Roll);
+		RollOffset = FMath::Lerp(FVector(0), CalibratedHeadPos[4], AlphaRoll);
+	}
+
+	FVector Offset = PitchOffset + RollOffset;
+	FRotator Rot = FRotator(0, HMDRotation.Yaw, 0);
+	return Rot.RotateVector(Offset);
 }
 
 void ULeapWidgetInteractionComponent::BeginPlay()
@@ -234,6 +338,8 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	{
 		PointerIndex = 1;
 	}
+
+	SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
 }
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
@@ -308,8 +414,6 @@ void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEve
 	
 	if (WidgetInteraction == EUIType::NEAR)
 	{
-		//Set interpolation speed to 20 for faster cursor movment for near interactions
-		InterpolationSpeed = 20.0f;
 		// Set the WidgetInteraction type to far when the distance is more than 30
 		if (InteractionDistance > 30 && !bAutoMode)
 		{
@@ -318,6 +422,7 @@ void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEve
 	}
 }
 #endif
+
 
 void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLocation)
 {
