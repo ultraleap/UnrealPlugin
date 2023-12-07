@@ -21,7 +21,6 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, StaticMesh(nullptr)
 	, MaterialBase(nullptr)
 	, CursorSize(0.03) 
-	, CursorDistanceFromHand(50.0f)
 	, bAutoMode(false)
 	, IndexDitanceFromUI(0.0f)
 	, LeapSubsystem(nullptr)
@@ -45,7 +44,11 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 {
 	CreatStaticMeshForCursor();
 
-	CalibratedHeadRot.Add({0, 0, 0}); // Look straight
+}
+
+void ULeapWidgetInteractionComponent::InitCalibrationArrays()
+{
+	CalibratedHeadRot.Add({0, 0, 0});	 // Look straight
 	CalibratedHeadPos.Add({0, 0, 0});
 
 	CalibratedHeadRot.Add({-AxisRotOffset, 0, 0});	  // Look down
@@ -59,12 +62,11 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 
 	CalibratedHeadRot.Add({0, 0, AxisRotOffset});	 // Roll right
 	CalibratedHeadPos.Add({0, YAxisCalibOffset, -ZAxisCalibOffset / 2});
-
 }
 
 ULeapWidgetInteractionComponent::~ULeapWidgetInteractionComponent()
 {
-
+	OnRayComponentVisible.Clear();
 }
 
 void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
@@ -95,7 +97,10 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		WidgetInteraction = EUIType::NEAR;
 
 		// Broadcast event when the rays visbility change
-		OnRayComponentVisible.Broadcast(false);
+		if (OnRayComponentVisible.IsBound())
+		{
+			OnRayComponentVisible.Broadcast(false);
+		}
 		bAutoModeTrigger = true;
 		if (bAutoMode)
 		{
@@ -107,7 +112,10 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 	{
 		WidgetInteraction = EUIType::FAR;
 		// Broadcast event when the rays visbility change
-		OnRayComponentVisible.Broadcast(false);
+		if (OnRayComponentVisible.IsBound())
+		{
+			OnRayComponentVisible.Broadcast(true);
+		}
 		bAutoModeTrigger = false;
 		if (bAutoMode)
 		{
@@ -160,9 +168,10 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FVector FilteredDirection = FVector::ZeroVector;
 
 		FTransform TargetTrans = FTransform();
+		
 		TargetTrans.SetLocation(FilteredPosition);
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
-	
+		
 		FHitResult SweepHitResult;
 		K2_SetWorldTransform(TargetTrans, true, SweepHitResult, true);
 	
@@ -209,11 +218,13 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	FVector CameraLocationWithNeckOffset = PlayerCameraManager->GetCameraLocation();
 	CameraLocationWithNeckOffset -= NeckOffset;
 	CameraLocationWithNeckOffset -= 15 * FVector::UpVector;
+	
 
 	//Get the general right direction of the camera
 	FRotator RightRot = PlayerCameraManager->GetActorRightVector().Rotation();
 	RightRot = FRotator(0, RightRot.Yaw, 0);
 	FVector RightDirection = RightRot.Vector();
+
 	// Get shoulders positions, with respect to the neck
 	FVector ShoulderPos = FVector::ZeroVector;
 	// Use the camera location with offset to overcome head Roll and Pitch
@@ -225,9 +236,9 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	Position += FVector::UpVector;
 	Position += 6 * PlayerCameraManager->GetActorForwardVector();
 	Position += PlayerCameraManager->GetActorRightVector() * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? 2 : -2);
-
 	// Get the direction from the shoulders to the pinch position
 	FVector Direction = Position - ShoulderPos;
+
 	return Direction;
 }
 
@@ -238,6 +249,7 @@ FVector ULeapWidgetInteractionComponent::GetNeckOffset()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("PlayerCameraManager in GetNeckOffset"));
 		return FVector();
 	}
+
 	FRotator HMDRotation = PlayerCameraManager->GetCameraRotation();
 	float AlphaPitch = 0;
 	float AlphaRoll = 0;
@@ -266,6 +278,7 @@ FVector ULeapWidgetInteractionComponent::GetNeckOffset()
 
 	FVector Offset = PitchOffset + RollOffset;
 	FRotator Rot = FRotator(0, HMDRotation.Yaw, 0);
+
 	return Rot.RotateVector(Offset);
 }
 
@@ -340,6 +353,8 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	}
 
 	SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
+
+	InitCalibrationArrays();
 }
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
@@ -450,20 +465,23 @@ void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLoca
 	}
 }
 
-void ULeapWidgetInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void ULeapWidgetInteractionComponent::CleanUpEvents()
 {
-	Super::EndPlay(EndPlayReason);
 	// Clean up the subsystem events 
 	if (LeapSubsystem != nullptr)
 	{
 		LeapSubsystem->OnLeapFrameMulti.Clear();
-		if (WidgetInteraction != EUIType::NEAR)
-		{
-			LeapSubsystem->OnLeapPinchMulti.Clear();
-			LeapSubsystem->OnLeapUnPinchMulti.Clear();
-		}
+		LeapSubsystem->OnLeapPinchMulti.Clear();
+		LeapSubsystem->OnLeapUnPinchMulti.Clear();
 		LeapSubsystem->SetUsePawnOrigin(false, nullptr);
 	}
+}
+
+void ULeapWidgetInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	CleanUpEvents();
 }
 
 void ULeapWidgetInteractionComponent::InitializeComponent()
