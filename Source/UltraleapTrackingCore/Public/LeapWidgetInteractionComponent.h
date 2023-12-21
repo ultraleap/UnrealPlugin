@@ -8,24 +8,23 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Components/WidgetInteractionComponent.h"
-#include "LeapSubsystem.h"
-#include "Engine/StaticMeshActor.h"
-#include "Kismet/GameplayStatics.h"
-#include "Materials/Material.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetInteractionComponent.h"
+#include "CoreMinimal.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
+#include "LeapSubsystem.h"
+#include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "ViewportInteractionUtils.h"
+// #include "ViewportInteractionUtils.h"
 
 #include "LeapWidgetInteractionComponent.generated.h"
-
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRayComponentVisible, bool, Visible);
 
 /**
- * This component will provide far field widgets with interactions 
+ * This component will provide far field widgets with interactions
  * Will need to add 2 components, for the left hand and the right one
  */
 UCLASS(ClassGroup = "LeapUserInterface", meta = (BlueprintSpawnableComponent))
@@ -34,11 +33,10 @@ class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInte
 	GENERATED_BODY()
 
 public:
-
-	ULeapWidgetInteractionComponent(const FObjectInitializer& ObjectInitializer);
+	ULeapWidgetInteractionComponent();
 
 	~ULeapWidgetInteractionComponent();
-	
+
 	/**
 	 * Called every fram to draw the cursor
 	 * @param Hand - hand data from the api
@@ -48,13 +46,11 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void InitializeComponent() override;
 
-	
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
 	void OnLeapPinch(const FLeapHandData& HandData);
 
 	void OnLeapUnPinch(const FLeapHandData& HandData);
-
 
 	/** Hand type, for left and right hands
 	 */
@@ -79,30 +75,32 @@ public:
 
 	/** This can be used to change the cursor's size
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI", meta = (ClampMin = "0.01", ClampMax = "0.1", UIMin = "0.01", UIMax = "0.1"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI", meta = (ClampMin = "0.01", ClampMax = "0.1", UIMin =
+	 "0.01", UIMax = "0.1"))
 	float CursorSize;
 
-	/** This will automatically enable near distance interactions mode when the 
-	* Distance between the hand and widget is less than 40 cm 
-	* and far mode when the ditance is more than 45 cm
+	/** This will automatically enable near distance interactions mode when the
+	 * Distance between the hand and widget is less than 40 cm
+	 * and far mode when the ditance is more than 45 cm
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
+	 UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
 	bool bAutoMode;
 
 	/** The distance in cm betweenn index and UI to trigger touch interaction
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Near")
 	float IndexDitanceFromUI;
+
 	ULeapSubsystem* LeapSubsystem;
 
-	#if WITH_EDITOR
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	#endif
+#endif
 
-	/** Controls how much rotation wrist movment adds to the ray 
+	/** Controls how much rotation wrist movment adds to the ray
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far",
-		meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
+	 meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
 	float WristRotationFactor;
 
 	/** Activate one euro filter, used to reduce ray jitter
@@ -112,13 +110,12 @@ public:
 	/** One euro filter param, lower values will reduce jitter but add lag
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
-	float MinCutoff;
+	float InterpolationSpeed;
 
 	/** For counter-acting the camera rotation to stabilize the rays
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
 	float YAxisCalibOffset;
-
 
 	/** For counter-acting the camera rotation to stabilize the rays
 	 */
@@ -134,9 +131,7 @@ public:
 
 	FVector GetNeckOffset();
 
-
 private:
-
 	/**
 	 * Used to spawn a mesh at a location
 	 * @param InLocation - the spawn location
@@ -155,7 +150,7 @@ private:
 	void ScaleDownAndUnClickButton(const FKey Button = EKeys::LeftMouseButton);
 
 	/**
-	 * Used to switch between FAR/NEAR modes, depending on the distance of the hand 
+	 * Used to switch between FAR/NEAR modes, depending on the distance of the hand
 	 * from the widget
 	 * @param Dist - distance of the hand from the widget
 	 */
@@ -179,13 +174,12 @@ private:
 	bool bHandTouchWidget;
 	bool bAutoModeTrigger;
 
-	ViewportInteractionUtils::FOneEuroFilter SmoothingOneEuroFilter;
+	// ViewportInteractionUtils::FOneEuroFilter SmoothingOneEuroFilter;
 
-	// Params used to compute the neck offset 
+	// Params used to compute the neck offset
 	TArray<FRotator> CalibratedHeadRot;
 	TArray<FVector> CalibratedHeadPos;
 
 	// Max rotation when head is rolling or pitching
 	float AxisRotOffset;
-	
 };

@@ -127,7 +127,7 @@ namespace UnrealBuildTool.Rules
 					"BodyState",
 					"PhysicsCore",
                     "UMG",
-                    "ViewportInteraction",
+                    //"ViewportInteraction",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);

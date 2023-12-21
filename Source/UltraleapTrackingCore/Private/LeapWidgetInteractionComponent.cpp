@@ -6,29 +6,29 @@
  * between Ultraleap and you, your company or other organization.             *
  ******************************************************************************/
 
-
 #include "LeapWidgetInteractionComponent.h"
+
 #include "DrawDebugHelpers.h"
+#include "Engine/StaticMesh.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "LeapUtility.h"
-#include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
 
-ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get()) 
-	: Super(ObjectInitializer)
-	, LeapHandType(EHandType::LEAP_HAND_LEFT)
+ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
+	: LeapHandType(EHandType::LEAP_HAND_LEFT)
 	, WidgetInteraction(EUIType::FAR)
 	, StaticMesh(nullptr)
 	, MaterialBase(nullptr)
-	, CursorSize(0.03) 
-	, bAutoMode(false)
+	, CursorSize(0.03)
+	, bAutoMode(true)
 	, IndexDitanceFromUI(0.0f)
 	, LeapSubsystem(nullptr)
 	, WristRotationFactor(0.0f)
 	, bUseOnEuroFilter(true)
-	, MinCutoff(5.0f)
+	//, MinCutoff(4.0f)
+	, InterpolationSpeed(10)
 	, YAxisCalibOffset(4.0f)
-	, ZAxisCalibOffset(2.0f)
+	, ZAxisCalibOffset(4.0f)
 	, CutoffSlope(0.3f)
 	, DeltaCutoff(1.0f)
 	, LeapPawn(nullptr)
@@ -38,12 +38,11 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent(const FObjectIn
 	, PlayerCameraManager(nullptr)
 	, bIsPinched(false)
 	, bHandTouchWidget(false)
-	, bAutoModeTrigger(false) 
+	, bAutoModeTrigger(false)
 	, AxisRotOffset(45.0f)
-	
+
 {
 	CreatStaticMeshForCursor();
-
 }
 
 void ULeapWidgetInteractionComponent::InitCalibrationArrays()
@@ -71,21 +70,21 @@ ULeapWidgetInteractionComponent::~ULeapWidgetInteractionComponent()
 
 void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 {
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> DefaultMesh(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CursorMesh"));
-	if (StaticMesh==nullptr)
+	if (StaticMesh == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("StaticMesh is nullptr in CreatStaticMeshForCursor()"));
 		return;
 	}
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine2/Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
-	
+	MaterialBase = LoadObject<UMaterial>(
+		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine2/Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
+
 	if (DefaultMesh.Succeeded())
 	{
 		StaticMesh->SetStaticMesh(DefaultMesh.Object);
-		StaticMesh->SetWorldScale3D(CursorSize*FVector(1, 1, 1));
+		StaticMesh->SetWorldScale3D(CursorSize * FVector(1, 1, 1));
 	}
 }
 
@@ -106,7 +105,6 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		{
 			StaticMesh->SetHiddenInGame(true);
 		}
-			
 	}
 	else if (Dist > ExistDistance && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
 	{
@@ -123,7 +121,6 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		}
 	}
 }
-
 
 void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 {
@@ -146,35 +143,38 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FRotator ForwardRot = PlayerCameraManager->GetActorForwardVector().Rotation();
 		ForwardRot = FRotator(0, ForwardRot.Yaw, 0);
 		FVector ForwardDirection = ForwardRot.Vector();
-		
+
 		FVector IndexInterm = TmpHand.Index.Intermediate.PrevJoint;
-		
+
 		bool bNear = (WidgetInteraction == EUIType::NEAR);
 
 		Position = bNear ? IndexInterm : IndexProx;
 
-		FVector FilteredPosition =  FVector::ZeroVector;
+		FVector FilteredPosition = Position;
 		// One euro filter will reduce the jitter
-		if (bUseOnEuroFilter)
+		/*if (bUseOnEuroFilter)
 		{
 			FilteredPosition = SmoothingOneEuroFilter.Filter(Position, World->GetDeltaSeconds());
 		}
 		else
 		{
 			FilteredPosition = Position;
-		}
+		}*/
 		// Get Direction for near or far interactions
 		Direction = bNear ? (IndexDistalN - IndexDistalP) : GetHandRayDirection(TmpHand, FilteredPosition);
 		FVector FilteredDirection = FVector::ZeroVector;
 
 		FTransform TargetTrans = FTransform();
-		
+
 		TargetTrans.SetLocation(FilteredPosition);
 		TargetTrans.SetRotation(Direction.Rotation().Quaternion());
-		
+
+		FTransform NewTransform =
+			UKismetMathLibrary::TInterpTo(GetComponentTransform(), TargetTrans, World->GetDeltaSeconds(), InterpolationSpeed);
+
 		FHitResult SweepHitResult;
-		K2_SetWorldTransform(TargetTrans, true, SweepHitResult, true);
-	
+		K2_SetWorldTransform(NewTransform, true, SweepHitResult, true);
+
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
 		float Dist = FVector::Dist(FilteredPosition, LastHitResult.ImpactPoint);
@@ -192,11 +192,10 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
 		}
-		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance 
+		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance
 		// between the hand and the widget
 		// Also trigger event when visibility changed
 		HandleDistanceChange(Dist);
-
 	}
 	else
 	{
@@ -206,7 +205,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpHand, FVector& Position)
 {
-	if (World == nullptr && PlayerCameraManager==nullptr)
+	if (World == nullptr && PlayerCameraManager == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("World or PlayerCameraManager nullptr in GetHandRayDirection"));
 		return FVector::ZeroVector;
@@ -218,9 +217,8 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	FVector CameraLocationWithNeckOffset = PlayerCameraManager->GetCameraLocation();
 	CameraLocationWithNeckOffset -= NeckOffset;
 	CameraLocationWithNeckOffset -= 15 * FVector::UpVector;
-	
 
-	//Get the general right direction of the camera
+	// Get the general right direction of the camera
 	FRotator RightRot = PlayerCameraManager->GetActorRightVector().Rotation();
 	RightRot = FRotator(0, RightRot.Yaw, 0);
 	FVector RightDirection = RightRot.Vector();
@@ -230,7 +228,7 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	// Use the camera location with offset to overcome head Roll and Pitch
 	ShoulderPos = CameraLocationWithNeckOffset;
 	ShoulderPos += WristRotationFactor * PlayerCameraManager->GetActorForwardVector();
-	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -15:15);
+	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -15 : 15);
 
 	// Get approximate pintch position
 	Position += FVector::UpVector;
@@ -244,7 +242,7 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 
 FVector ULeapWidgetInteractionComponent::GetNeckOffset()
 {
-	if (PlayerCameraManager==nullptr)
+	if (PlayerCameraManager == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("PlayerCameraManager in GetNeckOffset"));
 		return FVector();
@@ -268,7 +266,7 @@ FVector ULeapWidgetInteractionComponent::GetNeckOffset()
 	if (HMDRotation.Roll < 0)
 	{
 		AlphaRoll = UKismetMathLibrary::NormalizeToRange(-HMDRotation.Roll, 0, -CalibratedHeadRot[3].Roll);
-		RollOffset = FMath::Lerp(FVector(0) , CalibratedHeadPos[3], AlphaRoll);
+		RollOffset = FMath::Lerp(FVector(0), CalibratedHeadPos[3], AlphaRoll);
 	}
 	else
 	{
@@ -293,7 +291,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		return;
 	}
 	LeapSubsystem = ULeapSubsystem::Get();
-	if (LeapSubsystem==nullptr)
+	if (LeapSubsystem == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapSubsystem is nullptr in BeginPlay"));
 		return;
@@ -321,7 +319,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	LeapSubsystem->OnLeapFrameMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapTrackingData);
 
 	LeapSubsystem->SetUsePawnOrigin(true, LeapPawn);
-	
+
 	if (MaterialBase != nullptr)
 	{
 		LeapDynMaterial = UMaterialInstanceDynamic::Create(MaterialBase, NULL);
@@ -331,7 +329,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("MaterialBase is nullptr in BeginPlay"));
 		return;
 	}
-	
+
 	if (LeapDynMaterial != nullptr && StaticMesh != nullptr)
 	{
 		StaticMesh->SetMaterial(0, LeapDynMaterial);
@@ -352,7 +350,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		PointerIndex = 1;
 	}
 
-	SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
+	// SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
 
 	InitCalibrationArrays();
 }
@@ -372,7 +370,7 @@ void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandDat
 	{
 		ScaleDownAndUnClickButton();
 		bIsPinched = false;
-	}	
+	}
 }
 
 void ULeapWidgetInteractionComponent::NearClickLeftMouse(TEnumAsByte<EHandType> HandType)
@@ -395,7 +393,7 @@ void ULeapWidgetInteractionComponent::NearReleaseLeftMouse(TEnumAsByte<EHandType
 
 void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
 {
-	if (StaticMesh!=nullptr)
+	if (StaticMesh != nullptr)
 	{
 		// Scale the cursor by 1/2
 		FVector Scale = CursorSize * FVector(1, 1, 1);
@@ -408,7 +406,7 @@ void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
 
 void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Button)
 {
-	if (StaticMesh!=nullptr)
+	if (StaticMesh != nullptr)
 	{
 		// Scale the cursor by 2
 		FVector Scale = StaticMesh->GetComponentScale();
@@ -426,7 +424,7 @@ void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Butto
 void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	
+
 	if (WidgetInteraction == EUIType::NEAR)
 	{
 		// Set the WidgetInteraction type to far when the distance is more than 30
@@ -437,7 +435,6 @@ void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEve
 	}
 }
 #endif
-
 
 void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLocation)
 {
@@ -467,7 +464,7 @@ void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLoca
 
 void ULeapWidgetInteractionComponent::CleanUpEvents()
 {
-	// Clean up the subsystem events 
+	// Clean up the subsystem events
 	if (LeapSubsystem != nullptr)
 	{
 		LeapSubsystem->OnLeapFrameMulti.Clear();
@@ -480,7 +477,7 @@ void ULeapWidgetInteractionComponent::CleanUpEvents()
 void ULeapWidgetInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	
+
 	CleanUpEvents();
 }
 
