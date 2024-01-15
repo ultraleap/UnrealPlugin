@@ -165,7 +165,7 @@ void ULeapTeleportComponent::TryTeleport()
 {
 	if (!bValidTeleportationLocation)
 	{
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("not bValidTeleportationLocation in TryTeleport"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("not bValidTeleportationLocation in TryTeleport"));
 		return;
 	}
 	bValidTeleportationLocation = false;
@@ -208,7 +208,7 @@ void ULeapTeleportComponent::OnLeapRelease(
 {
 	if (!bTeleportTraceActive)
 	{	
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("bTeleportTraceActive is false in OnLeapRelease"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("bTeleportTraceActive is false in OnLeapRelease"));
 		return;
 	}
 	bTeleportOnce = true;
