@@ -14,6 +14,10 @@
 
 #include "LeapVisualizer.generated.h"
 
+/**
+ * This Actor can be used to load Niagara particle systems in C++
+ */
+
 UCLASS()
 class ULTRALEAPTRACKING_API ALeapVisualizer : public AActor
 {

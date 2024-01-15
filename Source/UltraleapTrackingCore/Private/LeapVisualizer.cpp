@@ -14,7 +14,15 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 
 // Sets default values
-ALeapVisualizer::ALeapVisualizer()
+ALeapVisualizer::ALeapVisualizer() 
+	: NSPlayerAreaBounds(nullptr)
+	, NSPTeleportRing(nullptr)
+	, Root(nullptr)
+	, PlayerAreaBoundsComponent(nullptr)
+	, TeleportRingComponent(nullptr)
+	, LeapPawn(nullptr)
+	, PlayerCameraManager(nullptr)
+	, World(nullptr)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
