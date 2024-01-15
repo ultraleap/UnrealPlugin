@@ -135,6 +135,10 @@ namespace UnrealBuildTool.Rules
             PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
+                    "NiagaraCore",
+                    "Niagara",
+                    "NiagaraShader",
+                    "NavigationSystem",
 					// ... add private dependencies that you statically link with here ...
                 }
 				);

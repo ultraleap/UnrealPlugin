@@ -53,6 +53,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap release Events")
 	FLeapGrabAction OnLeapGrabAction;
 
+	FLeapGrabActionNative OnLeapGrabActionNative;
+
 
 	FLeapGrabNative OnLeapGrabNative;
 	FLeapReleaseNative OnLeapReleaseNative;

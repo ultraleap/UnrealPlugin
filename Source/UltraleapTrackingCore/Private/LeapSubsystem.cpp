@@ -34,6 +34,7 @@ void ULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent
 void ULeapSubsystem::GrabActionCall(FVector Location, FVector ForwardVec)
 {
 	OnLeapGrabAction.Broadcast(Location, ForwardVec);
+	OnLeapGrabActionNative.Broadcast(Location, ForwardVec);
 }
 
 void ULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)

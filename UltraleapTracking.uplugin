@@ -48,5 +48,11 @@
 				"Mac"
 			]
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		}
 	]
 }
