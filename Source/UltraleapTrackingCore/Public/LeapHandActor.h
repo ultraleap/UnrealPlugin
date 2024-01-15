@@ -48,6 +48,8 @@ protected:
 
 	TArray<FLeapHandData> Hands;
 
+	UWorld *World;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

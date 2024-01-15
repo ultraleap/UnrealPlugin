@@ -146,23 +146,19 @@ void ULeapTeleportComponent::TeleportTrace(const FVector Location, const FVector
 	FNavLocation OutLocation;
 	bValidTeleportationLocation = IsValidTeleportLocation(OutHit, OutLocation);
 
-	if (!bValidTeleportationLocation)
+	if (bValidTeleportationLocation)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("bValidTeleportationLocation is false in ULeapTeleportComponent::TeleportTrace"));
-		return;
+		float LocalNavMeshCellHeight = 8.0f;
+		if (USceneComponent* Component = TeleportVisualizerReference->GetRootComponent())
+		{
+			Component->SetVisibility(bValidTeleportationLocation);
+		}
+		ProjectedTeleportLocation = FVector(OutLocation.Location.X, OutLocation.Location.Y, OutLocation.Location.Z - LocalNavMeshCellHeight);
 	}
 
-	float LocalNavMeshCellHeight = 8.0f;
-	if (USceneComponent* Component = TeleportVisualizerReference->GetRootComponent())
-	{
-		Component->SetVisibility(bValidTeleportationLocation);
-	}
-	ProjectedTeleportLocation = FVector(OutLocation.Location.X, OutLocation.Location.Y, OutLocation.Location.Z - LocalNavMeshCellHeight);
 	TeleportVisualizerReference->SetActorLocation(ProjectedTeleportLocation);
-
 	const FName OverrideName = FName(TEXT("User.PointArray"));
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(TeleportTraceNSComponent, OverrideName, OutPathPositions);
-
 }
 
 void ULeapTeleportComponent::TryTeleport()
@@ -180,7 +176,7 @@ void ULeapTeleportComponent::TryTeleport()
 	Location = Rotation.RotateVector(Location);
 	Location = ProjectedTeleportLocation - Location;
 	Owner->K2_TeleportTo(Location, Rotation);
-	bTeleportOnce = true;
+	
 }
 
 void ULeapTeleportComponent::EndTeleportTrace()
@@ -215,6 +211,7 @@ void ULeapTeleportComponent::OnLeapRelease(
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("bTeleportTraceActive is false in OnLeapRelease"));
 		return;
 	}
+	bTeleportOnce = true;
 	EndTeleportTrace();
 	TryTeleport();
 }

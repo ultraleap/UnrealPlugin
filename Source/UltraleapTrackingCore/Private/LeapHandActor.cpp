@@ -80,6 +80,14 @@ void ALeapHandActor::BeginPlay()
 		LeapSubsystem->OnLeapFrameMulti.AddUObject(this, &ALeapHandActor::OnLeapTrackingData);
 	}
 
+	World = GetWorld();
+
+	if (World == nullptr)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("World is nullptr in ALeapHandActor::BeginPlay()"));
+		return;
+	}
+
 }
 
 // Called every frame
@@ -91,12 +99,12 @@ void ALeapHandActor::Tick(float DeltaTime)
 
 void ALeapHandActor::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight)
 {
-	if (GrabbedActor != nullptr && this == GrabbedActor)
+	if (GrabbedActor != nullptr && this == GrabbedActor && World)
 	{
 		// Offset needed so teleportation trace will not collide with the hand
 		GrabbedActor->SetActorRelativeLocation(FVector(20, 0, 0));
 		// Trigger a timer when the actor is grabbed
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapHandActor::RepeatingAction, 0.04f, true, .0f);
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapHandActor::RepeatingAction, World->GetDeltaSeconds(), true, .0f);
 	}
 }
 
