@@ -15,7 +15,7 @@
 #include "LeapTeleportComponent.generated.h"
 
 /**
- * This Actor Component can be used for teleportation, before begin play
+ * This Actor Component can be used for teleportation, on begin play
  * the camera needs to be set to the vr pawn camera
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )

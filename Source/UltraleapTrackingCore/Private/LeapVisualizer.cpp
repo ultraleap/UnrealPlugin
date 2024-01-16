@@ -54,8 +54,8 @@ ALeapVisualizer::ALeapVisualizer()
 
 	if (RootComponent)
 	{
-		PlayerAreaBoundsComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		TeleportRingComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		PlayerAreaBoundsComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		TeleportRingComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 
 	PlayerAreaBoundsComponent->SetAsset(NSPlayerAreaBounds); 

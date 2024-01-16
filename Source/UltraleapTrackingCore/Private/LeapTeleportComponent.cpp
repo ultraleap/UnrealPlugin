@@ -171,12 +171,11 @@ void ULeapTeleportComponent::TryTeleport()
 	bValidTeleportationLocation = false;
 
 	FVector Location = FVector(CameraComponent->GetRelativeLocation().X, CameraComponent->GetRelativeLocation().Y, 0.0f);
-	FRotator Rotation = FRotator(0.0f, 0.0f, Owner->GetActorRotation().Yaw);
-
+	FRotator Rotation = FRotator(Owner->GetActorRotation());
 	Location = Rotation.RotateVector(Location);
 	Location = ProjectedTeleportLocation - Location;
-	Owner->K2_TeleportTo(Location, Rotation);
-	
+	Owner->TeleportTo(Location, Rotation);
+
 }
 
 void ULeapTeleportComponent::EndTeleportTrace()
