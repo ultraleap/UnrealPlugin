@@ -57,10 +57,17 @@ public class BodyState : ModuleRules
 				"InputDevice",
 				"HeadMountedDisplay",
 				"Slate",
-				"SlateCore"
-			}
+				"SlateCore",
+            }
 			);
-			if (Target.bBuildEditor)
+
+		if (Target.Version.MajorVersion >= 5 && Target.Version.MinorVersion >= 3)
+		{
+            PrivateDependencyModuleNames.AddRange(new string[] {"XRBase"});
+        }
+
+
+            if (Target.bBuildEditor)
 			{
 				PrivateDependencyModuleNames.Add("Persona");
 			}

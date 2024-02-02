@@ -279,6 +279,7 @@ FUltraleapDevice::FUltraleapDevice(
 	}
 
 	Init();
+
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -307,6 +308,9 @@ ELeapDeviceType ToBlueprintDeviceType(eLeapDevicePID LeapType)
 			break;
 		case eLeapDevicePID_3Di:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_3DI;
+			break;
+		case eLeapDevicePID_LMC2:
+			return ELeapDeviceType::LEAP_DEVICE_TYPE_LEAP_MOTION_CONTROLLER_2;
 			break;
 		default:
 			return ELeapDeviceType::LEAP_DEVICE_TYPE_UNKNOWN;
@@ -516,6 +520,10 @@ void FUltraleapDevice::ParseEvents()
 	}
 	if (LastLeapTime == 0)
 		LastLeapTime = Leap->GetNow();
+	
+	// apply any tracking system specific changes to the hand
+	// e.g. Pinch and Grasp simulation for OpenXR
+	Leap->PostLeapHandUpdate(CurrentFrame);
 
 	CheckHandVisibility();
 	CheckGrabGesture();
@@ -531,9 +539,19 @@ void FUltraleapDevice::ParseEvents()
 			Component->OnLeapTrackingData.Broadcast(CurrentFrame);
 		});
 
+	// Add the current frame to the leap subsystem
+	if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+	{
+		if (LeapSubsystem->GetUseOpenXR() == Options.bUseOpenXRAsSource)
+		{
+			LeapSubsystem->LeapTrackingDataCall(CurrentFrame);
+		}
+	}
+
 	// It's now the past data
 	PastFrame = CurrentFrame;
 	LastLeapTime = Leap->GetNow();
+
 }
 
 void FUltraleapDevice::CheckHandVisibility()
@@ -689,7 +707,7 @@ void FUltraleapDevice::CheckPinchGesture()
 			const FLeapHandData& FinalHandData = Hand;
 			if (Hand.HandType == EHandType::LEAP_HAND_LEFT)
 			{
-				if (!(IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
+				if ((!IsLeftGrabbing && (!IsLeftPinching && (Hand.PinchStrength > StartPinchThreshold))) ||
 					(IsLeftPinching && (Hand.PinchStrength > EndPinchThreshold)))
 				{
 					TimeSinceLastLeftPinch = 0;
@@ -699,6 +717,12 @@ void FUltraleapDevice::CheckPinchGesture()
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
 						CallFunctionOnComponents(
 							[FinalHandData](ULeapComponent* Component) { Component->OnHandPinched.Broadcast(FinalHandData); });
+
+						if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+						{
+							LeapSubsystem->LeapPinchCall(FinalHandData);
+						}
+
 					}
 				}
 				else if (IsLeftPinching && (TimeSinceLastLeftPinch > PinchTimeout))
@@ -707,6 +731,12 @@ void FUltraleapDevice::CheckPinchGesture()
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
 					CallFunctionOnComponents(
 						[FinalHandData](ULeapComponent* Component) { Component->OnHandUnpinched.Broadcast(FinalHandData); });
+
+
+					if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+					{
+						LeapSubsystem->LeapUnPinchCall(FinalHandData);
+					}
 				}
 			}
 			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
@@ -721,6 +751,13 @@ void FUltraleapDevice::CheckPinchGesture()
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
 						CallFunctionOnComponents(
 							[FinalHandData](ULeapComponent* Component) { Component->OnHandPinched.Broadcast(FinalHandData); });
+
+
+						if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+						{
+							LeapSubsystem->LeapPinchCall(FinalHandData);
+						}
+
 					}
 				}
 				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout))
@@ -729,6 +766,12 @@ void FUltraleapDevice::CheckPinchGesture()
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
 					CallFunctionOnComponents(
 						[FinalHandData](ULeapComponent* Component) { Component->OnHandUnpinched.Broadcast(FinalHandData); });
+
+
+					if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+					{
+						LeapSubsystem->LeapUnPinchCall(FinalHandData);
+					}
 				}
 			}
 		}
@@ -1216,10 +1259,10 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				case ELeapTrackingFidelity::LEAP_NORMAL:
 					Options.bUseTimeWarp = true;
 					Options.bUseInterpolation = true;
-					Options.TimewarpOffset = 2750;
-					Options.TimewarpFactor = 1.f;
-					Options.HandInterpFactor = 0.f;
-					Options.FingerInterpFactor = 0.f;
+					Options.TimewarpOffset = 500;
+					Options.TimewarpFactor = -1.f;
+					Options.HandInterpFactor = -1.f;
+					Options.FingerInterpFactor = -1.f;
 					break;
 				case ELeapTrackingFidelity::LEAP_SMOOTH:
 					Options.bUseTimeWarp = false;
@@ -1254,11 +1297,11 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
-			Options.HMDPositionOffset = FVector(90,0,0);
-		} 
+			Options.HMDPositionOffset = FVector(90, 0, 0);
+		}
 
 		// Rift, note requires negative timewarp!
-		else if (HMDType == TEXT("OculusHMD") || HMDType == TEXT("OpenXR"))
+		else if (HMDType == TEXT("OpenXR"))
 		{
 			// Apply default options to zero offsets/rotations
 			if (InOptions.HMDPositionOffset.IsNearlyZero())
@@ -1312,99 +1355,15 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
-		} 
-		// Pico
-		else if (HMDType == TEXT("PicoXRHMD"))
-		{
-			// Apply default options to zero offsets/rotations
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
-			{
-				// in mm
-				FVector Offset = FVector(50.0, 0, 0);
-				Options.HMDPositionOffset = Offset;
-			}
-			if (InOptions.HMDRotationOffset.IsNearlyZero())
-			{
-				Options.HMDRotationOffset = FRotator(-4, 0, 0);	  // does it point down because velcro?
-			}
-
-			switch (InOptions.TrackingFidelity)
-			{
-				case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
-					Options.bUseTimeWarp = true;
-					Options.bUseInterpolation = true;
-					Options.TimewarpOffset = 16000;
-					Options.TimewarpFactor = -1.f;
-					Options.HandInterpFactor = 0.5;
-					Options.FingerInterpFactor = 0.5f;
-
-					break;
-				case ELeapTrackingFidelity::LEAP_NORMAL:
-					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
-					{
-						Options.TimewarpOffset = 20000;
-					}
-					else
-					{
-						Options.TimewarpOffset = 25000;
-					}
-					Options.bUseTimeWarp = true;
-					Options.bUseInterpolation = true;
-					Options.TimewarpFactor = -1.f;
-					Options.HandInterpFactor = 0.f;
-					Options.FingerInterpFactor = 0.f;
-					break;
-
-				case ELeapTrackingFidelity::LEAP_SMOOTH:
-					Options.bUseTimeWarp = true;
-					Options.bUseInterpolation = true;
-					Options.TimewarpOffset = 26000;
-					Options.TimewarpFactor = -1.f;
-					Options.HandInterpFactor = -1.f;
-					Options.FingerInterpFactor = -1.f;
-					break;
-				case ELeapTrackingFidelity::LEAP_CUSTOM:
-					break;
-				default:
-					break;
-			}
 		}
-
-		// Cardboard and Daydream
-		else if (HMDType == TEXT("FGoogleVRHMD"))
+		else	// For android
 		{
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
-			{
-				// in mm
-				FVector DayDreamOffset = FVector(80.0, 0, 0);
-				Options.HMDPositionOffset = DayDreamOffset;
-			}
-
-			switch (InOptions.TrackingFidelity)
-			{
-				case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
-				case ELeapTrackingFidelity::LEAP_NORMAL:
-				case ELeapTrackingFidelity::LEAP_SMOOTH:
-					Options.bUseTimeWarp = true;
-					Options.bUseInterpolation = true;
-					Options.TimewarpOffset = 10000;
-					Options.TimewarpFactor = 1.f;
-					Options.HandInterpFactor = -1.f;
-					Options.FingerInterpFactor = -1.f;
-					break;
-				case ELeapTrackingFidelity::LEAP_CUSTOM:
-					break;
-				default:
-					break;
-			}
-
-			// let's use basic vive settings for cardboard for now
-		}
-		// Other, e.g. cardboard
-		else
-		{
-			// UE_LOG(UltraleapTrackingLog, Log, TEXT("%d doesn't have proper defaults
-			// set yet, using passed in custom settings."), HMDType);
+			Options.TimewarpOffset = 16000;
+			Options.bUseTimeWarp = true;
+			Options.bUseInterpolation = true;
+			Options.TimewarpFactor = -1.f;
+			Options.HandInterpFactor = -2.2;
+			Options.FingerInterpFactor = -2.2;
 		}
 	}
 	// HMD offset not allowed in OpenXR (already corrected)
@@ -1433,6 +1392,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	EndPinchThreshold = Options.EndPinchThreshold;
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
+
 }
 FLeapOptions FUltraleapDevice::GetOptions()
 {

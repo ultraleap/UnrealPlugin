@@ -29,6 +29,10 @@
 #include "PersonaUtils.h"
 #endif
 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+#include "Engine/SkinnedAsset.h"
+#endif
+
 
 FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
 {
@@ -52,6 +56,7 @@ UBodyStateAnimInstance::UBodyStateAnimInstance(const FObjectInitializer& ObjectI
 	// Defaults
 	DefaultBodyStateIndex = 0;
 	bIncludeMetaCarpels = true;
+	ScaleModelToTrackingData = true;
 
 	AutoMapTarget = EBodyStateAutoRigType::HAND_LEFT;
 
@@ -214,7 +219,11 @@ TMap<EBodyStateBasicBoneType, FBodyStateIndexedBone> UBodyStateAnimInstance::Aut
 	}
 
 	// Get bones and parent indices
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+	USkinnedAsset* SkeletalMesh = Component->GetSkinnedAsset();
+#else
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
+#endif
 
 #if ENGINE_MAJOR_VERSION >= 5 || (ENGINE_MAJOR_VERSION >= 4 && ENGINE_MINOR_VERSION >= 27)
 	FReferenceSkeleton& RefSkeleton = SkeletalMesh->GetRefSkeleton();
@@ -785,8 +794,11 @@ bool UBodyStateAnimInstance::GetNamesAndTransforms(
 	USkeletalMeshComponent* Component = GetSkelMeshComponent();
 	ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
 	// Get bones and parent indices
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+	USkinnedAsset* SkeletalMesh = Component->GetSkinnedAsset();
+#else
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
-	
+#endif
 	
 	INodeMappingProviderInterface* INodeMapping = Cast<INodeMappingProviderInterface>(SkeletalMesh);
 
@@ -998,7 +1010,11 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 		// Unreal doesn't deal with mirrored scale when in comes to updating the mesh bounds
 		// this means that at 1 bounds scale, the skeletel mesh gets occluded as the bounds are not following the skeleton
 		// Until this is fixed in the engine, we have to force the bounds to be huge to always render.
-		Component->SetBoundsScale(10);
+#if (ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 27)
+		Component->SetBoundsScale(30);
+#else
+		Component->SetBoundsScale(1);
+#endif
 	}
 	else
 	{
@@ -1250,7 +1266,12 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 		}
 		Message += "\n\nEdit the mappings manually in 'Mapped Bone List -> Bone Map' in the preview panel to continue.";
 	}
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3)
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), TitleText);
+#else
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), &TitleText);
+#endif
 
 #endif
 }
@@ -1301,9 +1322,16 @@ int32 UBodyStateAnimInstance::GetActiveDeviceID()
 {
 	return GetDeviceIDFromDeviceSerial(ActiveDeviceSerial);
 }
+
 void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
 {
 	UpdateDeviceList();
+	
+	BodyStateSkeleton = GetCurrentSkeleton();
+	if (BodyStateSkeleton != nullptr)
+	{
+		SetAnimSkeleton(BodyStateSkeleton);	   // this will sync all the bones
+	}
 }
 void UBodyStateAnimInstance::OnDeviceRemoved(const uint32 DeviceID)
 {

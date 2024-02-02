@@ -1214,6 +1214,8 @@ Importing and mapping a metahuman from scratch
 -  Reparent the blueprint to **BodyStateAnimInstance**. |image9|
 -  Select **BOTH HANDS** as the **auto map target** and **Ignore Wrist
    Translation** and click **Auto map**. |image10|
+-  Right click and delete the mapping for the **BONE LOWER ARM L** and
+   **BONE LOWER ARM R** for both left and right **Bone Map** lists
 -  Copy the nodes from the template
    **UltraleapTracking/Metahumans/MetahumanTemplate** provided (anim
    graph and eventgraph) into your anim blueprint. |image11| |image12|

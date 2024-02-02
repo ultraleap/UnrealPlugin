@@ -12,6 +12,7 @@
 #include "LeapUtility.h"
 #include "Multileap/DeviceCombiner.h"
 #include "Runtime/Core/Public/Misc/Timespan.h"
+#include "LeapBlueprintFunctionLibrary.h"
 
 #pragma region LeapC Wrapper
 
@@ -22,6 +23,22 @@ FLeapWrapper::FLeapWrapper()
 	, InterpolatedFrameSize(0)
 {
 	UseOpenXR = true;
+
+	if (!HasDeactivateHandle.IsValid())
+	{
+		HasDeactivateHandle = FCoreDelegates::ApplicationWillDeactivateDelegate.AddRaw(this, &FLeapWrapper::HandleApplicationDeactivate);
+	}
+}
+
+void FLeapWrapper::HandleApplicationDeactivate()
+{
+	// This will reset the tracking service for Android app, when the device goes to sleep 
+	AsyncTask(ENamedThreads::GameThread,
+		[this]()
+		{
+			ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid();
+			ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid();
+		});
 }
 
 FLeapWrapper::~FLeapWrapper()
@@ -45,6 +62,13 @@ FLeapWrapper::~FLeapWrapper()
 	if (bIsConnected)
 	{
 		CloseConnection();
+	}
+
+	// Always remove delegate events and reset 
+	if (HasDeactivateHandle.IsValid())
+	{
+		FCoreDelegates::ApplicationWillDeactivateDelegate.Remove(HasDeactivateHandle);
+		HasDeactivateHandle.Reset();
 	}
 }
 // to be deprecated
@@ -500,6 +524,12 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 }
 void FLeapWrapper::RemoveDevice(const uint32_t DeviceID)
 {
+	// This will reset the tracking service for Android app
+	AsyncTask(ENamedThreads::GameThread, [this]() { 
+		ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid();
+		ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid();
+	});
+	
 	if (IsInGameThread())
 	{
 		return RemoveDeviceDirect(DeviceID);
@@ -848,7 +878,7 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 void FLeapWrapper::TickDevices(const float DeltaTime) 
 {
 	// safe point to cleanup force deleted devices
-	for (auto DeviceToRemove : DevicesToCleanup)
+	for (IHandTrackingWrapper* DeviceToRemove : DevicesToCleanup)
 	{
 		RemoveDevice(DeviceToRemove->GetDeviceID());
 	}
@@ -861,7 +891,7 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 	//UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d"), Devices.Num());
 	
 	AllDevices.Append(CombinedDevices);
-	for (auto Device : AllDevices)
+	for (IHandTrackingWrapper* Device : AllDevices)
 	{
 		auto InternalDevice = Device->GetDevice();
 		if (InternalDevice)
@@ -878,12 +908,15 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 	AllDevices.Append(Devices);
 	AllDevices.Append(CombinedDevices);
 
-	for (auto Device : AllDevices)
+	for (IHandTrackingWrapper* Device : AllDevices)
 	{
-		auto InternalDevice = Device->GetDevice();
-		if (InternalDevice)
+		if (Device!=nullptr)
 		{
-			InternalDevice->SendControllerEvents();
+			auto InternalDevice = Device->GetDevice();
+			if (InternalDevice)
+			{
+				InternalDevice->SendControllerEvents();
+			}
 		}
 	}
 }

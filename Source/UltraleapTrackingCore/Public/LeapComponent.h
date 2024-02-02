@@ -131,6 +131,34 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	bool GetLeapOptions(FLeapOptions& Options);
+
+	/**
+	* Get the hand size, by default it will get the left hand size
+	* In this method that we measure the middle finger length + palm position 
+	* to start of finger as an indication of the hand size
+	* @param OutHandSize - returns the hand size
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetHandSize(float& OutHandSize);
+
+	/**
+	 * Get the grab strength for both hands
+	 * @param GrabStrength - returns the grab strength as an array
+	 * Index 0 of the array is for the left hand
+	 * Index 1 of the array is for the right hand
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	void GetLRGrabStrength(TArray<float> &GrabStrength);
+
+	/**
+	 * Checks if the hand type can grab, byt checking the pinch or grab strength
+	 * @param GrabStrength - the grab strength 
+	 * @param Type - the hand type
+	 * @return bool, if we can grab with this hand type (left or right)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
+	bool CanGrabWithThreshold(const float GrabStrength, uint8 Type);
+
 	/** Multidevice configuration, Singular subscribes to a single device. 
 	Combined subscribes to multiple devices combined into one device
 	*/
@@ -229,6 +257,13 @@ private:
 #endif
 	void ConnectToInputEvents();
 	bool IsConnectedToInputEvents;
+
+	/**
+	 * Converts IEHandType enum (as a uint8) to EHandType
+	 * @param Type - the hand type
+	 * @return EHandType
+	 */
+	EHandType FromIEHandTypeToEHandType(uint8 Type);
 
 	IHandTrackingWrapper* CurrentHandTrackingDevice = nullptr;
 

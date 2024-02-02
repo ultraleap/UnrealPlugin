@@ -23,6 +23,7 @@
 #include "SceneViewExtension.h"
 #include "UltraleapTrackingData.h"
 #include "IUltraleapTrackingPlugin.h"
+#include "LeapSubsystem.h"
 
 
 class FUltraleapDevice : public LeapWrapperCallbackInterface, public IBodyStateInputRawInterface, public IHandTrackingDevice

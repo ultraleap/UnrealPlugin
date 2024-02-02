@@ -12,6 +12,13 @@
 
 #include "IUltraleapTrackingPlugin.h"
 #include "Misc/ConfigCacheIni.h"
+#include "LeapSubsystem.h"
+
+#if PLATFORM_ANDROID
+#include "Android/AndroidApplication.h"
+#include "Android/AndroidJNI.h"
+#include <android/log.h>
+#endif
 
 FRotator ULeapBlueprintFunctionLibrary::DebugRotator;
 ULeapBlueprintFunctionLibrary::ULeapBlueprintFunctionLibrary(const class FObjectInitializer& Initializer) : Super(Initializer)
@@ -49,6 +56,10 @@ void ULeapBlueprintFunctionLibrary::SetLeapMode(
 
 void ULeapBlueprintFunctionLibrary::SetLeapOptions(const FLeapOptions& InOptions, const TArray<FString>& DeviceSerials)
 {
+	if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+	{
+		LeapSubsystem->SetUseOpenXR(InOptions.bUseOpenXRAsSource);
+	}
 	IUltraleapTrackingPlugin::Get().SetOptions(InOptions, DeviceSerials);
 }
 
@@ -93,4 +104,46 @@ float ULeapBlueprintFunctionLibrary::AngleBetweenVectors(const FVector& A, const
 	float AngleCosine = FVector::DotProduct(A, B) / (A.Size() * B.Size());
 	float AngleRadians = FMath::Acos(AngleCosine);
 	return FMath::RadiansToDegrees(AngleRadians);
+}
+
+void ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid()
+{
+#if PLATFORM_ANDROID
+	// Binding the tracking service
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		static jmethodID Method =
+			FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_Bind", "()V", false);
+		if (Method)
+		{
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("UltraleapTracking: calling AndroidThunkJava_Bind"));
+			FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, Method);
+		}
+		else
+		{
+			UE_LOG(UltraleapTrackingLog, Error, TEXT("UltraleapTracking: could not call AndroidThunkJava_Bind invalid Method"));
+		}
+	}
+#endif
+}
+
+void ULeapBlueprintFunctionLibrary::UnbindTrackingServiceAndroid()
+{
+#if PLATFORM_ANDROID
+	//  Unbind the tracking service
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		static jmethodID Method =
+			FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_Unbind", "()V", false);
+		if (Method)
+		{
+			UE_LOG(UltraleapTrackingLog, Log, TEXT("UltraleapTracking: calling AndroidThunkJava_Unbind"));
+			FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, Method);
+		}
+		else
+		{
+			UE_LOG(UltraleapTrackingLog, Error, TEXT("UltraleapTracking: could not call AndroidThunkJava_Unbind invalid Method"));
+		}
+	}
+#endif
 }

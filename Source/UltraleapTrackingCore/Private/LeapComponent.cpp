@@ -77,6 +77,7 @@ void ULeapComponent::ConnectToInputEvents()
 	// Subscribe to active device
 	UpdateActiveDevice(ActiveDeviceSerial);
 }
+
 void ULeapComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -184,6 +185,10 @@ void ULeapComponent::GetMultiDeviceDebugInfo(int32& NumLeftTracked, int32& NumRi
 }
 bool ULeapComponent::GetDeviceOrigin(FTransform& DeviceOrigin)
 {
+	if (CurrentHandTrackingDevice == nullptr)
+	{
+		return false;
+	}
 	auto Device = CurrentHandTrackingDevice->GetDevice();
 	if (Device)
 	{
@@ -371,6 +376,11 @@ void ULeapComponent::SetCustomDetailsPanel(IDetailLayoutBuilder* DetailBuilderIn
 #endif
 void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 {
+	if (!IsActiveDevicePluggedIn())
+	{
+		SubscribeToDevice();
+	}
+
 	if (DeviceWrapper->GetDeviceSerial() == ActiveDeviceSerial)
 	{
 		ConnectToInputEvents();
@@ -398,6 +408,99 @@ bool ULeapComponent::GetLeapOptions(FLeapOptions& Options)
 		{
 			Options = Device->GetOptions();
 			return true;
+		}
+	}
+	return false;
+}
+
+void ULeapComponent::GetHandSize(float& OutHandSize)
+{
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	FLeapHandData HandToScale;
+	if (!Hands.Num())
+	{
+		return;
+	}
+	if (LeapFrameData.LeftHandVisible || LeapFrameData.RightHandVisible)
+	{
+		HandToScale = Hands[0];
+	}
+
+	float Length = 0.0;
+	FLeapDigitData MiddleFinger = HandToScale.Middle;
+	TArray<FLeapBoneData> Bones = MiddleFinger.Bones;
+
+	// starting from the palm cause there's no wrist position in the frame
+	bool AddedPalmToFirstBone = false;
+	for (const FLeapBoneData& Bone : Bones)
+	{
+		if (!AddedPalmToFirstBone)
+		{
+			Length += FVector::Dist(HandToScale.Palm.Position, Bone.PrevJoint);
+			AddedPalmToFirstBone = true;
+		}
+		Length += FVector::Dist(Bone.PrevJoint, Bone.NextJoint);
+	}
+	OutHandSize = Length;
+}
+
+void ULeapComponent::GetLRGrabStrength(TArray<float>& GrabStrength)
+{
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	if (Hands.Num()==2)
+	{
+		// The first element of the array is for the left hand
+		GrabStrength.Add(Hands[0].GrabStrength);
+		// The second element of the array is for the right hand
+		GrabStrength.Add(Hands[1].GrabStrength);
+	}
+}
+
+EHandType ULeapComponent::FromIEHandTypeToEHandType(uint8 Type)
+{
+	if (Type == 0)
+	{
+		return EHandType::LEAP_HAND_LEFT;
+	}
+	return EHandType::LEAP_HAND_RIGHT;
+}
+
+
+bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
+{
+	EHandType TmpType = FromIEHandTypeToEHandType(Type);
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	if (!Hands.Num())
+	{
+		return false;
+	}
+
+	for (int32 i = 0; i < Hands.Num(); ++i)
+	{
+		switch (TmpType)
+		{
+			case LEAP_HAND_LEFT:
+				if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT &&
+					(Hands[i].GrabStrength >= GrabStrength || Hands[i].PinchStrength >= GrabStrength))
+				{
+					return true;
+				}
+				break;
+			case LEAP_HAND_RIGHT:
+				if (Hands[i].HandType == EHandType::LEAP_HAND_RIGHT &&
+					(Hands[i].GrabStrength >= GrabStrength || Hands[i].PinchStrength >= GrabStrength))
+				{
+					return true;
+				}
+				break;
+			default:
+				break;
 		}
 	}
 	return false;

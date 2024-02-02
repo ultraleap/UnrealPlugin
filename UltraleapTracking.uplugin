@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 12,
-	"VersionName": "4.6.0",
+	"Version": 14,
+	"VersionName": "4.11.0",
 	"FriendlyName": "Ultraleap Tracking Plugin",
 	"Description": "Support for  Ultraleap hand tracking devices.",
 	"Category": "Input Devices",
@@ -22,8 +22,8 @@
 			"WhitelistPlatforms": [
 				"Win64",
 				"Android",
-				"Linux"
-
+				"Linux",
+				"Mac"
 			]
 		},
 		{
@@ -33,7 +33,8 @@
 			"WhitelistPlatforms": [
 				"Win64",
 				"Android",
-				"Linux"
+				"Linux",
+				"Mac"
 			]
 		},
 		{
@@ -43,8 +44,15 @@
 			"WhitelistPlatforms": [
 				"Win64",
 				"Android",
-				"Linux"
+				"Linux",
+				"Mac"
 			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Niagara",
+			"Enabled": true
 		}
 	]
 }
