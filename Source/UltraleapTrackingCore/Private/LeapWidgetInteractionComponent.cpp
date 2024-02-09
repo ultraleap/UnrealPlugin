@@ -90,7 +90,7 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 
 void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float MinDistance)
 {
-	float ExistDistance = MinDistance + 15;
+	float ExistDistance = MinDistance + 30;
 	if (Dist < MinDistance && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
 	{
 		WidgetInteraction = EUIType::NEAR;
@@ -148,20 +148,10 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		bool bNear = (WidgetInteraction == EUIType::NEAR);
 
-		Position = bNear ? IndexInterm : IndexProx;
+		Position = bNear ? IndexDistalP : IndexProx;
 
 		FVector FilteredPosition = Position;
-		// One euro filter will reduce the jitter
-		/*if (bUseOnEuroFilter)
-		{
-			FilteredPosition = SmoothingOneEuroFilter.Filter(Position, World->GetDeltaSeconds());
-		}
-		else
-		{
-			FilteredPosition = Position;
-		}*/
-		// Get Direction for near or far interactions
-		Direction = bNear ? (IndexDistalN - IndexDistalP) : GetHandRayDirection(TmpHand, FilteredPosition);
+		Direction = GetHandRayDirection(TmpHand, FilteredPosition);
 		FVector FilteredDirection = FVector::ZeroVector;
 
 		FTransform TargetTrans = FTransform();
@@ -177,25 +167,39 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
+		TWeakObjectPtr<AActor> HitActor = LastHitResult.Actor;
+		if (HitActor == nullptr)
+		{
+			return;
+		}
+		if (!HitActor->Tags.Contains(FName("UltraleapUMG")))
+		{
+			return;
+		}
+
 		float Dist = FVector::Dist(FilteredPosition, LastHitResult.ImpactPoint);
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
-			// 6 cm is the distance between the finger base to the finger tip
-			if (Dist < (IndexDitanceFromUI + 6.0f))
+			// 3.5 cm is the distance between the finger base to the finger tip
+			if (Dist < (IndexDitanceFromUI + 3.5f))
 			{
 				NearClickLeftMouse(TmpHand.HandType);
 			}
-			// added 2 cm, cause of the jitter can cause accidental release
-			else if (Dist > (IndexDitanceFromUI + 8.0f))
+			// added 3.5 cm, cause of the jitter can cause accidental release
+			// Also makes better user experience when using sliders
+			else if (Dist > (IndexDitanceFromUI + 7.0f))
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
 		}
 		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance
 		// between the hand and the widget
-		// Also trigger event when visibility changed
-		HandleDistanceChange(Dist);
+		// Also trigger event when visibility changed		
+		if (bAutoMode)
+		{
+			HandleDistanceChange(Dist);
+		}
 	}
 	else
 	{
@@ -231,9 +235,12 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -15 : 15);
 
 	// Get approximate pintch position
-	Position += FVector::UpVector;
-	Position += 6 * PlayerCameraManager->GetActorForwardVector();
-	Position += PlayerCameraManager->GetActorRightVector() * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? 2 : -2);
+	if (WidgetInteraction == EUIType::FAR)
+	{
+		Position += FVector::UpVector;
+		Position += 6 * PlayerCameraManager->GetActorForwardVector();
+		Position += PlayerCameraManager->GetActorRightVector() * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? 2 : -2);
+	}
 	// Get the direction from the shoulders to the pinch position
 	FVector Direction = Position - ShoulderPos;
 
@@ -491,14 +498,5 @@ void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& F
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
 		DrawLeapCursor(Hands[i]);
-		switch (Hands[i].HandType)
-		{
-			case EHandType::LEAP_HAND_LEFT:
-				break;
-			case EHandType::LEAP_HAND_RIGHT:
-				break;
-			default:
-				break;
-		}
 	}
 }

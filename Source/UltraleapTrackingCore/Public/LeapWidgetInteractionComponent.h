@@ -154,7 +154,7 @@ private:
 	 * from the widget
 	 * @param Dist - distance of the hand from the widget
 	 */
-	void HandleDistanceChange(float Dist, float MinDistance = 40.0f);
+	void HandleDistanceChange(float Dist, float MinDistance = 20.0f);
 
 	void CleanUpEvents();
 
