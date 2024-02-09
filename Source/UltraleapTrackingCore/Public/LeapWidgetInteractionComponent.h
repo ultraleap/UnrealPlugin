@@ -88,7 +88,7 @@ public:
 
 	/** The distance in cm betweenn index and UI to trigger touch interaction
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Near")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Near")
 	float IndexDitanceFromUI;
 
 	ULeapSubsystem* LeapSubsystem;
@@ -99,36 +99,32 @@ public:
 
 	/** Controls how much rotation wrist movment adds to the ray
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far",
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far",
 	 meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
 	float WristRotationFactor;
-
-	/** Activate one euro filter, used to reduce ray jitter
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
-	bool bUseOnEuroFilter;
 	/** One euro filter param, lower values will reduce jitter but add lag
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float InterpolationSpeed;
-
 	/** For counter-acting the camera rotation to stabilize the rays
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float YAxisCalibOffset;
-
 	/** For counter-acting the camera rotation to stabilize the rays
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float ZAxisCalibOffset;
-
 	/** Event on rays visibility changed
 	 */
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "UltraLeap UI")
 	FLeapRayComponentVisible OnRayComponentVisible;
-
+	/** Gets the rays direction 
+	* @param TmpHand - Hand data 
+	* @param Position - will return the position updated with the relative neck offset
+	 */
 	FVector GetHandRayDirection(FLeapHandData& TmpHand, FVector& Position);
-
+	/** Estimates the relative neck offset
+	 */
 	FVector GetNeckOffset();
 
 private:
@@ -155,14 +151,8 @@ private:
 	 * @param Dist - distance of the hand from the widget
 	 */
 	void HandleDistanceChange(float Dist, float MinDistance = 20.0f);
-
 	void CleanUpEvents();
-
 	void InitCalibrationArrays();
-
-	// One euro filter params
-	float CutoffSlope;
-	float DeltaCutoff;
 
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
@@ -174,12 +164,13 @@ private:
 	bool bHandTouchWidget;
 	bool bAutoModeTrigger;
 
-	// ViewportInteractionUtils::FOneEuroFilter SmoothingOneEuroFilter;
-
 	// Params used to compute the neck offset
 	TArray<FRotator> CalibratedHeadRot;
 	TArray<FVector> CalibratedHeadPos;
-
 	// Max rotation when head is rolling or pitching
 	float AxisRotOffset;
+	// Adding this to the distance before we exit near field interactions
+	float TriggerFarOffset;
+	float FingerJointEstimatedLen;
+	float ShoulderWidth;
 };

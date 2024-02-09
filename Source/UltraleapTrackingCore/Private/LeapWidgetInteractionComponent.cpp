@@ -24,13 +24,9 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	, IndexDitanceFromUI(0.0f)
 	, LeapSubsystem(nullptr)
 	, WristRotationFactor(0.0f)
-	, bUseOnEuroFilter(true)
-	//, MinCutoff(4.0f)
 	, InterpolationSpeed(10)
 	, YAxisCalibOffset(4.0f)
 	, ZAxisCalibOffset(4.0f)
-	, CutoffSlope(0.3f)
-	, DeltaCutoff(1.0f)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
 	, World(nullptr)
@@ -40,6 +36,9 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	, bHandTouchWidget(false)
 	, bAutoModeTrigger(false)
 	, AxisRotOffset(45.0f)
+	, TriggerFarOffset(20.0f)
+	, FingerJointEstimatedLen(3.5f)
+	, ShoulderWidth(15.0f)
 
 {
 	CreatStaticMeshForCursor();
@@ -84,13 +83,14 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 	if (DefaultMesh.Succeeded())
 	{
 		StaticMesh->SetStaticMesh(DefaultMesh.Object);
-		StaticMesh->SetWorldScale3D(CursorSize * FVector(1, 1, 1));
+		StaticMesh->SetWorldScale3D(CursorSize * FVector::OneVector);
 	}
 }
 
 void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float MinDistance)
 {
-	float ExistDistance = MinDistance + 30;
+	// Adding 20 cm for the distance before we exit near field interactions
+	float ExistDistance = MinDistance + TriggerFarOffset;
 	if (Dist < MinDistance && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
 	{
 		WidgetInteraction = EUIType::NEAR;
@@ -135,23 +135,19 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		// The cursor position is the addition of the Pawn pose and the hand pose
 		FVector Position = FVector::ZeroVector;
 		FVector Direction = FVector();
-
 		FVector IndexDistalN = TmpHand.Index.Distal.NextJoint;
-		FVector IndexDistalP = TmpHand.Index.Distal.PrevJoint;
-		FVector IndexProx = TmpHand.Index.Proximal.PrevJoint;
+		FVector IndexIntermN = TmpHand.Index.Intermediate.NextJoint;
+		FVector IndexMetaN = TmpHand.Index.Metacarpal.NextJoint;
 
 		FRotator ForwardRot = PlayerCameraManager->GetActorForwardVector().Rotation();
 		ForwardRot = FRotator(0, ForwardRot.Yaw, 0);
 		FVector ForwardDirection = ForwardRot.Vector();
 
-		FVector IndexInterm = TmpHand.Index.Intermediate.PrevJoint;
-
 		bool bNear = (WidgetInteraction == EUIType::NEAR);
 
-		Position = bNear ? IndexDistalP : IndexProx;
-
+		Position = bNear ? IndexIntermN : IndexMetaN;
 		FVector FilteredPosition = Position;
-		Direction = GetHandRayDirection(TmpHand, FilteredPosition);
+		Direction = bNear ? (IndexDistalN - IndexIntermN) : GetHandRayDirection(TmpHand, FilteredPosition);
 		FVector FilteredDirection = FVector::ZeroVector;
 
 		FTransform TargetTrans = FTransform();
@@ -177,18 +173,18 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 			return;
 		}
 
-		float Dist = FVector::Dist(FilteredPosition, LastHitResult.ImpactPoint);
+		float Dist = FVector::Dist(Position, LastHitResult.ImpactPoint);
 
 		if (WidgetInteraction == EUIType::NEAR)
 		{
 			// 3.5 cm is the distance between the finger base to the finger tip
-			if (Dist < (IndexDitanceFromUI + 3.5f))
+			if (Dist < (IndexDitanceFromUI + FingerJointEstimatedLen))
 			{
 				NearClickLeftMouse(TmpHand.HandType);
 			}
-			// added 3.5 cm, cause of the jitter can cause accidental release
+			// added 2 cm, cause of the jitter can cause accidental release
 			// Also makes better user experience when using sliders
-			else if (Dist > (IndexDitanceFromUI + 7.0f))
+			else if (Dist > (IndexDitanceFromUI + FingerJointEstimatedLen + 2.0f))
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
@@ -231,9 +227,8 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	FVector ShoulderPos = FVector::ZeroVector;
 	// Use the camera location with offset to overcome head Roll and Pitch
 	ShoulderPos = CameraLocationWithNeckOffset;
-	ShoulderPos += WristRotationFactor * PlayerCameraManager->GetActorForwardVector();
-	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -15 : 15);
-
+	ShoulderPos +=  WristRotationFactor * PlayerCameraManager->GetActorForwardVector();
+	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -ShoulderWidth : ShoulderWidth);
 	// Get approximate pintch position
 	if (WidgetInteraction == EUIType::FAR)
 	{
@@ -340,7 +335,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	if (LeapDynMaterial != nullptr && StaticMesh != nullptr)
 	{
 		StaticMesh->SetMaterial(0, LeapDynMaterial);
-		FVector Scale = CursorSize * FVector(1, 1, 1);
+		FVector Scale = CursorSize * FVector::OneVector;
 		StaticMesh->SetWorldScale3D(Scale);
 	}
 	else
@@ -403,7 +398,7 @@ void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
 	if (StaticMesh != nullptr)
 	{
 		// Scale the cursor by 1/2
-		FVector Scale = CursorSize * FVector(1, 1, 1);
+		FVector Scale = CursorSize * FVector::OneVector;
 		Scale = Scale / 2;
 		StaticMesh->SetWorldScale3D(Scale);
 	}
