@@ -163,7 +163,12 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
-		TWeakObjectPtr<AActor> HitActor = LastHitResult.Actor;
+		TWeakObjectPtr<AActor> HitActor = nullptr;
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3)
+		HitActor = LastHitResult.GetActor();
+#else
+		HitActor = LastHitResult.Actor;
+#endif
 		if (HitActor == nullptr)
 		{
 			return;

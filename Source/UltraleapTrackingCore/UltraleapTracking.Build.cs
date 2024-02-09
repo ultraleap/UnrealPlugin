@@ -132,6 +132,11 @@ namespace UnrealBuildTool.Rules
 				}
 				);
 
+			if (Target.Version.MajorVersion >= 5 && Target.Version.MinorVersion >= 3)
+			{
+				PrivateDependencyModuleNames.AddRange(new string[] { "XRBase" });
+			}
+
             PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
