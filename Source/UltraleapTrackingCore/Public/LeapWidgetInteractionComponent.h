@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRayComponentVisible, bool, Visi
 
 /**
  * This component will provide far field widgets with interactions
- * Will need to add 2 components, for the left hand and the right one
+ * Will need to add 2 components, one for the left hand and one for the right one
  */
 UCLASS(ClassGroup = "LeapUserInterface", meta = (BlueprintSpawnableComponent))
 class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInteractionComponent
