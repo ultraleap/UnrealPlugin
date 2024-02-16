@@ -157,11 +157,13 @@ bool ALeapHandActor::IsLeftHandFacingCamera(FLeapHandData Hand)
 		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
 		{
 			SetActorHiddenInGame(false);
+			StaticMesh->SetHiddenInGame(false, true);
 			return true;
 		}
 	}
 
 	SetActorHiddenInGame(true);
+	StaticMesh->SetHiddenInGame(true, true);
 	return false;
 }
 
