@@ -48,6 +48,8 @@ public:
 
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
+	void HandleVisibilityChange(const FLeapFrameData& Frame);
+
 	void OnLeapPinch(const FLeapHandData& HandData);
 
 	void OnLeapUnPinch(const FLeapHandData& HandData);
@@ -90,6 +92,9 @@ public:
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Near")
 	float IndexDitanceFromUI;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UltraLeap UI" )
+	bool HandVisibility;
 
 	ULeapSubsystem* LeapSubsystem;
 

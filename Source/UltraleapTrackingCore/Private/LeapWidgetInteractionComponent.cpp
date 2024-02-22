@@ -22,6 +22,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	, CursorSize(0.03)
 	, bAutoMode(true)
 	, IndexDitanceFromUI(0.0f)
+	, HandVisibility(false)
 	, LeapSubsystem(nullptr)
 	, WristRotationFactor(0.0f)
 	, InterpolationSpeed(10)
@@ -129,7 +130,6 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 	{
 		return;
 	}
-
 	if (StaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
 	{
 		// The cursor position is the addition of the Pawn pose and the hand pose
@@ -357,6 +357,9 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		PointerIndex = 1;
 	}
 
+	//Hide on begin play
+	StaticMesh->SetHiddenInGame(true);
+
 	// SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
 
 	InitCalibrationArrays();
@@ -495,8 +498,22 @@ void ULeapWidgetInteractionComponent::InitializeComponent()
 void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
 	TArray<FLeapHandData> Hands = Frame.Hands;
+	
+	HandleVisibilityChange(Frame);
+
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
 		DrawLeapCursor(Hands[i]);
+	}
+}
+
+void ULeapWidgetInteractionComponent::HandleVisibilityChange(const FLeapFrameData& Frame)
+{
+	bool LatestHandVis = LeapHandType == EHandType::LEAP_HAND_LEFT ? Frame.LeftHandVisible : Frame.RightHandVisible;
+
+	if (LatestHandVis != HandVisibility)
+	{
+		HandVisibility = LatestHandVis;
+		StaticMesh->SetHiddenInGame(!HandVisibility);
 	}
 }
