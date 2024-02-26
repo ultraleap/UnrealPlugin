@@ -79,7 +79,7 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 	}
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MaterialBase = LoadObject<UMaterial>(
-		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine2/Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
+		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine/Materials/IE2_Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
 
 	if (DefaultMesh.Succeeded())
 	{

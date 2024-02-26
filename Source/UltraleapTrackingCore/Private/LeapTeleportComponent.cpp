@@ -22,7 +22,7 @@ ULeapTeleportComponent::ULeapTeleportComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine2/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
+	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
 	if (LeapTeleportTraceNS == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapTeleportTraceNS is nullptr in ULeapTeleportComponent()"));

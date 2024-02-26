@@ -36,7 +36,7 @@ ALeapHandActor::ALeapHandActor()
 		StaticMesh->SetupAttachment(RootComponent);
 	}
 	UMaterialInstanceDynamic* LeapDynMaterial = nullptr;
-	UMaterial* MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/Explore/Diamond_Mat.Diamond_Mat"));
+	UMaterial* MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/InteractionEngine/Materials/IE2_Materials/Diamond_Mat.Diamond_Mat"));
 	if (MaterialBase != nullptr)
 	{
 		LeapDynMaterial = UMaterialInstanceDynamic::Create(MaterialBase, NULL);
