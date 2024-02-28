@@ -10,6 +10,7 @@
 #include "LeapTeleportComponent.h"
 #include "LeapUtility.h"
 #include "LeapVisualizer.h"
+#include "LeapHandActor.h"
 
 // Sets default values for this component's properties
 ULeapTeleportComponent::ULeapTeleportComponent() 
@@ -205,6 +206,14 @@ void ULeapTeleportComponent::OnLeapGrabAction(FVector Location, FVector ForwardV
 void ULeapTeleportComponent::OnLeapRelease(
 	AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
+	if (!ReleasedActor)
+	{
+		return;
+	}
+	if (!Cast<ALeapHandActor>(ReleasedActor))
+	{
+		return;
+	}
 	if (!bTeleportTraceActive)
 	{	
 		UE_LOG(UltraleapTrackingLog, Warning, TEXT("bTeleportTraceActive is false in OnLeapRelease"));
