@@ -908,6 +908,11 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 	AllDevices.Append(Devices);
 	AllDevices.Append(CombinedDevices);
 
+	if (!AllDevices.Num())
+	{
+		return;
+	}
+
 	for (IHandTrackingWrapper* Device : AllDevices)
 	{
 		if (Device!=nullptr)

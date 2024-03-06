@@ -22,6 +22,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	, CursorSize(0.03)
 	, bAutoMode(true)
 	, IndexDitanceFromUI(0.0f)
+	, HandVisibility(false)
 	, LeapSubsystem(nullptr)
 	, WristRotationFactor(0.0f)
 	, InterpolationSpeed(10)
@@ -78,7 +79,7 @@ void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 	}
 	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MaterialBase = LoadObject<UMaterial>(
-		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine2/Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
+		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine/Materials/IE2_Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
 
 	if (DefaultMesh.Succeeded())
 	{
@@ -129,7 +130,6 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 	{
 		return;
 	}
-
 	if (StaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
 	{
 		// The cursor position is the addition of the Pawn pose and the hand pose
@@ -164,7 +164,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
 
 		TWeakObjectPtr<AActor> HitActor = nullptr;
-#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3)
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
 		HitActor = LastHitResult.GetActor();
 #else
 		HitActor = LastHitResult.Actor;
@@ -357,6 +357,9 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		PointerIndex = 1;
 	}
 
+	//Hide on begin play
+	StaticMesh->SetHiddenInGame(true);
+
 	// SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
 
 	InitCalibrationArrays();
@@ -495,8 +498,22 @@ void ULeapWidgetInteractionComponent::InitializeComponent()
 void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
 	TArray<FLeapHandData> Hands = Frame.Hands;
+	
+	HandleVisibilityChange(Frame);
+
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
 		DrawLeapCursor(Hands[i]);
+	}
+}
+
+void ULeapWidgetInteractionComponent::HandleVisibilityChange(const FLeapFrameData& Frame)
+{
+	bool LatestHandVis = LeapHandType == EHandType::LEAP_HAND_LEFT ? Frame.LeftHandVisible : Frame.RightHandVisible;
+
+	if (LatestHandVis != HandVisibility)
+	{
+		HandVisibility = LatestHandVis;
+		StaticMesh->SetHiddenInGame(!HandVisibility);
 	}
 }

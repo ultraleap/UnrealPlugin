@@ -31,14 +31,14 @@ ALeapVisualizer::ALeapVisualizer()
 	RootComponent = Root;
 
 	NSPlayerAreaBounds = LoadObject<UNiagaraSystem>(
-		nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine2/VFX/Leap_NS_PlayAreaBounds.Leap_NS_PlayAreaBounds'"));
+		nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_PlayAreaBounds.Leap_NS_PlayAreaBounds'"));
 	if (NSPlayerAreaBounds == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("NSPlayerAreaBounds is nullptr in ALeapVisualizer()"));
 	}
 
 	NSPTeleportRing = LoadObject<UNiagaraSystem>(
-		nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine2/VFX/Leap_NS_TeleportRing.Leap_NS_TeleportRing'"));
+		nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportRing.Leap_NS_TeleportRing'"));
 	if (NSPTeleportRing == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("NSPTeleportRing is nullptr in ALeapVisualizer()"));

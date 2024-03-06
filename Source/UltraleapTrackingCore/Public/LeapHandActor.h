@@ -29,8 +29,16 @@ public:
 	// Sets default values for this actor's properties
 	ALeapHandActor();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LeapHand")
 	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LeapHand")
+	FVector GrabPoseOffset;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LeapHand")
+	FVector ReleasePoseOffset;
+	
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	//UWidgetComponent* WidgetComponent;
