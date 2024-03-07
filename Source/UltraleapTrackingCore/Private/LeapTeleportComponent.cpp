@@ -166,10 +166,16 @@ void ULeapTeleportComponent::TryTeleport()
 {
 	if (!bValidTeleportationLocation)
 	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("not bValidTeleportationLocation in TryTeleport"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("not bValidTeleportationLocation in ULeapTeleportComponent::TryTeleport"));
 		return;
 	}
 	bValidTeleportationLocation = false;
+
+	if (!CameraComponent)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("nullptr CameraComponent in ULeapTeleportComponent::TryTeleport"));
+		return;
+	}
 
 	FVector Location = FVector(CameraComponent->GetRelativeLocation().X, CameraComponent->GetRelativeLocation().Y, 0.0f);
 	FRotator Rotation = FRotator(Owner->GetActorRotation());

@@ -64,7 +64,10 @@ void FUltraleapDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)>
 	{
 		for (ULeapComponent* EventDelegate : EventDelegates)
 		{
-			InFunction(EventDelegate);
+			if (EventDelegate)
+			{
+				InFunction(EventDelegate);
+			}
 		}
 	}
 	else
@@ -401,6 +404,12 @@ void FUltraleapDevice::ApplyDeviceOrigin(FLeapFrameData& OutData)
 void FUltraleapDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_MultiLeapInputTick);
+
+	if (Leap==nullptr)
+	{
+		return;
+	}
+
 	// Did a device connect?
 	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
@@ -536,7 +545,10 @@ void FUltraleapDevice::ParseEvents()
 			// Scale input?
 			// FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters
 			// / 100.f);
-			Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+			if (Component)
+			{
+				Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+			}
 		});
 
 	// Add the current frame to the leap subsystem
