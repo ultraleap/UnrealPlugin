@@ -327,7 +327,7 @@ typedef struct _LEAP_CONNECTION_CONFIG {
    * will change the server ip and port the connection will attempt to connect to.
    * 
    */
-  /** For internal use. @since 3.0.0 */
+  /** For public use. @since 5.12.0 */
   const char* server_namespace;
 
   /** 
@@ -1182,6 +1182,15 @@ LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceInfo(LEAP_DEVICE hDevice, LEAP_DEVICE
 LEAP_EXPORT eLeapRS LEAP_CALL LeapGetDeviceTransform(LEAP_DEVICE hDevice, float* transform);
 
 /** \ingroup Functions
+ * Returns whether a device transform is available for the device.
+ *
+ * @param hDevice A handle to the device to be queried.
+ * @returns Returns boolean.
+ * @since 5.13.0
+ */
+LEAP_EXPORT bool LEAP_CALL LeapDeviceTransformAvailable(LEAP_DEVICE hDevice);
+
+/** \ingroup Functions
  * Get the camera count of the specified device from the hand tracking service.
  *
  * @param hDevice A handle to the device to be queried.
@@ -1677,14 +1686,16 @@ typedef struct _LEAP_HAND {
   float grab_angle;
 
   /**
-   * The normalized estimate of the pinch pose.
+   * The normalized estimate of the pinch pose - a pinch is between
+   * the thumb and any other finger.
    * Zero is not pinching; one is fully pinched.
    * @since 3.0.0
    */
   float pinch_strength;
 
   /**
-   * The normalized estimate of the grab hand pose.
+   * The normalized estimate of the grab hand pose - a grab is all four fingers
+   * (excluding thumb) curled towards the palm.
    * Zero is not grabbing; one is fully grabbing.
    * @since 3.0.0
    */
@@ -2018,6 +2029,12 @@ typedef struct _LEAP_IMU_EVENT {
   float temperature;
 } LEAP_IMU_EVENT;
 
+typedef struct _LEAP_NEW_DEVICE_TRANSFORM {
+    /** Reserved for future use. @since 5.13.0 */
+  uint32_t reserved;
+} LEAP_NEW_DEVICE_TRANSFORM; 
+
+
 /** \ingroup Structs
  * Streaming stereo image pairs from the device.
  *
@@ -2207,7 +2224,16 @@ typedef enum _eLeapEventType {
    * An IMU reading. @since 4.1.0
    * This event is stored in union member imu_event (LEAP_IMU_EVENT).
    */
-  eLeapEventType_IMU
+  eLeapEventType_IMU,
+
+  /**
+   * Notification that the service received a new device transformation matrix
+   * Use LeapGetDeviceTransform to update your cached information.
+   *
+   * @since 5.13.0
+   */
+  eLeapEventType_NewDeviceTransform
+
 } eLeapEventType;
 LEAP_STATIC_ASSERT(sizeof(eLeapEventType) == 4, "Incorrect enum size");
 
@@ -2268,6 +2294,8 @@ typedef struct _LEAP_CONNECTION_MESSAGE {
     const LEAP_EYE_EVENT* eye_event;
     /** An IMU message. @since 4.1.0 */
     const LEAP_IMU_EVENT* imu_event;
+    /** A notification message. @since 5.13.0 */
+    const LEAP_NEW_DEVICE_TRANSFORM* new_device_transform_event;
   };
 
   /** A unique ID for the attached device that sent this message. A value of
@@ -3160,6 +3188,114 @@ LEAP_EXPORT uint64_t LEAP_CALL LeapTelemetryGetNow();
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateHeadPose(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_HEAD_POSE_EVENT* pEvent);
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateHeadPoseEx(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, int64_t timestamp, LEAP_HEAD_POSE_EVENT* pEvent);
 LEAP_EXPORT eLeapRS LEAP_CALL LeapInterpolateEyePositions(LEAP_CONNECTION hConnection, int64_t timestamp, LEAP_EYE_EVENT* pEvent);
+
+/**
+ * Public Hints
+ *
+ * Hints a client may pass to the server to influence hand tracking settings and behaviour.
+ *
+ * Some hints will represent an "Axis" (e.g. application type) where values are mutually exclusive.
+ * But other hints may not be explicitly on an axis (e.g. user is typing on a virtual keyboard and
+ * microgestures) but may not be actually compatible.
+ *
+ * Some hints values will only be supported when the hand tracking service has a Gemini Pro license.
+ * These will be indicated in the hint documentation below. (Requests for unlicensed hints will
+ * be ignored)
+ *
+ * Over time supported hints will be added and removed (unknown values will be ignored).
+ */
+
+/**
+ * Hint: Hand tracking is being used while holding objects (Gemini Pro license required)
+ *
+ * To confirm this hint is available the application can check for the presence of the
+ * "GeminiPro" feature flag.
+ */
+#define LEAP_HINT_HAND_ON_OBJECT "hand_on_object"
+
+/**
+ * Hint: Tracked hands are expected to be moving quickly.
+ *
+ * The system will optimise for hands that move quickly at the cost of using more resources (CPU,
+ * camera bandwidth, memory and power)
+ */
+#define LEAP_HINT_FAST_HAND_MOTION "fast_hand_motion"
+
+/**
+ * Hint: Hand position accuracy is very important.
+ *
+ * The system will optimise for accurate hand position at the cost of using more resources (CPU,
+ * camera bandwidth, memory and power)
+ */
+#define LEAP_HINT_HIGH_HAND_FIDELITY "high_hand_fidelity"
+
+/**
+ * Hint: Minimising resource usage (CPU, camera bandwidth, memory and power) is very important.
+ *
+ * The system will minimise resource usage at the cost of hand tracking quality. Using this
+ * hint to avoid OS throttling on a resource-constrained system might produce the best hand
+ * tracking experience.
+ */
+#define LEAP_HINT_LOW_RESOURCE_USAGE "low_resource_usage"
+
+/**
+ * Hint: Hand tracking is running in an environment with a high level of illumination,
+ * for an IR camera system it's only the IR illumination the is relevant.
+ *
+ * The system will optimise to track hands more reliably in these challenging conditions
+ * with a possible costs of latency, CPU and power.
+ */
+#define LEAP_HINT_HIGH_BACKGROUND_ILLUMINATION "high_background_illumination"
+
+/**
+ * Application Type Axis: Hand tracking is being used by an immersive application, i.e. VR
+ */
+#define LEAP_HINT_APP_IMMERSIVE "app_immersive"
+
+/**
+ * Application Type Axis: Hand tracking is being used by an application using passthrough, i.e. AR
+ */
+#define LEAP_HINT_APP_PASSTHROUGH "app_passthrough"
+
+/**
+ * Sets a number of hints describing how the client and device will be using hand tracking. These
+ * hints will be used by the server to select an appropiate form of hand tracking for the client.
+ * The service will make its best guess at what to do when interpreting all the hints from all
+ * connected clients. It makes no guarantee to the client that it will follow any particular
+ * behaviour.
+ *
+ * The trait string may contain either public strings (defined above) or custom hints specific for a
+ * given customer.
+ *
+ * The function is called on a per device basis, so different hints can be applied to different
+ * cameras. Calling this function will override any and all previous hints from this device for this
+ * client connection.
+ *
+ * Hints will only be interpreted for "multi-device" aware clients (see
+ * @eLeapConnectionConfig_MultiDeviceAware). The function will return an error if the client is not
+ * "multi-device" aware.
+ *
+ * Warning: Over specialisation of hints may lead to degraded generic hand tracking. In most cases
+ * the device position axis is the only trait clients would specify. If an axis trait is not
+ * specified for a particular axis the hand tracking service will choose a sensible default.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param hDevice A device handle returned by LeapOpenDevice().
+ * @param hints An array of null terminated strings, one string for each hints, the array is
+ * terminated with a null pointer.
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL
+LeapSetDeviceHints(LEAP_CONNECTION hConnection, LEAP_DEVICE hDevice, const char* hints[]);
+
+/**
+ * Check if a specific license feature flag is enabled in the hand tracking service.
+ *
+ * @param hConnection The connection handle created by LeapCreateConnection().
+ * @param flag A feature flag, pointer to a null terminated string. For example: "GeminiPro"
+ * @param flag_enabled An output parameter indicating if the feature flag is enabled.
+ */
+LEAP_EXPORT eLeapRS LEAP_CALL
+LeapCheckLicenseFlag(LEAP_CONNECTION hConnection, const char* flag, bool* flag_enabled);
 
 #ifdef __cplusplus
 }

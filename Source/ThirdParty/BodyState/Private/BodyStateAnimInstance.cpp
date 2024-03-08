@@ -1010,7 +1010,11 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 		// Unreal doesn't deal with mirrored scale when in comes to updating the mesh bounds
 		// this means that at 1 bounds scale, the skeletel mesh gets occluded as the bounds are not following the skeleton
 		// Until this is fixed in the engine, we have to force the bounds to be huge to always render.
-		Component->SetBoundsScale(10);
+#if (ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 27)
+		Component->SetBoundsScale(30);
+#else
+		Component->SetBoundsScale(1);
+#endif
 	}
 	else
 	{
@@ -1262,7 +1266,12 @@ void UBodyStateAnimInstance::ExecuteAutoMapping()
 		}
 		Message += "\n\nEdit the mappings manually in 'Mapped Bone List -> Bone Map' in the preview panel to continue.";
 	}
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3)
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), TitleText);
+#else
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(*Message), &TitleText);
+#endif
 
 #endif
 }

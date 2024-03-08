@@ -28,4 +28,5 @@ void FUltraleapTrackingEditorModule::StartupModule()
 
 	PropertyModule.RegisterCustomClassLayout(ULeapComponent::StaticClass()->GetFName(),
 		FOnGetDetailCustomizationInstance::CreateStatic(&FUltraleapLeapCustomDetailsPanel::MakeInstance));
+
 }

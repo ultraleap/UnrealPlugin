@@ -10,6 +10,7 @@
 
 #include "IInputDeviceModule.h"
 #include "UltraleapTrackingData.h"
+#include "LeapC.h"
 
 class ULeapComponent;
 
