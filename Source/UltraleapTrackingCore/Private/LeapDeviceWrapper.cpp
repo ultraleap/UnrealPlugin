@@ -226,6 +226,15 @@ void FLeapDeviceWrapper::EnableImageStream(bool bEnable)
 	}
 }
 
+void FLeapDeviceWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID)
+{
+	if (!Connector)
+	{
+		return;
+	}
+	Connector->SetDeviceHints(Hints, DeviceID);
+}
+
 void FLeapDeviceWrapper::Millisleep(int milliseconds)
 {
 	FPlatformProcess::Sleep(((float) milliseconds) / 1000.f);

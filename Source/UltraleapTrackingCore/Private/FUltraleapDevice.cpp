@@ -17,6 +17,7 @@
 #include "LeapUtility.h"
 #include "Skeleton/BodyStateSkeleton.h"
 #include "UltraleapTrackingData.h"
+#include "LeapTrackingSettings.h"
 
 
 DECLARE_STATS_GROUP(TEXT("UltraleapMultiTracking"), STATGROUP_UltraleapMultiTracking, STATCAT_Advanced);
@@ -1007,6 +1008,15 @@ void FUltraleapDevice::SetTrackingMode(ELeapMode Flag)
 			break;
 	}
 }
+
+void FUltraleapDevice::SetDeviceHints(TArray<FString>& Hints)
+{
+	if (Leap)
+	{
+		Leap->SetDeviceHints(Hints);
+	}
+}
+
 #pragma endregion Leap Input Device
 
 #pragma region BodyState
@@ -1191,6 +1201,19 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 			bool bOptimizeForHMd = InOptions.Mode == ELeapMode::LEAP_MODE_VR;
 
 			SetLeapPolicy(LEAP_POLICY_OPTIMIZE_HMD, bOptimizeForHMd);
+		}
+	}
+
+	// Check if Hints options changed 
+	if (ULeapTrackingSettings* TrackingSettings = GetMutableDefault<ULeapTrackingSettings>())
+	{
+		if (InOptions.LeapHints != Options.LeapHints)
+		{
+			// Change the Settings then save
+			TrackingSettings->UltraleapHints = InOptions.LeapHints;
+			TrackingSettings->SaveConfig();
+			// Sent the latest hints to the api
+			SetDeviceHints(TrackingSettings->UltraleapHints);
 		}
 	}
 

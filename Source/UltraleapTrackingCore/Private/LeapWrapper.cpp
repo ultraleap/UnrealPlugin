@@ -508,13 +508,23 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 	AsyncTask(ENamedThreads::GameThread,
 		[this,DeviceInfo, DeviceID, DeviceHandle]()
 		{
+			DataLock->Lock();
 			IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
+
+			if (Device==nullptr)
+			{
+				return;
+			}
 		
 			Devices.Add(Device);
-			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
-			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+			if (DeviceHandle && ConnectionHandle)
+			{
+				auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
+				MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+			}
 
 			NotifyDeviceAdded(Device);
+			DataLock->Unlock();
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
 		
@@ -1003,4 +1013,33 @@ void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDeleg
 	UE_LOG(
 		UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
 }
+
+
+PRAGMA_DISABLE_OPTIMIZATION
+
+void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID)
+{
+	LEAP_DEVICE DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
+	if (!DeviceHandle)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetDeviceHints failed cannot find device handle"));
+	}
+
+	const char** CharArrayPtr;
+	FLeapUtility::ConvertFStringArrayToCharArray(Hints, &CharArrayPtr);
+	FLeapUtility::SetLastArrayElemNull(&CharArrayPtr, Hints.Num());
+
+	eLeapRS Result = LeapSetDeviceHints(ConnectionHandle, DeviceHandle, CharArrayPtr);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetDeviceHints failed in FLeapWrapper::SetDeviceHints eLeapRS: %s"), ResultString(Result));
+	}
+
+	//DataLock->Lock();
+	FLeapUtility::CleanupConstCharArray(CharArrayPtr);
+	//DataLock->Unlock();
+}
+
+PRAGMA_ENABLE_OPTIMIZATION
+
 #pragma endregion LeapC Wrapper

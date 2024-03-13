@@ -662,6 +662,10 @@ void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
 		UpdatePinchAndGrab(Hand);
 	}
 }
+void FOpenXRToLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID)
+{
+	// TODO implement this when XR is ready
+}
 IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 {
 	return Device.Get();

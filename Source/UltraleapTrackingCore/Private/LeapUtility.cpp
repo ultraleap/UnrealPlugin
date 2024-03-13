@@ -76,6 +76,10 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 	const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
+	if (FLeapUtility::ContainsNaN(LeapVector))
+	{
+		return LeapMountRotationOffset.RotateVector(FVector::ForwardVector);
+	}
 	// Scale from mm to cm (ue default)
 	FVector ConvertedVector =
 		(ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
@@ -137,4 +141,42 @@ float FLeapUtility::ScaleUEToLeap(float UEFloat)
 void FLeapUtility::InitLeapStatics()
 {
 	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
+}
+
+void FLeapUtility::CleanupConstCharArray(const char** ConstCharArray)
+{
+	// Assume array is filled dynamically
+	if (ConstCharArray!=nullptr)
+	{
+		for (int i = 0; ConstCharArray[i] != nullptr; ++i)
+		{
+			free(const_cast<char*>(ConstCharArray[i]));
+			//delete[] ConstCharArray[i];	   // Free each string
+		}
+		// Free memory for the const char* array
+		delete[] ConstCharArray;
+		ConstCharArray = nullptr;
+	}
+	
+}
+
+
+void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr)
+{
+	// Allocate memory for array
+	*ConstCharArrayPtr = new const char*[FStringArray.Num()];
+
+	for (int32 i = 0; i < FStringArray.Num(); ++i)
+	{
+		// Convert FString to ANSI const char array
+		const char* ConstCharArray = TCHAR_TO_ANSI(*FStringArray[i]);
+
+		// Allocate memory 
+		(*ConstCharArrayPtr)[i] = _strdup(ConstCharArray);
+	}
+}
+
+void FLeapUtility::SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx)
+{
+	(*ConstCharArrayPtr)[LastIdx] = NULL;
 }
