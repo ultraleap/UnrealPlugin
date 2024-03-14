@@ -15,7 +15,9 @@
 #include "Interfaces/IPluginManager.h"
 #include "Modules/ModuleManager.h"
 #include "LeapTrackingSettings.h"
-#include "ISettingsModule.h"
+#if WITH_EDITOR
+	#include "ISettingsModule.h"
+#endif
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
 
