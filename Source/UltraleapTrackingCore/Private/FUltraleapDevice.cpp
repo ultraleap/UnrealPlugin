@@ -1204,13 +1204,18 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		}
 	}
 
+	TArray<FString> UniqueHints;
 	// Check if Hints options changed 
 	if (ULeapTrackingSettings* TrackingSettings = GetMutableDefault<ULeapTrackingSettings>())
 	{
 		if (InOptions.LeapHints != Options.LeapHints)
 		{
+			for (FString Hint: InOptions.LeapHints)
+			{
+				UniqueHints.AddUnique(Hint);
+			}
 			// Change the Settings then save
-			TrackingSettings->UltraleapHints = InOptions.LeapHints;
+			TrackingSettings->UltraleapHints = UniqueHints;
 			TrackingSettings->SaveConfig();
 			// Sent the latest hints to the api
 			SetDeviceHints(TrackingSettings->UltraleapHints);
@@ -1219,6 +1224,12 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 
 	// Set main options
 	Options = InOptions;
+
+	// Make sure the hints are unique, hints can also be set using SetLeapOptions
+	if (UniqueHints.Num())
+	{
+		Options.LeapHints = UniqueHints;
+	}
 
 	// If our tracking fidelity is not custom, set the parameters to good defaults
 	// for each platform

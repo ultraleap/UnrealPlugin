@@ -51,7 +51,7 @@ public:
 			!FMath::IsFinite(LeapVector.z));
 	}
 
-	static void CleanupConstCharArray(const char** ConstCharArray);
+	static void CleanupConstCharArray(const char** ConstCharArray, int32 Size);
 	static void ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr);
 	static void SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx);
 

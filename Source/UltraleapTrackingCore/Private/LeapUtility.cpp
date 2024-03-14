@@ -143,35 +143,32 @@ void FLeapUtility::InitLeapStatics()
 	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
 }
 
-void FLeapUtility::CleanupConstCharArray(const char** ConstCharArray)
+void FLeapUtility::CleanupConstCharArray(const char** ConstCharArray, int32 Size)
 {
 	// Assume array is filled dynamically
 	if (ConstCharArray!=nullptr)
 	{
-		for (int i = 0; ConstCharArray[i] != nullptr; ++i)
+		for (int i = 0; (i <= Size)&&(ConstCharArray[i] != nullptr); ++i)
 		{
 			free(const_cast<char*>(ConstCharArray[i]));
-			//delete[] ConstCharArray[i];	   // Free each string
 		}
 		// Free memory for the const char* array
 		delete[] ConstCharArray;
 		ConstCharArray = nullptr;
 	}
-	
 }
 
 
 void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr)
 {
-	// Allocate memory for array
-	*ConstCharArrayPtr = new const char*[FStringArray.Num()];
-
+	// Allocate memory for array +1 for the NULL end
+	*ConstCharArrayPtr = new const char*[FStringArray.Num() + 1];
 	for (int32 i = 0; i < FStringArray.Num(); ++i)
 	{
 		// Convert FString to ANSI const char array
 		const char* ConstCharArray = TCHAR_TO_ANSI(*FStringArray[i]);
 
-		// Allocate memory 
+		// String Duplication: Check that string duplications are done correctly
 		(*ConstCharArrayPtr)[i] = _strdup(ConstCharArray);
 	}
 }

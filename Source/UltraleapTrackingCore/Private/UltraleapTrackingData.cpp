@@ -282,6 +282,10 @@ void FLeapHandData::TranslateHand(const FVector& InTranslation)
 void FLeapBoneData::SetFromLeapBone(
 	struct _LEAP_BONE* bone, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
+	if (!bone)
+	{
+		return;
+	}
 	NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 		bone->next_joint, LeapMountTranslationOffset, LeapMountRotationOffset);
 	PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(

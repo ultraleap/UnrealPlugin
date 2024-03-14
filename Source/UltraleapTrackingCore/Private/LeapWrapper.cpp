@@ -1014,9 +1014,6 @@ void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDeleg
 		UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
 }
 
-
-PRAGMA_DISABLE_OPTIMIZATION
-
 void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID)
 {
 	LEAP_DEVICE DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
@@ -1024,10 +1021,10 @@ void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceI
 	{
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetDeviceHints failed cannot find device handle"));
 	}
-
+	int32 Size = Hints.Num();
 	const char** CharArrayPtr;
 	FLeapUtility::ConvertFStringArrayToCharArray(Hints, &CharArrayPtr);
-	FLeapUtility::SetLastArrayElemNull(&CharArrayPtr, Hints.Num());
+	FLeapUtility::SetLastArrayElemNull(&CharArrayPtr, Size);
 
 	eLeapRS Result = LeapSetDeviceHints(ConnectionHandle, DeviceHandle, CharArrayPtr);
 	if (Result != eLeapRS_Success)
@@ -1035,11 +1032,7 @@ void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceI
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetDeviceHints failed in FLeapWrapper::SetDeviceHints eLeapRS: %s"), ResultString(Result));
 	}
 
-	//DataLock->Lock();
-	FLeapUtility::CleanupConstCharArray(CharArrayPtr);
-	//DataLock->Unlock();
+	FLeapUtility::CleanupConstCharArray(CharArrayPtr, Size);
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
 
 #pragma endregion LeapC Wrapper
