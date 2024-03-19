@@ -1167,6 +1167,8 @@ void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 
 void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 {
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Ultraleap Unreal Plugin: In SetOptions"));
+
 	if (GEngine && GEngine->XRSystem.IsValid())
 	{
 		HMDType = GEngine->XRSystem->GetSystemName();
@@ -1213,6 +1215,9 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 			auto transform = GetDeviceTransform();
 			Options.HMDPositionOffset = transform.GetTranslation();
 			Options.HMDRotationOffset = transform.GetRotation().Rotator();
+
+			UE_LOG(UltraleapTrackingLog, Log,
+				TEXT("Ultraleap Unreal Plugin: Read the following device transform values"));
 			readDeviceTransform = true;
 		}
 		else
@@ -1477,13 +1482,28 @@ bool FUltraleapDevice::IsGetDeviceTransformSupported()
 		
 	if (Leap->GetVersion(eLeapVersionPart_ServerLibrary, &version))
 	{
-		isSupported = (version.major >= 5 && version.minor >= 11);
+		if (version.major == 5)
+		{
+			if (version.minor >= 11)
+			{
+				isSupported = true;
+			}
+		}
+		if (version.major > 5)
+		{
+			isSupported = true;
+		}
 	}
 
 	if (!isSupported)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetDeviceTransform is not supported on this version of the service"));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("FUltraleapDevice::IsGetDeviceTransformSupported LeapGetDeviceTransform is not supported on this version of the service"));
 	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("FUltraleapDevice::IsGetDeviceTransformSupported LeapGetDeviceTransform is supported on this version of the service"));
+	}
+
 
 	return isSupported;
 }

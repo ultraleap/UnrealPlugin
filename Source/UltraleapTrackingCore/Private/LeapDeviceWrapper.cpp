@@ -214,6 +214,7 @@ bool FLeapDeviceWrapper::GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* 
 
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapC LeapGetVersion returned %d,%d,%d\n"), pVersionPart->major, pVersionPart->minor,
 		pVersionPart->patch);
+
 	return true;
 }
 
@@ -231,12 +232,20 @@ FTransform FLeapDeviceWrapper::GetDeviceTransform()
 
 	if (Result == eLeapRS_Success)
 	{
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("Device Transform\n[%f %f %f %f]\n[%f %f %f %f]\n[%f %f %f %f]\n[%f %f %f %f]\n"), transform[0], transform[1],
+			transform[2], transform[3], transform[4], transform[5], transform[6], transform[7], transform[8], transform[9],
+			transform[10], transform[11], transform[12], transform[13], transform[14], transform[15]);
+
+
 		FMatrix m(FVector(transform[0], transform[4], transform[8]), FVector(transform[1], transform[5], transform[9]),
 			FVector(transform[2], transform[6], transform[10]), FVector(transform[3], transform[7], transform[11]));
 
 		pluginTransform.SetScale3D(FVector(1));
 		pluginTransform.SetLocation(m.GetColumn(3) * OPENXR_DISTANCE_UNITS_TO_UNREAL_UNITS);
 		pluginTransform.SetRotation(m.ToQuat());
+
+
 	}
 	else if (Result == eLeapRS_Unsupported)
 	{
