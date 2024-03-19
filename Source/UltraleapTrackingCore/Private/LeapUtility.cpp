@@ -166,10 +166,15 @@ void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FString
 	for (int32 i = 0; i < FStringArray.Num(); ++i)
 	{
 		// Convert FString to ANSI const char array
-		const char* ConstCharArray = TCHAR_TO_ANSI(*FStringArray[i]);
+		auto ConvertedStr = StringCast<ANSICHAR>(*FStringArray[i]);
+		const char* ConstCharArray = ConvertedStr.Get();
 
 		// String Duplication: Check that string duplications are done correctly
+#if PLATFORM_ANDROID
+		(*ConstCharArrayPtr)[i] = strdup(ConstCharArray);
+#else
 		(*ConstCharArrayPtr)[i] = _strdup(ConstCharArray);
+#endif
 	}
 }
 
