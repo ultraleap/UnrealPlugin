@@ -15,7 +15,7 @@
 
 
 /**
- * TODO All settings should be added here 
+ * UltrleapTrackingSettings 
  */
 UCLASS(config = Game, defaultconfig)
 class ULeapTrackingSettings : public UObject
