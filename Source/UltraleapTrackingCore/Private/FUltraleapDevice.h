@@ -89,6 +89,11 @@ public:
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;
 	virtual void OnDeviceDetach();
 
+	/** Set the device hints (hinting api) 
+	* @param Hints - The hints to send
+	*/
+	void SetDeviceHints(TArray<FString>& Hints);
+
 	FCriticalSection LeapSection;
 
 	static FTransform ConvertUEDeviceOriginToBSTransform(const FTransform& TransformUE, const bool Direction);

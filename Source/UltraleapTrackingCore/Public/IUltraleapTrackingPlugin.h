@@ -128,6 +128,11 @@ public:
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 	// apply any post frame processing
 	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) = 0;
+	/** Used to set device hints
+	 * @param Hints - The device hints
+	 * @param LeapDeviceID - Device ID to set the hints
+	 */
+	virtual void SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID = 0) = 0;
 };
 class ILeapConnectorCallbacks
 {

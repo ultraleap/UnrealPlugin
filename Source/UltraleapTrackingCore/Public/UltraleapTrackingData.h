@@ -259,6 +259,9 @@ struct ULTRALEAPTRACKING_API FLeapOptions
 	 * implemented  */
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	bool bUseOpenXRAsSource;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
+	TArray<FString> LeapHints;
 };
 
 USTRUCT(BlueprintType)

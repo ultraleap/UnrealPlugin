@@ -48,4 +48,10 @@ private:
 	void* LeapDLLHandle;
 
 	void* GetLeapHandle();
+
+	/** This will register our plugin settings in the editor */
+	void RegisterSettings();
+	/** This will Unregister our plugin settings in the editor, good practice to cleanup*/
+	void UnregisterSettings();
+
 };

@@ -97,7 +97,11 @@ public:
 	
 	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) override;
 
-	
+	/** Used to set device hints
+	 * @param Hints - The device hints
+	 * @param LeapDeviceID - Device ID to set the hints
+	 */
+	virtual void SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID = 0) override;
 
 private:
 	class IXRTrackingSystem* XRTrackingSystem = nullptr;
