@@ -40,6 +40,7 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	, TriggerFarOffset(20.0f)
 	, FingerJointEstimatedLen(3.5f)
 	, ShoulderWidth(15.0f)
+	, bHidden(false)
 
 {
 	CreatStaticMeshForCursor();
@@ -162,22 +163,6 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		K2_SetWorldTransform(NewTransform, true, SweepHitResult, true);
 
 		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
-
-		TWeakObjectPtr<AActor> HitActor = nullptr;
-#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
-		HitActor = LastHitResult.GetActor();
-#else
-		HitActor = LastHitResult.Actor;
-#endif
-		if (HitActor == nullptr)
-		{
-			return;
-		}
-		if (!HitActor->Tags.Contains(FName("UltraleapUMG")))
-		{
-			return;
-		}
-
 		float Dist = FVector::Dist(Position, LastHitResult.ImpactPoint);
 
 		if (WidgetInteraction == EUIType::NEAR)
@@ -403,6 +388,11 @@ void ULeapWidgetInteractionComponent::NearReleaseLeftMouse(TEnumAsByte<EHandType
 
 void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
 {
+
+	if (bHidden)
+	{
+		return;
+	}
 	if (StaticMesh != nullptr)
 	{
 		// Scale the cursor by 1/2
@@ -416,6 +406,17 @@ void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
 
 void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Button)
 {
+	if (bHidden)
+	{
+		return;
+	}
+	Rescale();
+	// Release the LeftMouseButton
+	ReleasePointerKey(Button);
+}
+
+void ULeapWidgetInteractionComponent::Rescale()
+{
 	if (StaticMesh != nullptr)
 	{
 		// Scale the cursor by 2
@@ -426,8 +427,6 @@ void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Butto
 			StaticMesh->SetWorldScale3D(Scale);
 		}
 	}
-	// Release the LeftMouseButton
-	ReleasePointerKey(Button);
 }
 
 #if WITH_EDITOR
@@ -495,15 +494,52 @@ void ULeapWidgetInteractionComponent::InitializeComponent()
 {
 }
 
+void ULeapWidgetInteractionComponent::HandleWidgetChange()
+{
+	TWeakObjectPtr<AActor> HitActor = nullptr;
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
+	HitActor = LastHitResult.GetActor();
+#else
+	HitActor = LastHitResult.Actor;
+#endif
+
+	if (HitActor == nullptr)
+	{
+		bHidden = true;
+		StaticMesh->SetHiddenInGame(bHidden);
+		SetHiddenInGame(bHidden);
+		return;
+	}
+	if (HitActor->Tags.Contains(FName("UltraleapUMG")))
+	{
+		if (bHidden)
+		{
+			bHidden = false;
+			StaticMesh->SetHiddenInGame(bHidden);
+			SetHiddenInGame(bHidden);
+		}
+	}
+	else
+	{
+		if (!bHidden)
+		{
+			bHidden = true;
+			StaticMesh->SetHiddenInGame(bHidden);
+			SetHiddenInGame(bHidden);
+		}
+	}
+}
+
 void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
-	TArray<FLeapHandData> Hands = Frame.Hands;
-	
-	HandleVisibilityChange(Frame);
 
+	HandleWidgetChange();
+
+	TArray<FLeapHandData> Hands = Frame.Hands;
+	HandleVisibilityChange(Frame);
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
-		DrawLeapCursor(Hands[i]);
+		DrawLeapCursor(Hands[i]);	
 	}
 }
 

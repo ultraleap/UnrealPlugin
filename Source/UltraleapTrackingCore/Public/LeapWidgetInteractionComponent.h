@@ -107,7 +107,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far",
 	 meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
 	float WristRotationFactor;
-	/** One euro filter param, lower values will reduce jitter but add lag
+	/** Interpolation param, lower values will reduce jitter but add lag
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float InterpolationSpeed;
@@ -158,6 +158,13 @@ private:
 	void HandleDistanceChange(float Dist, float MinDistance = 20.0f);
 	void CleanUpEvents();
 	void InitCalibrationArrays();
+	void Rescale();
+
+	/**
+	 * Used to check if a widget actor has no tag "UltraleapUMG" then 
+	 * disbales interactions on it
+	 */
+	void HandleWidgetChange();
 
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
@@ -178,4 +185,7 @@ private:
 	float TriggerFarOffset;
 	float FingerJointEstimatedLen;
 	float ShoulderWidth;
+
+	bool bHidden;
+
 };
