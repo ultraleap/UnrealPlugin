@@ -26,7 +26,8 @@ stages:
 documentation::generate-tracking-documentation:
   stage: documentation
   tags:
-    - unreal-windows2022-staging 
+    - unreal
+    - windows  
   timeout: 30m
 
   script:
@@ -53,7 +54,8 @@ documentation::generate-tracking-documentation:
 build:build-project:
   stage: build
   tags:
-    - unreal-windows2022-staging
+    - unreal
+    - windows
   when: always
   retry: 2
   timeout: 1h
