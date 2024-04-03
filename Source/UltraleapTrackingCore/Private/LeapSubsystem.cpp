@@ -22,12 +22,12 @@ void ULeapSubsystem::OnGrabCall(AActor* GrabbedActor, USkeletalMeshComponent* Ha
 	}
 }
 
-void ULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
+void ULeapSubsystem::OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName, bool IsLeft)
 {
 	if (ReleasedActor != nullptr && HandLeft != nullptr && HandRight != nullptr)
 	{
-		OnLeapRelease.Broadcast(ReleasedActor, HandLeft, HandRight, BoneName);
-		OnLeapReleaseNative.Broadcast(ReleasedActor, HandLeft, HandRight, BoneName);
+		OnLeapRelease.Broadcast(ReleasedActor, HandLeft, HandRight, BoneName, IsLeft);
+		OnLeapReleaseNative.Broadcast(ReleasedActor, HandLeft, HandRight, BoneName, IsLeft);
 	}
 }
 
@@ -52,6 +52,8 @@ void ULeapSubsystem::LeapTrackingDataCall(const FLeapFrameData& Frame)
 		TmpFrame.TranslateFrame(PawnLocation);
 	}
 	OnLeapFrameMulti.Broadcast(TmpFrame);
+	OnLeapFrame.Broadcast(TmpFrame);
+
 }
 
 void ULeapSubsystem::LeapPinchCall(const FLeapHandData& HandData)

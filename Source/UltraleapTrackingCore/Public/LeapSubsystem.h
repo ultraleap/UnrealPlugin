@@ -10,15 +10,16 @@
 
 //// Blueprint event
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FLeapGrab, AActor*, GrabbedActor, USkeletalMeshComponent*, LeftHand, USkeletalMeshComponent*, RightHand);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FLeapRelease, AActor*, ReleasedActor, USkeletalMeshComponent*, HandLeft, USkeletalMeshComponent*, HandRight, FName, BoneName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FLeapRelease, AActor*, ReleasedActor, USkeletalMeshComponent*, HandLeft, USkeletalMeshComponent*, HandRight, FName, BoneName, bool, IsLeft);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FLeapGrabAction, FVector, Location, FVector, ForwardVec);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapFrame, const FLeapFrameData&, Frame);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FLeapHand, const FLeapHandData&);
-DECLARE_MULTICAST_DELEGATE_OneParam(FLeapFrame, const FLeapFrameData&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FLeapFrameNative, const FLeapFrameData&);
 
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FLeapGrabNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*);
-DECLARE_MULTICAST_DELEGATE_FourParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName);
+DECLARE_MULTICAST_DELEGATE_FiveParams(FLeapReleaseNative, AActor*, USkeletalMeshComponent*, USkeletalMeshComponent*, FName, bool);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FLeapGrabActionNative, FVector, FVector);
 
 // Native C++ events
@@ -53,6 +54,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Leap release Events")
 	FLeapGrabAction OnLeapGrabAction;
 
+	UPROPERTY(BlueprintAssignable, Category = "Leap Frame")
+	FLeapFrame OnLeapFrame;
+
 	FLeapGrabActionNative OnLeapGrabActionNative;
 
 
@@ -61,7 +65,7 @@ public:
 
 	FLeapHand OnLeapPinchMulti;
 	FLeapHand OnLeapUnPinchMulti;
-	FLeapFrame OnLeapFrameMulti;
+	FLeapFrameNative OnLeapFrameMulti;
 
 	
 
@@ -70,7 +74,8 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")
-	void OnReleaseCall(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
+	void OnReleaseCall(
+		AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName, bool IsLeft = true);
 
 
 	UFUNCTION(BlueprintCallable, Category = "Leap grab Functions")

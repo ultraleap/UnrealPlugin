@@ -210,7 +210,7 @@ void ULeapTeleportComponent::OnLeapGrabAction(FVector Location, FVector ForwardV
 }
 
 void ULeapTeleportComponent::OnLeapRelease(
-	AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
+	AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName, bool Isleft)
 {
 	if (!ReleasedActor)
 	{

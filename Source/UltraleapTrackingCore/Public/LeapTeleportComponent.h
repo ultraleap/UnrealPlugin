@@ -46,7 +46,8 @@ public:
 
 	
 	void OnLeapGrabAction(FVector Location, FVector ForwardVec);
-	void OnLeapRelease(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
+	void OnLeapRelease(
+		AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName, bool Isleft = true);
 	/** Used to start teleportaton trace, needs to be called once everytime teleportation 
 	* is about to start, it will initialise the Niagara Particle Systems
 	*/

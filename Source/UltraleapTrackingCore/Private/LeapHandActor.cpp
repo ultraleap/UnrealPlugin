@@ -110,7 +110,8 @@ void ALeapHandActor::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* Han
 	}
 }
 
-void ALeapHandActor::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
+void ALeapHandActor::OnReleased(
+	AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName, bool Isleft)
 {
 	if (ReleasedActor != nullptr && this == ReleasedActor && HandLeft != nullptr)
 	{

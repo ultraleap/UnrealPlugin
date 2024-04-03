@@ -65,7 +65,7 @@ public:
 	//UFUNCTION()
 	void OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
 	//UFUNCTION()
-	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
+	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName, bool Isleft = true);
 	//UFUNCTION()
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
