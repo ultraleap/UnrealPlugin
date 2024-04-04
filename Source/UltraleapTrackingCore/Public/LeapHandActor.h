@@ -20,7 +20,9 @@
 class UStaticMeshComponent;
 //class UWidgetComponent;
 
-UCLASS()
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHandFaceCamera, bool, bIsFacingCamera);
+
+UCLASS(BlueprintType, Blueprintable)
 class ULTRALEAPTRACKING_API ALeapHandActor : public AActor
 {
 	GENERATED_BODY()
@@ -38,6 +40,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LeapHand")
 	FVector ReleasePoseOffset;
+
+	UPROPERTY(BlueprintAssignable, Category = "Leap Hand Events")
+	FLeapHandFaceCamera OnLeapHandFaceCamera;
 	
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -57,6 +62,8 @@ protected:
 	TArray<FLeapHandData> Hands;
 
 	UWorld *World;
+
+	bool bIsHandFacingCamera;
 
 public:	
 	// Called every frame

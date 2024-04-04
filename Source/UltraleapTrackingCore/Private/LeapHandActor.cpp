@@ -26,6 +26,7 @@ ALeapHandActor::ALeapHandActor()
 	//: WidgetComponent(nullptr)
 	: GrabPoseOffset(FVector(20, 0, 0))
 	, ReleasePoseOffset(FVector(-2,0,7))
+	, bIsHandFacingCamera(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -158,14 +159,28 @@ bool ALeapHandActor::IsLeftHandFacingCamera(FLeapHandData Hand)
 		// -1.f is when the two vectors are parallel, -0.4f just for the range 
 		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
 		{
+			
 			SetActorHiddenInGame(false);
 			StaticMesh->SetHiddenInGame(false, true);
+			if (!bIsHandFacingCamera)
+			{
+				bIsHandFacingCamera = true;
+				OnLeapHandFaceCamera.Broadcast(bIsHandFacingCamera);
+			}
+
 			return true;
 		}
 	}
 
 	SetActorHiddenInGame(true);
 	StaticMesh->SetHiddenInGame(true, true);
+
+	if (bIsHandFacingCamera)
+	{
+		bIsHandFacingCamera = false;
+		OnLeapHandFaceCamera.Broadcast(bIsHandFacingCamera);
+	}
+
 	return false;
 }
 

@@ -54,8 +54,6 @@ public:
 	FLeapGrabAction OnLeapGrabAction;
 
 	FLeapGrabActionNative OnLeapGrabActionNative;
-
-
 	FLeapGrabNative OnLeapGrabNative;
 	FLeapReleaseNative OnLeapReleaseNative;
 
