@@ -389,6 +389,12 @@ void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 	{
 		RefreshDeviceList(true);
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	if (DeviceWrapper && DeviceWrapper->GetDeviceType() == IHandTrackingWrapper::DEVICE_TYPE_LEAP && ActiveDeviceSerial == "")
+	{
+		UpdateActiveDevice(DeviceWrapper->GetDeviceSerial());
+	}
+#endif
 }
 void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 {

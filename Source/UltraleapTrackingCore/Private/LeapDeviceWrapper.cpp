@@ -148,12 +148,12 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeSt
 		if (Result == eLeapRS_RoutineIsNotSeer)
 		{
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in FLeapDeviceWrapper::GetInterpolatedFrameAtTime: TimeStamp %lld was in the future"), TimeStamp);
-			return nullptr;
+			return GetFrame();
 		}
 		else if (Result == eLeapRS_TimestampTooEarly)
 		{
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in FLeapDeviceWrapper::GetInterpolatedFrameAtTime: TimeStamp %lld was too far in the past"), TimeStamp);
-			return nullptr;
+			return GetFrame();
 		}
 		else
 		{

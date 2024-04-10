@@ -497,7 +497,7 @@ void ULeapWidgetInteractionComponent::InitializeComponent()
 void ULeapWidgetInteractionComponent::HandleWidgetChange()
 {
 	TWeakObjectPtr<AActor> HitActor = nullptr;
-#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 2)
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
 	HitActor = LastHitResult.GetActor();
 #else
 	HitActor = LastHitResult.Actor;

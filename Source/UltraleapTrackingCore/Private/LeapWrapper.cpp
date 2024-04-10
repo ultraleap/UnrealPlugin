@@ -508,16 +508,27 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 	AsyncTask(ENamedThreads::GameThread,
 		[this,DeviceInfo, DeviceID, DeviceHandle]()
 		{
+			DataLock->Lock();
 			IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
-		
+
+			if (Device == nullptr)
+			{
+				UE_LOG(UltraleapTrackingLog, Error, TEXT("Device was nullptr in FLeapWrapper::AddDevice"));
+				return;
+			}
+
 			Devices.Add(Device);
-			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
-			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+			if (DeviceHandle && ConnectionHandle)
+			{
+				auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
+				MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+			}
 
 			NotifyDeviceAdded(Device);
+			DataLock->Unlock();
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
-		
+
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d."), Devices.Num());
 		
 		});
@@ -912,7 +923,7 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 	{
 		if (Device!=nullptr)
 		{
-			auto InternalDevice = Device->GetDevice();
+			IHandTrackingDevice* InternalDevice = Device->GetDevice();
 			if (InternalDevice)
 			{
 				InternalDevice->SendControllerEvents();
