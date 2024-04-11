@@ -476,9 +476,9 @@ EHandType ULeapComponent::FromIEHandTypeToEHandType(uint8 Type)
 }
 
 
-bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
+bool ULeapComponent::DoesCurrentGrabStrengthExceedTarget(const float GrabStrength, uint8 TargetHand)
 {
-	EHandType TmpType = FromIEHandTypeToEHandType(Type);
+	EHandType HandType = FromIEHandTypeToEHandType(TargetHand);
 	FLeapFrameData LeapFrameData;
 	GetLatestFrameData(LeapFrameData);
 	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
@@ -489,7 +489,7 @@ bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
 
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
-		switch (TmpType)
+		switch (HandType)
 		{
 			case LEAP_HAND_LEFT:
 				if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT &&

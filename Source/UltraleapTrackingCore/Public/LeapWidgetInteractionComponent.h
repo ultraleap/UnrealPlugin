@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
+ * Copyright (C) Ultraleap, Inc. 2011-2024.                                   *
  *                                                                            *
  * Use subject to the terms of the Apache License 2.0 available at            *
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
@@ -26,6 +26,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRayComponentVisible, bool, Visi
 /**
  * This component will provide far field widgets with interactions
  * Will need to add 2 components, one for the left hand and one for the right one
+ * For further information check our docs: https://docs.ultraleap.com/xr-and-tabletop/xr/unreal/plugin/features/UI-input-modules.html
  */
 UCLASS(ClassGroup = "LeapUserInterface", meta = (BlueprintSpawnableComponent))
 class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInteractionComponent
@@ -38,7 +39,7 @@ public:
 	~ULeapWidgetInteractionComponent();
 
 	/**
-	 * Called every fram to draw the cursor
+	 * Called every frame to draw the cursor
 	 * @param Hand - hand data from the api
 	 */
 	void DrawLeapCursor(FLeapHandData& Hand);
@@ -54,7 +55,7 @@ public:
 
 	void OnLeapUnPinch(const FLeapHandData& HandData);
 
-	/** Hand type, for left and right hands
+	/** Hand chirality, for left and right hands
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
 	TEnumAsByte<EHandType> LeapHandType;
@@ -63,12 +64,12 @@ public:
 	 *  Changing this to NEAR will enable interactions with widgets by direct touch
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
-	TEnumAsByte<EUIType> WidgetInteraction;
+	TEnumAsByte<EUIInteractionType> WidgetInteraction;
 
 	/** The default static mesh is a sphere, but can be changed to anything
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
-	UStaticMeshComponent* StaticMesh;
+	UStaticMeshComponent* CursorStaticMesh;
 
 	/** This can be used to change the cursor's color
 	 */
@@ -83,7 +84,7 @@ public:
 
 	/** This will automatically enable near distance interactions mode when the
 	 * Distance between the hand and widget is less than 40 cm
-	 * and far mode when the ditance is more than 45 cm
+	 * and far mode when the distance is more than 45 cm
 	 */
 	 UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
 	bool bAutoMode;
@@ -91,7 +92,7 @@ public:
 	/** The distance in cm betweenn index and UI to trigger touch interaction
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Near")
-	float IndexDitanceFromUI;
+	float IndexDistanceFromUI;
 
 	UPROPERTY(BlueprintReadOnly, Category = "UltraLeap UI" )
 	bool HandVisibility;
@@ -119,6 +120,12 @@ public:
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float ZAxisCalibOffset;
+	/** The threshold used to automatically switch between far/near interactions
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "UltraLeap UI")
+	float ModeChangeThreshold;
+
+
 	/** Event on rays visibility changed
 	 */
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "UltraLeap UI")
@@ -147,8 +154,8 @@ private:
 	void NearClickLeftMouse(TEnumAsByte<EHandType> HandType);
 	void NearReleaseLeftMouse(TEnumAsByte<EHandType> HandType);
 
-	void ScaleUpAndClickButton(const FKey Button = EKeys::LeftMouseButton);
-	void ScaleDownAndUnClickButton(const FKey Button = EKeys::LeftMouseButton);
+	void ScaleUpCursorAndClickButton(const FKey Button = EKeys::LeftMouseButton);
+	void ScaleDownCursorAndUnclickButton(const FKey Button = EKeys::LeftMouseButton);
 
 	/**
 	 * Used to switch between FAR/NEAR modes, depending on the distance of the hand
@@ -158,7 +165,7 @@ private:
 	void HandleDistanceChange(float Dist, float MinDistance = 20.0f);
 	void CleanUpEvents();
 	void InitCalibrationArrays();
-	void Rescale();
+	void ResetCursorScale();
 
 	/**
 	 * Used to check if a widget actor has no tag "UltraleapUMG" then 
@@ -185,6 +192,8 @@ private:
 	float TriggerFarOffset;
 	float FingerJointEstimatedLen;
 	float ShoulderWidth;
+	float PinchOffsetX;
+	float PinchOffsetY;
 
 	bool bHidden;
 

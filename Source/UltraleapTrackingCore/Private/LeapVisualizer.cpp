@@ -92,18 +92,3 @@ void ALeapVisualizer::BeginPlay()
 		return;
 	}
 }
-
-// Called every frame
-void ALeapVisualizer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// TODO do we need this ? 
-	//FVector Location =
-	//	UKismetMathLibrary::InverseTransformLocation(LeapPawn->GetActorTransform(), PlayerCameraManager->GetCameraLocation());
-	//Location = UKismetMathLibrary::NegateVector(Location);
-	//Location = FVector(Location.X, Location.Y, 0.0f);
-	//FRotator Rotation = LeapPawn->GetActorRotation();
-	//PlayerAreaBoundsComponent->SetRelativeLocationAndRotation(Location, Rotation);
-}
-

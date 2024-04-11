@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
+ * Copyright (C) Ultraleap, Inc. 2011-2024.                                   *
  *                                                                            *
  * Use subject to the terms of the Apache License 2.0 available at            *
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
@@ -22,6 +22,11 @@ class UStaticMeshComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHandFaceCamera, bool, bIsFacingCamera);
 
+
+/**
+ * This actor class has access to hand data and grab/pinch events 
+ * This can be used for JumpGem (teleportation) with inheritance
+ */
 UCLASS(BlueprintType, Blueprintable)
 class ULTRALEAPTRACKING_API ALeapHandActor : public AActor
 {
@@ -45,9 +50,6 @@ public:
 	FLeapHandFaceCamera OnLeapHandFaceCamera;
 	
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//UWidgetComponent* WidgetComponent;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -69,11 +71,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//UFUNCTION()
 	void OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
-	//UFUNCTION()
+
 	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
-	//UFUNCTION()
+
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
 	bool IsLeftHandFacingCamera(FLeapHandData Hand);

@@ -151,13 +151,13 @@ public:
 	void GetLRGrabStrength(TArray<float> &GrabStrength);
 
 	/**
-	 * Checks if the hand type can grab, byt checking the pinch or grab strength
+	 * Checks if the hand type can grab, but checking the pinch or grab strength
 	 * @param GrabStrength - the grab strength 
 	 * @param Type - the hand type
 	 * @return bool, if we can grab with this hand type (left or right)
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
-	bool CanGrabWithThreshold(const float GrabStrength, uint8 Type);
+	bool DoesCurrentGrabStrengthExceedTarget(const float GrabStrength, uint8 TargetHand);
 
 	/** Multidevice configuration, Singular subscribes to a single device. 
 	Combined subscribes to multiple devices combined into one device

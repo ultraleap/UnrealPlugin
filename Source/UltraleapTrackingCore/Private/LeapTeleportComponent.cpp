@@ -75,15 +75,6 @@ void ULeapTeleportComponent::BeginPlay()
 	
 }
 
-
-// Called every frame
-void ULeapTeleportComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
 void ULeapTeleportComponent::StartTeleportTrace()
 {
 	bTeleportTraceActive = true;

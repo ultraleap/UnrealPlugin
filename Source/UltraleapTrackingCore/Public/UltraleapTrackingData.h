@@ -18,7 +18,7 @@ enum EHandType
 };
 
 UENUM(BlueprintType)
-enum EUIType
+enum EUIInteractionType
 {
 	FAR,
 	NEAR
