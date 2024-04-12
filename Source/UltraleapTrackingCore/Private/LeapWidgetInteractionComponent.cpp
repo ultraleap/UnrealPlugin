@@ -109,6 +109,7 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		if (bAutoMode)
 		{
 			CursorStaticMesh->SetHiddenInGame(true);
+			SetHiddenInGame(true);
 		}
 	}
 	else if (Dist > ExistDistance && WidgetInteraction == EUIInteractionType::NEAR && bAutoModeTrigger)
@@ -123,6 +124,7 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		if (bAutoMode)
 		{
 			CursorStaticMesh->SetHiddenInGame(false);
+			SetHiddenInGame(false);
 		}
 	}
 }
@@ -348,6 +350,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 
 	//Hide on begin play
 	CursorStaticMesh->SetHiddenInGame(true);
+	SetHiddenInGame(true);
 
 	InitCalibrationArrays();
 }
@@ -553,5 +556,6 @@ void ULeapWidgetInteractionComponent::HandleVisibilityChange(const FLeapFrameDat
 	{
 		HandVisibility = LatestHandVis;
 		CursorStaticMesh->SetHiddenInGame(!HandVisibility);
+		SetHiddenInGame(!HandVisibility);
 	}
 }
