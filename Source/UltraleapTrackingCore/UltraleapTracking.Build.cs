@@ -107,11 +107,10 @@ namespace UnrealBuildTool.Rules
 				}
 			);
 
-			PublicDependencyModuleNames.AddRange(
-				new string[]
-				{
-                    "ApplicationCore",
-                    "Engine",
+			PublicDependencyModuleNames.AddRange( 
+				new string[] {
+					"ApplicationCore",
+					"Engine",
 					"Core",
 					"CoreUObject",
 					"InputCore",
@@ -126,8 +125,7 @@ namespace UnrealBuildTool.Rules
 					"LiveLinkMessageBusFramework",
 					"BodyState",
 					"PhysicsCore",
-                    "UMG",
-                    //"ViewportInteraction",
+					"UMG",
 					// ... add other public dependencies that you statically link with here ...
 				}
 			);
