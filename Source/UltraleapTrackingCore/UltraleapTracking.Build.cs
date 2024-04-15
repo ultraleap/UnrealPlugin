@@ -82,14 +82,14 @@ namespace UnrealBuildTool.Rules
 			}
 		}
 
-        private void Setlib(string platformStr, string libStr)
-        {
-            PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, platformStr, libStr));
-            PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, platformStr, libStr));
-            RuntimeDependencies.Add(Path.Combine(BinariesPath, platformStr, libStr));
-        }
+	        private void Setlib(string platformStr, string libStr)
+	        {
+	            PublicAdditionalLibraries.Add(Path.Combine(BinariesPath, platformStr, libStr));
+	            PublicDelayLoadDLLs.Add(Path.Combine(BinariesPath, platformStr, libStr));
+	            RuntimeDependencies.Add(Path.Combine(BinariesPath, platformStr, libStr));
+	        }
 
-        public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
+        	public UltraleapTracking(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 			//OptimizeCode = CodeOptimization.Never;
@@ -135,15 +135,15 @@ namespace UnrealBuildTool.Rules
 				PrivateDependencyModuleNames.AddRange(new string[] { "XRBase" });
 			}
 
-            PrivateDependencyModuleNames.AddRange(
+			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-                    "NiagaraCore",
-                    "Niagara",
-                    "NiagaraShader",
-                    "NavigationSystem",
+					"NiagaraCore",
+					"Niagara",
+					"NiagaraShader",
+					"NavigationSystem",
 					// ... add private dependencies that you statically link with here ...
-                }
+				}
 			);
 
 			DynamicallyLoadedModuleNames.AddRange(
@@ -153,9 +153,9 @@ namespace UnrealBuildTool.Rules
 				}
 			);
 
-            PublicIncludePathModuleNames.AddRange(new string[] { "Launch" });
+			PublicIncludePathModuleNames.AddRange(new string[] { "Launch" });
 
-            LoadLeapLib(Target);
+            		LoadLeapLib(Target);
 		}
 
 		public string GetUProjectPath()
@@ -169,54 +169,54 @@ namespace UnrealBuildTool.Rules
 			return DLLString.GetHashCode() + DLLString.Length;	//ensure both hash and file lengths match
 		}
 
-        private void CopyToBinaries(string Filepath)
-        {
-            string binariesDir = Path.Combine(BinariesPath, Target.Platform.ToString());
-            string filename = Path.GetFileName(Filepath);
+	        private void CopyToBinaries(string Filepath)
+	        {
+	            string binariesDir = Path.Combine(BinariesPath, Target.Platform.ToString());
+	            string filename = Path.GetFileName(Filepath);
+	
+	            if (!Directory.Exists(binariesDir))
+	                Directory.CreateDirectory(binariesDir);
+	
+	            if (!File.Exists(Path.Combine(binariesDir, filename)))
+	                File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
+	        }
 
-            if (!Directory.Exists(binariesDir))
-                Directory.CreateDirectory(binariesDir);
-
-            if (!File.Exists(Path.Combine(binariesDir, filename)))
-                File.Copy(Filepath, Path.Combine(binariesDir, filename), true);
-        }
-
-        public bool LoadLeapLib(ReadOnlyTargetRules Target)
+        	public bool LoadLeapLib(ReadOnlyTargetRules Target)
 		{
 			bool IsLibrarySupported = false;
 
 			if (Target.Platform == UnrealTargetPlatform.Win64)
 			{
 				IsLibrarySupported = true;
-
+				
 				string PlatformString = Target.Platform.ToString();
-
+				
 				string ThirdPartyDllPath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll");
 				string ThirdPartyDllManifPath = Path.Combine(LibraryPath, PlatformString, "LeapC.dll.manifest");
-                string BinDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
+				string BinDLLPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll");
 				string BinDLLManifPath = Path.Combine(BinariesPath, PlatformString, "LeapC.dll.manifest");
-                //Lib
-                PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
-                //System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
-                // Copy third party DLLs to the BinariesPath 
-                RuntimeDependencies.Add(BinDLLPath, ThirdPartyDllPath);
-                RuntimeDependencies.Add(BinDLLManifPath, ThirdPartyDllManifPath);
+				//Lib
+				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+				//System.Console.WriteLine("plugin using lib at " + Path.Combine(LibraryPath, PlatformString, "LeapC.lib"));
+				// Copy third party DLLs to the BinariesPath 
+				RuntimeDependencies.Add(BinDLLPath, ThirdPartyDllPath);
+				RuntimeDependencies.Add(BinDLLManifPath, ThirdPartyDllManifPath);
+				
+				// This will copy dlls if not copied already
+				CopyToBinaries(ThirdPartyDllPath);
+				CopyToBinaries(ThirdPartyDllManifPath);
 
-                // This will copy dlls if not copied already
-                CopyToBinaries(ThirdPartyDllPath);
-                CopyToBinaries(ThirdPartyDllManifPath);
-
-                if (IsEnginePlugin())
+				if (IsEnginePlugin())
 				{
 					PublicDelayLoadDLLs.Add("LeapC.dll");
-                }
+				}
 				//Engine plugin, just add the dependency path
 				else
 				{
 					//DLL
 					System.Console.WriteLine("Project plugin detected, using dll at " + BinDLLPath);
-
-                    if (!Target.bBuildEditor)
+					
+					if (!Target.bBuildEditor)
 					{
 						PublicDelayLoadDLLs.Add("LeapC.dll");
 					}
@@ -225,21 +225,21 @@ namespace UnrealBuildTool.Rules
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
 				//IsLibrarySupported = true;	
-                //Setlib("Mac", "libLeapC.5.dylib");
-                //Setlib("Mac", "libLeapC.5_intel.dylib");
-            }
+				//Setlib("Mac", "libLeapC.5.dylib");
+				//Setlib("Mac", "libLeapC.5_intel.dylib");
+			}
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
 				IsLibrarySupported = true;
-
+				
 				string PlatformString = "Android";
-
+				
 				PublicAdditionalLibraries.Add(Path.Combine(LibraryPath, PlatformString, "arm64-v8a", "libLeapC.so"));
-
+				
 				AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModulePath, "UltraleapTracking_APL.xml"));
-
-                PrivateDependencyModuleNames.AddRange(new string[] { "Launch" });
-            }
+				
+				PrivateDependencyModuleNames.AddRange(new string[] { "Launch" });
+			}
 			else if (Target.Platform == UnrealTargetPlatform.Linux)
 			{
 				IsLibrarySupported = true;
