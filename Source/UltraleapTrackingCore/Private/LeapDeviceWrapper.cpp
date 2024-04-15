@@ -141,6 +141,10 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetFrame()
 LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
 	uint64_t FrameSize = 0;
+	if (DeviceHandle == nullptr || ConnectionHandle == nullptr)
+	{
+		return GetFrame();
+	}
 	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
 	
 	if (Result != eLeapRS_Success)

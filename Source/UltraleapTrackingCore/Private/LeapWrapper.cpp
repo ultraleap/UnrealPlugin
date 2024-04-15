@@ -904,8 +904,8 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 	AllDevices.Append(CombinedDevices);
 	for (IHandTrackingWrapper* Device : AllDevices)
 	{
-		auto InternalDevice = Device->GetDevice();
-		if (InternalDevice)
+		IHandTrackingDevice* InternalDevice = Device->GetDevice();
+		if (InternalDevice != nullptr)
 		{
 			InternalDevice->Tick(DeltaTime);
 		}
