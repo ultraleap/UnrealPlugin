@@ -98,14 +98,14 @@ namespace UnrealBuildTool.Rules
                    
 					// ... add public include paths required here ...
 				}
-				);
+			);
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					IncludePath,
 					// ... add other private include paths required here ...
 				}
-				);
+			);
 
 			PublicDependencyModuleNames.AddRange(
 				new string[]
@@ -130,7 +130,7 @@ namespace UnrealBuildTool.Rules
                     //"ViewportInteraction",
 					// ... add other public dependencies that you statically link with here ...
 				}
-				);
+			);
 
 			if (Target.Version.MajorVersion >= 5 && Target.Version.MinorVersion >= 3)
 			{
@@ -146,14 +146,14 @@ namespace UnrealBuildTool.Rules
                     "NavigationSystem",
 					// ... add private dependencies that you statically link with here ...
                 }
-				);
+			);
 
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[]
 				{
 					// ... add any modules that your module loads dynamically here ...
 				}
-				);
+			);
 
             PublicIncludePathModuleNames.AddRange(new string[] { "Launch" });
 
