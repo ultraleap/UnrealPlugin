@@ -170,10 +170,10 @@ void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FString
 		const char* ConstCharArray = ConvertedStr.Get();
 
 		// String Duplication: Check that string duplications are done correctly
-#if PLATFORM_ANDROID
-		(*ConstCharArrayPtr)[i] = strdup(ConstCharArray);
-#else
+#if PLATFORM_WINDOWS
 		(*ConstCharArrayPtr)[i] = _strdup(ConstCharArray);
+#else
+		(*ConstCharArrayPtr)[i] = strdup(ConstCharArray);
 #endif
 	}
 }
