@@ -157,6 +157,10 @@ public:
 	{
 	}
 
+	virtual void SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID = 0) override
+	{
+	}
+
  protected:
 	LeapWrapperCallbackInterface* CallbackDelegate = nullptr;
 	UWorld* CurrentWorld = nullptr;
@@ -269,6 +273,11 @@ public:
 	// This will handle when an app is deactivated, when system goes to sleep
 	void HandleApplicationDeactivate();
 
+	/** Used to set device hints
+	 * @param Hints - The device hints
+	 * @param LeapDeviceID - Device ID to set the hints
+	 */
+	virtual void SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID = 0) override;
 
 private:
 	void CloseConnectionHandle(LEAP_CONNECTION* ConnectionHandle);

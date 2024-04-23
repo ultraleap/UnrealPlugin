@@ -169,7 +169,7 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeSt
 			{
 				Connector->CleanupBadDevice(this);
 				Connector = nullptr;
-				return nullptr;
+				return GetFrame();
 			}
 		}
 	}
@@ -228,6 +228,15 @@ void FLeapDeviceWrapper::EnableImageStream(bool bEnable)
 		}
 		ImageDescription->pBuffer = (void*) malloc(ImageDescription->buffer_len);
 	}
+}
+
+void FLeapDeviceWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID)
+{
+	if (!Connector)
+	{
+		return;
+	}
+	Connector->SetDeviceHints(Hints, DeviceID);
 }
 
 void FLeapDeviceWrapper::Millisleep(int milliseconds)

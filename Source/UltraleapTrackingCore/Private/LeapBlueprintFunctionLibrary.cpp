@@ -106,6 +106,89 @@ float ULeapBlueprintFunctionLibrary::AngleBetweenVectors(const FVector& A, const
 	return FMath::RadiansToDegrees(AngleRadians);
 }
 
+void ULeapBlueprintFunctionLibrary::SetLeapDeviceHints(const TArray<FString>& DeviceSerials, const TArray<FString>& Hints)
+{
+	// if empty, default to single device logic
+	if (!DeviceSerials.Num())
+	{
+		FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions("");
+		if (Options.LeapHints != Hints)
+		{
+			Options.LeapHints = Hints;
+			SetLeapOptions(Options, DeviceSerials);
+		}
+	}
+	else
+	{
+		for (FString DeviceSerial : DeviceSerials)
+		{
+			FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions(DeviceSerial);
+			if (Options.LeapHints != Hints)
+			{
+				Options.LeapHints = Hints;
+				TArray<FString> SingleDevice;
+				SingleDevice.Add(DeviceSerial);
+				SetLeapOptions(Options, SingleDevice);
+			}
+		}
+	}
+}
+
+void ULeapBlueprintFunctionLibrary::AddLeapDeviceHint(const TArray<FString>& DeviceSerials, const FString& Hint)
+{
+	if (!DeviceSerials.Num())
+	{
+		FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions("");
+		if (!Options.LeapHints.Contains(Hint))
+		{
+			Options.LeapHints.Add(Hint);
+			SetLeapOptions(Options, DeviceSerials);
+		}
+	}
+	else
+	{
+		for (FString DeviceSerial : DeviceSerials)
+		{
+			FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions(DeviceSerial);
+			if (!Options.LeapHints.Contains(Hint))
+			{
+				Options.LeapHints.Add(Hint);
+				TArray<FString> SingleDevice;
+				SingleDevice.Add(DeviceSerial);
+				SetLeapOptions(Options, SingleDevice);
+			}
+		}
+	}
+}
+
+void ULeapBlueprintFunctionLibrary::RemoveLeapDeviceHint(const TArray<FString>& DeviceSerials, const FString& Hint)
+{
+	
+	if (!DeviceSerials.Num())
+	{
+		FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions("");
+		if (Options.LeapHints.Contains(Hint))
+		{
+			Options.LeapHints.Remove(Hint);
+			SetLeapOptions(Options, DeviceSerials);
+		}
+	}
+	else
+	{
+		for (FString DeviceSerial : DeviceSerials)
+		{
+			FLeapOptions Options = IUltraleapTrackingPlugin::Get().GetOptions(DeviceSerial);
+			if (Options.LeapHints.Contains(Hint))
+			{
+				Options.LeapHints.Remove(Hint);
+				TArray<FString> SingleDevice;
+				SingleDevice.Add(DeviceSerial);
+				SetLeapOptions(Options, SingleDevice);
+			}
+		}
+	}
+}
+
 void ULeapBlueprintFunctionLibrary::BindTrackingServiceAndroid()
 {
 #if PLATFORM_ANDROID
