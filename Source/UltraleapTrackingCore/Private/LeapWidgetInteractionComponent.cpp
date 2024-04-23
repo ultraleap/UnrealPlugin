@@ -153,7 +153,7 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 
 		Position = bNear ? IndexIntermNext : IndexMetaNext;
 		FVector FilteredPosition = Position;
-		Direction = bNear ? (IndexDistalNext - IndexIntermNext) : GetHandRayDirection(TmpHand, FilteredPosition);
+		Direction = bNear ? (ForwardDirection) : GetHandRayDirection(TmpHand, FilteredPosition);
 		FVector FilteredDirection = FVector::ZeroVector;
 
 		FTransform TargetTrans = FTransform();
