@@ -455,7 +455,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		if (Result != eLeapRS_Success)
 		{
 			FString ResStr = ResultString(Result);
-			const TStringConversion ConvertedResStr = StringCast<ANSICHAR>(*ResStr);
+			auto ConvertedResStr = StringCast<ANSICHAR>(*ResStr);
 			const char* CharArray = ConvertedResStr.Get();
 			printf("Failed to get device info %s.\n", CharArray);
 			free(DeviceProperties.serial);
@@ -499,7 +499,7 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 							break;
 						}
 					}
-					const TStringConversion DeviceSerialConv = StringCast<ANSICHAR>(*DeviceSerial);
+					auto DeviceSerialConv = StringCast<ANSICHAR>(*DeviceSerial);
 					ConnectorCallbackDelegate->OnDeviceLost(DeviceSerialConv.Get());
 			}
 		});
