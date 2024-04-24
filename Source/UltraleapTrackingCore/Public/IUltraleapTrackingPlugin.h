@@ -101,7 +101,7 @@ public:
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) = 0;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;
 
-	virtual const char* ResultString(eLeapRS Result) = 0;
+	virtual FString ResultString(eLeapRS Result) = 0;
 
 	virtual void EnableImageStream(bool bEnable) = 0;
 

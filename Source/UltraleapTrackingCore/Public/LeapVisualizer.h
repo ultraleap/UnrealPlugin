@@ -11,8 +11,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 #include "LeapVisualizer.generated.h"
+
 
 /**
  * This Actor can be used to load Niagara particle systems in C++

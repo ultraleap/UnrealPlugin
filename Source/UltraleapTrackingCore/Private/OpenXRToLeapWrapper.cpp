@@ -783,7 +783,6 @@ FVector HandRadialAxis(const FLeapHandData& Hand)
 	{
 		return RightVector;
 	}
-	return FVector::ZeroVector;
 }
 /// Returns the direction towards the fingers that is perpendicular to the palmar
 /// and radial axes.

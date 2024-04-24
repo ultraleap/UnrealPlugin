@@ -13,6 +13,9 @@
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
 
+#include "AnimGraphNode_ModifyBodyStateMappedBones.h"
+#include "FUltraleapLeapCustomDetailsPanel.h"
+
 IMPLEMENT_MODULE(FUltraleapTrackingEditorModule, UltraleapTrackingEditor);
 
 void FUltraleapTrackingEditorModule::StartupModule()

@@ -311,7 +311,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTimeEx(int64 TimeStamp,
 	return currentDevice;
 }
 */
-const char* FLeapWrapper::ResultString(eLeapRS Result)
+FString FLeapWrapper::ResultString(eLeapRS Result)
 {
 	switch (Result)
 	{
@@ -433,7 +433,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	eLeapRS Result = LeapOpenDevice(DeviceEvent->device, &DeviceHandle);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), *ResultString(Result));
 		return;
 	}
 	
@@ -454,7 +454,10 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		Result = LeapGetDeviceInfo(DeviceHandle, &DeviceProperties);
 		if (Result != eLeapRS_Success)
 		{
-			printf("Failed to get device info %s.\n", ResultString(Result));
+			FString ResStr = ResultString(Result);
+			const TStringConversion ConvertedResStr = StringCast<ANSICHAR>(*ResStr);
+			const char* CharArray = ConvertedResStr.Get();
+			printf("Failed to get device info %s.\n", CharArray);
 			free(DeviceProperties.serial);
 			return;
 		}
@@ -496,7 +499,8 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 							break;
 						}
 					}
-					ConnectorCallbackDelegate->OnDeviceLost(TCHAR_TO_ANSI(*DeviceSerial));
+					const TStringConversion DeviceSerialConv = StringCast<ANSICHAR>(*DeviceSerial);
+					ConnectorCallbackDelegate->OnDeviceLost(DeviceSerialConv.Get());
 			}
 		});
 	}
@@ -1034,7 +1038,7 @@ void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceI
 	eLeapRS Result = LeapSetDeviceHints(ConnectionHandle, DeviceHandle, CharArrayPtr);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetDeviceHints failed in FLeapWrapper::SetDeviceHints eLeapRS: %s"), ResultString(Result));
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetDeviceHints failed in FLeapWrapper::SetDeviceHints eLeapRS: %s"), *ResultString(Result));
 	}
 
 	FLeapUtility::CleanupConstCharArray(CharArrayPtr, Size);
