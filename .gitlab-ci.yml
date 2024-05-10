@@ -59,9 +59,6 @@ build:build-project:
   timeout: 1h
   allow_failure: false
 
-  before_script:
-  - git config --system core.longpaths true
-
   script:   
 
 
