@@ -19,6 +19,11 @@
 	#include "ISettingsModule.h"
 #endif
 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "Misc/Paths.h"
+#endif
+
+
 #define LOCTEXT_NAMESPACE "LeapPlugin"
 
 // this forces the assembly context to use the LeapC.dll in the Plugin

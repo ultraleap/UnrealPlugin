@@ -10,6 +10,7 @@
 
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 // Sets default values for this component's properties
 UUltraleapInputListenerComponent::UUltraleapInputListenerComponent()
 {

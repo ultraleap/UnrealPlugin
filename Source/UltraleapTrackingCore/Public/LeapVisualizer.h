@@ -13,8 +13,11 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 
-#include "LeapVisualizer.generated.h"
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "Engine/World.h"
+#endif
 
+#include "LeapVisualizer.generated.h"
 
 /**
  * This Actor can be used to load Niagara particle systems in C++

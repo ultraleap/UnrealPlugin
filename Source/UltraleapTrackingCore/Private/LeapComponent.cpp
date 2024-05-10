@@ -10,6 +10,7 @@
 #include "Multileap/JointOcclusionActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "IUltraleapTrackingPlugin.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 const FString ULeapComponent::NameConstantNone = "None";
 

@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "LeapUtility.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/Engine.h"
 
 ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	: LeapHandType(EHandType::LEAP_HAND_LEFT)

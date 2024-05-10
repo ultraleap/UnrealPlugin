@@ -17,7 +17,7 @@
 #include "LeapSubsystem.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
-// #include "ViewportInteractionUtils.h"
+#include "Engine/World.h"
 
 #include "LeapWidgetInteractionComponent.generated.h"
 
