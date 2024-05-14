@@ -10,6 +10,7 @@
 #include "Multileap/JointOcclusionActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "IUltraleapTrackingPlugin.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 const FString ULeapComponent::NameConstantNone = "None";
 
@@ -77,6 +78,7 @@ void ULeapComponent::ConnectToInputEvents()
 	// Subscribe to active device
 	UpdateActiveDevice(ActiveDeviceSerial);
 }
+
 void ULeapComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -388,6 +390,12 @@ void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 	{
 		RefreshDeviceList(true);
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	if (DeviceWrapper && DeviceWrapper->GetDeviceType() == IHandTrackingWrapper::DEVICE_TYPE_LEAP && ActiveDeviceSerial == "")
+	{
+		UpdateActiveDevice(DeviceWrapper->GetDeviceSerial());
+	}
+#endif
 }
 void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 {
@@ -443,4 +451,64 @@ void ULeapComponent::GetHandSize(float& OutHandSize)
 		Length += FVector::Dist(Bone.PrevJoint, Bone.NextJoint);
 	}
 	OutHandSize = Length;
+}
+
+void ULeapComponent::GetLRGrabStrength(TArray<float>& GrabStrength)
+{
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	if (Hands.Num()==2)
+	{
+		// The first element of the array is for the left hand
+		GrabStrength.Add(Hands[0].GrabStrength);
+		// The second element of the array is for the right hand
+		GrabStrength.Add(Hands[1].GrabStrength);
+	}
+}
+
+EHandType ULeapComponent::FromIEHandTypeToEHandType(uint8 Type)
+{
+	if (Type == 0)
+	{
+		return EHandType::LEAP_HAND_LEFT;
+	}
+	return EHandType::LEAP_HAND_RIGHT;
+}
+
+
+bool ULeapComponent::DoesCurrentGrabStrengthExceedTarget(const float GrabStrength, uint8 TargetHand)
+{
+	EHandType HandType = FromIEHandTypeToEHandType(TargetHand);
+	FLeapFrameData LeapFrameData;
+	GetLatestFrameData(LeapFrameData);
+	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
+	if (!Hands.Num())
+	{
+		return false;
+	}
+
+	for (int32 i = 0; i < Hands.Num(); ++i)
+	{
+		switch (HandType)
+		{
+			case LEAP_HAND_LEFT:
+				if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT &&
+					(Hands[i].GrabStrength >= GrabStrength || Hands[i].PinchStrength >= GrabStrength))
+				{
+					return true;
+				}
+				break;
+			case LEAP_HAND_RIGHT:
+				if (Hands[i].HandType == EHandType::LEAP_HAND_RIGHT &&
+					(Hands[i].GrabStrength >= GrabStrength || Hands[i].PinchStrength >= GrabStrength))
+				{
+					return true;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	return false;
 }

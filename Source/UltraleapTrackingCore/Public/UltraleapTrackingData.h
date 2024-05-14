@@ -18,6 +18,13 @@ enum EHandType
 };
 
 UENUM(BlueprintType)
+enum EUIInteractionType
+{
+	FAR,
+	NEAR
+};
+
+UENUM(BlueprintType)
 enum ELeapMode
 {
 	LEAP_MODE_VR,		   // The tracking mode optimised for head-mounted devices.

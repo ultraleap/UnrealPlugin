@@ -65,7 +65,10 @@ void FUltraleapDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)>
 	{
 		for (ULeapComponent* EventDelegate : EventDelegates)
 		{
-			InFunction(EventDelegate);
+			if (EventDelegate)
+			{
+				InFunction(EventDelegate);
+			}
 		}
 	}
 	else
@@ -280,6 +283,7 @@ FUltraleapDevice::FUltraleapDevice(
 	}
 
 	Init();
+
 }
 
 #undef LOCTEXT_NAMESPACE
@@ -401,6 +405,12 @@ void FUltraleapDevice::ApplyDeviceOrigin(FLeapFrameData& OutData)
 void FUltraleapDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_MultiLeapInputTick);
+
+	if (Leap==nullptr)
+	{
+		return;
+	}
+
 	// Did a device connect?
 	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
@@ -536,12 +546,25 @@ void FUltraleapDevice::ParseEvents()
 			// Scale input?
 			// FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters
 			// / 100.f);
-			Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+			if (Component)
+			{
+				Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+			}
 		});
+
+	// Add the current frame to the leap subsystem
+	if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+	{
+		if (LeapSubsystem->GetUseOpenXR() == Options.bUseOpenXRAsSource)
+		{
+			LeapSubsystem->LeapTrackingDataCall(CurrentFrame);
+		}
+	}
 
 	// It's now the past data
 	PastFrame = CurrentFrame;
 	LastLeapTime = Leap->GetNow();
+
 }
 
 void FUltraleapDevice::CheckHandVisibility()
@@ -707,6 +730,12 @@ void FUltraleapDevice::CheckPinchGesture()
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchL);
 						CallFunctionOnComponents(
 							[FinalHandData](ULeapComponent* Component) { Component->OnHandPinched.Broadcast(FinalHandData); });
+
+						if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+						{
+							LeapSubsystem->LeapPinchCall(FinalHandData);
+						}
+
 					}
 				}
 				else if (IsLeftPinching && (TimeSinceLastLeftPinch > PinchTimeout))
@@ -715,6 +744,12 @@ void FUltraleapDevice::CheckPinchGesture()
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchL);
 					CallFunctionOnComponents(
 						[FinalHandData](ULeapComponent* Component) { Component->OnHandUnpinched.Broadcast(FinalHandData); });
+
+
+					if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+					{
+						LeapSubsystem->LeapUnPinchCall(FinalHandData);
+					}
 				}
 			}
 			else if (Hand.HandType == EHandType::LEAP_HAND_RIGHT)
@@ -729,6 +764,13 @@ void FUltraleapDevice::CheckPinchGesture()
 						EmitKeyDownEventForKey(EKeysLeap::LeapPinchR);
 						CallFunctionOnComponents(
 							[FinalHandData](ULeapComponent* Component) { Component->OnHandPinched.Broadcast(FinalHandData); });
+
+
+						if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+						{
+							LeapSubsystem->LeapPinchCall(FinalHandData);
+						}
+
 					}
 				}
 				else if (IsRightPinching && (TimeSinceLastRightPinch > PinchTimeout))
@@ -737,6 +779,12 @@ void FUltraleapDevice::CheckPinchGesture()
 					EmitKeyUpEventForKey(EKeysLeap::LeapPinchR);
 					CallFunctionOnComponents(
 						[FinalHandData](ULeapComponent* Component) { Component->OnHandUnpinched.Broadcast(FinalHandData); });
+
+
+					if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+					{
+						LeapSubsystem->LeapUnPinchCall(FinalHandData);
+					}
 				}
 			}
 		}
@@ -1390,6 +1438,7 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	EndPinchThreshold = Options.EndPinchThreshold;
 	GrabTimeout = Options.GrabTimeout;
 	PinchTimeout = Options.PinchTimeout;
+
 }
 FLeapOptions FUltraleapDevice::GetOptions()
 {

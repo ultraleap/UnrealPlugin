@@ -10,6 +10,10 @@
 
 #include "LeapAsync.h"
 
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "RenderingThread.h"
+#endif
+
 FLeapImage::FLeapImage()
 {
 	LeftImageTexture = nullptr;

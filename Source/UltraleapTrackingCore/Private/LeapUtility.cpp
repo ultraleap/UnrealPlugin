@@ -24,9 +24,12 @@ FQuat FLeapUtility::LeapRotationOffset;
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
 {
-	if (GEngine != nullptr && GEngine->GetWorld() != nullptr)
+	if (IsInGameThread())
 	{
-		return (GEngine->GetWorld()->GetWorldSettings()->WorldToMeters) / 100.f;
+		if (GEngine != nullptr && GEngine->GetWorld() != nullptr && GEngine->GetWorld()->GetWorldSettings() != nullptr)
+		{
+			return (GEngine->GetWorld()->GetWorldSettings()->WorldToMeters) / 100.f;
+		}
 	}
 	return 1.f;
 }

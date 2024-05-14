@@ -12,7 +12,7 @@
 
 #include "IUltraleapTrackingPlugin.h"
 #include "Misc/ConfigCacheIni.h"
-#include "LeapTrackingSettings.h"
+#include "LeapSubsystem.h"
 
 #if PLATFORM_ANDROID
 #include "Android/AndroidApplication.h"
@@ -56,6 +56,10 @@ void ULeapBlueprintFunctionLibrary::SetLeapMode(
 
 void ULeapBlueprintFunctionLibrary::SetLeapOptions(const FLeapOptions& InOptions, const TArray<FString>& DeviceSerials)
 {
+	if (ULeapSubsystem* LeapSubsystem = ULeapSubsystem::Get())
+	{
+		LeapSubsystem->SetUseOpenXR(InOptions.bUseOpenXRAsSource);
+	}
 	IUltraleapTrackingPlugin::Get().SetOptions(InOptions, DeviceSerials);
 }
 

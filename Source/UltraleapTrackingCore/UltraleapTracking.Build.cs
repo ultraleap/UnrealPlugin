@@ -126,13 +126,23 @@ namespace UnrealBuildTool.Rules
 					"LiveLinkMessageBusFramework",
 					"BodyState",
 					"PhysicsCore",
+					"UMG",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
 
+            if (Target.Version.MajorVersion >= 5 && Target.Version.MinorVersion >= 3)
+            {
+                PrivateDependencyModuleNames.AddRange(new string[] { "XRBase" });
+            }
+
             PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
+					"NiagaraCore",
+					"Niagara",
+					"NiagaraShader",
+					"NavigationSystem",
 					// ... add private dependencies that you statically link with here ...
                 }
 				);

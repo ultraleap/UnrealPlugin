@@ -12,6 +12,7 @@
 #include "Components/ActorComponent.h"
 #include "GraspedMovementHandler.h"
 #include "Curves/CurveFloat.h"
+#include "Engine/World.h"
 #include "NonKinematicGraspedMovement.generated.h"
 
 

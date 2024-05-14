@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 14,
-	"VersionName": "4.12.0",
+	"VersionName": "5.0.0",
 	"FriendlyName": "Ultraleap Tracking Plugin",
 	"Description": "Support for  Ultraleap hand tracking devices.",
 	"Category": "Input Devices",
@@ -47,6 +47,16 @@
 				"Linux",
 				"Mac"
 			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		},
+		{
+			"Name": "OpenXR",
+			"Enabled": true
 		}
 	]
 }

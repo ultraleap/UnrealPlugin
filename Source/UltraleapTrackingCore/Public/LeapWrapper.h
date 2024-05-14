@@ -72,9 +72,9 @@ public:
 	{
 		return nullptr;
 	}
-	virtual const char* ResultString(eLeapRS Result) override
+	virtual FString ResultString(eLeapRS Result) override
 	{
-		return nullptr;
+		return "";
 	}
 
 	virtual void EnableImageStream(bool bEnable) override
@@ -210,7 +210,7 @@ public:
 	{
 		return nullptr;
 	}
-	virtual const char* ResultString(eLeapRS Result) override;
+	virtual FString ResultString(eLeapRS Result) override;
 
 	virtual void EnableImageStream(bool bEnable) override;
 

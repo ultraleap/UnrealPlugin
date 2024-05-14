@@ -179,6 +179,10 @@ void FLeapHandData::UpdateFromDigits()
 void FLeapHandData::SetFromLeapHand(
 	struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
+	if (!hand)
+	{
+		return;
+	}
 	Arm.SetFromLeapBone((_LEAP_BONE*) &hand->arm, LeapMountTranslationOffset, LeapMountRotationOffset);
 	Confidence = hand->confidence;
 	GrabAngle = hand->grab_angle;

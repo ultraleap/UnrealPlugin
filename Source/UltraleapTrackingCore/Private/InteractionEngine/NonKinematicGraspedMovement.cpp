@@ -8,6 +8,7 @@
 
 
 #include "InteractionEngine/NonKinematicGraspedMovement.h"
+#include "Components/PrimitiveComponent.h"
 
 /// <summary>
 /// This implementation of UGraspedMovementHandler moves a grabbable object to its

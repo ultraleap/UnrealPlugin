@@ -24,6 +24,8 @@
 #include "BodyStateUtility.h"
 #include "Kismet/KismetMathLibrary.h"
 
+
+
 #if WITH_EDITOR
 #include "Misc/MessageDialog.h"
 #include "PersonaUtils.h"
@@ -32,6 +34,11 @@
 #if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
 #include "Engine/SkinnedAsset.h"
 #endif
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "Components/SkeletalMeshComponent.h"
+#endif
+
 
 
 FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)
@@ -1010,7 +1017,11 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 		// Unreal doesn't deal with mirrored scale when in comes to updating the mesh bounds
 		// this means that at 1 bounds scale, the skeletel mesh gets occluded as the bounds are not following the skeleton
 		// Until this is fixed in the engine, we have to force the bounds to be huge to always render.
-		Component->SetBoundsScale(10);
+#if (ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION <= 27)
+		Component->SetBoundsScale(30);
+#else
+		Component->SetBoundsScale(1);
+#endif
 	}
 	else
 	{
