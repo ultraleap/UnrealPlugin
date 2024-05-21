@@ -10,6 +10,7 @@
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "UltraleapTrackingData.h"
+#include "LeapUtility.h"
 
 #include "LeapBlueprintFunctionLibrary.generated.h"
 
