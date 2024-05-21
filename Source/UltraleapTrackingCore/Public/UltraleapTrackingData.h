@@ -482,3 +482,33 @@ enum class ELeapQuatSwizzleAxisB : uint8
 	MinusZ UMETA(DisplayName = "-Z"),
 	MinusW UMETA(DisplayName = "-W")
 };
+
+
+USTRUCT()
+struct ULTRALEAPTRACKING_API FTelemetry
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString app_name;
+	UPROPERTY()
+	FString app_type;
+	UPROPERTY()
+	FString engine_name;
+	UPROPERTY()
+	FString engine_version;
+	UPROPERTY()
+	FString plugin_version;
+	UPROPERTY()
+	FString installation_source;
+};
+
+
+USTRUCT()
+struct ULTRALEAPTRACKING_API FAnalytics
+{
+	GENERATED_BODY() 
+
+	UPROPERTY()
+	FTelemetry telemetry;
+};

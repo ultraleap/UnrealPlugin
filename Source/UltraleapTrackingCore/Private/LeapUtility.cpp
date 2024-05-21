@@ -12,6 +12,10 @@
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 #include "IXRTrackingSystem.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/App.h"
+#include "UltraleapTrackingData.h"
+#include "JsonUtilities/Public/JsonObjectConverter.h"
 
 DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 
@@ -184,4 +188,54 @@ void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FString
 void FLeapUtility::SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx)
 {
 	(*ConstCharArrayPtr)[LastIdx] = NULL;
+}
+
+const char* FLeapUtility::GetAnalyticsData(size_t& Size)
+{
+
+	FAnalytics Analytics;
+
+	Analytics.telemetry.app_name = FApp::GetProjectName();
+
+#if WITH_EDITOR
+	Analytics.telemetry.app_type = "editor";
+#else
+	Analytics.telemetry.app_type = "game";
+#endif
+
+	Analytics.telemetry.engine_name = "Unreal";
+	FString UnrealVersion = FString::FromInt(ENGINE_MAJOR_VERSION);
+	UnrealVersion += ".";
+	UnrealVersion += FString::FromInt(ENGINE_MINOR_VERSION);
+	Analytics.telemetry.engine_version = UnrealVersion;
+	Analytics.telemetry.installation_source = "github";
+	Analytics.telemetry.plugin_version = FString();
+
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
+	if (Plugin.IsValid())
+	{
+		const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
+		Analytics.telemetry.plugin_version = PluginDescriptor.VersionName;
+
+		if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Engine)
+		{
+			Analytics.telemetry.installation_source = "EpicGamesLauncher";
+		}
+	}
+
+	FString SerializedJson;
+
+	bool bConverted = FJsonObjectConverter::UStructToJsonObjectString<FAnalytics>(Analytics, SerializedJson);
+	if (!bConverted)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("FLeapUtility::GetAnalyticsData Failed Json conversion"));
+	}
+
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("SerializedJson = %s"), *SerializedJson);
+	
+	Size = SerializedJson.Len();
+
+	auto ConvertedStr = StringCast<ANSICHAR>(*SerializedJson);
+	return ConvertedStr.Get();
+
 }

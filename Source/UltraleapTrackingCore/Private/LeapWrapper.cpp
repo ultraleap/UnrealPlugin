@@ -101,6 +101,20 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success)
 	{
+		size_t DataSize;
+		const char* JsonData = FLeapUtility::GetAnalyticsData(DataSize);
+
+		if (JsonData!=nullptr)
+		{
+			//size_t Size = strlen(JsonData);
+			UE_LOG(UltraleapTrackingLog, Error, TEXT("FLeapWrapper::OpenConnection DataSize = %i"), DataSize);
+			eLeapRS AnalyticsResult = LeapSetConnectionMetadata(ConnectionHandle, JsonData, DataSize);
+			if (AnalyticsResult != eLeapRS_Success)
+			{
+				UE_LOG(UltraleapTrackingLog, Error, TEXT("Failed to send analytics"));
+			}
+		}
+
 		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success)
 		{
