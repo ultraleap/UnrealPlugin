@@ -102,8 +102,8 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 	if (result == eLeapRS_Success)
 	{
 		size_t DataSize;
-		FString JsonData = FLeapUtility::GetAnalyticsData(DataSize);
-		auto ConvertedStr = StringCast<ANSICHAR>(*JsonData);
+		FString JsonDataStr = FLeapUtility::GetAnalyticsData(DataSize);
+		auto ConvertedStr = StringCast<ANSICHAR>(*JsonDataStr);
 		result = LeapSetConnectionMetadata(ConnectionHandle, ConvertedStr.Get(), DataSize);
 		if (result != eLeapRS_Success)
 		{
