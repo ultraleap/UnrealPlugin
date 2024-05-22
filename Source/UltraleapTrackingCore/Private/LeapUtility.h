@@ -55,7 +55,7 @@ public:
 	static void ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr);
 	static void SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx);
 
-	static const char* GetAnalyticsData(size_t &Size);
+	static FString GetAnalyticsData(size_t& Size);
 
 };
 

@@ -190,11 +190,9 @@ void FLeapUtility::SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 L
 	(*ConstCharArrayPtr)[LastIdx] = NULL;
 }
 
-const char* FLeapUtility::GetAnalyticsData(size_t& Size)
+FString FLeapUtility::GetAnalyticsData(size_t& Size)
 {
-
 	FAnalytics Analytics;
-
 	Analytics.telemetry.app_name = FApp::GetProjectName();
 
 #if WITH_EDITOR
@@ -224,18 +222,11 @@ const char* FLeapUtility::GetAnalyticsData(size_t& Size)
 	}
 
 	FString SerializedJson;
-
-	bool bConverted = FJsonObjectConverter::UStructToJsonObjectString<FAnalytics>(Analytics, SerializedJson);
+	bool bConverted = FJsonObjectConverter::UStructToFormattedJsonObjectString<TCHAR, TPrettyJsonPrintPolicy>(FAnalytics::StaticStruct(), &Analytics, SerializedJson);
 	if (!bConverted)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("FLeapUtility::GetAnalyticsData Failed Json conversion"));
 	}
-
-	UE_LOG(UltraleapTrackingLog, Log, TEXT("SerializedJson = %s"), *SerializedJson);
-	
-	Size = SerializedJson.Len();
-
-	auto ConvertedStr = StringCast<ANSICHAR>(*SerializedJson);
-	return ConvertedStr.Get();
-
+	Size = SerializedJson.Len() + 1;
+	return SerializedJson;
 }
