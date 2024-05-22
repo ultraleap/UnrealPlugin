@@ -139,9 +139,9 @@ namespace UnrealBuildTool.Rules
             PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-                    "Json",
-                    "JsonUtilities",
-                    "NiagaraCore",
+					"Json",
+					"JsonUtilities",
+					"NiagaraCore",
 					"Niagara",
 					"NiagaraShader",
 					"NavigationSystem",
