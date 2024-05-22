@@ -110,7 +110,6 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 			UE_LOG(UltraleapTrackingLog, Error, TEXT("Failed to send analytics"));
 		}
 		
-
 		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success)
 		{

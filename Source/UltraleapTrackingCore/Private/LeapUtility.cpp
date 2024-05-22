@@ -193,12 +193,12 @@ void FLeapUtility::SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 L
 FString FLeapUtility::GetAnalyticsData(size_t& Size)
 {
 	FAnalytics Analytics;
-	Analytics.telemetry.app_name = FApp::GetProjectName();
+	Analytics.telemetry.app_title = FApp::GetProjectName();
 
 #if WITH_EDITOR
 	Analytics.telemetry.app_type = "editor";
 #else
-	Analytics.telemetry.app_type = "game";
+	Analytics.telemetry.app_type = "build";
 #endif
 
 	Analytics.telemetry.engine_name = "Unreal";
@@ -208,6 +208,7 @@ FString FLeapUtility::GetAnalyticsData(size_t& Size)
 	Analytics.telemetry.engine_version = UnrealVersion;
 	Analytics.telemetry.installation_source = "github";
 	Analytics.telemetry.plugin_version = FString();
+
 
 	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
 	if (Plugin.IsValid())

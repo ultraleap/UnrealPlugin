@@ -490,7 +490,7 @@ struct ULTRALEAPTRACKING_API FTelemetry
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FString app_name;
+	FString app_title;
 	UPROPERTY()
 	FString app_type;
 	UPROPERTY()
