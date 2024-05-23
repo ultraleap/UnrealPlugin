@@ -101,6 +101,15 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success)
 	{
+		size_t DataSize;
+		FString JsonDataStr = FLeapUtility::GetAnalyticsData(DataSize);
+		auto ConvertedStr = StringCast<ANSICHAR>(*JsonDataStr);
+		result = LeapSetConnectionMetadata(ConnectionHandle, ConvertedStr.Get(), DataSize);
+		if (result != eLeapRS_Success)
+		{
+			UE_LOG(UltraleapTrackingLog, Error, TEXT("Failed to send analytics"));
+		}
+		
 		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success)
 		{

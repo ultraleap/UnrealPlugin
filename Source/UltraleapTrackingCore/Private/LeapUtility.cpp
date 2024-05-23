@@ -12,6 +12,15 @@
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 #include "IXRTrackingSystem.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/App.h"
+#include "UltraleapTrackingData.h"
+#include "Runtime/Launch/Resources/Version.h"
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+	#include "JsonObjectConverter.h"
+#else 
+	#include "JsonUtilities/Public/JsonObjectConverter.h"
+#endif
 
 DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 
@@ -184,4 +193,46 @@ void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FString
 void FLeapUtility::SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx)
 {
 	(*ConstCharArrayPtr)[LastIdx] = NULL;
+}
+
+FString FLeapUtility::GetAnalyticsData(size_t& Size)
+{
+	FAnalytics Analytics;
+	Analytics.telemetry.app_title = FApp::GetProjectName();
+
+#if WITH_EDITOR
+	Analytics.telemetry.app_type = "editor";
+#else
+	Analytics.telemetry.app_type = "build";
+#endif
+
+	Analytics.telemetry.engine_name = "Unreal";
+	FString UnrealVersion = FString::FromInt(ENGINE_MAJOR_VERSION);
+	UnrealVersion += ".";
+	UnrealVersion += FString::FromInt(ENGINE_MINOR_VERSION);
+	Analytics.telemetry.engine_version = UnrealVersion;
+	Analytics.telemetry.installation_source = "github";
+	Analytics.telemetry.plugin_version = FString();
+
+
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
+	if (Plugin.IsValid())
+	{
+		const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
+		Analytics.telemetry.plugin_version = PluginDescriptor.VersionName;
+
+		if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Engine)
+		{
+			Analytics.telemetry.installation_source = "EpicGamesLauncher";
+		}
+	}
+
+	FString SerializedJson;
+	bool bConverted = FJsonObjectConverter::UStructToFormattedJsonObjectString<TCHAR, TPrettyJsonPrintPolicy>(FAnalytics::StaticStruct(), &Analytics, SerializedJson);
+	if (!bConverted)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("FLeapUtility::GetAnalyticsData Failed Json conversion"));
+	}
+	Size = SerializedJson.Len() + 1;
+	return SerializedJson;
 }

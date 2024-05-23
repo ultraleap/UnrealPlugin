@@ -55,6 +55,11 @@ public:
 	static void ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr);
 	static void SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx);
 
+	/** Used to get analytics data
+	 * @param Size - outputs the size of the serialized data
+	 */
+	static FString GetAnalyticsData(size_t& Size);
+
 };
 
 class LeapUtilityTimer
