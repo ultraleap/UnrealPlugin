@@ -8,6 +8,9 @@ variables:
   
   ENGINE_PATH_UE5_1: "C:/Program Files/Epic Games/UE_5.1"
   ENGINE_UAT_PATH_UE5_1: "$ENGINE_PATH_UE5_1/Engine/Build/BatchFiles/RunUAT.bat"
+
+  ENGINE_PATH_UE5_3: "C:/Program Files/Epic Games/UE_5.3"
+  ENGINE_UAT_PATH_UE5_3: "$ENGINE_PATH_UE5_3/Engine/Build/BatchFiles/RunUAT.bat"
   
   ENGINE_PATH_UE5_4: "C:/Program Files/Epic Games/UE_5.4"
   ENGINE_UAT_PATH_UE5_4: "$ENGINE_PATH_UE5_4/Engine/Build/BatchFiles/RunUAT.bat"
@@ -15,6 +18,7 @@ variables:
   # this holds the unreal version
   UNREAL_ENGINE_BUILD_VERSION_FILE: "$ENGINE_PATH_UE5_1/Engine/Build/Build.version"
   UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_4: "$ENGINE_PATH_UE5_4/Engine/Build/Build.version"
+  UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_3: "$ENGINE_PATH_UE5_3/Engine/Build/Build.version"
   
   VERSIONTRUNC: "Unknown"
 
@@ -67,19 +71,24 @@ build:build-project:
     # Get Unreal version and changeset from the project. from json
     - $UNREAL_VERSION_CONTENT_UE5_1 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
     - $UNREAL_VERSION_UE5_1 = $UNREAL_VERSION_CONTENT_UE5_1.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_1.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_1.PatchVersion.ToString()
+
+    - $UNREAL_VERSION_CONTENT_UE5_3 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_3 | ConvertFrom-Json
+    - $UNREAL_VERSION_UE5_3 = $UNREAL_VERSION_CONTENT_UE5_3.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_3.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_3.PatchVersion.ToString()
     
     - $UNREAL_VERSION_CONTENT_UE5_4 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE_UE5_4 | ConvertFrom-Json
     - $UNREAL_VERSION_UE5_4 = $UNREAL_VERSION_CONTENT_UE5_4.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_4.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_4.PatchVersion.ToString()
     
     - echo "$UNREAL_VERSION_UE5_1"
+    - echo "$UNREAL_VERSION_UE5_3"
     - echo "$UNREAL_VERSION_UE5_4"
-   
-
+    
     - echo "$ENGINE_PATH_UE5_1"
+    - echo "$ENGINE_PATH_UE5_3"
     - echo "$ENGINE_PATH_UE5_4"
     - echo "$PROJECT_PATH"
     - echo "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - echo "$ENGINE_UAT_PATH_UE5_1"
+    - echo "$ENGINE_UAT_PATH_UE5_3"
     - echo "$ENGINE_UAT_PATH_UE5_4"
     - echo "Working dir"
     - pwd
@@ -96,9 +105,20 @@ build:build-project:
     - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_1" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_1 -CreateSubFolder -VS2019 -TargetPlatforms=Win64+Mac -Rocket > ./$PROJECT_NAME.log" 
     - echo $process.ExitCode
     - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
-    
-    
+   
     - echo "Unreal 5.1 build complete."
+
+
+    - $UE5_PACKAGE_PATH_3 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_3"
+    - echo "$UE5_PACKAGE_PATH_3"
+
+    - $process = Start-Process -Wait -PassThru -NoNewWindow -FilePath "$ENGINE_UAT_PATH_UE5_3" -ArgumentList "BuildPlugin -Plugin=$PROJECT_PATH/$PROJECT_NAME.uplugin -Package=$UE5_PACKAGE_PATH_3 -CreateSubFolder -VS2022 -TargetPlatforms=Win64+Mac -Rocket  >> ./$PROJECT_NAME.log" 
+    - echo $process.ExitCode
+    - if (-not ($process.ExitCode -eq 0)) { exit $process.ExitCode }
+    
+    - echo "Unreal 5.3 build complete."
+
+
 
     - $UE5_PACKAGE_PATH_4 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_4"
     - echo "$UE5_PACKAGE_PATH_4"
@@ -115,6 +135,7 @@ build:build-project:
      # this holds the plugin version
     - $UNREAL_PLUGIN_FILE = "$PROJECT_PATH/$PROJECT_NAME.uplugin"
     - $BUILD_LOCATION_UE5_1 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_1"
+    - $BUILD_LOCATION_UE5_3 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_3"
     - $BUILD_LOCATION_UE5_4 =  "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_4"
 
     - $VERSION =  Get-Content $UNREAL_PLUGIN_FILE | Where-Object {$_ -like '*VersionName*'}
@@ -130,38 +151,47 @@ build:build-project:
     
     - $BUILD_FULL_VERSION = $VERSIONTRUNC
     - $BUILD_PATH_UE5_1 = "./build/$PROJECT_NAME" + "_ue5_1" +"-$BUILD_FULL_VERSION/"
+    - $BUILD_PATH_UE5_3 = "./build/$PROJECT_NAME" + "_ue5_3" +"-$BUILD_FULL_VERSION/"
     - $BUILD_PATH_UE5_4 = "./build/$PROJECT_NAME" + "_ue5_4" +"-$BUILD_FULL_VERSION/"
     
     - mkdir "$BUILD_PATH_UE5_1"  
+    - mkdir "$BUILD_PATH_UE5_3" 
     - mkdir "$BUILD_PATH_UE5_4"
 
     - echo "$BUILD_PATH_UE5_1"
-    - echo "$BUILD_LOCATION_UE5_1"
-
+    - echo "$BUILD_PATH_UE5_3"
     - echo "$BUILD_PATH_UE5_4"
+ 
+    - echo "$BUILD_LOCATION_UE5_1"
+    - echo "$BUILD_LOCATION_UE5_3"
     - echo "$BUILD_LOCATION_UE5_4"
 
 
     - mv "$BUILD_LOCATION_UE5_1/*" "$BUILD_PATH_UE5_1"
+    - mv "$BUILD_LOCATION_UE5_3/*" "$BUILD_PATH_UE5_3"
     - mv "$BUILD_LOCATION_UE5_4/*" "$BUILD_PATH_UE5_4"
 
      # pdbs
     - Remove-Item "$BUILD_PATH_UE5_1/Binaries/Win64/*.pdb" 
+    - Remove-Item "$BUILD_PATH_UE5_3/Binaries/Win64/*.pdb"
     - Remove-Item "$BUILD_PATH_UE5_4/Binaries/Win64/*.pdb"
    
     # Copy the packaged plugin for modifications for the Unreal Marketplace submission
     - echo "copying and modifying for the marketplace"
     - $BUILD_MARKET_PLACE_PATH_UE5_1 = "./build/MarketPlace_5_1/$PROJECT_NAME"
+    - $BUILD_MARKET_PLACE_PATH_UE5_3 = "./build/MarketPlace_5_3/$PROJECT_NAME"
     - $BUILD_MARKET_PLACE_PATH_UE5_4 = "./build/MarketPlace_5_4/$PROJECT_NAME"
 
     - echo "$BUILD_MARKET_PLACE_PATH_UE5_1"
+    - echo "$BUILD_MARKET_PLACE_PATH_UE5_3"
     - echo "$BUILD_MARKET_PLACE_PATH_UE5_4"
 
 
     - mkdir "$BUILD_MARKET_PLACE_PATH_UE5_1"
+    - mkdir "$BUILD_MARKET_PLACE_PATH_UE5_3"
     - mkdir "$BUILD_MARKET_PLACE_PATH_UE5_4"
 
-    # UE4 contents
+    # UE5.1 contents
     - Copy-Item "$BUILD_PATH_UE5_1*" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_1" -Recurse
     # Copy the FilterPlugin.ini
     - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
@@ -180,8 +210,34 @@ build:build-project:
 
     # zip it
     - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5_1" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5_1.zip"
+ 
 
-    ## UE5 contents
+
+
+    ## UE5.3 contents
+    - Copy-Item "$BUILD_PATH_UE5_3*" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_3" -Recurse
+    ## Copy the FilterPlugin.ini
+    - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
+    - Copy-Item "$PROJECT_PATH/Config/FilterPlugin.ini" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_3/Config"
+    ## Clean the binaries folder
+    ## pdbs
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_3/Binaries/Win64/*.pdb"
+    ## modules
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_3/Binaries/Win64/UnrealEditor.modules"
+    ## dlls
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_3/Binaries/Win64/UnrealEditor-BodyState.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_3/Binaries/Win64/UnrealEditor-UltraleapTracking.dll"
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_3/Binaries/Win64/UnrealEditor-UltraleapTrackingEditor.dll"
+    ## intermediate folder
+    - Remove-Item "$BUILD_MARKET_PLACE_PATH_UE5_3/Intermediate" -Recurse
+
+    ## zip it
+    - Compress-Archive -Path "$BUILD_MARKET_PLACE_PATH_UE5_3" -DestinationPath "$BUILD_MARKET_PLACE_PATH_UE5_3.zip"
+ 
+
+
+
+    ## UE5.4 contents
     - Copy-Item "$BUILD_PATH_UE5_4*" -Destination "$BUILD_MARKET_PLACE_PATH_UE5_4" -Recurse
     ## Copy the FilterPlugin.ini
     - echo "$PROJECT_PATH/Config/FilterPlugin.ini"
@@ -204,12 +260,15 @@ build:build-project:
 
     # repare github zips with bins file 
     - $GITHUB_PATH_UE5_1 = "./github/$PROJECT_NAME" + "_ue5_1"
+    - $GITHUB_PATH_UE5_3 = "./github/$PROJECT_NAME" + "_ue5_3"
     - $GITHUB_PATH_UE5_4 = "./github/$PROJECT_NAME" + "_ue5_4"
     
-    - mkdir "$GITHUB_PATH_UE5_1"  
+    - mkdir "$GITHUB_PATH_UE5_1" 
+    - mkdir "$GITHUB_PATH_UE5_3" 
     - mkdir "$GITHUB_PATH_UE5_4"
 
-    - Compress-Archive -Path "$BUILD_PATH_UE5_1" -DestinationPath "${GITHUB_PATH_UE5_1}/${PROJECT_NAME}_ue5_1.zip"   
+    - Compress-Archive -Path "$BUILD_PATH_UE5_1" -DestinationPath "${GITHUB_PATH_UE5_1}/${PROJECT_NAME}_ue5_1.zip" 
+    - Compress-Archive -Path "$BUILD_PATH_UE5_3" -DestinationPath "${GITHUB_PATH_UE5_3}/${PROJECT_NAME}_ue5_3.zip"  
     - Compress-Archive -Path "$BUILD_PATH_UE5_4" -DestinationPath "${GITHUB_PATH_UE5_4}/${PROJECT_NAME}_ue5_4.zip" 
 
 
@@ -219,10 +278,12 @@ build:build-project:
     paths:
     - "./$PROJECT_NAME.log"
     - "./build/MarketPlace_5_1/${PROJECT_NAME}.zip"
+    - "./build/MarketPlace_5_3/${PROJECT_NAME}.zip"
     - "./build/MarketPlace_5_4/${PROJECT_NAME}.zip"
 
     # these artifiacts are for github
     - "./github/${PROJECT_NAME}_ue5_1/${PROJECT_NAME}_ue5_1.zip"
+    - "./github/${PROJECT_NAME}_ue5_3/${PROJECT_NAME}_ue5_3.zip"
     - "./github/${PROJECT_NAME}_ue5_4/${PROJECT_NAME}_ue5_4.zip"
     
     when: always
@@ -274,7 +335,7 @@ deploy:upload-to-aws-s3:
 
     - |
 
-      for VERSION in "5_1" "5_4"; do
+      for VERSION in "5_1" "5_3" "5_4"; do
 
          export ZIP_OUTPUT_NAME="${ZIP_NAME}_${VERSION}_$(cat /dev/urandom | base64 | tr -dc '0-9a-zA-Z' | head -c12).zip";
          mv "${BUILD_DIR}/MarketPlace_${VERSION}/${ZIP_NAME}.zip" "${ZIP_OUTPUT_NAME}"
