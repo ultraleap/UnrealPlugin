@@ -67,7 +67,6 @@ build:build-project:
 
   script:   
 
-
     # Get Unreal version and changeset from the project. from json
     - $UNREAL_VERSION_CONTENT_UE5_1 = Get-Content -Raw -Path $UNREAL_ENGINE_BUILD_VERSION_FILE | ConvertFrom-Json
     - $UNREAL_VERSION_UE5_1 = $UNREAL_VERSION_CONTENT_UE5_1.MajorVersion.ToString() + "." + $UNREAL_VERSION_CONTENT_UE5_1.MinorVersion.ToString()  + "." + $UNREAL_VERSION_CONTENT_UE5_1.PatchVersion.ToString()
@@ -98,6 +97,7 @@ build:build-project:
     - echo "Build with UAT"
     - echo "==============================================="
 
+    ################################## 5.1
     - $UE5_PACKAGE_PATH_1 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_1"
     - echo "$UE5_PACKAGE_PATH_1"
     
@@ -108,7 +108,7 @@ build:build-project:
    
     - echo "Unreal 5.1 build complete."
 
-
+    ################################## 5.3
     - $UE5_PACKAGE_PATH_3 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_3"
     - echo "$UE5_PACKAGE_PATH_3"
 
@@ -119,7 +119,7 @@ build:build-project:
     - echo "Unreal 5.3 build complete."
 
 
-
+    ################################## 5.4
     - $UE5_PACKAGE_PATH_4 = "$PROJECT_PATH/$PROJECT_NAME" + "_ue5_4"
     - echo "$UE5_PACKAGE_PATH_4"
 
