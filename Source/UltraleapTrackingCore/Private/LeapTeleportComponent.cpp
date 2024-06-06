@@ -22,12 +22,6 @@ ULeapTeleportComponent::ULeapTeleportComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
-	if (LeapTeleportTraceNS == nullptr)
-	{
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapTeleportTraceNS is nullptr in ULeapTeleportComponent()"));
-	}
 }
 
 
@@ -59,6 +53,12 @@ void ULeapTeleportComponent::BeginPlay()
 
 	LeapSubsystem->OnLeapGrabActionNative.AddUObject(this, &ULeapTeleportComponent::OnLeapGrabAction);
 	LeapSubsystem->OnLeapReleaseNative.AddUObject(this, &ULeapTeleportComponent::OnLeapRelease);
+
+	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
+	if (LeapTeleportTraceNS == nullptr)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapTeleportTraceNS is nullptr in ULeapTeleportComponent()"));
+	}
 
 	NavSys = UNavigationSystemV1::GetNavigationSystem(WorldContextObject);
 	if (!NavSys)
