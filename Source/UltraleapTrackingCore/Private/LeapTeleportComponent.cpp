@@ -44,12 +44,6 @@ void ULeapTeleportComponent::BeginPlay()
 		return;
 	}
 
-	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
-	if (LeapTeleportTraceNS == nullptr)
-	{
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapTeleportTraceNS is nullptr in ULeapTeleportComponent()"));
-	}
-
 	LeapSubsystem = ULeapSubsystem::Get();
 	if (LeapSubsystem == nullptr)
 	{
@@ -59,6 +53,12 @@ void ULeapTeleportComponent::BeginPlay()
 
 	LeapSubsystem->OnLeapGrabActionNative.AddUObject(this, &ULeapTeleportComponent::OnLeapGrabAction);
 	LeapSubsystem->OnLeapReleaseNative.AddUObject(this, &ULeapTeleportComponent::OnLeapRelease);
+
+	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
+	if (LeapTeleportTraceNS == nullptr)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapTeleportTraceNS is nullptr in ULeapTeleportComponent()"));
+	}
 
 	NavSys = UNavigationSystemV1::GetNavigationSystem(WorldContextObject);
 	if (!NavSys)
