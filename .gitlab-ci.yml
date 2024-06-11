@@ -30,8 +30,7 @@ stages:
 documentation::generate-tracking-documentation:
   stage: documentation
   tags:
-    - unreal
-    - windows  
+    - UE-4.27-5.1-5.4-staging 
   timeout: 30m
 
   script:
@@ -39,7 +38,7 @@ documentation::generate-tracking-documentation:
     - echo "Generate docs"
 
     # this uses the presets saved in Doxyfile and outputs to DoxyOutput/xml
-    - doxygen
+    - doxygen.exe
 
   after_script:
     - $DOXY_LOCATION = "$PROJECT_PATH/DoxyOutput"
@@ -58,8 +57,7 @@ documentation::generate-tracking-documentation:
 build:build-project:
   stage: build
   tags:
-    - unreal
-    - windows  
+    - UE-4.27-5.1-5.4-staging 
   when: always
   retry: 2
   timeout: 1h
