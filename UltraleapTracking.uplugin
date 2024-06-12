@@ -53,10 +53,6 @@
 		{
 			"Name": "Niagara",
 			"Enabled": true
-		},
-		{
-			"Name": "OpenXR",
-			"Enabled": true
 		}
 	]
 }
