@@ -36,23 +36,26 @@ FDeviceCombiner::FDeviceCombiner(const LEAP_CONNECTION ConnectionHandleIn, IHand
 		CombinedDeviceSerial += " ";
 	}
 	// create a new combiner
-	switch (DeviceCombinerClass)
+	if (DevicesToCombineIn.Num()>=2)
 	{
-		case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE:
+		switch (DeviceCombinerClass)
 		{
-			Device = MakeShared<FUltraleapCombinedDeviceConfidence>(
-				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
-			break;
+			case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_CONFIDENCE:
+			{
+				Device = MakeShared<FUltraleapCombinedDeviceConfidence>(
+					(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
+				break;
+			}
+			case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_ANGULAR:
+			{
+				Device = MakeShared<FUltraleapCombinedDeviceAngular>(
+					(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
+				break;
+			}
+			default:
+				Device = MakeShared<FUltraleapCombinedDeviceConfidence>(
+					(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
 		}
-		case ELeapDeviceCombinerClass::LEAP_DEVICE_COMBINER_ANGULAR:
-		{
-			Device = MakeShared<FUltraleapCombinedDeviceAngular>(
-				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
-			break;
-		}
-		default:
-			Device = MakeShared<FUltraleapCombinedDeviceConfidence>(
-				(IHandTrackingWrapper*) this, (ITrackingDeviceWrapper*) this, DevicesToCombineIn);
 	}
 }
 

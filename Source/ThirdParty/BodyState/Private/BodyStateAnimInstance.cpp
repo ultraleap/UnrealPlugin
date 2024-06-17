@@ -1032,14 +1032,17 @@ void UBodyStateAnimInstance::HandleLeftRightFlip(FMappedBoneAnimData& ForMap)
 UBodyStateSkeleton* UBodyStateAnimInstance::GetCurrentSkeleton()
 {
 	UBodyStateSkeleton* Skeleton = nullptr;
-
-	if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR)
+	UWorld *World = GetWorld();
+	if (World)	
 	{
-		Skeleton = UBodyStateBPLibrary::SkeletonForDevice(this, GetActiveDeviceID());
-	}
-	else if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_COMBINED)
-	{
-		Skeleton = UBodyStateBPLibrary::RequestCombinedDevice(this, CombinedDeviceSerials, DeviceCombinerClass);
+		if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_SINGULAR)
+		{
+			Skeleton = UBodyStateBPLibrary::SkeletonForDevice(World, GetActiveDeviceID());
+		}
+		else if (MultiDeviceMode == EBSMultiDeviceMode::BS_MULTI_DEVICE_COMBINED)
+		{
+			Skeleton = UBodyStateBPLibrary::RequestCombinedDevice(World, CombinedDeviceSerials, DeviceCombinerClass);
+		}
 	}
 	return Skeleton;
 }
@@ -1332,6 +1335,11 @@ int32 UBodyStateAnimInstance::GetActiveDeviceID()
 
 void UBodyStateAnimInstance::OnDeviceAdded(const FString& DeviceSerial, const uint32 DeviceID)
 {
+	if (DeviceSerialToDeviceID.Find(DeviceSerial))
+	{
+		return;
+	}
+	
 	UpdateDeviceList();
 	
 	BodyStateSkeleton = GetCurrentSkeleton();

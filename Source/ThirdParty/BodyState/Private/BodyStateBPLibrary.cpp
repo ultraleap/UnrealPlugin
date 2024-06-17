@@ -46,9 +46,12 @@ int32 UBodyStateBPLibrary::AttachDeviceNative(
 {
 	
 	int32 DeviceID = IBodyState::Get().AttachDevice(Configuration, InputCallbackDelegate);
-	for (auto DeviceListener : DeviceChangeListeners)
+	for (IBodyStateDeviceChangeListener* DeviceListener : DeviceChangeListeners)
 	{
-		DeviceListener->OnDeviceAdded(Configuration.DeviceSerial, DeviceID);
+		if (DeviceListener)
+		{
+			DeviceListener->OnDeviceAdded(Configuration.DeviceSerial, DeviceID);
+		}
 	}
 	return DeviceID;
 }
