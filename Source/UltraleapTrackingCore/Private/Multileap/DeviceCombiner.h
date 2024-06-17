@@ -39,8 +39,12 @@ public:
 
 	virtual void SetPolicy(int64 Flags, int64 ClearFlags) override;
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override;
+
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
+
+	virtual void GetTrackingMode() override;
+	virtual void GetTrackingModeEx(const uint32_t DeviceID = -1) override;
 	// Polling functions
 
 	/** Get latest frame - critical section locked */

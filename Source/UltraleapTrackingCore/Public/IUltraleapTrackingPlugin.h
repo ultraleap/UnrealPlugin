@@ -14,8 +14,6 @@
 
 class ULeapComponent;
 
-
-
 class IHandTrackingDevice
 {
 public:
@@ -37,7 +35,9 @@ public:
 	virtual bool GetJointOcclusionConfidences(const FString& DeviceSerial, TArray<float>& Left, TArray<float>& Right) = 0;
 	virtual void GetDebugInfo(int32& NumCombinedLeft, int32& NumCombinedRight) = 0;
 	virtual int32 GetBodyStateDeviceID() = 0;
+	virtual uint32_t GetDeviceID() = 0;
 };
+
 class ITrackingDeviceWrapper
 {
 public:
@@ -67,6 +67,7 @@ public:
 	virtual void OnConfigChange(const uint32_t RequestID, const bool Success){};
 	virtual void OnConfigResponse(const uint32_t RequestID, LEAP_VARIANT Value){};
 };
+
 class IHandTrackingWrapper
 {
 public:
@@ -91,6 +92,10 @@ public:
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) = 0;
 	virtual void SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID = 0) = 0;
+	// These calls make the request for the tracking mode which can then be polled
+    virtual void GetTrackingMode() = 0;
+	virtual void GetTrackingModeEx(const uint32_t DeviceID = 0) = 0;
+
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -100,6 +105,11 @@ public:
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) = 0;
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) = 0;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) = 0;
+
+	virtual bool IsDeviceTransformAvailable(const uint32_t SuppliedDeviceID = -1) = 0;
+	virtual FTransform GetDeviceTransform(const uint32_t SuppliedDeviceID = -1) = 0;
+	virtual void UpdateDeviceTransformFromService() = 0;
 
 	virtual FString ResultString(eLeapRS Result) = 0;
 

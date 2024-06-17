@@ -80,6 +80,10 @@ public:
 		SwizzleW = ToW;
 	}
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
+
+    virtual void GetTrackingMode() override;
+	virtual void GetTrackingModeEx(const uint32_t ExternalDeviceID = 0) override;
+
 	virtual uint32_t GetDeviceID() override
 	{
 		return DeviceID;

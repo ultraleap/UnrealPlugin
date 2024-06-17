@@ -97,6 +97,7 @@ LEAP_CONNECTION* FDeviceCombiner::OpenConnection(
 	bIsConnected = true;
 	return nullptr;
 }
+
 void FDeviceCombiner::CloseConnection()
 {
 	if (!bIsConnected)
@@ -129,6 +130,29 @@ void FDeviceCombiner::SetTrackingMode(eLeapTrackingMode TrackingMode)
 	}
 	Connector->SetTrackingModeEx(TrackingMode, DeviceID);
 }
+
+void FDeviceCombiner::GetTrackingMode()
+{
+	if (!Connector)
+	{
+		return;
+	}
+
+	Connector->GetTrackingModeEx(DeviceID);
+}
+
+void FDeviceCombiner::GetTrackingModeEx(const uint32_t SuppliedDeviceID /* = 0 */)
+{
+	if (SuppliedDeviceID != -1 && SuppliedDeviceID != DeviceID)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("FDeviceCombiner::GetTrackingModeEx has given a DeviceID that is not the same as this combiner's ID"));
+	}
+	else
+	{
+		Connector->GetTrackingModeEx(DeviceID);
+	}
+}
+
 // Set policy is superceded by SetTrackingMode but still needed for images
 void FDeviceCombiner::SetPolicy(int64 Flags, int64 ClearFlags)
 {
@@ -138,7 +162,6 @@ void FDeviceCombiner::SetPolicy(int64 Flags, int64 ClearFlags)
 	}
 	Connector->SetPolicyEx(Flags,ClearFlags, DeviceID);
 }
-
 
 void FDeviceCombiner::SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet)
 {

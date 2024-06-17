@@ -42,6 +42,10 @@ public:
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override;
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
+
+	// These call(s) make the request for the tracking mode which can then be polled
+	virtual void GetTrackingMode() override;
+
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -51,6 +55,11 @@ public:
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTime(int64 TimeStamp) override;
 
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() override;	 // Used in polling example
+
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) override;
+	virtual bool IsDeviceTransformAvailable(const uint32_t SuppliedDeviceID = -1) override;
+	virtual FTransform GetDeviceTransform(const uint32_t SuppliedDeviceID = -1) override;
+	virtual void UpdateDeviceTransformFromService() override;
 
 	virtual void EnableImageStream(bool bEnable) override;
 	virtual int64_t GetNow() override

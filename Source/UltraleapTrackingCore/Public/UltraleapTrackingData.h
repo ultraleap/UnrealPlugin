@@ -240,6 +240,11 @@ struct ULTRALEAPTRACKING_API FLeapOptions
 	UPROPERTY(BlueprintReadWrite, Category = "Leap Options")
 	FRotator HMDRotationOffset;
 
+	 /** Indicates if the device transform data has come from the service, in which case it provides data for transforming to OpenXR
+	 * from Leap coordinates, an additional step is required to go from OpenXR to Unreal */
+	UPROPERTY(BlueprintReadOnly, Category = "Leap Options")
+	bool SuppliedTransformsAreForLeapToOpenXR;
+
 	/** Enable or disable the use of frame based gesture detection (old system)*/
 	UPROPERTY(BlueprintReadWrite, Category = "Gesture Options")
 	bool bUseFrameBasedGestureDetection;
@@ -288,7 +293,8 @@ struct ULTRALEAPTRACKING_API FLeapBoneData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
 	float Width;
 
-	void SetFromLeapBone(struct _LEAP_BONE* bone, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetFromLeapBone(struct _LEAP_BONE* bone, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset,
+		const bool SuppliedTransformsAreForLeapToOpenXR = false);
 	void ScaleBone(float Scale);
 	void RotateBone(const FRotator& InRotation);
 	void TranslateBone(const FVector& InTranslation);
@@ -320,7 +326,9 @@ struct ULTRALEAPTRACKING_API FLeapPalmData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
 	float Width;
 
-	void SetFromLeapPalm(struct _LEAP_PALM* palm, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetFromLeapPalm(struct _LEAP_PALM* palm, const FVector& LeapMountTranslationOffset,
+		const FQuat& LeapMountRotationOffsetconst, const bool SuppliedTransformsAreForLeapToOpenXR = false);
+
 	void ScalePalm(float Scale);
 	void RotatePalm(const FRotator& InRotation);
 	void TranslatePalm(const FVector& InTranslation);
@@ -352,8 +360,9 @@ struct ULTRALEAPTRACKING_API FLeapDigitData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
 	FLeapBoneData Proximal;
 
-	void SetFromLeapDigit(
-		struct _LEAP_DIGIT* digit, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetFromLeapDigit(struct _LEAP_DIGIT* digit, const FVector& LeapMountTranslationOffset,
+		const FQuat& LeapMountRotationOffset, const bool SuppliedTransformsAreForLeapToOpenXR = false);
+
 	void ScaleDigit(float Scale);
 	void RotateDigit(const FRotator& InRotation);
 	void TranslateDigit(const FVector& InTranslation);
@@ -416,11 +425,13 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	float VisibleTime;
 
 	/** Copy all data from leap type*/
-	void SetFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset, 
+		const bool SuppliedTransformsAreForLeapToOpenXR = false);
 
 	/** Used in interpolation*/
-	void SetArmPartialsFromLeapHand(
-		struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset,
+		const FQuat& LeapMountRotationOffset, const bool SuppliedTransformsAreForLeapToOpenXR = false);
+
 
 	void ScaleHand(float Scale);
 	void RotateHand(const FRotator& InRotation);
@@ -462,10 +473,12 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 
 	FLeapHandData HandForId(int32 HandId);
 
-	void SetFromLeapFrame(
-		struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
-	void SetInterpolationPartialFromLeapFrame(
-		struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
+	void SetFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset,
+		const FQuat& LeapMountRotationOffset, const bool SuppliedTransformsAreForLeapToOpenXR = false);
+
+	void SetInterpolationPartialFromLeapFrame(struct _LEAP_TRACKING_EVENT* frame, const FVector& LeapMountTranslationOffset,
+		const FQuat& LeapMountRotationOffset, const bool SuppliedTransformsAreForLeapToOpenXR = false);
+
 	void ScaleFrame(float Scale);
 	void RotateFrame(const FRotator& InRotation);
 	void TranslateFrame(const FVector& InTranslation);

@@ -169,6 +169,38 @@ void FLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetTrackingMode failed in  FLeapWrapper::SetTrackingMode."));
 	}
 }
+void FLeapWrapper::GetTrackingMode()
+{
+	eLeapRS Result = LeapGetTrackingMode(ConnectionHandle);
+
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("GetTrackingMode failed in  FLeapWrapper::GetTrackingMode."));
+	}
+}
+void FLeapWrapper::GetTrackingModeEx(const uint32_t SuppliedDeviceID /* = 0 */)
+{
+	if (SuppliedDeviceID != -1)
+	{
+		for (auto Device : Devices)
+		{
+			if (Device->GetDeviceID() == SuppliedDeviceID)
+			{
+				return Device->GetTrackingModeEx();
+			}
+		}
+
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FLeapWrapper::GetTrackingModeEx has given an unknown DeviceID"));
+
+		return;
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FLeapWrapper::IsDeviceTransformAvailable has not been given a DeviceID"));
+	}
+}
 LEAP_DEVICE FLeapWrapper::GetDeviceHandleFromDeviceID(const uint32_t DeviceID)
 {
 	LEAP_DEVICE DeviceHandle = nullptr;
@@ -788,6 +820,10 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 			case eLeapEventType_ConfigResponse:
 				HandleConfigResponseEvent(Msg.config_response_event, Msg.device_id);
 				break;
+			case eLeapEventType_NewDeviceTransform:
+				HandleNewDeviceTransform(Msg.new_device_transform_event, Msg.device_id);
+				break;
+
 			default:
 				// discard unknown message types
 				// UE_LOG(UltraleapTrackingLog, Log, TEXT("Unhandled message type %i."), (int32)Msg.type);
@@ -795,6 +831,7 @@ void FLeapWrapper::ServiceMessageLoop(void* Unused)
 		}	 // switch on msg.type
 	}		 // end while running
 }
+
 void FLeapWrapper::GetDeviceSerials(TArray<FString>& DeviceSerials)
 {
 	for (auto Device : Devices)
@@ -802,6 +839,7 @@ void FLeapWrapper::GetDeviceSerials(TArray<FString>& DeviceSerials)
 		DeviceSerials.Add(Device->GetDeviceSerial());
 	}
 }
+
 IHandTrackingWrapper* FLeapWrapper::FindAggregator(
 	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass)
 {
@@ -815,6 +853,7 @@ IHandTrackingWrapper* FLeapWrapper::FindAggregator(
 	}
 	return Ret;
 }
+
 IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass)
 {
@@ -843,6 +882,7 @@ IHandTrackingWrapper* FLeapWrapper::CreateAggregator(
 	}
 	return Ret;
 }
+
 // gets a singular device from the real devices
 IHandTrackingWrapper* FLeapWrapper::GetSingularDeviceBySerial(const FString& DeviceSerial)
 {
@@ -855,6 +895,7 @@ IHandTrackingWrapper* FLeapWrapper::GetSingularDeviceBySerial(const FString& Dev
 	}
 	return nullptr;
 }
+
 // gets a device, finds or creates combined device
 IHandTrackingWrapper* FLeapWrapper::GetDevice(
 	const TArray<FString>& DeviceSerials, const ELeapDeviceCombinerClass DeviceCombinerClass, const bool AllowOpenXR)
@@ -900,6 +941,7 @@ IHandTrackingWrapper* FLeapWrapper::GetDevice(
 	}
 	return Ret;
 }
+
 void FLeapWrapper::TickDevices(const float DeltaTime) 
 {
 	// safe point to cleanup force deleted devices
@@ -925,6 +967,7 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 		}
 	}
 }
+
 void FLeapWrapper::TickSendControllerEventsOnDevices()
 {
 	TArray<IHandTrackingWrapper*> AllDevices;
@@ -945,6 +988,7 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 		}
 	}
 }
+
 ELeapDeviceType FLeapWrapper::GetDeviceTypeFromSerial(const FString& DeviceSerial)
 {
 	auto Device = GetSingularDeviceBySerial(DeviceSerial);
@@ -954,16 +998,19 @@ ELeapDeviceType FLeapWrapper::GetDeviceTypeFromSerial(const FString& DeviceSeria
 	}
 	return ELeapDeviceType::LEAP_DEVICE_INVALID;
 }
+
 // custom callback system as event delegates don't work in editor
 // due to a filter for callineditor deep in UObject
 void FLeapWrapper::AddLeapConnectorCallback(ILeapConnectorCallbacks* Callback)
 {
 	LeapConnectorCallbacks.AddUnique(Callback);
 }
+
 void FLeapWrapper::RemoveLeapConnnectorCallback(ILeapConnectorCallbacks* Callback)
 {
 	LeapConnectorCallbacks.Remove(Callback);
 }
+
 void FLeapWrapper::PostEarlyInit()
 {
 	if (UseOpenXR)
@@ -971,7 +1018,8 @@ void FLeapWrapper::PostEarlyInit()
 		AddOpenXRDevice(nullptr);
 	}
 }
-	// Must be called from the game thread
+
+// Must be called from the game thread
 void FLeapWrapper::NotifyDeviceAdded(IHandTrackingWrapper* Device)
 {
 	for (auto Callback : LeapConnectorCallbacks)
@@ -979,6 +1027,7 @@ void FLeapWrapper::NotifyDeviceAdded(IHandTrackingWrapper* Device)
 		Callback->OnDeviceAdded(Device);
 	}
 }
+
 void FLeapWrapper::NotifyDeviceRemoved(IHandTrackingWrapper* Device)
 {
 	for (auto Callback : LeapConnectorCallbacks)
@@ -986,6 +1035,7 @@ void FLeapWrapper::NotifyDeviceRemoved(IHandTrackingWrapper* Device)
 		Callback->OnDeviceRemoved(Device);
 	}
 }
+
 void FLeapWrapper::CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper* Device)
 {
 	TArray<IHandTrackingWrapper*> CombinedDevicesToCleanup;
@@ -1005,10 +1055,12 @@ void FLeapWrapper::CleanupCombinedDevicesReferencingDevice(IHandTrackingWrapper*
 	}
 
 }
+
 void FLeapWrapper::CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper)
 {
 	 DevicesToCleanup.AddUnique(DeviceWrapper);
 }
+
 void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDelegate)
 {
 	IHandTrackingWrapper* Device = new FOpenXRToLeapWrapper();
@@ -1051,6 +1103,103 @@ void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceI
 	}
 
 	FLeapUtility::CleanupConstCharArray(CharArrayPtr, Size);
+}
+
+void FLeapWrapper::HandleNewDeviceTransform(const _LEAP_NEW_DEVICE_TRANSFORM* DeviceTransformEvent, const uint32_t DeviceID)
+{
+	for (int i = 0; i < Devices.Num(); i++)
+	{
+		if (Devices[i]->GetDeviceID() == DeviceID)
+		{
+			Devices[i]->UpdateDeviceTransformFromService();
+		}
+	}
+}
+
+/// <summary>
+/// Retrieve the specfied version information for the LeapC client or server
+/// </summary>
+/// <param name="versionPart">Requested version target</param>
+/// <param name="pVersionPart">Pointer to a LEAP_VERSION structure</param>
+/// <returns>True, if call was successful, otherwise false</returns>
+bool FLeapWrapper::GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart)
+{
+	eLeapRS Result = LeapGetVersion(ConnectionHandle, versionPart, pVersionPart);
+
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapC LeapGetVersion returned an unsuccessful result\n"));
+		return false;
+	}
+
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapC LeapGetVersion returned %d,%d,%d\n"), pVersionPart->major, pVersionPart->minor,
+		pVersionPart->patch);
+	return true;
+}
+
+bool FLeapWrapper::IsDeviceTransformAvailable(const uint32_t SuppliedDeviceID /* = -1 */)
+{
+	if (Devices.Num() == 0)
+		return false;
+
+	if (SuppliedDeviceID != -1)
+	{
+		for (auto Device : Devices)
+		{
+			if (Device->GetDeviceID() == SuppliedDeviceID)
+			{
+				return Device->IsDeviceTransformAvailable();
+			}
+		}
+
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FLeapWrapper::IsDeviceTransformAvailable has given an unknown DeviceID, returning false"));
+
+		return false;
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FLeapWrapper::IsDeviceTransformAvailable has not been given a DeviceID, returning false"));
+
+		return false;
+	}
+
+	return false;
+}
+
+FTransform FLeapWrapper::GetDeviceTransform(const uint32_t SuppliedDeviceID /* = -1 */)
+{
+	if (SuppliedDeviceID != -1)
+	{
+		for (auto Device:Devices)
+		{
+			if (Device->GetDeviceID() == SuppliedDeviceID)
+			{
+				return Device->GetDeviceTransform();
+			}
+		}
+
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FLeapWrapper::GetDeviceTransform has given an unknown DeviceID, returning Identity"));
+
+		return FTransform::Identity;
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Warning,
+			TEXT("FLeapWrapper::GetDeviceTransform has not been given a DeviceID, returning Identity"));
+
+		return FTransform::Identity;
+	}
+}
+
+void FLeapWrapper::UpdateDeviceTransformFromService()
+{
+	for (auto Device : Devices)
+	{
+		Device->UpdateDeviceTransformFromService();
+	}
 }
 
 #pragma endregion LeapC Wrapper

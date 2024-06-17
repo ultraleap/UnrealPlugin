@@ -646,6 +646,7 @@ void FOpenXRToLeapWrapper::CloseConnection()
 
 	UE_LOG(UltraleapTrackingLog, Log, TEXT("FOpenXRToLeapWrapper Connection successfully closed."));
 }
+
 void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 {
 	// needed to make sure delegates in BP get called back on mode change
@@ -654,6 +655,21 @@ void FOpenXRToLeapWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 		CallbackDelegate->OnTrackingMode(TrackingMode);
 	}
 }
+
+/// <summary>
+/// This is a null op and does nothing for OpenXR
+/// </summary>
+void FOpenXRToLeapWrapper::GetTrackingMode()
+{
+}
+
+/// <summary>
+/// This is a null op and does nothing for OpenXR
+/// </summary>
+void FOpenXRToLeapWrapper::GetTrackingModeEx(uint32_t ExternalDeviceID /* = 0 */)
+{
+}
+
 void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
 {
 	// simulate pinch and grab state (in LeapC this comes from the tracking service)
@@ -662,10 +678,12 @@ void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
 		UpdatePinchAndGrab(Hand);
 	}
 }
+
 void FOpenXRToLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID)
 {
 	// TODO implement this when XR is ready
 }
+
 IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 {
 	return Device.Get();

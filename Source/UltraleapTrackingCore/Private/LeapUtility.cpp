@@ -27,6 +27,11 @@ DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 // Static vars
 #define LEAP_TO_UE_SCALE 0.1f
 #define UE_TO_LEAP_SCALE 10.f
+#define LEAP_TO_OPENXR_SCALE 0.001	  // (Leap) mm to m (OpenXR)
+
+// Device transforms come in in OpenXR space. OpenXR uses a right handed, y-up coordinate system, Unreal is left handed, z-up
+// Unreal units are in mm by default, OpenXR is in m
+#define OPENXR_DISTANCE_UNITS_TO_UNREAL_UNITS 100.0f;	 // m -> cm
 
 FQuat FLeapUtility::LeapRotationOffset;
 
@@ -42,6 +47,21 @@ float LeapGetWorldScaleFactor()
 	}
 	return 1.f;
 }
+
+// Single point to handle OpenXR to Unreal conversion
+FVector FLeapUtility::ConvertOpenXRVectorToUnrealVector(const FVector& OpenXRVector)
+{
+	// Unreal - +X forward, +Y right, +z up
+	// OpenXR - +X right,   +Y up,    -z forward
+	//
+	// So OpenXR X -> Unreal Y
+	//    OpenXR Y -> Unreal Z
+	//    OpenXR Z -> Unreal -X
+
+	// Expects input data in VR Orientation
+	return FVector(-OpenXRVector.Z, OpenXRVector.X, OpenXRVector.Y) * OPENXR_DISTANCE_UNITS_TO_UNREAL_UNITS;
+}
+
 void FLeapUtility::LogRotation(const FString& Text, const FRotator& Rotation)
 {
 	if (GEngine)
@@ -85,32 +105,95 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 }
 
 
-FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
-	const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
+FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector,
+	const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset, const bool SuppliedTransformsAreForLeapToOpenXR)
 {
 	if (FLeapUtility::ContainsNaN(LeapVector))
 	{
 		return LeapMountRotationOffset.RotateVector(FVector::ForwardVector);
 	}
-	// Scale from mm to cm (ue default)
-	FVector ConvertedVector =
-		(ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
-	if (ConvertedVector.ContainsNaN())
-	{
-		ConvertedVector = FVector::ZeroVector;
-		UE_LOG(UltraleapTrackingLog, Log,
-			TEXT("FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets Warning - NAN received from tracking device"));
-	}
+	
 	// Rotate our vector to adjust for any global rotation offsets
-	return LeapMountRotationOffset.RotateVector(ConvertedVector);
+	if (SuppliedTransformsAreForLeapToOpenXR)
+	{	
+		FVector OpenXRVector =
+			LeapMountRotationOffset.RotateVector(FVector(LeapVector.x, LeapVector.y, LeapVector.z)) * LEAP_TO_OPENXR_SCALE;
+
+		if (OpenXRVector.ContainsNaN())
+		{
+			OpenXRVector = FVector::ZeroVector;
+			UE_LOG(UltraleapTrackingLog, Log,
+				TEXT("FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets Warning - NAN received from tracking "
+						"device"));
+		}
+
+		FVector OffsetOpenXRVector = OpenXRVector + LeapMountTranslationOffset;
+		FVector UnrealVector = ConvertOpenXRVectorToUnrealVector(OffsetOpenXRVector);
+
+		return UnrealVector;
+	}
+	else
+	{
+		// Scale from mm to cm (ue default)
+		FVector ConvertedVector =
+			(ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
+		if (ConvertedVector.ContainsNaN())
+		{
+			ConvertedVector = FVector::ZeroVector;
+			UE_LOG(UltraleapTrackingLog, Log,
+				TEXT("FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets Warning - NAN received from tracking "
+					 "device"));
+		}
+		return LeapMountRotationOffset.RotateVector(ConvertedVector);
+	}
 }
 
-FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset)
+FQuat FLeapUtility::ConvertToFQuatWithHMDOffsets(
+	LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset, const bool SuppliedTransformsAreForLeapToOpenXR)
 {
-	FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion);
-	return LeapMountRotationOffset * UEQuat;
-}
+	if (SuppliedTransformsAreForLeapToOpenXR)
+	{
+		FQuat Quat;
 
+		// The first part of this code duplicates the code in ConvertLeapQuatToFQuat - *it's unclear why this swizzling is done in that code*
+		
+		// It's -Z, X, Y tilted back by 90 degree which is -y,x,z
+		Quat.X = -Quaternion.y;
+		Quat.Y = Quaternion.x;
+		Quat.Z = Quaternion.z;
+		Quat.W = Quaternion.w;
+
+		// We then apply our adjusted LeapMountRotationOffset in place of the usual LeapRotationOffset
+		// Why this order? Well ...
+		// [A] ... the rotation values for a headset - e.g. a Lynx - map onto the default values set in LeapRotationOffset based on this mapping
+		/// (Y, X, -Z)
+		FQuat AdjustedLeapMountRotationOffset = FQuat(
+			FRotator(LeapMountRotationOffset.Euler().Y, LeapMountRotationOffset.Euler().X, -LeapMountRotationOffset.Euler().Z));
+
+		auto OpenXRQuat = Quat * AdjustedLeapMountRotationOffset;
+
+		// Remove this debugging code
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapRotationOffset : (%f,%f,%f)"), LeapRotationOffset.Euler().X,
+			LeapRotationOffset.Euler().Y, LeapRotationOffset.Euler().Z);
+
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("AdjustedLeapMountRotationOffset : (%f,%f,%f)"),
+			AdjustedLeapMountRotationOffset.Euler().X, AdjustedLeapMountRotationOffset.Euler().Y,
+			AdjustedLeapMountRotationOffset.Euler().Z);
+
+		// Apply an additional correction - Rotate 90 around red (tilt), then rotate 90 around blue (yaw) to bring the red axis
+		// to point down the left index finger, blue axis to point up and green axis to point to the right
+		// (where the axes are based on the visualization of the bone orientations in the blueprint)  
+		// Rotation order is: green / blue / red
+		// *** It's not clear why we needed to do this, but it works (maybe it's to do with the mapping in [A]) (((
+		return OpenXRQuat * FQuat(FRotator3d(0, 0, 90)) * FQuat(FRotator3d(0, 90, 0));
+	}
+	else
+	{
+		FQuat UEQuat = ConvertLeapQuatToFQuat(Quaternion);
+		auto afterMountRotation = LeapMountRotationOffset * UEQuat;
+		return afterMountRotation;
+	}
+}
 
 FMatrix FLeapUtility::SwapLeftHandRuleForRight(const FMatrix& UEMatrix)
 {

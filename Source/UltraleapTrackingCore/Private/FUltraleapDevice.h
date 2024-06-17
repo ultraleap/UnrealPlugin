@@ -33,8 +33,6 @@ public:
 		const bool StartInOpenXRMode = false);
 	virtual ~FUltraleapDevice();
 
-	
-
 	/** Main input capture and event parsing 'tick' */
 	void CaptureAndEvaluateInput();
 	void ParseEvents();
@@ -49,6 +47,11 @@ public:
 	virtual void GetLatestFrameData(FLeapFrameData& OutData,const bool ApplyDeviceOrigin = false) override;
 	FLeapOptions GetOptions() override;
 	FLeapStats GetStats() override;
+	bool IsGetDeviceTransformSupported();
+	bool IsDeviceTransformAvailable();
+	FTransform GetDeviceTransform();
+	void UpdateDeviceTransformFromService();
+
 	virtual ELeapDeviceType GetDeviceType()
 	{
 		return DeviceType;
@@ -86,6 +89,10 @@ public:
 	// Policy and toggles
 	void SetLeapPolicy(ELeapPolicyFlag Flag, bool Enable);
 	void SetTrackingMode(ELeapMode Flag);
+    void GetTrackingMode();
+
+	uint32_t GetDeviceID() override;
+  
 	// BodyState
 	virtual void UpdateInput(int32 DeviceID, class UBodyStateSkeleton* Skeleton) override;
 	virtual void OnDeviceDetach();

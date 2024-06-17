@@ -448,7 +448,9 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			{
 				return;
 			}
-			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
+
+			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion(),
+				Options.SuppliedTransformsAreForLeapToOpenXR);
 
 			// Get the future interpolated hand frame, farther than fingers to provide
 			// lower latency
@@ -457,20 +459,24 @@ void FUltraleapDevice::CaptureAndEvaluateInput()
 			{
 				return;
 			}
-			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame,Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
+			CurrentFrame.SetInterpolationPartialFromLeapFrame(Frame, Options.HMDPositionOffset,
+				Options.HMDRotationOffset.Quaternion(), Options.SuppliedTransformsAreForLeapToOpenXR);
 
 			// Track our extrapolation time in stats
 			Stats.FrameExtrapolationInMS = (CurrentFrame.TimeStamp - TimeWarpTimeStamp) / 1000.f;
 		}
 		else
 		{
-			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
+			CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion(),
+				Options.SuppliedTransformsAreForLeapToOpenXR);
+
 			Stats.FrameExtrapolationInMS = 0;
 		}
 	}
 	else
 	{
-		CurrentFrame.SetFromLeapFrame(Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion());
+		CurrentFrame.SetFromLeapFrame(
+			Frame, Options.HMDPositionOffset, Options.HMDRotationOffset.Quaternion(), false);
 		Stats.FrameExtrapolationInMS = 0;
 	}
 
@@ -1057,6 +1063,14 @@ void FUltraleapDevice::SetTrackingMode(ELeapMode Flag)
 	}
 }
 
+/// <summary>
+/// Prompts the service to return the tracking mode asynchronously, passes the internal DeviceID to the service using GetTrackingModeEx
+/// </summary>
+void FUltraleapDevice::GetTrackingMode()
+{
+	Leap->GetTrackingModeEx(Leap->GetDeviceID());
+}
+
 void FUltraleapDevice::SetDeviceHints(TArray<FString>& Hints)
 {
 	if (Leap)
@@ -1064,6 +1078,7 @@ void FUltraleapDevice::SetDeviceHints(TArray<FString>& Hints)
 		Leap->SetDeviceHints(Hints);
 	}
 }
+
 
 #pragma endregion Leap Input Device
 
@@ -1222,8 +1237,11 @@ void FUltraleapDevice::SwitchTrackingSource(const bool UseOpenXRAsSource)
 {
 	Leap->OpenConnection(this);
 }
+
 void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 {
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("Ultraleap Unreal Plugin: In SetOptions, HMD Device Type is %s"), *HMDType.ToString());
+
 	if (GEngine && GEngine->XRSystem.IsValid())
 	{
 		HMDType = GEngine->XRSystem->GetSystemName();
@@ -1287,6 +1305,64 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	}
 	else
 	{
+		bool readDeviceTransform = false;
+
+		// Assume the first device, 
+		if (IsGetDeviceTransformSupported())
+		{
+			// OpenXR will handle the device transform internally
+			if (!Options.bUseOpenXRAsSource)	
+			{
+				UE_LOG(UltraleapTrackingLog, Log, TEXT("OpenXR is set as the source for hand tracking data"));
+
+				auto transform = GetDeviceTransform();
+
+				Options.HMDPositionOffset = transform.GetTranslation();
+				Options.HMDRotationOffset = transform.GetRotation().Rotator();
+
+				// Set up the default Leap -> OpenXR rotation, if it looks to be zero.
+				if (Options.HMDRotationOffset.IsZero())
+				{
+					Options.HMDRotationOffset = FRotator(0, 180, 90); // TODO check if this is needed
+				}
+
+				UE_LOG(UltraleapTrackingLog, Log,
+					TEXT("Read and converted (to Unreal scale/basis vectors) the following device transform (translation, "
+						 "rotation) values from the service"));
+
+				UE_LOG(UltraleapTrackingLog, Log,
+					TEXT("Offset will be set to: [%f %f %f]\nRotation will be set to (pitch, roll, yaw): [%f %f %f]\n"),
+					Options.HMDPositionOffset.X, Options.HMDPositionOffset.Y, Options.HMDPositionOffset.Z,
+					Options.HMDRotationOffset.Pitch, Options.HMDRotationOffset.Roll, Options.HMDRotationOffset.Yaw);
+
+				Options.SuppliedTransformsAreForLeapToOpenXR = true;
+
+				readDeviceTransform = true;
+			}
+			else
+			{
+				UE_LOG(UltraleapTrackingLog, Log,
+					TEXT("Reading the device transform from is supported by this version of the service, but the system is using "
+						 "OpenXR which should handle it internally"));
+			}
+		}
+		else
+		{
+			UE_LOG(UltraleapTrackingLog, Warning,
+				TEXT("Reading the device transform from the service is not supported by this version of the service"));
+		}
+
+		// Use the default transform and rotation of 8cm forward, straight ahead, no tilt if none looks to be set
+		if (Options.HMDPositionOffset.IsNearlyZero() || InOptions.HMDPositionOffset.IsNearlyZero())
+		{
+			UE_LOG(UltraleapTrackingLog, Log,
+				TEXT("%s doesn't have proper defaults set yet for the position offset, using fallback value"), *HMDType.ToString());
+
+			Options.HMDPositionOffset = FVector(80, 0, 0);
+			Options.HMDRotationOffset = FRotator(0, 0, 0);
+			Options.SuppliedTransformsAreForLeapToOpenXR = false;
+		}
+
 		// Vive
 		// NOTE: even when not in VR, HMDType is initialized to "SteamVR" so will
 		// pass through here (is it supposed to?)
@@ -1343,24 +1419,10 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 				default:
 					break;
 			}
-			Options.HMDPositionOffset = FVector(90, 0, 0);
 		}
-
 		// Rift, note requires negative timewarp!
 		else if (HMDType == TEXT("OpenXR"))
 		{
-			// Apply default options to zero offsets/rotations
-			if (InOptions.HMDPositionOffset.IsNearlyZero())
-			{
-				// in mm
-				FVector OculusOffset = FVector(80.0, 0, 0);
-				Options.HMDPositionOffset = OculusOffset;
-			}
-			if (InOptions.HMDRotationOffset.IsNearlyZero())
-			{
-				Options.HMDRotationOffset = FRotator(-4, 0, 0);	   // typically oculus mounts sag a tiny bit
-			}
-
 			switch (InOptions.TrackingFidelity)
 			{
 				case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
@@ -1370,8 +1432,8 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.TimewarpFactor = -1.f;
 					Options.HandInterpFactor = 0.5;
 					Options.FingerInterpFactor = 0.5f;
-
 					break;
+
 				case ELeapTrackingFidelity::LEAP_NORMAL:
 					if (DeviceType == ELeapDeviceType::LEAP_DEVICE_TYPE_PERIPHERAL)
 					{
@@ -1396,28 +1458,45 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 					Options.HandInterpFactor = -1.f;
 					Options.FingerInterpFactor = -1.f;
 					break;
+
 				case ELeapTrackingFidelity::LEAP_CUSTOM:
 					break;
+
 				default:
 					break;
 			}
 		}
 		else	// For android
 		{
-			Options.TimewarpOffset = 16000;
-			Options.bUseTimeWarp = true;
-			Options.bUseInterpolation = true;
-			Options.TimewarpFactor = -1.f;
-			Options.HandInterpFactor = -2.2;
-			Options.FingerInterpFactor = -2.2;
+			switch (InOptions.TrackingFidelity)
+			{
+				case ELeapTrackingFidelity::LEAP_LOW_LATENCY:
+				case ELeapTrackingFidelity::LEAP_NORMAL:
+				case ELeapTrackingFidelity::LEAP_SMOOTH:
+					Options.TimewarpOffset = 16000;
+					Options.bUseTimeWarp = true;
+					Options.bUseInterpolation = true;
+					Options.TimewarpFactor = -1.f;
+					Options.HandInterpFactor = -2.2;
+					Options.FingerInterpFactor = -2.2;
+					break;
+
+				case ELeapTrackingFidelity::LEAP_CUSTOM:
+					break;
+
+				default:
+					break;
+			}
 		}
 	}
+
 	// HMD offset not allowed in OpenXR (already corrected)
 	if (Options.bUseOpenXRAsSource)
 	{
 		Options.HMDPositionOffset = FVector(0, 0, 0);
 		Options.HMDRotationOffset = FRotator(0, 0, 0);
 	}
+
 	// Ensure other factors are synced
 	HandInterpolationTimeOffset = Options.HandInterpFactor * FrameTimeInMicros;
 	FingerInterpolationTimeOffset = Options.FingerInterpFactor * FrameTimeInMicros;
@@ -1440,6 +1519,93 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 	PinchTimeout = Options.PinchTimeout;
 
 }
+
+/// <summary>
+/// Returns the DeviceID associated with this tracking device
+/// </summary>
+/// <returns></returns>
+uint32_t FUltraleapDevice::GetDeviceID()
+{
+	return Leap->GetDeviceID();
+}
+
+bool FUltraleapDevice::IsDeviceTransformAvailable()
+{
+	return Leap->IsDeviceTransformAvailable(Leap->GetDeviceID());
+}
+
+bool FUltraleapDevice::IsGetDeviceTransformSupported()
+{
+	LEAP_VERSION version;
+	bool isSupported = false;
+
+	version.major = 0;
+	version.minor = 0;
+
+	if (Leap->GetVersion(eLeapVersionPart_ServerLibrary, &version))
+	{
+		if (version.major == 5)
+		{
+			if (version.minor >= 11)
+			{
+				isSupported = Leap->IsDeviceTransformAvailable(Leap->GetDeviceID());
+			}
+		}
+
+		if (version.major > 5)
+		{
+			isSupported = Leap->IsDeviceTransformAvailable(Leap->GetDeviceID());
+		}
+	}
+
+	if (!isSupported)
+	{
+		UE_LOG(UltraleapTrackingLog, Log,
+			TEXT("FUltraleapDevice::IsGetDeviceTransformSupported LeapGetDeviceTransform is not supported on this version of the "
+				 "service: V%d.%d or for this headset/tracking device combination"), version.major, version.minor);
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Log,
+			TEXT("FUltraleapDevice::IsGetDeviceTransformSupported LeapGetDeviceTransform is supported on this version of the "
+				 "service V%d.%d and for this headset/ tracking device combination"), version.major, version.minor);
+	}
+
+	return isSupported;
+}
+
+/// <summary>
+/// Reads the device pose from the tracking platform as a 4x4 matrix
+/// </summary>
+/// <returns>The device pose (transform and offset, known to the platform for this headset</returns>
+FTransform FUltraleapDevice::GetDeviceTransform()
+{
+	if (IsGetDeviceTransformSupported())
+	{
+		return Leap->GetDeviceTransform(Leap->GetDeviceID());
+	}
+	else
+	{
+		FTransform identity;
+		identity.SetIdentity();
+		return identity;
+	}
+}
+
+/// <summary>
+/// Reads the device transform from the service and updates the local values
+/// </summary>
+/// <returns></returns>
+void FUltraleapDevice::UpdateDeviceTransformFromService()
+{
+	if (IsGetDeviceTransformSupported()) 
+	{
+		auto transform = GetDeviceTransform();
+		Options.HMDPositionOffset = transform.GetTranslation();
+		Options.HMDRotationOffset = transform.GetRotation().Rotator();
+	}
+}
+
 FLeapOptions FUltraleapDevice::GetOptions()
 {
 	return Options;

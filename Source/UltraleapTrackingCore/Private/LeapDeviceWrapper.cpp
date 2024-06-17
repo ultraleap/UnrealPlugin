@@ -104,6 +104,12 @@ void FLeapDeviceWrapper::SetTrackingMode(eLeapTrackingMode TrackingMode)
 	}
 	Connector->SetTrackingModeEx(TrackingMode, DeviceID);
 }
+
+void FLeapDeviceWrapper::GetTrackingMode()
+{
+	Connector->GetTrackingModeEx(DeviceID);
+}
+
 // Set policy is superceded by SetTrackingMode but still needed for images
 void FLeapDeviceWrapper::SetPolicy(int64 Flags, int64 ClearFlags)
 {
@@ -381,6 +387,99 @@ void FLeapDeviceWrapper::HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EV
 	}
 }
 
+/// <summary>
+/// Retrieve the specfied version information for the LeapC client or server
+/// </summary>
+/// <param name="versionPart">Requested version target</param>
+/// <param name="pVersionPart">Pointer to a LEAP_VERSION structure</param>
+/// <returns>True, if call was successful, otherwise false</returns>
+bool FLeapDeviceWrapper::GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart)
+{
+	eLeapRS Result = LeapGetVersion(ConnectionHandle, versionPart, pVersionPart);
 
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapC LeapGetVersion returned an unsuccessful result\n"));
+		return false;
+	}
+
+	UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapC LeapGetVersion returned %d,%d,%d\n"), pVersionPart->major, pVersionPart->minor,
+		pVersionPart->patch);
+
+	return true;
+}
+
+bool FLeapDeviceWrapper::IsDeviceTransformAvailable(const uint32_t SuppliedDeviceID /* = -1 */)
+{
+	return LeapDeviceTransformAvailable(DeviceHandle);
+}
+
+/// <summary>
+/// Retrieves the device transform for the device from the tracking service. Note, the device transform from the service takes data
+/// in leap space and converts it to OpenXR space
+/// </summary>
+/// <returns></returns>
+FTransform FLeapDeviceWrapper::GetDeviceTransform(const uint32_t SuppliedDeviceID /* = -1 */)
+{
+	if (SuppliedDeviceID != -1)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("FLeapDeviceWrapper::GetDeviceTransform has been given a DeviceID but has an internal DeviceHandle, so will use that instead"));
+	}
+
+	FTransform pluginTransform;
+	pluginTransform.SetIdentity();
+
+	float* transform = new float[16];									 // 4x4 matrix
+	eLeapRS Result = LeapGetDeviceTransform(DeviceHandle, transform);	 // Returns in column major order
+
+	// NB Basic transform for going from LeapC to OpenXR is 90 roll (in this case roll is the angle down for a tilted leap mount), 0
+	// pitch, 180 yaw.
+	if (Result == eLeapRS_Success)
+	{
+		// Data from the service is in row major order, convert to column major order
+		FMatrix m(FPlane(transform[0], transform[4], transform[8], transform[12]),	  // First column
+			FPlane(transform[1], transform[5], transform[9], transform[13]),		  // Second column
+			FPlane(transform[2], transform[6], transform[10], transform[14]),		  // Third column
+			FPlane(transform[3], transform[7], transform[11],
+				transform[15]));	// Fourth column - includes offsets in elements (3,7,11)
+
+		// Remove the scaling so we can extract a quaternion from the matrix
+		m.RemoveScaling();
+
+		pluginTransform.SetLocation(m.GetColumn(3));
+
+		// Rotation. Rather than attempt to convert the Leap->OpenXR rotation data to Unreal, we store the rotation data for getting
+		// to OpenXR. When this is used in ConvertAndScaleLeapVectorToFVectorWithHMDOffsets, we do an additional step to map the
+		// OpenXR data to Unreal
+		pluginTransform.SetRotation(m.ToQuat());
+
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("pluginTransform translation (unconverted) is: \n[%f %f %f]"),
+			pluginTransform.GetLocation().X, pluginTransform.GetLocation().Y, pluginTransform.GetLocation().Z);
+
+		FVector leapToOpenXR_EulerRotation = m.ToQuat().Euler();
+
+		// Tilt/pitch is first from LeapC matrix
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("Euler device rotation (unconverted) is \n[roll:x %f pitch:y %f yaw:z %f]"),
+			leapToOpenXR_EulerRotation[0], leapToOpenXR_EulerRotation[1], leapToOpenXR_EulerRotation[2]);
+	}
+	else if (Result == eLeapRS_Unsupported)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapGetDeviceTransform is not supported on this version of the service"));
+	}
+	else
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("LeapGetDeviceTransform failed in FLeapDeviceWrapper::LeapGetDeviceTransform"));
+	}
+
+	// Clean up
+	delete[] transform;
+
+	return pluginTransform;
+}
+
+void FLeapDeviceWrapper::UpdateDeviceTransformFromService()
+{
+	Device->UpdateDeviceTransformFromService();
+}
 
 #pragma endregion Leap Device Wrapper

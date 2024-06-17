@@ -122,7 +122,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetSwizzles(ELeapQuatSwizzleAxisB ToX, ELeapQuatSwizzleAxisB ToY, ELeapQuatSwizzleAxisB ToZ, ELeapQuatSwizzleAxisB ToW);
 	
-
 	UFUNCTION(BlueprintCallable, Category = "Leap Functions")
 	void SetTrackingMode(ELeapMode Mode);
 

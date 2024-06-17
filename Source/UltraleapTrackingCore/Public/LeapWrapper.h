@@ -43,13 +43,24 @@ public:
 	virtual void SetPolicyFlagFromBoolean(eLeapPolicyFlag Flag, bool ShouldSet) override
 	{
 	}
+
+	virtual void GetTrackingMode() override
+	{
+	}
+
+	virtual void GetTrackingModeEx(const uint32_t SuppliedDeviceID = 0) override
+	{
+	}
+
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override
 	{
 	}
+
 	virtual void SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID = 0) override
 	{
 	}
+
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -72,6 +83,31 @@ public:
 	{
 		return nullptr;
 	}
+
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) override
+	{
+		pVersionPart->major = 0;
+		pVersionPart->minor = 0;
+		pVersionPart->patch = 0;
+		return false;
+	}
+
+	virtual bool IsDeviceTransformAvailable(const uint32_t SuppliedDeviceID /* = -1 */) override
+	{
+		return false;
+	}
+
+	virtual FTransform GetDeviceTransform(const uint32_t SuppliedDeviceID /* = -1 */) override
+	{
+		FTransform transform;
+		transform.SetIdentity();
+		return transform;
+	}
+
+	virtual void UpdateDeviceTransformFromService() override
+	{
+	}
+
 	virtual FString ResultString(eLeapRS Result) override
 	{
 		return "";
@@ -197,6 +233,11 @@ public:
 	// Supercedes SetPolicy for HMD/Desktop/Screentop modes
 	virtual void SetTrackingMode(eLeapTrackingMode TrackingMode) override;
 	virtual void SetTrackingModeEx(eLeapTrackingMode TrackingMode, const uint32_t DeviceID = 0) override;
+
+	// These calls make the request for the tracking mode which can then be polled
+	virtual void GetTrackingMode() override;
+	virtual void GetTrackingModeEx(const uint32_t DeviceID = 0) override;
+	
 	// Polling functions
 
 	/** Get latest frame - critical section locked */
@@ -210,6 +251,13 @@ public:
 	{
 		return nullptr;
 	}
+
+	virtual bool GetVersion(eLeapVersionPart versionPart, LEAP_VERSION* pVersionPart) override;
+
+	virtual bool IsDeviceTransformAvailable(const uint32_t SuppliedDeviceID = -1) override;
+	virtual FTransform GetDeviceTransform(const uint32_t SuppliedDeviceID = -1) override;
+	virtual void UpdateDeviceTransformFromService() override;
+
 	virtual FString ResultString(eLeapRS Result) override;
 
 	virtual void EnableImageStream(bool bEnable) override;
@@ -344,6 +392,7 @@ private:
 	void HandleTrackingModeEvent(const LEAP_TRACKING_MODE_EVENT* TrackingEvent, const uint32_t DeviceID);
 	void HandleConfigChangeEvent(const LEAP_CONFIG_CHANGE_EVENT* ConfigChangeEvent, const uint32_t DeviceID);
 	void HandleConfigResponseEvent(const LEAP_CONFIG_RESPONSE_EVENT* ConfigResponseEvent, const uint32_t DeviceID);
+	void HandleNewDeviceTransform(const _LEAP_NEW_DEVICE_TRANSFORM* DeviceTransformEvent, const uint32_t DeviceID);
 
 	bool bIsConnected = false;
 	bool UseOpenXR = false;

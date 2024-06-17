@@ -25,12 +25,15 @@ public:
 	// To ue
 	static FVector ConvertLeapVectorToFVector(const LEAP_VECTOR& LeapVector);
 	static FQuat ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion);
+	static FVector ConvertOpenXRVectorToUnrealVector(const FVector& OpenXRVector);
 
-	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
-		const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset,const FQuat& LeapMountRotationOffset);
-	static FQuat ConvertToFQuatWithHMDOffsets(LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset);
+	static FVector ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(const LEAP_VECTOR& LeapVector,
+		const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset,
+		bool SuppliedTransformsAreForLeapToOpenXR = false);
 
-	
+	static FQuat ConvertToFQuatWithHMDOffsets(
+		LEAP_QUATERNION Quaternion, const FQuat& LeapMountRotationOffset, bool SuppliedTransformsAreForLeapToOpenXR = false);
+
 	static FMatrix SwapLeftHandRuleForRight(
 		const FMatrix& UEMatrix);	 // needed for all left hand basis which will be incorrect in ue format
 

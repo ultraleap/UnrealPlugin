@@ -443,7 +443,8 @@ void FUltraleapTrackingInputDevice::SetTrackingModeBySerial(ELeapMode Flag, cons
 		}
 	}
 }
-	// v5 implementation of tracking mode
+
+// v5 implementation of tracking mode
 void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag, const TArray<FString>& DeviceSerials)
 {
 	TArray<FString> DeviceSerialsToSet = DeviceSerials;
@@ -457,6 +458,7 @@ void FUltraleapTrackingInputDevice::SetTrackingMode(ELeapMode Flag, const TArray
 		SetTrackingModeBySerial(Flag,DeviceSerial);
 	}
 }
+
 #pragma endregion Leap Input Device
 
 #pragma region BodyState
