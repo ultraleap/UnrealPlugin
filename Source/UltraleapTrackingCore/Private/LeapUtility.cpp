@@ -12,6 +12,15 @@
 #include "Engine/World.h"
 #include "GameFramework/WorldSettings.h"
 #include "IXRTrackingSystem.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/App.h"
+#include "UltraleapTrackingData.h"
+#include "Runtime/Launch/Resources/Version.h"
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 3)
+	#include "JsonObjectConverter.h"
+#else 
+	#include "JsonUtilities/Public/JsonObjectConverter.h"
+#endif
 
 DEFINE_LOG_CATEGORY(UltraleapTrackingLog);
 
@@ -24,9 +33,12 @@ FQuat FLeapUtility::LeapRotationOffset;
 // Todo: use and verify this for all values
 float LeapGetWorldScaleFactor()
 {
-	if (GEngine != nullptr && GEngine->GetWorld() != nullptr)
+	if (IsInGameThread())
 	{
-		return (GEngine->GetWorld()->GetWorldSettings()->WorldToMeters) / 100.f;
+		if (GEngine != nullptr && GEngine->GetWorld() != nullptr && GEngine->GetWorld()->GetWorldSettings() != nullptr)
+		{
+			return (GEngine->GetWorld()->GetWorldSettings()->WorldToMeters) / 100.f;
+		}
 	}
 	return 1.f;
 }
@@ -76,6 +88,10 @@ FQuat FLeapUtility::ConvertLeapQuatToFQuat(const LEAP_QUATERNION& Quaternion)
 FVector FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
 	const LEAP_VECTOR& LeapVector, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
+	if (FLeapUtility::ContainsNaN(LeapVector))
+	{
+		return LeapMountRotationOffset.RotateVector(FVector::ForwardVector);
+	}
 	// Scale from mm to cm (ue default)
 	FVector ConvertedVector =
 		(ConvertLeapVectorToFVector(LeapVector) + LeapMountTranslationOffset) * (LEAP_TO_UE_SCALE * LeapGetWorldScaleFactor());
@@ -137,4 +153,86 @@ float FLeapUtility::ScaleUEToLeap(float UEFloat)
 void FLeapUtility::InitLeapStatics()
 {
 	LeapRotationOffset = FQuat(FRotator(90.f, 0.f, 180.f));
+}
+
+void FLeapUtility::CleanupConstCharArray(const char** ConstCharArray, int32 Size)
+{
+	// Assume array is filled dynamically
+	if (ConstCharArray!=nullptr)
+	{
+		for (int i = 0; (i <= Size)&&(ConstCharArray[i] != nullptr); ++i)
+		{
+			free(const_cast<char*>(ConstCharArray[i]));
+		}
+		// Free memory for the const char* array
+		delete[] ConstCharArray;
+		ConstCharArray = nullptr;
+	}
+}
+
+
+void FLeapUtility::ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr)
+{
+	// Allocate memory for array +1 for the NULL end
+	*ConstCharArrayPtr = new const char*[FStringArray.Num() + 1];
+	for (int32 i = 0; i < FStringArray.Num(); ++i)
+	{
+		// Convert FString to ANSI const char array
+		auto ConvertedStr = StringCast<ANSICHAR>(*FStringArray[i]);
+		const char* ConstCharArray = ConvertedStr.Get();
+
+		// String Duplication: Check that string duplications are done correctly
+#if PLATFORM_WINDOWS
+		(*ConstCharArrayPtr)[i] = _strdup(ConstCharArray);
+#else
+		(*ConstCharArrayPtr)[i] = strdup(ConstCharArray);
+#endif
+	}
+}
+
+void FLeapUtility::SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx)
+{
+	(*ConstCharArrayPtr)[LastIdx] = NULL;
+}
+
+FString FLeapUtility::GetAnalyticsData(size_t& Size)
+{
+	FAnalytics Analytics;
+	Analytics.telemetry.app_title = FApp::GetProjectName();
+
+#if WITH_EDITOR
+	Analytics.telemetry.app_type = "editor";
+#else
+	Analytics.telemetry.app_type = "build";
+#endif
+
+	Analytics.telemetry.engine_name = "Unreal";
+	FString UnrealVersion = FString::FromInt(ENGINE_MAJOR_VERSION);
+	UnrealVersion += ".";
+	UnrealVersion += FString::FromInt(ENGINE_MINOR_VERSION);
+	Analytics.telemetry.engine_version = UnrealVersion;
+	Analytics.telemetry.installation_source = "github";
+	Analytics.telemetry.plugin_version = FString();
+
+
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(FString("UltraleapTracking"));
+	if (Plugin.IsValid())
+	{
+		const FPluginDescriptor& PluginDescriptor = Plugin->GetDescriptor();
+		Analytics.telemetry.plugin_version = PluginDescriptor.VersionName;
+
+		if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Engine)
+		{
+			Analytics.telemetry.installation_source = "EpicGamesLauncher";
+		}
+	}
+
+	FString SerializedJson;
+	bool bConverted = FJsonObjectConverter::UStructToFormattedJsonObjectString<TCHAR, TPrettyJsonPrintPolicy>(FAnalytics::StaticStruct(), &Analytics, SerializedJson);
+	if (!bConverted)
+	{
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("FLeapUtility::GetAnalyticsData Failed Json conversion"));
+	}
+	Size = SerializedJson.Len() + 1;
+	return SerializedJson;
 }

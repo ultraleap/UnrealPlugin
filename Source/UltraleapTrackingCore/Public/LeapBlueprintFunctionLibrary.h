@@ -17,7 +17,7 @@
  * Useful global blueprint functions for Ultraleap Tracking
  */
 UCLASS()
-class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
+class ULTRALEAPTRACKING_API ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 
@@ -56,6 +56,27 @@ class ULeapBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	/** Angle between vectors - Equivalent of Unity's Vector3.Angle*/
 	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions")
 	static float AngleBetweenVectors(const FVector& A, const FVector& B);
+
+	/** Used to set leap api hints 
+	* @param DeviceSerials - The device serials to set the hints
+	* @param Hints - The device hints
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void SetLeapDeviceHints(const TArray<FString>& DeviceSerials, const TArray<FString>& Hints);
+
+	/** Used to add leap api hint
+	 * @param DeviceSerials - The device serials to add the hint
+	 * @param Hint - The device hint
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void AddLeapDeviceHint(const TArray<FString>& DeviceSerials, const FString& Hint);
+
+	/** Used to remove leap api hint
+	 * @param DeviceSerials - The device serials to remove the hint
+	 * @param Hint - The device hint
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Ultraleap Tracking Functions", meta = (AutoCreateRefTerm = "DeviceSerials"))
+	static void RemoveLeapDeviceHint(const TArray<FString>& DeviceSerials, const FString& Hint);
 
 	// Debug functions, remove completely when no longer needed
 	static void ShutdownLeap();

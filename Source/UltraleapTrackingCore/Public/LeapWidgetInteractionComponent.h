@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
+ * Copyright (C) Ultraleap, Inc. 2011-2024.                                   *
  *                                                                            *
  * Use subject to the terms of the Apache License 2.0 available at            *
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
@@ -17,7 +17,7 @@
 #include "LeapSubsystem.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
-// #include "ViewportInteractionUtils.h"
+#include "Engine/World.h"
 
 #include "LeapWidgetInteractionComponent.generated.h"
 
@@ -25,7 +25,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapRayComponentVisible, bool, Visi
 
 /**
  * This component will provide far field widgets with interactions
- * Will need to add 2 components, for the left hand and the right one
+ * Will need to add 2 components, one for the left hand and one for the right one
+ * For further information check our docs: https://docs.ultraleap.com/xr-and-tabletop/xr/unreal/plugin/features/UI-input-modules.html
  */
 UCLASS(ClassGroup = "LeapUserInterface", meta = (BlueprintSpawnableComponent))
 class ULTRALEAPTRACKING_API ULeapWidgetInteractionComponent : public UWidgetInteractionComponent
@@ -38,7 +39,7 @@ public:
 	~ULeapWidgetInteractionComponent();
 
 	/**
-	 * Called every fram to draw the cursor
+	 * Called every frame to draw the cursor
 	 * @param Hand - hand data from the api
 	 */
 	void DrawLeapCursor(FLeapHandData& Hand);
@@ -48,11 +49,13 @@ public:
 
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
+	void HandleVisibilityChange(const FLeapFrameData& Frame);
+
 	void OnLeapPinch(const FLeapHandData& HandData);
 
 	void OnLeapUnPinch(const FLeapHandData& HandData);
 
-	/** Hand type, for left and right hands
+	/** Hand chirality, for left and right hands
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
 	TEnumAsByte<EHandType> LeapHandType;
@@ -61,12 +64,12 @@ public:
 	 *  Changing this to NEAR will enable interactions with widgets by direct touch
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
-	TEnumAsByte<EUIType> WidgetInteraction;
+	TEnumAsByte<EUIInteractionType> WidgetInteraction;
 
 	/** The default static mesh is a sphere, but can be changed to anything
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
-	UStaticMeshComponent* StaticMesh;
+	UStaticMeshComponent* CursorStaticMesh;
 
 	/** This can be used to change the cursor's color
 	 */
@@ -81,15 +84,18 @@ public:
 
 	/** This will automatically enable near distance interactions mode when the
 	 * Distance between the hand and widget is less than 40 cm
-	 * and far mode when the ditance is more than 45 cm
+	 * and far mode when the distance is more than 45 cm
 	 */
 	 UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI")
 	bool bAutoMode;
 
 	/** The distance in cm betweenn index and UI to trigger touch interaction
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Near")
-	float IndexDitanceFromUI;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Near")
+	float IndexDistanceFromUI;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UltraLeap UI" )
+	bool HandVisibility;
 
 	ULeapSubsystem* LeapSubsystem;
 
@@ -99,36 +105,38 @@ public:
 
 	/** Controls how much rotation wrist movment adds to the ray
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far",
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far",
 	 meta = (ClampMin = "0", ClampMax = "5", UIMin = "0", UIMax = "5"))
 	float WristRotationFactor;
-
-	/** Activate one euro filter, used to reduce ray jitter
+	/** Interpolation param, lower values will reduce jitter but add lag
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
-	bool bUseOnEuroFilter;
-	/** One euro filter param, lower values will reduce jitter but add lag
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float InterpolationSpeed;
-
 	/** For counter-acting the camera rotation to stabilize the rays
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float YAxisCalibOffset;
-
 	/** For counter-acting the camera rotation to stabilize the rays
 	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI | Far")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UltraLeap UI Far")
 	float ZAxisCalibOffset;
+	/** The threshold used to automatically switch between far/near interactions
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "UltraLeap UI")
+	float ModeChangeThreshold;
+
 
 	/** Event on rays visibility changed
 	 */
 	UPROPERTY(BlueprintAssignable, EditAnywhere, Category = "UltraLeap UI")
 	FLeapRayComponentVisible OnRayComponentVisible;
-
+	/** Gets the rays direction 
+	* @param TmpHand - Hand data 
+	* @param Position - will return the position updated with the relative neck offset
+	 */
 	FVector GetHandRayDirection(FLeapHandData& TmpHand, FVector& Position);
-
+	/** Estimates the relative neck offset
+	 */
 	FVector GetNeckOffset();
 
 private:
@@ -146,23 +154,24 @@ private:
 	void NearClickLeftMouse(TEnumAsByte<EHandType> HandType);
 	void NearReleaseLeftMouse(TEnumAsByte<EHandType> HandType);
 
-	void ScaleUpAndClickButton(const FKey Button = EKeys::LeftMouseButton);
-	void ScaleDownAndUnClickButton(const FKey Button = EKeys::LeftMouseButton);
+	void ScaleUpCursorAndClickButton(const FKey Button = EKeys::LeftMouseButton);
+	void ScaleDownCursorAndUnclickButton(const FKey Button = EKeys::LeftMouseButton);
 
 	/**
 	 * Used to switch between FAR/NEAR modes, depending on the distance of the hand
 	 * from the widget
 	 * @param Dist - distance of the hand from the widget
 	 */
-	void HandleDistanceChange(float Dist, float MinDistance = 40.0f);
-
+	void HandleDistanceChange(float Dist, float MinDistance = 20.0f);
 	void CleanUpEvents();
-
 	void InitCalibrationArrays();
+	void ResetCursorScale();
 
-	// One euro filter params
-	float CutoffSlope;
-	float DeltaCutoff;
+	/**
+	 * Used to check if a widget actor has no tag "UltraleapUMG" then 
+	 * disbales interactions on it
+	 */
+	void HandleWidgetChange();
 
 	APawn* LeapPawn;
 	AStaticMeshActor* PointerActor;
@@ -174,12 +183,18 @@ private:
 	bool bHandTouchWidget;
 	bool bAutoModeTrigger;
 
-	// ViewportInteractionUtils::FOneEuroFilter SmoothingOneEuroFilter;
-
 	// Params used to compute the neck offset
 	TArray<FRotator> CalibratedHeadRot;
 	TArray<FVector> CalibratedHeadPos;
-
 	// Max rotation when head is rolling or pitching
 	float AxisRotOffset;
+	// Adding this to the distance before we exit near field interactions
+	float TriggerFarOffset;
+	float FingerJointEstimatedLen;
+	float ShoulderWidth;
+	float PinchOffsetX;
+	float PinchOffsetY;
+
+	bool bHidden;
+
 };

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
+ * Copyright (C) Ultraleap, Inc. 2011-2024.                                   *
  *                                                                            *
  * Use subject to the terms of the Apache License 2.0 available at            *
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
@@ -13,24 +13,23 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "LeapUtility.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/Engine.h"
 
 ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	: LeapHandType(EHandType::LEAP_HAND_LEFT)
-	, WidgetInteraction(EUIType::FAR)
-	, StaticMesh(nullptr)
+	, WidgetInteraction(EUIInteractionType::FAR)
+	, CursorStaticMesh(nullptr)
 	, MaterialBase(nullptr)
 	, CursorSize(0.03)
 	, bAutoMode(true)
-	, IndexDitanceFromUI(0.0f)
+	, IndexDistanceFromUI(0.0f)
+	, HandVisibility(false)
 	, LeapSubsystem(nullptr)
 	, WristRotationFactor(0.0f)
-	, bUseOnEuroFilter(true)
-	//, MinCutoff(4.0f)
 	, InterpolationSpeed(10)
 	, YAxisCalibOffset(4.0f)
 	, ZAxisCalibOffset(4.0f)
-	, CutoffSlope(0.3f)
-	, DeltaCutoff(1.0f)
+	, ModeChangeThreshold(30.0f)
 	, LeapPawn(nullptr)
 	, PointerActor(nullptr)
 	, World(nullptr)
@@ -40,6 +39,12 @@ ULeapWidgetInteractionComponent::ULeapWidgetInteractionComponent()
 	, bHandTouchWidget(false)
 	, bAutoModeTrigger(false)
 	, AxisRotOffset(45.0f)
+	, TriggerFarOffset(20.0f)
+	, FingerJointEstimatedLen(3.5f)
+	, ShoulderWidth(15.0f)
+	, PinchOffsetX(6.0f)
+	, PinchOffsetY(2.0f)
+	, bHidden(false)
 
 {
 	CreatStaticMeshForCursor();
@@ -71,29 +76,30 @@ ULeapWidgetInteractionComponent::~ULeapWidgetInteractionComponent()
 void ULeapWidgetInteractionComponent::CreatStaticMeshForCursor()
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> DefaultMesh(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CursorMesh"));
-	if (StaticMesh == nullptr)
+	CursorStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CursorMesh"));
+	if (CursorStaticMesh == nullptr)
 	{
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("StaticMesh is nullptr in CreatStaticMeshForCursor()"));
+		UE_LOG(UltraleapTrackingLog, Error, TEXT("CursorStaticMesh is nullptr in CreatStaticMeshForCursor()"));
 		return;
 	}
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CursorStaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MaterialBase = LoadObject<UMaterial>(
-		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine2/Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
+		nullptr, TEXT("Material'/UltraleapTracking/InteractionEngine/Materials/IE2_Materials/M_LaserPointer-Outer.M_LaserPointer-Outer'"));
 
 	if (DefaultMesh.Succeeded())
 	{
-		StaticMesh->SetStaticMesh(DefaultMesh.Object);
-		StaticMesh->SetWorldScale3D(CursorSize * FVector(1, 1, 1));
+		CursorStaticMesh->SetStaticMesh(DefaultMesh.Object);
+		CursorStaticMesh->SetWorldScale3D(CursorSize * FVector::OneVector);
 	}
 }
 
 void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float MinDistance)
 {
-	float ExistDistance = MinDistance + 15;
-	if (Dist < MinDistance && WidgetInteraction == EUIType::FAR && !bAutoModeTrigger)
+	// Adding 20 cm for the distance before we exit near field interactions
+	float ExistDistance = MinDistance + TriggerFarOffset;
+	if (Dist < MinDistance && WidgetInteraction == EUIInteractionType::FAR && !bAutoModeTrigger)
 	{
-		WidgetInteraction = EUIType::NEAR;
+		WidgetInteraction = EUIInteractionType::NEAR;
 
 		// Broadcast event when the rays visbility change
 		if (OnRayComponentVisible.IsBound())
@@ -103,12 +109,13 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		bAutoModeTrigger = true;
 		if (bAutoMode)
 		{
-			StaticMesh->SetHiddenInGame(true);
+			CursorStaticMesh->SetHiddenInGame(true);
+			SetHiddenInGame(true);
 		}
 	}
-	else if (Dist > ExistDistance && WidgetInteraction == EUIType::NEAR && bAutoModeTrigger)
+	else if (Dist > ExistDistance && WidgetInteraction == EUIInteractionType::NEAR && bAutoModeTrigger)
 	{
-		WidgetInteraction = EUIType::FAR;
+		WidgetInteraction = EUIInteractionType::FAR;
 		// Broadcast event when the rays visbility change
 		if (OnRayComponentVisible.IsBound())
 		{
@@ -117,7 +124,8 @@ void ULeapWidgetInteractionComponent::HandleDistanceChange(float Dist, float Min
 		bAutoModeTrigger = false;
 		if (bAutoMode)
 		{
-			StaticMesh->SetHiddenInGame(false);
+			CursorStaticMesh->SetHiddenInGame(false);
+			SetHiddenInGame(false);
 		}
 	}
 }
@@ -129,39 +137,24 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 	{
 		return;
 	}
-
-	if (StaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
+	if (CursorStaticMesh != nullptr && LeapPawn != nullptr && PlayerCameraManager != nullptr)
 	{
 		// The cursor position is the addition of the Pawn pose and the hand pose
 		FVector Position = FVector::ZeroVector;
 		FVector Direction = FVector();
-
-		FVector IndexDistalN = TmpHand.Index.Distal.NextJoint;
-		FVector IndexDistalP = TmpHand.Index.Distal.PrevJoint;
-		FVector IndexProx = TmpHand.Index.Proximal.PrevJoint;
+		FVector IndexDistalNext = TmpHand.Index.Distal.NextJoint;
+		FVector IndexIntermNext = TmpHand.Index.Intermediate.NextJoint;
+		FVector IndexMetaNext = TmpHand.Index.Metacarpal.NextJoint;
 
 		FRotator ForwardRot = PlayerCameraManager->GetActorForwardVector().Rotation();
 		ForwardRot = FRotator(0, ForwardRot.Yaw, 0);
 		FVector ForwardDirection = ForwardRot.Vector();
 
-		FVector IndexInterm = TmpHand.Index.Intermediate.PrevJoint;
+		bool bNear = (WidgetInteraction == EUIInteractionType::NEAR);
 
-		bool bNear = (WidgetInteraction == EUIType::NEAR);
-
-		Position = bNear ? IndexInterm : IndexProx;
-
+		Position = bNear ? IndexIntermNext : IndexMetaNext;
 		FVector FilteredPosition = Position;
-		// One euro filter will reduce the jitter
-		/*if (bUseOnEuroFilter)
-		{
-			FilteredPosition = SmoothingOneEuroFilter.Filter(Position, World->GetDeltaSeconds());
-		}
-		else
-		{
-			FilteredPosition = Position;
-		}*/
-		// Get Direction for near or far interactions
-		Direction = bNear ? (IndexDistalN - IndexDistalP) : GetHandRayDirection(TmpHand, FilteredPosition);
+		Direction = bNear ? (ForwardDirection) : GetHandRayDirection(TmpHand, FilteredPosition);
 		FVector FilteredDirection = FVector::ZeroVector;
 
 		FTransform TargetTrans = FTransform();
@@ -175,27 +168,30 @@ void ULeapWidgetInteractionComponent::DrawLeapCursor(FLeapHandData& Hand)
 		FHitResult SweepHitResult;
 		K2_SetWorldTransform(NewTransform, true, SweepHitResult, true);
 
-		StaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
+		CursorStaticMesh->SetWorldLocation(LastHitResult.ImpactPoint);
+		float Dist = FVector::Dist(Position, LastHitResult.ImpactPoint);
 
-		float Dist = FVector::Dist(FilteredPosition, LastHitResult.ImpactPoint);
-
-		if (WidgetInteraction == EUIType::NEAR)
+		if (WidgetInteraction == EUIInteractionType::NEAR)
 		{
-			// 6 cm is the distance between the finger base to the finger tip
-			if (Dist < (IndexDitanceFromUI + 6.0f))
+			FingerJointEstimatedLen = FVector::Dist(TmpHand.Index.Intermediate.PrevJoint, IndexDistalNext);
+			if (Dist < (IndexDistanceFromUI + FingerJointEstimatedLen))
 			{
 				NearClickLeftMouse(TmpHand.HandType);
 			}
 			// added 2 cm, cause of the jitter can cause accidental release
-			else if (Dist > (IndexDitanceFromUI + 8.0f))
+			// Also makes better user experience when using sliders
+			else if (Dist > (IndexDistanceFromUI + FingerJointEstimatedLen + 2.0f))
 			{
 				NearReleaseLeftMouse(TmpHand.HandType);
 			}
 		}
 		// In auto mode, automatically enable FAR or NEAR interactions depending on the distance
 		// between the hand and the widget
-		// Also trigger event when visibility changed
-		HandleDistanceChange(Dist);
+		// Also trigger event when visibility changed		
+		if (bAutoMode)
+		{
+			HandleDistanceChange(Dist);
+		}
 	}
 	else
 	{
@@ -218,7 +214,7 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	CameraLocationWithNeckOffset -= NeckOffset;
 	CameraLocationWithNeckOffset -= 15 * FVector::UpVector;
 
-	// Get the general right direction of the camera
+	// Get the estimated right direction of the camera
 	FRotator RightRot = PlayerCameraManager->GetActorRightVector().Rotation();
 	RightRot = FRotator(0, RightRot.Yaw, 0);
 	FVector RightDirection = RightRot.Vector();
@@ -227,13 +223,16 @@ FVector ULeapWidgetInteractionComponent::GetHandRayDirection(FLeapHandData& TmpH
 	FVector ShoulderPos = FVector::ZeroVector;
 	// Use the camera location with offset to overcome head Roll and Pitch
 	ShoulderPos = CameraLocationWithNeckOffset;
-	ShoulderPos += WristRotationFactor * PlayerCameraManager->GetActorForwardVector();
-	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -15 : 15);
-
+	ShoulderPos +=  WristRotationFactor * PlayerCameraManager->GetActorForwardVector();
+	ShoulderPos += RightDirection * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? -ShoulderWidth : ShoulderWidth);
 	// Get approximate pintch position
-	Position += FVector::UpVector;
-	Position += 6 * PlayerCameraManager->GetActorForwardVector();
-	Position += PlayerCameraManager->GetActorRightVector() * (TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? 2 : -2);
+	if (WidgetInteraction == EUIInteractionType::FAR)
+	{
+		Position += FVector::UpVector;
+		Position += PinchOffsetX * PlayerCameraManager->GetActorForwardVector();
+		Position += PlayerCameraManager->GetActorRightVector() *
+					(TmpHand.HandType == EHandType::LEAP_HAND_LEFT ? PinchOffsetY : -PinchOffsetY);
+	}
 	// Get the direction from the shoulders to the pinch position
 	FVector Direction = Position - ShoulderPos;
 
@@ -310,7 +309,7 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 	}
 
 	// Subscribe events from leap, for pinch, unpinch and get the tracking data
-	if (WidgetInteraction != EUIType::NEAR)
+	if (WidgetInteraction != EUIInteractionType::NEAR)
 	{
 		LeapSubsystem->OnLeapPinchMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapPinch);
 		LeapSubsystem->OnLeapUnPinchMulti.AddUObject(this, &ULeapWidgetInteractionComponent::OnLeapUnPinch);
@@ -330,11 +329,11 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		return;
 	}
 
-	if (LeapDynMaterial != nullptr && StaticMesh != nullptr)
+	if (LeapDynMaterial != nullptr && CursorStaticMesh != nullptr)
 	{
-		StaticMesh->SetMaterial(0, LeapDynMaterial);
-		FVector Scale = CursorSize * FVector(1, 1, 1);
-		StaticMesh->SetWorldScale3D(Scale);
+		CursorStaticMesh->SetMaterial(0, LeapDynMaterial);
+		FVector Scale = CursorSize * FVector::OneVector;
+		CursorStaticMesh->SetWorldScale3D(Scale);
 	}
 	else
 	{
@@ -350,25 +349,27 @@ void ULeapWidgetInteractionComponent::BeginPlay()
 		PointerIndex = 1;
 	}
 
-	// SmoothingOneEuroFilter = ViewportInteractionUtils::FOneEuroFilter(MinCutoff, CutoffSlope, DeltaCutoff);
+	//Hide on begin play
+	CursorStaticMesh->SetHiddenInGame(true);
+	SetHiddenInGame(true);
 
 	InitCalibrationArrays();
 }
 
 void ULeapWidgetInteractionComponent::OnLeapPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == LeapHandType && !bIsPinched && WidgetInteraction == EUIType::FAR)
+	if (HandData.HandType == LeapHandType && !bIsPinched && WidgetInteraction == EUIInteractionType::FAR)
 	{
-		ScaleUpAndClickButton();
+		ScaleUpCursorAndClickButton();
 		bIsPinched = true;
 	}
 }
 
 void ULeapWidgetInteractionComponent::OnLeapUnPinch(const FLeapHandData& HandData)
 {
-	if (HandData.HandType == LeapHandType && bIsPinched && WidgetInteraction == EUIType::FAR)
+	if (HandData.HandType == LeapHandType && bIsPinched && WidgetInteraction == EUIInteractionType::FAR)
 	{
-		ScaleDownAndUnClickButton();
+		ScaleDownCursorAndUnclickButton();
 		bIsPinched = false;
 	}
 }
@@ -377,7 +378,7 @@ void ULeapWidgetInteractionComponent::NearClickLeftMouse(TEnumAsByte<EHandType> 
 {
 	if (!bHandTouchWidget && HandType == LeapHandType)
 	{
-		ScaleUpAndClickButton();
+		ScaleUpCursorAndClickButton();
 		bHandTouchWidget = true;
 	}
 }
@@ -386,38 +387,52 @@ void ULeapWidgetInteractionComponent::NearReleaseLeftMouse(TEnumAsByte<EHandType
 {
 	if (bHandTouchWidget && HandType == LeapHandType)
 	{
-		ScaleDownAndUnClickButton();
+		ScaleDownCursorAndUnclickButton();
 		bHandTouchWidget = false;
 	}
 }
 
-void ULeapWidgetInteractionComponent::ScaleUpAndClickButton(const FKey Button)
+void ULeapWidgetInteractionComponent::ScaleUpCursorAndClickButton(const FKey Button)
 {
-	if (StaticMesh != nullptr)
+
+	if (bHidden)
+	{
+		return;
+	}
+	if (CursorStaticMesh != nullptr)
 	{
 		// Scale the cursor by 1/2
-		FVector Scale = CursorSize * FVector(1, 1, 1);
+		FVector Scale = CursorSize * FVector::OneVector;
 		Scale = Scale / 2;
-		StaticMesh->SetWorldScale3D(Scale);
+		CursorStaticMesh->SetWorldScale3D(Scale);
 	}
 	// Press the LeftMouseButton
 	PressPointerKey(Button);
 }
 
-void ULeapWidgetInteractionComponent::ScaleDownAndUnClickButton(const FKey Button)
+void ULeapWidgetInteractionComponent::ScaleDownCursorAndUnclickButton(const FKey Button)
 {
-	if (StaticMesh != nullptr)
+	if (bHidden)
+	{
+		return;
+	}
+	ResetCursorScale();
+	// Release the LeftMouseButton
+	ReleasePointerKey(Button);
+}
+
+void ULeapWidgetInteractionComponent::ResetCursorScale()
+{
+	if (CursorStaticMesh != nullptr)
 	{
 		// Scale the cursor by 2
-		FVector Scale = StaticMesh->GetComponentScale();
+		FVector Scale = CursorStaticMesh->GetComponentScale();
 		if (FMath::IsNearlyEqual(Scale.X, (CursorSize / 2), 1.0E-2F))
 		{
 			Scale = Scale * 2;
-			StaticMesh->SetWorldScale3D(Scale);
+			CursorStaticMesh->SetWorldScale3D(Scale);
 		}
 	}
-	// Release the LeftMouseButton
-	ReleasePointerKey(Button);
 }
 
 #if WITH_EDITOR
@@ -425,12 +440,12 @@ void ULeapWidgetInteractionComponent::PostEditChangeProperty(FPropertyChangedEve
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (WidgetInteraction == EUIType::NEAR)
+	if (WidgetInteraction == EUIInteractionType::NEAR)
 	{
 		// Set the WidgetInteraction type to far when the distance is more than 30
-		if (InteractionDistance > 30 && !bAutoMode)
+		if (InteractionDistance > ModeChangeThreshold && !bAutoMode)
 		{
-			WidgetInteraction = EUIType::FAR;
+			WidgetInteraction = EUIInteractionType::FAR;
 		}
 	}
 }
@@ -452,9 +467,9 @@ void ULeapWidgetInteractionComponent::SpawnStaticMeshActor(const FVector& InLoca
 	PointerActor->SetMobility(EComponentMobility::Movable);
 	PointerActor->SetActorLocation(InLocation);
 	UStaticMeshComponent* MeshComponent = PointerActor->GetStaticMeshComponent();
-	if (MeshComponent && StaticMesh)
+	if (MeshComponent && CursorStaticMesh)
 	{
-		MeshComponent->SetStaticMesh(StaticMesh->GetStaticMesh());
+		MeshComponent->SetStaticMesh(CursorStaticMesh->GetStaticMesh());
 	}
 	else
 	{
@@ -485,20 +500,63 @@ void ULeapWidgetInteractionComponent::InitializeComponent()
 {
 }
 
+void ULeapWidgetInteractionComponent::HandleWidgetChange()
+{
+	TWeakObjectPtr<AActor> HitActor = nullptr;
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+	HitActor = LastHitResult.GetActor();
+#else
+	HitActor = LastHitResult.Actor;
+#endif
+
+	if (HitActor == nullptr)
+	{
+		bHidden = true;
+		CursorStaticMesh->SetHiddenInGame(bHidden);
+		SetHiddenInGame(bHidden);
+		return;
+	}
+	if (HitActor->Tags.Contains(FName("UltraleapUMG")))
+	{
+		if (bHidden)
+		{
+			bHidden = false;
+			CursorStaticMesh->SetHiddenInGame(bHidden);
+			SetHiddenInGame(bHidden);
+		}
+	}
+	else
+	{
+		if (!bHidden)
+		{
+			bHidden = true;
+			CursorStaticMesh->SetHiddenInGame(bHidden);
+			SetHiddenInGame(bHidden);
+		}
+	}
+}
+
 void ULeapWidgetInteractionComponent::OnLeapTrackingData(const FLeapFrameData& Frame)
 {
+
+	HandleWidgetChange();
+
 	TArray<FLeapHandData> Hands = Frame.Hands;
+	HandleVisibilityChange(Frame);
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
-		DrawLeapCursor(Hands[i]);
-		switch (Hands[i].HandType)
-		{
-			case EHandType::LEAP_HAND_LEFT:
-				break;
-			case EHandType::LEAP_HAND_RIGHT:
-				break;
-			default:
-				break;
-		}
+		DrawLeapCursor(Hands[i]);	
+	}
+}
+
+void ULeapWidgetInteractionComponent::HandleVisibilityChange(const FLeapFrameData& Frame)
+{
+	bool LatestHandVis = LeapHandType == EHandType::LEAP_HAND_LEFT ? Frame.LeftHandVisible : Frame.RightHandVisible;
+
+	if (LatestHandVis != HandVisibility)
+	{
+		HandVisibility = LatestHandVis;
+		CursorStaticMesh->SetHiddenInGame(!HandVisibility);
+		SetHiddenInGame(!HandVisibility);
 	}
 }

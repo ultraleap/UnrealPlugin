@@ -1,4 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/******************************************************************************
+ * Copyright (C) Ultraleap, Inc. 2011-2024.                                   *
+ *                                                                            *
+ * Use subject to the terms of the Apache License 2.0 available at            *
+ * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
+ * between Ultraleap and you, your company or other organization.             *
+ ******************************************************************************/
 
 #pragma once
 
@@ -32,8 +38,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ultrleap teleportation")
 	void SetTeleportCamera(UCameraComponent* Camera)
@@ -44,7 +48,6 @@ public:
 		}
 	}
 
-	
 	void OnLeapGrabAction(FVector Location, FVector ForwardVec);
 	void OnLeapRelease(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
 	/** Used to start teleportaton trace, needs to be called once everytime teleportation 

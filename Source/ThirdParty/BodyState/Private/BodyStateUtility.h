@@ -24,6 +24,8 @@
 #include "UObject/Class.h"
 #include "UObject/Package.h"
 
+#include "Runtime/Launch/Resources/Version.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(BodyStateLog, Log, All);
 
 class BODYSTATE_API FBodyStateUtility

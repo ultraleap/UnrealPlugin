@@ -141,6 +141,10 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetFrame()
 LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeStamp)
 {
 	uint64_t FrameSize = 0;
+	if (DeviceHandle == nullptr || ConnectionHandle == nullptr)
+	{
+		return GetFrame();
+	}
 	eLeapRS Result = LeapGetFrameSizeEx(ConnectionHandle, DeviceHandle, TimeStamp, &FrameSize);
 	
 	if (Result != eLeapRS_Success)
@@ -148,12 +152,12 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeSt
 		if (Result == eLeapRS_RoutineIsNotSeer)
 		{
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in FLeapDeviceWrapper::GetInterpolatedFrameAtTime: TimeStamp %lld was in the future"), TimeStamp);
-			return nullptr;
+			return GetFrame();
 		}
 		else if (Result == eLeapRS_TimestampTooEarly)
 		{
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapGetFrameSizeEx failed in FLeapDeviceWrapper::GetInterpolatedFrameAtTime: TimeStamp %lld was too far in the past"), TimeStamp);
-			return nullptr;
+			return GetFrame();
 		}
 		else
 		{
@@ -165,7 +169,7 @@ LEAP_TRACKING_EVENT* FLeapDeviceWrapper::GetInterpolatedFrameAtTime(int64 TimeSt
 			{
 				Connector->CleanupBadDevice(this);
 				Connector = nullptr;
-				return nullptr;
+				return GetFrame();
 			}
 		}
 	}
@@ -224,6 +228,15 @@ void FLeapDeviceWrapper::EnableImageStream(bool bEnable)
 		}
 		ImageDescription->pBuffer = (void*) malloc(ImageDescription->buffer_len);
 	}
+}
+
+void FLeapDeviceWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID)
+{
+	if (!Connector)
+	{
+		return;
+	}
+	Connector->SetDeviceHints(Hints, DeviceID);
 }
 
 void FLeapDeviceWrapper::Millisleep(int milliseconds)

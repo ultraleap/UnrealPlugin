@@ -17,6 +17,7 @@
 #include "LeapUtility.h"
 #include "Skeleton/BodyStateSkeleton.h"
 #include "UltraleapTrackingData.h"
+#include "LeapTrackingSettings.h"
 
 
 DECLARE_STATS_GROUP(TEXT("UltraleapMultiTracking"), STATGROUP_UltraleapMultiTracking, STATCAT_Advanced);
@@ -64,7 +65,10 @@ void FUltraleapDevice::CallFunctionOnComponents(TFunction<void(ULeapComponent*)>
 	{
 		for (ULeapComponent* EventDelegate : EventDelegates)
 		{
-			InFunction(EventDelegate);
+			if (EventDelegate)
+			{
+				InFunction(EventDelegate);
+			}
 		}
 	}
 	else
@@ -401,6 +405,12 @@ void FUltraleapDevice::ApplyDeviceOrigin(FLeapFrameData& OutData)
 void FUltraleapDevice::CaptureAndEvaluateInput()
 {
 	SCOPE_CYCLE_COUNTER(STAT_MultiLeapInputTick);
+
+	if (Leap==nullptr)
+	{
+		return;
+	}
+
 	// Did a device connect?
 	if (!Leap->IsConnected() || !Leap->GetDeviceProperties())
 	{
@@ -536,7 +546,10 @@ void FUltraleapDevice::ParseEvents()
 			// Scale input?
 			// FinalFrameData.ScaleByWorldScale(Component->GetWorld()->GetWorldSettings()->WorldToMeters
 			// / 100.f);
-			Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+			if (Component)
+			{
+				Component->OnLeapTrackingData.Broadcast(CurrentFrame);
+			}
 		});
 
 	// Add the current frame to the leap subsystem
@@ -1043,6 +1056,15 @@ void FUltraleapDevice::SetTrackingMode(ELeapMode Flag)
 			break;
 	}
 }
+
+void FUltraleapDevice::SetDeviceHints(TArray<FString>& Hints)
+{
+	if (Leap)
+	{
+		Leap->SetDeviceHints(Hints);
+	}
+}
+
 #pragma endregion Leap Input Device
 
 #pragma region BodyState
@@ -1230,8 +1252,32 @@ void FUltraleapDevice::SetOptions(const FLeapOptions& InOptions)
 		}
 	}
 
+	TArray<FString> UniqueHints;
+	// Check if Hints options changed 
+	if (ULeapTrackingSettings* TrackingSettings = GetMutableDefault<ULeapTrackingSettings>())
+	{
+		if (InOptions.LeapHints != Options.LeapHints)
+		{
+			for (FString Hint: InOptions.LeapHints)
+			{
+				UniqueHints.AddUnique(Hint);
+			}
+			// Change the Settings then save
+			TrackingSettings->UltraleapHints = UniqueHints;
+			TrackingSettings->SaveConfig();
+			// Sent the latest hints to the api
+			SetDeviceHints(TrackingSettings->UltraleapHints);
+		}
+	}
+
 	// Set main options
 	Options = InOptions;
+
+	// Make sure the hints are unique, hints can also be set using SetLeapOptions
+	if (UniqueHints.Num())
+	{
+		Options.LeapHints = UniqueHints;
+	}
 
 	// If our tracking fidelity is not custom, set the parameters to good defaults
 	// for each platform

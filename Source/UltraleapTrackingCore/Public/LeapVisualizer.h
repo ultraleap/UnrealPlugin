@@ -11,6 +11,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "Engine/World.h"
+#endif
 
 #include "LeapVisualizer.generated.h"
 
@@ -32,8 +37,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 
 private:

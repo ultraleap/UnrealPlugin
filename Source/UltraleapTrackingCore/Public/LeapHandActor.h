@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) Ultraleap, Inc. 2011-2023.                                   *
+ * Copyright (C) Ultraleap, Inc. 2011-2024.                                   *
  *                                                                            *
  * Use subject to the terms of the Apache License 2.0 available at            *
  * http://www.apache.org/licenses/LICENSE-2.0, or another agreement           *
@@ -20,7 +20,14 @@
 class UStaticMeshComponent;
 //class UWidgetComponent;
 
-UCLASS()
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLeapHandFaceCamera, bool, bIsFacingCamera);
+
+
+/**
+ * This actor class has access to hand data and grab/pinch events 
+ * This can be used for JumpGem (teleportation) with inheritance
+ */
+UCLASS(BlueprintType, Blueprintable)
 class ULTRALEAPTRACKING_API ALeapHandActor : public AActor
 {
 	GENERATED_BODY()
@@ -29,11 +36,19 @@ public:
 	// Sets default values for this actor's properties
 	ALeapHandActor();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LeapHand")
 	UStaticMeshComponent* StaticMesh;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//UWidgetComponent* WidgetComponent;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LeapHand")
+	FVector GrabPoseOffset;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LeapHand")
+	FVector ReleasePoseOffset;
+
+	UPROPERTY(BlueprintAssignable, Category = "Leap Hand Events")
+	FLeapHandFaceCamera OnLeapHandFaceCamera;
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -50,15 +65,16 @@ protected:
 
 	UWorld *World;
 
+	bool bIsHandFacingCamera;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//UFUNCTION()
 	void OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight);
-	//UFUNCTION()
+
 	void OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName);
-	//UFUNCTION()
+
 	void OnLeapTrackingData(const FLeapFrameData& Frame);
 
 	bool IsLeftHandFacingCamera(FLeapHandData Hand);

@@ -126,19 +126,25 @@ namespace UnrealBuildTool.Rules
 					"LiveLinkMessageBusFramework",
 					"BodyState",
 					"PhysicsCore",
-                    "UMG",
-                    //"ViewportInteraction",
+					"UMG",
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
 
+            if (Target.Version.MajorVersion >= 5 && Target.Version.MinorVersion >= 3)
+            {
+                PrivateDependencyModuleNames.AddRange(new string[] { "XRBase" });
+            }
+
             PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-                    "NiagaraCore",
-                    "Niagara",
-                    "NiagaraShader",
-                    "NavigationSystem",
+					"Json",
+					"JsonUtilities",
+					"NiagaraCore",
+					"Niagara",
+					"NiagaraShader",
+					"NavigationSystem",
 					// ... add private dependencies that you statically link with here ...
                 }
 				);
@@ -221,9 +227,9 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				//IsLibrarySupported = true;	
-                //Setlib("Mac", "libLeapC.5.dylib");
-                //Setlib("Mac", "libLeapC.5_intel.dylib");
+				IsLibrarySupported = true;	
+                Setlib("Mac", "libLeapC.dylib");
+                Setlib("Mac", "libLeapC.5.dylib");
             }
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{

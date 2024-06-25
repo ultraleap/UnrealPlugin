@@ -10,6 +10,7 @@
 #include "LeapTeleportComponent.h"
 #include "LeapUtility.h"
 #include "LeapVisualizer.h"
+#include "LeapHandActor.h"
 
 // Sets default values for this component's properties
 ULeapTeleportComponent::ULeapTeleportComponent() 
@@ -22,7 +23,8 @@ ULeapTeleportComponent::ULeapTeleportComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	LeapTeleportTraceNS = LoadObject<UNiagaraSystem>(nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine2/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'"));
+	LeapTeleportTraceNS = Cast<UNiagaraSystem>(StaticLoadObject(UNiagaraSystem::StaticClass(), nullptr,
+		TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportTrace.Leap_NS_TeleportTrace'")));
 	if (LeapTeleportTraceNS == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapTeleportTraceNS is nullptr in ULeapTeleportComponent()"));
@@ -72,15 +74,6 @@ void ULeapTeleportComponent::BeginPlay()
 		return;
 	}
 	
-}
-
-
-// Called every frame
-void ULeapTeleportComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
 
 void ULeapTeleportComponent::StartTeleportTrace()
@@ -165,10 +158,16 @@ void ULeapTeleportComponent::TryTeleport()
 {
 	if (!bValidTeleportationLocation)
 	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("not bValidTeleportationLocation in TryTeleport"));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("not bValidTeleportationLocation in ULeapTeleportComponent::TryTeleport"));
 		return;
 	}
 	bValidTeleportationLocation = false;
+
+	if (!CameraComponent)
+	{
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("nullptr CameraComponent in ULeapTeleportComponent::TryTeleport"));
+		return;
+	}
 
 	FVector Location = FVector(CameraComponent->GetRelativeLocation().X, CameraComponent->GetRelativeLocation().Y, 0.0f);
 	FRotator Rotation = FRotator(Owner->GetActorRotation());
@@ -205,6 +204,14 @@ void ULeapTeleportComponent::OnLeapGrabAction(FVector Location, FVector ForwardV
 void ULeapTeleportComponent::OnLeapRelease(
 	AActor* ReleasedActor, USkeletalMeshComponent* HandLeft, USkeletalMeshComponent* HandRight, FName BoneName)
 {
+	if (!ReleasedActor)
+	{
+		return;
+	}
+	if (!Cast<ALeapHandActor>(ReleasedActor))
+	{
+		return;
+	}
 	if (!bTeleportTraceActive)
 	{	
 		UE_LOG(UltraleapTrackingLog, Warning, TEXT("bTeleportTraceActive is false in OnLeapRelease"));

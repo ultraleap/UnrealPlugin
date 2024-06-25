@@ -23,7 +23,7 @@
 
 // Sets default values
 ALeapHandActor::ALeapHandActor() 
-	//: WidgetComponent(nullptr)
+	: GrabPoseOffset(FVector(20, 0, 0)), ReleasePoseOffset(FVector(-2,0,7)), bIsHandFacingCamera(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -36,7 +36,7 @@ ALeapHandActor::ALeapHandActor()
 		StaticMesh->SetupAttachment(RootComponent);
 	}
 	UMaterialInstanceDynamic* LeapDynMaterial = nullptr;
-	UMaterial* MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/Explore/Diamond_Mat.Diamond_Mat"));
+	UMaterial* MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/InteractionEngine/Materials/IE2_Materials/Diamond_Mat.Diamond_Mat"));
 	if (MaterialBase != nullptr)
 	{
 		LeapDynMaterial = UMaterialInstanceDynamic::Create(MaterialBase, NULL);
@@ -51,17 +51,6 @@ ALeapHandActor::ALeapHandActor()
 			StaticMesh->SetMaterial(0, LeapDynMaterial);
 		}
     }
-
-	// WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("LeapWristWidget");
-	/*static ConstructorHelpers::FClassFinder<UUserWidget> PopupWidgetObj(TEXT("/UltraleapTracking/UIInputModules/BasicTestUMG.BasicTestUMG"));
-	if (PopupWidgetObj.Succeeded())
-	{
-		WidgetComponent->SetWidgetClass(PopupWidgetObj.Class);
-	}
-	else
-	{
-		UE_LOG(UltraleapTrackingLog, Error, TEXT("LeapWristWidget could not initialize in ALeapHandActor"));
-	}*/
 }
 
 // Called when the game starts or when spawned
@@ -102,7 +91,7 @@ void ALeapHandActor::OnGrabbed(AActor* GrabbedActor, USkeletalMeshComponent* Han
 	if (GrabbedActor != nullptr && this == GrabbedActor && World)
 	{
 		// Offset needed so teleportation trace will not collide with the hand
-		GrabbedActor->SetActorRelativeLocation(FVector(20, 0, 0));
+		GrabbedActor->SetActorRelativeLocation(GrabPoseOffset);
 		// Trigger a timer when the actor is grabbed
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ALeapHandActor::RepeatingAction, World->GetDeltaSeconds(), true, .0f);
 	}
@@ -115,8 +104,8 @@ void ALeapHandActor::OnReleased(AActor* ReleasedActor, USkeletalMeshComponent* H
 		// Attach the gem to the hand
 		ReleasedActor->AttachToComponent(HandLeft, FAttachmentTransformRules::SnapToTargetNotIncludingScale, BoneName);
 		// Set up the posistion and rotation of the gem relative to the palm
-		ReleasedActor->SetActorRelativeLocation(FVector(-2,0,7));
-		ReleasedActor->SetActorRelativeRotation(FRotator(0, 0, 0));
+		ReleasedActor->SetActorRelativeLocation(ReleasePoseOffset);
+		ReleasedActor->SetActorRelativeRotation(FRotator::ZeroRotator);
 
 		// Stop the timer when the actor is released
 		if (GetWorldTimerManager().IsTimerActive(TimerHandle))
@@ -156,12 +145,28 @@ bool ALeapHandActor::IsLeftHandFacingCamera(FLeapHandData Hand)
 		// -1.f is when the two vectors are parallel, -0.4f just for the range 
 		if (UKismetMathLibrary::InRange_FloatFloat(DotProd, -1.f, -0.4f))
 		{
+			
 			SetActorHiddenInGame(false);
+			StaticMesh->SetHiddenInGame(false, true);
+			if (!bIsHandFacingCamera)
+			{
+				bIsHandFacingCamera = true;
+				OnLeapHandFaceCamera.Broadcast(bIsHandFacingCamera);
+			}
+
 			return true;
 		}
 	}
 
 	SetActorHiddenInGame(true);
+	StaticMesh->SetHiddenInGame(true, true);
+
+	if (bIsHandFacingCamera)
+	{
+		bIsHandFacingCamera = false;
+		OnLeapHandFaceCamera.Broadcast(bIsHandFacingCamera);
+	}
+
 	return false;
 }
 

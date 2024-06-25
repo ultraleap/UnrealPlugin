@@ -59,14 +59,14 @@ namespace UnrealBuildTool.Rules
 				new string[] {
 					// ... add public include paths required here ...
 				}
-				);
+			);
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"UltraleapTrackingEditor/Private",
 					IncludePath,
 				}
-				);
+			);
 
 			PublicDependencyModuleNames.AddRange(
 				new string[]
@@ -80,7 +80,7 @@ namespace UnrealBuildTool.Rules
 					"Slate",
 					"SlateCore",
 				}
-				);
+			);
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
@@ -90,17 +90,15 @@ namespace UnrealBuildTool.Rules
 					"AnimGraph",
 					"AnimGraphRuntime",
 					"BodyState",
-                    //"InputCore",
-
-                }
-				);
+				}
+			);
 
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[]
 				{
 					// ... add any modules that your module loads dynamically here ...
 				}
-				);
+			);
 		}
 	}
 }

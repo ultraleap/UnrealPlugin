@@ -662,6 +662,10 @@ void FOpenXRToLeapWrapper::PostLeapHandUpdate(FLeapFrameData& Frame)
 		UpdatePinchAndGrab(Hand);
 	}
 }
+void FOpenXRToLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t LeapDeviceID)
+{
+	// TODO implement this when XR is ready
+}
 IHandTrackingDevice* FOpenXRToLeapWrapper::GetDevice()
 {
 	return Device.Get();
@@ -779,7 +783,6 @@ FVector HandRadialAxis(const FLeapHandData& Hand)
 	{
 		return RightVector;
 	}
-	return FVector::ZeroVector;
 }
 /// Returns the direction towards the fingers that is perpendicular to the palmar
 /// and radial axes.

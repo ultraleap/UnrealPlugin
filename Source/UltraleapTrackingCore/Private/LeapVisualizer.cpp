@@ -30,15 +30,16 @@ ALeapVisualizer::ALeapVisualizer()
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = Root;
 
-	NSPlayerAreaBounds = LoadObject<UNiagaraSystem>(
-		nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine2/VFX/Leap_NS_PlayAreaBounds.Leap_NS_PlayAreaBounds'"));
+	NSPlayerAreaBounds = Cast<UNiagaraSystem>(StaticLoadObject(UNiagaraSystem::StaticClass(), nullptr,
+		TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_PlayAreaBounds.Leap_NS_PlayAreaBounds'")));
 	if (NSPlayerAreaBounds == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("NSPlayerAreaBounds is nullptr in ALeapVisualizer()"));
 	}
 
-	NSPTeleportRing = LoadObject<UNiagaraSystem>(
-		nullptr, TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine2/VFX/Leap_NS_TeleportRing.Leap_NS_TeleportRing'"));
+	NSPTeleportRing = Cast<UNiagaraSystem>(StaticLoadObject(UNiagaraSystem::StaticClass(), nullptr,
+		TEXT("NiagaraSystem'/UltraleapTracking/InteractionEngine/VFX/Leap_NS_TeleportRing.Leap_NS_TeleportRing'")));
+
 	if (NSPTeleportRing == nullptr)
 	{
 		UE_LOG(UltraleapTrackingLog, Error, TEXT("NSPTeleportRing is nullptr in ALeapVisualizer()"));
@@ -92,21 +93,3 @@ void ALeapVisualizer::BeginPlay()
 		return;
 	}
 }
-
-// Called every frame
-void ALeapVisualizer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-
-	// TODO do we need this ? 
-	//FVector Location =
-	//	UKismetMathLibrary::InverseTransformLocation(LeapPawn->GetActorTransform(), PlayerCameraManager->GetCameraLocation());
-	//Location = UKismetMathLibrary::NegateVector(Location);
-	//Location = FVector(Location.X, Location.Y, 0.0f);
-	//FRotator Rotation = LeapPawn->GetActorRotation();
-
-	//PlayerAreaBoundsComponent->SetRelativeLocationAndRotation(Location, Rotation);
-
-}
-

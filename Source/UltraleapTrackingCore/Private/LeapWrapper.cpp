@@ -101,6 +101,15 @@ LEAP_CONNECTION* FLeapWrapper::OpenConnection(LeapWrapperCallbackInterface* InCa
 	eLeapRS result = LeapCreateConnection(&Config, &ConnectionHandle);
 	if (result == eLeapRS_Success)
 	{
+		size_t DataSize;
+		FString JsonDataStr = FLeapUtility::GetAnalyticsData(DataSize);
+		auto ConvertedStr = StringCast<ANSICHAR>(*JsonDataStr);
+		result = LeapSetConnectionMetadata(ConnectionHandle, ConvertedStr.Get(), DataSize);
+		if (result != eLeapRS_Success)
+		{
+			UE_LOG(UltraleapTrackingLog, Error, TEXT("Failed to send analytics"));
+		}
+		
 		result = LeapOpenConnection(ConnectionHandle);
 		if (result == eLeapRS_Success)
 		{
@@ -311,7 +320,7 @@ LEAP_TRACKING_EVENT* FLeapWrapper::GetInterpolatedFrameAtTimeEx(int64 TimeStamp,
 	return currentDevice;
 }
 */
-const char* FLeapWrapper::ResultString(eLeapRS Result)
+FString FLeapWrapper::ResultString(eLeapRS Result)
 {
 	switch (Result)
 	{
@@ -433,7 +442,7 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 	eLeapRS Result = LeapOpenDevice(DeviceEvent->device, &DeviceHandle);
 	if (Result != eLeapRS_Success)
 	{
-		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), ResultString(Result));
+		UE_LOG(UltraleapTrackingLog, Warning, TEXT("Could not open device %s.\n"), *ResultString(Result));
 		return;
 	}
 	
@@ -454,7 +463,10 @@ void FLeapWrapper::HandleDeviceEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 		Result = LeapGetDeviceInfo(DeviceHandle, &DeviceProperties);
 		if (Result != eLeapRS_Success)
 		{
-			printf("Failed to get device info %s.\n", ResultString(Result));
+			FString ResStr = ResultString(Result);
+			auto ConvertedResStr = StringCast<ANSICHAR>(*ResStr);
+			const char* CharArray = ConvertedResStr.Get();
+			printf("Failed to get device info %s.\n", CharArray);
 			free(DeviceProperties.serial);
 			return;
 		}
@@ -496,7 +508,8 @@ void FLeapWrapper::HandleDeviceLostEvent(const LEAP_DEVICE_EVENT* DeviceEvent)
 							break;
 						}
 					}
-					ConnectorCallbackDelegate->OnDeviceLost(TCHAR_TO_ANSI(*DeviceSerial));
+					auto DeviceSerialConv = StringCast<ANSICHAR>(*DeviceSerial);
+					ConnectorCallbackDelegate->OnDeviceLost(DeviceSerialConv.Get());
 			}
 		});
 	}
@@ -508,16 +521,28 @@ void FLeapWrapper::AddDevice(const uint32_t DeviceID, const LEAP_DEVICE_INFO& De
 	AsyncTask(ENamedThreads::GameThread,
 		[this,DeviceInfo, DeviceID, DeviceHandle]()
 		{
+			DataLock->Lock();
 			IHandTrackingWrapper* Device = new FLeapDeviceWrapper(DeviceID, DeviceInfo, DeviceHandle, ConnectionHandle, this);
-		
+
+			if (Device == nullptr)
+			{
+				UE_LOG(UltraleapTrackingLog, Error, TEXT("Device was nullptr in FLeapWrapper::AddDevice"));
+				return;
+			}
+
 			Devices.Add(Device);
-			auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
-			MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+
+			if (DeviceHandle && ConnectionHandle)
+			{
+				auto Result = LeapSubscribeEvents(ConnectionHandle, DeviceHandle);
+				MapDeviceIDToDevice.Add(DeviceID, DeviceHandle);
+			}
 
 			NotifyDeviceAdded(Device);
+			DataLock->Unlock();
 			UE_LOG(
 				UltraleapTrackingLog, Log, TEXT("Add Device %s %d."), *(Device->GetDeviceSerial().Right(4)), Device->GetDeviceID());
-		
+
 			UE_LOG(UltraleapTrackingLog, Log, TEXT("Device Count %d."), Devices.Num());
 		
 		});
@@ -893,8 +918,8 @@ void FLeapWrapper::TickDevices(const float DeltaTime)
 	AllDevices.Append(CombinedDevices);
 	for (IHandTrackingWrapper* Device : AllDevices)
 	{
-		auto InternalDevice = Device->GetDevice();
-		if (InternalDevice)
+		IHandTrackingDevice* InternalDevice = Device->GetDevice();
+		if (InternalDevice != nullptr)
 		{
 			InternalDevice->Tick(DeltaTime);
 		}
@@ -912,7 +937,7 @@ void FLeapWrapper::TickSendControllerEventsOnDevices()
 	{
 		if (Device!=nullptr)
 		{
-			auto InternalDevice = Device->GetDevice();
+			IHandTrackingDevice* InternalDevice = Device->GetDevice();
 			if (InternalDevice)
 			{
 				InternalDevice->SendControllerEvents();
@@ -1006,4 +1031,26 @@ void FLeapWrapper::AddOpenXRDevice(LeapWrapperCallbackInterface* InCallbackDeleg
 	UE_LOG(
 		UltraleapTrackingLog, Log, TEXT("Add OpenXR Device %s %d."), *(Device->GetDeviceSerial()), Device->GetDeviceID());
 }
+
+void FLeapWrapper::SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID)
+{
+	LEAP_DEVICE DeviceHandle = GetDeviceHandleFromDeviceID(DeviceID);
+	if (!DeviceHandle)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("SetDeviceHints failed cannot find device handle"));
+	}
+	int32 Size = Hints.Num();
+	const char** CharArrayPtr;
+	FLeapUtility::ConvertFStringArrayToCharArray(Hints, &CharArrayPtr);
+	FLeapUtility::SetLastArrayElemNull(&CharArrayPtr, Size);
+
+	eLeapRS Result = LeapSetDeviceHints(ConnectionHandle, DeviceHandle, CharArrayPtr);
+	if (Result != eLeapRS_Success)
+	{
+		UE_LOG(UltraleapTrackingLog, Log, TEXT("LeapSetDeviceHints failed in FLeapWrapper::SetDeviceHints eLeapRS: %s"), *ResultString(Result));
+	}
+
+	FLeapUtility::CleanupConstCharArray(CharArrayPtr, Size);
+}
+
 #pragma endregion LeapC Wrapper

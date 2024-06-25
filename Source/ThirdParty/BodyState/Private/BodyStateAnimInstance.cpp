@@ -24,6 +24,8 @@
 #include "BodyStateUtility.h"
 #include "Kismet/KismetMathLibrary.h"
 
+
+
 #if WITH_EDITOR
 #include "Misc/MessageDialog.h"
 #include "PersonaUtils.h"
@@ -32,6 +34,11 @@
 #if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
 #include "Engine/SkinnedAsset.h"
 #endif
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "Components/SkeletalMeshComponent.h"
+#endif
+
 
 
 FMappedBoneAnimData::FMappedBoneAnimData() : BodyStateSkeleton(nullptr), ElbowLength(0.0f)

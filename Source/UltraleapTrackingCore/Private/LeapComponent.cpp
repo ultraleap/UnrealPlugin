@@ -10,6 +10,7 @@
 #include "Multileap/JointOcclusionActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "IUltraleapTrackingPlugin.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 const FString ULeapComponent::NameConstantNone = "None";
 
@@ -389,6 +390,12 @@ void ULeapComponent::OnDeviceAdded(IHandTrackingWrapper* DeviceWrapper)
 	{
 		RefreshDeviceList(true);
 	}
+#if ENGINE_MAJOR_VERSION >= 5
+	if (DeviceWrapper && DeviceWrapper->GetDeviceType() == IHandTrackingWrapper::DEVICE_TYPE_LEAP && ActiveDeviceSerial == "")
+	{
+		UpdateActiveDevice(DeviceWrapper->GetDeviceSerial());
+	}
+#endif
 }
 void ULeapComponent::OnDeviceRemoved(IHandTrackingWrapper* DeviceWrapper)
 {
@@ -470,9 +477,9 @@ EHandType ULeapComponent::FromIEHandTypeToEHandType(uint8 Type)
 }
 
 
-bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
+bool ULeapComponent::DoesCurrentGrabStrengthExceedTarget(const float GrabStrength, uint8 TargetHand)
 {
-	EHandType TmpType = FromIEHandTypeToEHandType(Type);
+	EHandType HandType = FromIEHandTypeToEHandType(TargetHand);
 	FLeapFrameData LeapFrameData;
 	GetLatestFrameData(LeapFrameData);
 	TArray<FLeapHandData> Hands = LeapFrameData.Hands;
@@ -483,7 +490,7 @@ bool ULeapComponent::CanGrabWithThreshold(const float GrabStrength, uint8 Type)
 
 	for (int32 i = 0; i < Hands.Num(); ++i)
 	{
-		switch (TmpType)
+		switch (HandType)
 		{
 			case LEAP_HAND_LEFT:
 				if (Hands[i].HandType == EHandType::LEAP_HAND_LEFT &&

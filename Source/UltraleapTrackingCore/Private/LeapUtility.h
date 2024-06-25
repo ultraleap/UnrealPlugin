@@ -43,6 +43,23 @@ public:
 
 	static void InitLeapStatics();
 	static FQuat LeapRotationOffset;
+
+	static bool ContainsNaN(const LEAP_VECTOR& LeapVector)
+	{
+		return (!FMath::IsFinite(LeapVector.x) || 
+			!FMath::IsFinite(LeapVector.y) || 
+			!FMath::IsFinite(LeapVector.z));
+	}
+
+	static void CleanupConstCharArray(const char** ConstCharArray, int32 Size);
+	static void ConvertFStringArrayToCharArray(const TArray<FString>& FStringArray, const char*** ConstCharArrayPtr);
+	static void SetLastArrayElemNull(const char*** ConstCharArrayPtr, int32 LastIdx);
+
+	/** Used to get analytics data
+	 * @param Size - outputs the size of the serialized data
+	 */
+	static FString GetAnalyticsData(size_t& Size);
+
 };
 
 class LeapUtilityTimer

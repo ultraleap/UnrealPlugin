@@ -10,6 +10,7 @@
 
 #include "IInputDeviceModule.h"
 #include "UltraleapTrackingData.h"
+#include "LeapC.h"
 
 class ULeapComponent;
 
@@ -100,7 +101,7 @@ public:
 	virtual LEAP_TRACKING_EVENT* GetInterpolatedFrameAtTimeEx(int64 TimeStamp, const uint32_t DeviceID = 0) = 0;
 	virtual LEAP_DEVICE_INFO* GetDeviceProperties() = 0;
 
-	virtual const char* ResultString(eLeapRS Result) = 0;
+	virtual FString ResultString(eLeapRS Result) = 0;
 
 	virtual void EnableImageStream(bool bEnable) = 0;
 
@@ -128,6 +129,11 @@ public:
 	virtual void CleanupBadDevice(IHandTrackingWrapper* DeviceWrapper) = 0;
 	// apply any post frame processing
 	virtual void PostLeapHandUpdate(FLeapFrameData& Frame) = 0;
+	/** Used to set device hints
+	 * @param Hints - The device hints
+	 * @param LeapDeviceID - Device ID to set the hints
+	 */
+	virtual void SetDeviceHints(TArray<FString>& Hints, const uint32_t DeviceID = 0) = 0;
 };
 class ILeapConnectorCallbacks
 {

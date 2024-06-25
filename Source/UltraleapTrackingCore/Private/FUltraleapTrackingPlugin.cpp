@@ -14,6 +14,15 @@
 #include "IInputDeviceModule.h"
 #include "Interfaces/IPluginManager.h"
 #include "Modules/ModuleManager.h"
+#include "LeapTrackingSettings.h"
+#if WITH_EDITOR
+	#include "ISettingsModule.h"
+#endif
+
+#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4)
+#include "Misc/Paths.h"
+#endif
+
 
 #define LOCTEXT_NAMESPACE "LeapPlugin"
 
@@ -55,6 +64,14 @@ void FUltraleapTrackingPlugin::StartupModule()
 	// early initialising works around device/input startup after begin play
 	TSharedPtr<FGenericApplicationMessageHandler> DummyMessageHandler(new FGenericApplicationMessageHandler());
 	CreateInputDevice(DummyMessageHandler.ToSharedRef());
+
+#if WITH_EDITOR
+	if (!IsRunningGame())
+	{
+		RegisterSettings();
+	}
+#endif
+
 }
 
 void FUltraleapTrackingPlugin::ShutdownModule()
@@ -69,6 +86,13 @@ void FUltraleapTrackingPlugin::ShutdownModule()
 
 	// Unregister our input device module
 	IModularFeatures::Get().UnregisterModularFeature(IInputDeviceModule::GetModularFeatureName(), this);
+
+#if WITH_EDITOR
+	if (!IsRunningGame())
+	{
+		UnregisterSettings();
+	}
+#endif
 }
 
 void FUltraleapTrackingPlugin::AddEventDelegate(const ULeapComponent* EventDelegate)
@@ -224,6 +248,30 @@ TSharedPtr<class IInputDevice> FUltraleapTrackingPlugin::CreateInputDevice(
 
 	return LeapInputDevice;
 }
+
+#if WITH_EDITOR
+void FUltraleapTrackingPlugin::RegisterSettings()
+{
+	// This will show the plugin settings 
+	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->RegisterSettings("Project", "Plugins", "UltraleapTracking",
+			LOCTEXT("LeapTrackingSettingsName", "UltraleapTracking"),
+			LOCTEXT("LeapTrackingSettingsDescription", "Configure the UltraleapTracking plugin"),
+			GetMutableDefault<ULeapTrackingSettings>());
+	}
+}
+
+void FUltraleapTrackingPlugin::UnregisterSettings()
+{
+	// To avoid hot-reload issues
+	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->UnregisterSettings("Project", "Plugins", "UltraleapTracking");
+	}
+}
+#endif
+
 
 IMPLEMENT_MODULE(FUltraleapTrackingPlugin, UltraleapTracking)
 
