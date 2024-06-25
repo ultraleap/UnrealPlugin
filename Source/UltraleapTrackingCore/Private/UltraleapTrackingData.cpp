@@ -219,6 +219,11 @@ void FLeapHandData::SetFromLeapHand(
 
 void FLeapHandData::SetArmPartialsFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
+
+	if (hand==nullptr)
+	{
+		return;
+	}
 	// Arm Partial
 	Arm.NextJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(hand->arm.next_joint,LeapMountTranslationOffset, LeapMountRotationOffset);
 	Arm.PrevJoint = FLeapUtility::ConvertAndScaleLeapVectorToFVectorWithHMDOffsets(
@@ -382,6 +387,10 @@ void FLeapDigitData::TranslateDigit(const FVector& InTranslation)
 void FLeapPalmData::SetFromLeapPalm(
 	struct _LEAP_PALM* palm, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset)
 {
+	if (palm == nullptr)
+	{
+		return;
+	}
 	Direction = FLeapUtility::ConvertLeapVectorToFVector(palm->direction);
 
 	Normal = FLeapUtility::ConvertLeapVectorToFVector(palm->normal);
