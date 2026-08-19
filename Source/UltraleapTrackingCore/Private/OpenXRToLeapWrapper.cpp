@@ -545,13 +545,25 @@ LEAP_TRACKING_EVENT* FOpenXRToLeapWrapper::GetFrame()
 	TArray<FVector> OutPositions[2];
 	TArray<FQuat> OutRotations[2];
 	TArray<float> OutRadii[2];
+	bool OutIsTracked[2] = {false, false};
 
 	// status only true when the hand is being tracked/visible to the tracking device
 	// these are in world space
 	//
 	// IMPORTANT: OpenXR tracking only works in VR mode, this will always return false in desktop mode
-	bool StatusLeft = HandTracker->GetAllKeypointStates(EControllerHand::Left, OutPositions[0], OutRotations[0], OutRadii[0]);
-	bool StatusRight = HandTracker->GetAllKeypointStates(EControllerHand::Right, OutPositions[1], OutRotations[1], OutRadii[1]);
+	bool StatusLeft = HandTracker->GetAllKeypointStates(
+		EControllerHand::Left,
+		OutPositions[0],
+		OutRotations[0],
+		OutRadii[0],
+		OutIsTracked[0]);
+
+	bool StatusRight = HandTracker->GetAllKeypointStates(
+		EControllerHand::Right,
+		OutPositions[1],
+		OutRotations[1],
+		OutRadii[1],
+		OutIsTracked[1]);
 
 	DummyLeapFrame.nHands = StatusLeft + StatusRight;
 	DummyLeapFrame.info.frame_id++;
