@@ -129,11 +129,11 @@ struct ULTRALEAPTRACKING_API FLeapDevice
 
 	/** A combination of eLeapDeviceStatus flags. */
 	// UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
-	int32 Status;
+	int32 Status = 0;
 
 	/** A combination of eLeapDeviceCaps flags. */
 	// UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
-	int32 Caps;
+	int32 Caps = 0;
 
 	/** One of the eLeapDevicePID members as a string. */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
@@ -146,7 +146,7 @@ struct ULTRALEAPTRACKING_API FLeapDevice
 	 * system.  For other camera systems, this value is set to zero.
 	 */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
-	int32 Baseline;
+	int32 Baseline = 0;
 
 	/** Serial number string */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Device")
@@ -154,15 +154,15 @@ struct ULTRALEAPTRACKING_API FLeapDevice
 
 	/** The horizontal field of view of this device in radians. */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
-	float HorizontalFOV;
+	float HorizontalFOV = 0;
 
 	/** The vertical field of view of this device in radians. */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
-	float VerticalFOV;
+	float VerticalFOV = 0;
 
 	/** The maximum range for this device, in micrometers. */
 	UPROPERTY(BlueprintReadOnly, Category = "Leap Stats")
-	int32 Range;
+	int32 Range = 0;
 
 	void SetFromLeapDevice(struct _LEAP_DEVICE_INFO* LeapInfo);
 };
@@ -277,16 +277,16 @@ struct ULTRALEAPTRACKING_API FLeapBoneData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
-	FVector PrevJoint;
+	FVector PrevJoint = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
-	FVector NextJoint;
+	FVector NextJoint = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
-	FRotator Rotation;
+	FRotator Rotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Bone Data")
-	float Width;
+	float Width = 0.0f;
 
 	void SetFromLeapBone(struct _LEAP_BONE* bone, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 	void ScaleBone(float Scale);
@@ -300,25 +300,25 @@ struct ULTRALEAPTRACKING_API FLeapPalmData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	FVector Direction;
+	FVector Direction = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	FVector Normal;
+	FVector Normal = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	FRotator Orientation;
+	FRotator Orientation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	FVector Position;
+	FVector Position = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	FVector StabilizedPosition;
+	FVector StabilizedPosition = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	FVector Velocity;
+	FVector Velocity = FVector::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Palm Data")
-	float Width;
+	float Width = 0.0f;
 
 	void SetFromLeapPalm(struct _LEAP_PALM* palm, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
 	void ScalePalm(float Scale);
@@ -338,13 +338,13 @@ struct ULTRALEAPTRACKING_API FLeapDigitData
 	FLeapBoneData Distal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
-	int32 FingerId;
+	int32 FingerId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
 	FLeapBoneData Intermediate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
-	bool IsExtended;
+	bool IsExtended = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Digit Data")
 	FLeapBoneData Metacarpal;
@@ -368,22 +368,22 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	FLeapBoneData Arm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	float Confidence;
+	float Confidence = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
 	TArray<FLeapDigitData> Digits;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	int32 Flags;
+	int32 Flags = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	float GrabAngle;
+	float GrabAngle = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	float GrabStrength;
+	float GrabStrength = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	TEnumAsByte<EHandType> HandType;
+	TEnumAsByte<EHandType> HandType = LEAP_HAND_LEFT;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
 	FLeapDigitData Index;
@@ -395,10 +395,10 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	FLeapPalmData Palm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	float PinchDistance;
+	float PinchDistance = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	float PinchStrength;
+	float PinchStrength = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
 	FLeapDigitData Pinky;
@@ -410,10 +410,10 @@ struct ULTRALEAPTRACKING_API FLeapHandData
 	FLeapDigitData Thumb;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	int32 Id;
+	int32 Id = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Leap Hand Data")
-	float VisibleTime;
+	float VisibleTime = 0.0f;
 
 	/** Copy all data from leap type*/
 	void SetFromLeapHand(struct _LEAP_HAND* hand, const FVector& LeapMountTranslationOffset, const FQuat& LeapMountRotationOffset);
@@ -436,29 +436,29 @@ struct ULTRALEAPTRACKING_API FLeapFrameData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
-	int32 NumberOfHandsVisible;
+	int32 NumberOfHandsVisible = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
-	int32 FrameRate;
+	int32 FrameRate = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
 	TArray<FLeapHandData> Hands;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
-	int32 FrameId;
+	int32 FrameId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
-	bool LeftHandVisible;
+	bool LeftHandVisible = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultraleap Tracking Data")
-	bool RightHandVisible;
+	bool RightHandVisible = false;
 
 	// int64 not supported by blueprint, so this will only be accessible inside c++
 	UPROPERTY()
-	int64 TimeStamp;
+	int64 TimeStamp = 0;
 
 	UPROPERTY()
-	FRotator FinalRotationAdjustment;
+	FRotator FinalRotationAdjustment = FRotator::ZeroRotator;
 
 	FLeapHandData HandForId(int32 HandId);
 

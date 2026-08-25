@@ -22,6 +22,7 @@
 
 #include "AnimationRuntime.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Runtime/Engine/Public/Animation/AnimInstanceProxy.h"
 #include "Skeleton/BodyStateArm.h"
 #include "Runtime/Launch/Resources/Version.h"
@@ -386,8 +387,23 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 				continue;
 			}
 
-			FCompactPoseBoneIndex CompactPoseBoneToModify = CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
-			FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+			FCompactPoseBoneIndex CompactPoseBoneToModify =
+				CachedBone.MeshBone.GetCompactPoseIndex(BoneContainer);
+
+			if (!CompactPoseBoneToModify.IsValid())
+			{
+				UE_LOG(
+					LogTemp,
+					Warning,
+					TEXT("Ultraleap: invalid CompactPoseBoneIndex for bone %s"),
+					*CachedBone.MeshBone.BoneName.ToString()
+				);
+
+				continue;
+			}
+
+			FTransform NewBoneTM =
+				Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
 
 			if (&CachedBone == WristCachedBone)
 			{
@@ -424,15 +440,45 @@ void FAnimNode_ModifyBodyStateMappedBones::EvaluateComponentPose_AnyThread(FComp
 
 		if (ArmOrWrist)
 		{
-			// after mapping the leap data, apply auto correct rotation to the wrist
-			FCompactPoseBoneIndex CompactPoseBoneToModify = ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer);
-			FTransform NewBoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+			FCompactPoseBoneIndex CompactPoseBoneToModify =
+				ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer);
 
-			ApplyAutoCorrectRotation(WristBeforeMapping, ArmOrWrist->BSBone->BoneData.Transform, NewBoneTM, MappedBoneAnimData);
+			if (!CompactPoseBoneToModify.IsValid())
+			{
+				UE_LOG(
+					LogTemp,
+					Warning,
+					TEXT("Ultraleap: invalid ArmOrWrist CompactPoseBoneIndex for bone %s"),
+					*ArmOrWrist->MeshBone.BoneName.ToString()
+				);
+
+				continue;
+			}
+
+			// after mapping the leap data, apply auto correct rotation to the wrist
+			FTransform NewBoneTM =
+				Output.Pose.GetComponentSpaceTransform(CompactPoseBoneToModify);
+
+			ApplyAutoCorrectRotation(
+				WristBeforeMapping,
+				ArmOrWrist->BSBone->BoneData.Transform,
+				NewBoneTM,
+				MappedBoneAnimData
+			);
+
 			// Set the transform back into the anim system
 			TArray<FBoneTransform> TempTransform;
-			TempTransform.Add(FBoneTransform(ArmOrWrist->MeshBone.GetCompactPoseIndex(BoneContainer), NewBoneTM));
-			Output.Pose.LocalBlendCSBoneTransforms(TempTransform, BlendWeight);
+			TempTransform.Add(
+				FBoneTransform(
+					CompactPoseBoneToModify,
+					NewBoneTM
+				)
+			);
+
+			Output.Pose.LocalBlendCSBoneTransforms(
+				TempTransform,
+				BlendWeight
+			);
 		}
 	}
 }
