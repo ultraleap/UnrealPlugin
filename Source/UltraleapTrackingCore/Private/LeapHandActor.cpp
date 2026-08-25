@@ -30,10 +30,10 @@ ALeapHandActor::ALeapHandActor()
 
 	//Definition for the Mesh that will serve as our visual representation.
     static ConstructorHelpers::FObjectFinder<UStaticMesh> DefaultMesh(TEXT("StaticMesh'/Engine/VREditor/TransformGizmo/StartRotationHandleIndicator.StartRotationHandleIndicator'"));
-    StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JumpGem"));
-	if (StaticMesh!=nullptr)
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JumpGem"));
+	if (StaticMesh != nullptr)
 	{
-		StaticMesh->SetupAttachment(RootComponent);
+		SetRootComponent(StaticMesh);
 	}
 	UMaterialInstanceDynamic* LeapDynMaterial = nullptr;
 	UMaterial* MaterialBase = LoadObject<UMaterial>(nullptr, TEXT("/UltraleapTracking/InteractionEngine/Materials/IE2_Materials/Diamond_Mat.Diamond_Mat"));

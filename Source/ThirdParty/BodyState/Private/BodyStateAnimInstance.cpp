@@ -1400,8 +1400,6 @@ void FMappedBoneAnimData::SyncCachedList(const USkeleton* LinkedSkeleton)
 		// return One.TraverseCount < Two.TraverseCount;
 		return One.MeshBone.BoneIndex < Two.MeshBone.BoneIndex;
 	});
-
-	UE_LOG(LogTemp, Log, TEXT("Bone cache synced: %d"), CachedBoneList.Num());
 }
 
 bool FMappedBoneAnimData::BoneHasValidTags(const UBodyStateBone* QueryBone)
